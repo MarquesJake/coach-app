@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial;
+
+    /* ── Background layers ── */
+    --background: #0b0d14;
+    --background-subtle: #0f1119;
+
+    /* ── Surface elevation system ── */
+    --surface: #13151e;
+    --surface-raised: #181b27;
+    --surface-overlay: #1d2030;
+
+    /* ── Foreground ── */
+    --foreground: #e8eaf0;
+    --foreground-muted: #7a8194;
+
+    /* ── Card ── */
+    --card: #13151e;
+    --card-foreground: #e8eaf0;
+
+    /* ── Primary (emerald) ── */
+    --primary: #10b981;
+    --primary-foreground: #ffffff;
+
+    /* ── Secondary ── */
+    --secondary: #1d2030;
+    --secondary-foreground: #e8eaf0;
+
+    /* ── Muted ── */
+    --muted: #1d2030;
+    --muted-foreground: #7a8194;
+
+    /* ── Accent ── */
+    --accent: #1d2030;
+    --accent-foreground: #e8eaf0;
+
+    /* ── Destructive ── */
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    /* ── Border ── */
+    --border: #1f2334;
+    --border-subtle: #181b27;
+    --input: #1f2334;
+    --ring: #10b981;
+
+    /* ── Popover ── */
+    --popover: #13151e;
+    --popover-foreground: #e8eaf0;
+
+    /* ── Shadows ── */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+    /* ── Radius ── */
+    --radius: 0.5rem;
+
+    /* ── Semantic status colours ── */
+    --status-success: #10b981;
+    --status-warning: #f59e0b;
+    --status-danger: #ef4444;
+    --status-info: #3b82f6;
+
+    /* ── Nav ── */
+    --nav-height: 56px;
+    --tab-height: 44px;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    min-height: 100vh;
+  }
+}
+
+/* ── Card elevation classes ── */
+.card-surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.card-raised {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-inset {
+  background: var(--background-subtle);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ── Score bar animation ── */
+.score-bar-track {
+  animation: score-fill 0.8s ease-out;
+}
+
+@keyframes score-fill {
+  from { width: 0%; }
+}
+
+/* ── Timeline connector ── */
+.timeline-connector {
+  position: relative;
+}
+
+.timeline-connector::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 24px;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+
+/* ── Form select dark styling ── */
+select option {
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
