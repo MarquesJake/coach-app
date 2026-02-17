@@ -2,6 +2,8 @@
 
 create extension if not exists "pgcrypto";
 
+create extension if not exists "uuid-ossp";
+
 alter table public.coaches
   add column if not exists placement_score integer,
   add column if not exists board_compatibility integer,
