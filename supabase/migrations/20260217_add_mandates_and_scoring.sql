@@ -1,6 +1,6 @@
 -- Add mandate workflow tables, coach scoring columns, and user-scoped RLS.
 
-create extension if not exists "uuid-ossp";
+create extension if not exists "pgcrypto";
 
 alter table public.coaches
   add column if not exists placement_score integer,
@@ -56,7 +56,7 @@ end $$;
 alter table public.coach_updates alter column occurred_at set default now();
 
 create table if not exists public.mandates (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   club_id uuid not null references public.clubs(id) on delete cascade,
   status text not null,
@@ -82,7 +82,7 @@ create index if not exists mandates_club_id_idx on public.mandates (club_id);
 create index if not exists mandates_target_completion_idx on public.mandates (target_completion_date);
 
 create table if not exists public.mandate_shortlist (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   mandate_id uuid not null references public.mandates(id) on delete cascade,
   coach_id uuid not null references public.coaches(id) on delete cascade,
   placement_probability integer not null,
@@ -99,7 +99,7 @@ create index if not exists mandate_shortlist_mandate_id_idx on public.mandate_sh
 create index if not exists mandate_shortlist_coach_id_idx on public.mandate_shortlist (coach_id);
 
 create table if not exists public.mandate_deliverables (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   mandate_id uuid not null references public.mandates(id) on delete cascade,
   item text not null,
   due_date date not null,
