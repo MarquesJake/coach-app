@@ -117,11 +117,13 @@ alter table public.mandates enable row level security;
 alter table public.mandate_shortlist enable row level security;
 alter table public.mandate_deliverables enable row level security;
 
-create policy if not exists "Users can view own mandates"
+drop policy if exists "Users can view own mandates" on public.mandates;
+create policy "Users can view own mandates"
   on public.mandates for select
   using (auth.uid() = user_id);
 
-create policy if not exists "Users can insert own mandates"
+drop policy if exists "Users can insert own mandates" on public.mandates;
+create policy "Users can insert own mandates"
   on public.mandates for insert
   with check (
     auth.uid() = user_id
@@ -133,7 +135,8 @@ create policy if not exists "Users can insert own mandates"
     )
   );
 
-create policy if not exists "Users can update own mandates"
+drop policy if exists "Users can update own mandates" on public.mandates;
+create policy "Users can update own mandates"
   on public.mandates for update
   using (auth.uid() = user_id)
   with check (
@@ -146,11 +149,13 @@ create policy if not exists "Users can update own mandates"
     )
   );
 
-create policy if not exists "Users can delete own mandates"
+drop policy if exists "Users can delete own mandates" on public.mandates;
+create policy "Users can delete own mandates"
   on public.mandates for delete
   using (auth.uid() = user_id);
 
-create policy if not exists "Users can view shortlist for own mandates"
+drop policy if exists "Users can view shortlist for own mandates" on public.mandate_shortlist;
+create policy "Users can view shortlist for own mandates"
   on public.mandate_shortlist for select
   using (
     exists (
@@ -161,7 +166,8 @@ create policy if not exists "Users can view shortlist for own mandates"
     )
   );
 
-create policy if not exists "Users can insert shortlist for own mandates"
+drop policy if exists "Users can insert shortlist for own mandates" on public.mandate_shortlist;
+create policy "Users can insert shortlist for own mandates"
   on public.mandate_shortlist for insert
   with check (
     exists (
@@ -172,7 +178,8 @@ create policy if not exists "Users can insert shortlist for own mandates"
     )
   );
 
-create policy if not exists "Users can update shortlist for own mandates"
+drop policy if exists "Users can update shortlist for own mandates" on public.mandate_shortlist;
+create policy "Users can update shortlist for own mandates"
   on public.mandate_shortlist for update
   using (
     exists (
@@ -191,7 +198,8 @@ create policy if not exists "Users can update shortlist for own mandates"
     )
   );
 
-create policy if not exists "Users can delete shortlist for own mandates"
+drop policy if exists "Users can delete shortlist for own mandates" on public.mandate_shortlist;
+create policy "Users can delete shortlist for own mandates"
   on public.mandate_shortlist for delete
   using (
     exists (
@@ -202,7 +210,8 @@ create policy if not exists "Users can delete shortlist for own mandates"
     )
   );
 
-create policy if not exists "Users can view deliverables for own mandates"
+drop policy if exists "Users can view deliverables for own mandates" on public.mandate_deliverables;
+create policy "Users can view deliverables for own mandates"
   on public.mandate_deliverables for select
   using (
     exists (
@@ -213,7 +222,8 @@ create policy if not exists "Users can view deliverables for own mandates"
     )
   );
 
-create policy if not exists "Users can insert deliverables for own mandates"
+drop policy if exists "Users can insert deliverables for own mandates" on public.mandate_deliverables;
+create policy "Users can insert deliverables for own mandates"
   on public.mandate_deliverables for insert
   with check (
     exists (
@@ -224,7 +234,8 @@ create policy if not exists "Users can insert deliverables for own mandates"
     )
   );
 
-create policy if not exists "Users can update deliverables for own mandates"
+drop policy if exists "Users can update deliverables for own mandates" on public.mandate_deliverables;
+create policy "Users can update deliverables for own mandates"
   on public.mandate_deliverables for update
   using (
     exists (
@@ -243,7 +254,8 @@ create policy if not exists "Users can update deliverables for own mandates"
     )
   );
 
-create policy if not exists "Users can delete deliverables for own mandates"
+drop policy if exists "Users can delete deliverables for own mandates" on public.mandate_deliverables;
+create policy "Users can delete deliverables for own mandates"
   on public.mandate_deliverables for delete
   using (
     exists (
