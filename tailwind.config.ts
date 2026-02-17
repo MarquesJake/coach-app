@@ -12,11 +12,11 @@ const config: Config = {
       colors: {
         background: {
           DEFAULT: "var(--background)",
-          subtle: "var(--background-subtle)",
+          subtle: "var(--background-subtle, var(--background))",
         },
         foreground: {
           DEFAULT: "var(--foreground)",
-          muted: "var(--foreground-muted)",
+          muted: "var(--foreground-muted, var(--muted-foreground))",
         },
         card: {
           DEFAULT: "var(--card)",
@@ -48,14 +48,21 @@ const config: Config = {
         },
         border: {
           DEFAULT: "var(--border)",
-          subtle: "var(--border-subtle)",
+          subtle: "var(--border-subtle, var(--border))",
+          light: "var(--light-border)",
         },
         input: "var(--input)",
         ring: "var(--ring)",
         surface: {
           DEFAULT: "var(--surface)",
-          raised: "var(--surface-raised)",
-          overlay: "var(--surface-overlay)",
+          raised: "var(--surface-raised, var(--surface))",
+          overlay: "var(--surface-overlay, var(--surface))",
+        },
+        light: {
+          DEFAULT: "var(--light-surface)",
+          hover: "var(--light-surface-hover, var(--light-surface))",
+          fg: "var(--light-foreground, var(--foreground))",
+          muted: "var(--light-foreground-muted, var(--muted-foreground))",
         },
         score: {
           excellent: "#10b981",
@@ -68,10 +75,11 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "var(--radius-lg)",
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "Inter", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       },
       fontSize: {
         "2xs": ["0.625rem", { lineHeight: "0.875rem" }],

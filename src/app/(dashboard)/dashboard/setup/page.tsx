@@ -46,9 +46,9 @@ export default function SetupPage() {
     }
 
     // Refresh server state so the layout guard recognises the new club,
-    // then redirect to the dashboard overview.
+    // then redirect to the dashboard overview (stable destination).
     router.refresh()
-    router.push('/dashboard')
+    router.push('/dashboard/overview')
   }
 
   return (

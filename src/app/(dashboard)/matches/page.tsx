@@ -1,8 +1,8 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Vacancy, MatchWithCoach } from '@/lib/types/database'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -10,13 +10,16 @@ import { Badge } from '@/components/ui/badge'
 import { MetricCard } from '@/components/ui/metric-card'
 import { PageHeader } from '@/components/ui/page-header'
 import {
-  ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Users,
   Target,
-  DollarSign,
-  CalendarCheck,
-  Package,
+  SlidersHorizontal,
+  Briefcase,
+  Loader2,
+  Clock,
+  AlertCircle,
+  FileText,
 } from 'lucide-react'
 
 export default function MatchesPage() {
@@ -41,7 +44,9 @@ function MatchesContent() {
   const [matches, setMatches] = useState<MatchWithCoach[]>([])
   const [selectedVacancy, setSelectedVacancy] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const briefRef = useRef<HTMLDivElement | null>(null)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -66,8 +71,10 @@ function MatchesContent() {
         const vacancyParam = searchParams.get('vacancy')
         if (vacancyParam) {
           setSelectedVacancy(vacancyParam)
-        } else if (vacs && vacs.length > 0) {
-          setSelectedVacancy(vacs[0].id)
+        }
+        // Only auto-select first vacancy if no query param and nothing already selected
+        else if (!vacancyParam && vacs && vacs.length > 0) {
+          setSelectedVacancy((prev) => prev || vacs[0].id)
         }
       }
       setLoading(false)
@@ -91,15 +98,18 @@ function MatchesContent() {
 
   const currentVacancy = vacancies.find(v => v.id === selectedVacancy)
 
-  const immediatelyAvailable = matches.filter(
-    m => m.coaches.available_status === 'Available' || m.coaches.available_status === 'Open to offers'
-  ).length
-  const compensationFree = matches.filter(
-    m => m.coaches.available_status === 'Available'
-  ).length
-  const staffPackageReady = matches.filter(
-    m => m.coaches.staff_cost_estimate !== 'N/A' && m.coaches.staff_cost_estimate !== ''
-  ).length
+  useEffect(() => {
+    if (!selectedVacancy) return
+    if (!briefRef.current) return
+
+    // Allow the UI to render before scrolling
+    const t = window.setTimeout(() => {
+      briefRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+
+    return () => window.clearTimeout(t)
+  }, [selectedVacancy])
+
 
   if (loading) {
     return (
@@ -112,206 +122,360 @@ function MatchesContent() {
     )
   }
 
+  const activeCount = vacancies.filter((v) => v.status === 'open').length
+  const inProgressCount = vacancies.filter((v) => v.status !== 'open').length
+
   return (
     <div className="animate-fade-in">
-      <PageHeader title="Match Results" subtitle="Ranked candidates for current vacancy">
-        {vacancies.length > 0 && (
-          <div className="relative">
-            <select
-              value={selectedVacancy}
-              onChange={(e) => setSelectedVacancy(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 bg-surface border border-border rounded-md text-xs text-foreground font-medium focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 cursor-pointer min-w-[240px]"
-            >
-              {vacancies.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.role_type} — {v.objective}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          </div>
-        )}
-        <Link
-          href="/vacancies/new"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-medium text-xs rounded-md hover:bg-primary/90 transition-colors"
-        >
-          <Target className="w-3.5 h-3.5" />
-          New Search
-        </Link>
-      </PageHeader>
-
-      {/* Current Vacancy Parameters */}
-      {currentVacancy && (
-        <div className="card-surface rounded-lg mb-5">
-          <div className="px-5 py-3 border-b border-border/50">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">
-              Current Vacancy Parameters
-            </span>
-          </div>
-          <div className="grid grid-cols-4 divide-x divide-border/30">
-            <ParamCell label="Objective" value={currentVacancy.objective} />
-            <ParamCell label="Timeline" value={currentVacancy.timeline} />
-            <ParamCell label="Budget" value={currentVacancy.budget_range} />
-            <ParamCell label="League Level" value={currentVacancy.league_experience_required ? 'Required' : 'Not Required'} />
-          </div>
-        </div>
-      )}
-
-      {/* Operational Stat Cards */}
-      {matches.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          <MetricCard
-            icon={<CalendarCheck className="w-4 h-4" />}
-            label="Immediate Availability"
-            value={immediatelyAvailable}
-            subtitle="Can start within 7 days"
-            accentColor="text-emerald-400"
-          />
-          <MetricCard
-            icon={<DollarSign className="w-4 h-4" />}
-            label="Compensation Free"
-            value={compensationFree}
-            subtitle="No buyout required"
-            accentColor="text-sky-400"
-          />
-          <MetricCard
-            icon={<Package className="w-4 h-4" />}
-            label="Staff Package Ready"
-            value={staffPackageReady}
-            subtitle="Brings complete backroom team"
-            accentColor="text-amber-400"
-          />
-        </div>
-      )}
-
-      {/* Empty State */}
-      {matches.length === 0 ? (
-        <div className="card-surface rounded-lg text-center py-16">
-          <Users className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground mb-1">
-            {vacancies.length === 0
-              ? 'No vacancies created yet.'
-              : 'No match results for this vacancy.'}
-          </p>
+      <PageHeader title="Active Mandates" subtitle="Client engagements and placement projects">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-4 h-9 bg-surface border border-border rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-overlay/30 transition-colors"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            Filter
+          </button>
           <Link
             href="/vacancies/new"
-            className="text-xs text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1 mt-2"
+            className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Create a vacancy to generate matches
-            <ChevronRight className="w-3 h-3" />
+            <Target className="w-3.5 h-3.5" />
+            New Search
           </Link>
         </div>
-      ) : (
-        /* Ranked Shortlist Table */
-        <div className="card-surface rounded-lg overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-border/50">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">
-                Ranked Shortlist
-              </span>
-              <Badge variant="secondary">{matches.length}</Badge>
+      </PageHeader>
+
+      {/* Metric cards — Figma style */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <MetricCard
+          icon={<Briefcase className="w-3.5 h-3.5" />}
+          label="Total mandates"
+          value={vacancies.length}
+          subtitle="All engagements"
+        />
+        <MetricCard
+          icon={<Loader2 className="w-3.5 h-3.5" />}
+          label="Active"
+          value={activeCount}
+          subtitle="Open searches"
+          accentColor="text-emerald-400"
+        />
+        <MetricCard
+          icon={<Clock className="w-3.5 h-3.5" />}
+          label="In progress"
+          value={inProgressCount}
+          subtitle="Placement phase"
+        />
+        <MetricCard
+          icon={<AlertCircle className="w-3.5 h-3.5 text-destructive/80" />}
+          label="High priority"
+          value={activeCount}
+          subtitle="Urgent"
+          accentColor="text-destructive"
+        />
+      </div>
+
+      {/* Mandates table — full width briefing panel (dark) */}
+      <div className="card-surface rounded-xl overflow-hidden mb-8">
+        <div className="grid grid-cols-[1fr_80px_90px_90px_100px_100px_1fr_72px] px-5 py-2.5 border-b border-border items-center min-w-0">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Club</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">League</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Status</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Priority</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Target date</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Shortlist</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Budget band</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground text-right">Action</span>
+        </div>
+        <div className="divide-y divide-border/50">
+          {vacancies.length === 0 ? (
+            <div className="py-12 px-5 text-center">
+              <Briefcase className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground mb-1">No mandates yet</p>
+              <Link
+                href="/vacancies/new"
+                className="text-xs text-primary hover:text-primary/80 transition-colors inline-flex items-center gap-1 mt-2"
+              >
+                Create a vacancy to add your first mandate
+                <ChevronRight className="w-3 h-3" />
+              </Link>
             </div>
-            <span className="text-[10px] text-muted-foreground/40">
-              Sorted by composite score
-            </span>
-          </div>
+          ) : (
+            vacancies.map((v) => (
+              <Link
+                key={v.id}
+                href={`/matches?vacancy=${v.id}#brief`}
+                aria-current={v.id === selectedVacancy ? 'page' : undefined}
+                onClick={(e) => {
+                  e.preventDefault()
 
-          {/* Table Header */}
-          <div className="grid grid-cols-[48px_1fr_110px_120px_130px_90px_80px_80px_56px] px-5 py-2.5 border-b border-border/50 bg-background-subtle/50 items-center">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Rank</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Coach</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">League</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Contract Status</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Compensation</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Overall Fit</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Tactical</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Status</span>
-            <span />
-          </div>
+                  // Make the UI react immediately.
+                  setSelectedVacancy(v.id)
 
-          {/* Table Rows */}
-          <div className="divide-y divide-border/30">
-            {matches.map((match, index) => {
-              const coach = match.coaches
-              const compensation = getCompensationInfo(coach.available_status, match.financial_fit_score)
-              const statusBadge = getStatusBadge(coach.available_status)
-              const overallColor = getScoreColorClass(match.overall_score)
-              const tacticalColor = getScoreColorClass(match.tactical_fit_score)
+                  // Push the URL (including hash) so the page can be shared / refreshed.
+                  router.push(`/matches?vacancy=${v.id}#brief`)
 
-              return (
-                <div
-                  key={match.id}
-                  className="grid grid-cols-[48px_1fr_110px_120px_130px_90px_80px_80px_56px] px-5 py-3 items-center hover:bg-surface-overlay/30 transition-colors group animate-fade-in"
-                  style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
-                >
-                  <span className={cn(
-                    'text-sm font-bold tabular-nums',
-                    index === 0 ? 'text-emerald-400' : index < 3 ? 'text-foreground' : 'text-muted-foreground'
-                  )}>
-                    {index + 1}
+                  // Scroll straight away (don’t rely on hash timing).
+                  window.setTimeout(() => {
+                    briefRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }, 50)
+                }}
+                className={cn(
+                  'grid grid-cols-[1fr_80px_90px_90px_100px_100px_1fr_72px] px-5 py-3.5 items-center min-w-0 transition-colors',
+                  v.id === selectedVacancy
+                    ? 'bg-surface-overlay/30 outline outline-1 outline-primary/20'
+                    : 'hover:bg-surface-overlay/30'
+                )}
+              >
+                <span className="text-sm text-foreground truncate">—</span>
+                <span className="text-2xs text-muted-foreground truncate">—</span>
+                <div>
+                  <Badge variant={v.status === 'open' ? 'success' : 'warning'}>
+                    {v.status === 'open' ? 'Active' : 'In progress'}
+                  </Badge>
+                </div>
+                <div>
+                  <Badge variant={v.status === 'open' ? 'danger' : 'outline'}>
+                    {v.status === 'open' ? 'High' : 'Medium'}
+                  </Badge>
+                </div>
+                <span className="text-2xs text-muted-foreground tabular-nums">{v.timeline || '—'}</span>
+                <span className="text-2xs text-muted-foreground">3 candidates</span>
+                <span className="text-2xs text-muted-foreground truncate">{v.budget_range || '—'}</span>
+                <div className="flex justify-end">
+                  <span className="text-2xs font-medium text-primary inline-flex items-center gap-0.5">
+                    View
+                    <ChevronRight className="w-3 h-3" />
                   </span>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+      </div>
 
-                  <div className="min-w-0">
-                    <span className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors truncate block">
-                      {coach.name}
-                    </span>
-                    <span className="text-2xs text-muted-foreground truncate block">
-                      {coach.current_role}{coach.current_club ? ` · ${coach.current_club}` : ''}
-                    </span>
-                  </div>
+      {/* Mandate briefing (when ?vacancy= selected) — Figma mandate briefing screen */}
+      {currentVacancy && (
+        <>
+          {/* A) Top briefing header */}
+          <div ref={briefRef} id="brief" className="card-surface rounded-xl overflow-hidden mb-6">
+            <div className="px-5 py-4 flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <Link
+                  href="/matches"
+                  className="inline-flex items-center gap-1.5 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  Back to Mandates
+                </Link>
+                <h2 className="text-lg font-semibold text-foreground tracking-tight">
+                  Mandate Brief
+                </h2>
+                <div className="flex items-center gap-2 flex-wrap mt-2">
+                  <Badge variant={currentVacancy.status === 'open' ? 'success' : 'warning'}>
+                    {currentVacancy.status === 'open' ? 'Active' : 'In progress'}
+                  </Badge>
+                  <Badge variant={currentVacancy.status === 'open' ? 'danger' : 'outline'}>
+                    {currentVacancy.status === 'open' ? 'High' : 'Medium'}
+                  </Badge>
+                  <Badge variant="outline">Board only</Badge>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                Generate Executive Brief
+              </button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 divide-x divide-border/50 border-t border-border/50">
+              <div className="px-5 py-3">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground block mb-1">Target completion</span>
+                <span className="text-sm text-foreground">{currentVacancy.timeline || '—'}</span>
+              </div>
+              <div className="px-5 py-3">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground block mb-1">Shortlist</span>
+                <span className="text-sm text-foreground tabular-nums">{matches.length} candidates</span>
+              </div>
+              <div className="px-5 py-3">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground block mb-1">Board risk appetite</span>
+                <span className="text-sm text-muted-foreground">—</span>
+              </div>
+              <div className="px-5 py-3">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground block mb-1">Key stakeholders</span>
+                <span className="text-sm text-muted-foreground">—</span>
+              </div>
+            </div>
+          </div>
 
+          {/* B) Two column grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Left column */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Club overview */}
+              <div className="card-surface rounded-xl overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-border/50">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">Club overview</h3>
+                </div>
+                <div className="p-5 space-y-4">
                   <div>
-                    <span className="text-2xs text-muted-foreground">
-                      {coach.league_experience.length > 0 ? coach.league_experience[0] : '—'}
-                    </span>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground block mb-1">Ownership structure</span>
+                    <span className="text-sm text-muted-foreground">—</span>
                   </div>
-
                   <div>
-                    <span className="text-2xs text-muted-foreground">
-                      {getContractStatus(coach.available_status)}
-                    </span>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground block mb-1">Strategic objective</span>
+                    <span className="text-sm text-foreground">{currentVacancy.objective || '—'}</span>
                   </div>
-
                   <div>
-                    <span className={cn('text-2xs font-medium', compensation.color)}>
-                      {compensation.label}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className={cn('text-xs font-semibold tabular-nums', overallColor)}>
-                      {match.overall_score}
-                    </span>
-                    <MiniBar score={match.overall_score} />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className={cn('text-xs font-semibold tabular-nums', tacticalColor)}>
-                      {match.tactical_fit_score}
-                    </span>
-                    <MiniBar score={match.tactical_fit_score} />
-                  </div>
-
-                  <div>
-                    <Badge variant={statusBadge.variant as 'success' | 'warning' | 'danger' | 'outline'}>
-                      {statusBadge.label}
-                    </Badge>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Link
-                      href={`/coaches/${match.coach_id}`}
-                      className="text-2xs text-muted-foreground/50 hover:text-primary transition-colors inline-flex items-center gap-0.5 group-hover:text-primary/60"
-                    >
-                      View
-                      <ChevronRight className="w-3 h-3" />
-                    </Link>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground block mb-1">Succession timeline</span>
+                    <span className="text-sm text-foreground">{currentVacancy.timeline || '—'}</span>
                   </div>
                 </div>
-              )
-            })}
+              </div>
+
+              {/* Budget band */}
+              <div className="card-surface rounded-xl overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-border/50">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">Budget band</h3>
+                </div>
+                <div className="px-5 py-4">
+                  <span className="text-sm font-medium text-foreground">{currentVacancy.budget_range || '—'}</span>
+                </div>
+              </div>
+
+              {/* Ranked shortlist */}
+              <div className="card-surface rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/50">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">Ranked shortlist</h3>
+                  <span className="text-2xs text-muted-foreground tabular-nums">{matches.length} candidates</span>
+                </div>
+                {matches.length === 0 ? (
+                  <div className="py-12 px-5 text-center">
+                    <Users className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
+                    <p className="text-sm text-muted-foreground">No match results for this vacancy.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-[48px_1fr_110px_120px_130px_90px_80px_80px_56px] px-5 py-2.5 border-b border-border/50 items-center">
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Rank</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Coach</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">League</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Contract</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Compensation</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Overall</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Tactical</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Status</span>
+                      <span />
+                    </div>
+                    <div className="divide-y divide-border/50">
+                      {matches.map((match, index) => {
+                        const coach = match.coaches
+                        const compensation = getCompensationInfo(coach.available_status, match.financial_fit_score)
+                        const statusBadge = getStatusBadge(coach.available_status)
+                        const overallColor = getScoreColorClass(match.overall_score)
+                        const tacticalColor = getScoreColorClass(match.tactical_fit_score)
+                        return (
+                          <div
+                            key={match.id}
+                            className="grid grid-cols-[48px_1fr_110px_120px_130px_90px_80px_80px_56px] px-5 py-3.5 items-center hover:bg-surface-overlay/30 transition-colors"
+                          >
+                            <span className={cn('text-sm font-bold tabular-nums', index < 3 ? 'text-foreground' : 'text-muted-foreground/70')}>
+                              {index + 1}
+                            </span>
+                            <div className="min-w-0">
+                              <Link href={`/coaches/${match.coach_id}`} className="text-[13px] font-medium text-foreground hover:text-primary transition-colors truncate block">
+                                {coach.name}
+                              </Link>
+                              <span className="text-2xs text-muted-foreground truncate block">
+                                {coach.current_role}{coach.current_club ? ` · ${coach.current_club}` : ''}
+                              </span>
+                            </div>
+                            <span className="text-2xs text-muted-foreground">
+                              {coach.league_experience?.length > 0 ? coach.league_experience[0] : '—'}
+                            </span>
+                            <span className="text-2xs text-muted-foreground">{getContractStatus(coach.available_status)}</span>
+                            <span className={cn('text-2xs font-medium', compensation.color)}>{compensation.label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={cn('text-xs font-semibold tabular-nums', overallColor)}>{match.overall_score}</span>
+                              <MiniBar score={match.overall_score} />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={cn('text-xs font-semibold tabular-nums', tacticalColor)}>{match.tactical_fit_score}</span>
+                              <MiniBar score={match.tactical_fit_score} />
+                            </div>
+                            <Badge variant={statusBadge.variant as 'success' | 'warning' | 'danger' | 'outline'}>
+                              {statusBadge.label}
+                            </Badge>
+                            <div className="flex justify-end">
+                              <Link href={`/coaches/${match.coach_id}`} className="text-2xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-0.5">
+                                View
+                                <ChevronRight className="w-3 h-3" />
+                              </Link>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Right column */}
+            <div className="space-y-6">
+              {/* Key stakeholders */}
+              <div className="card-surface rounded-xl overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-border/50">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">Key stakeholders</h3>
+                </div>
+                <ul className="p-5 divide-y divide-border/50">
+                  <li className="py-2.5 text-sm text-muted-foreground first:pt-0">Director of Football</li>
+                  <li className="py-2.5 text-sm text-muted-foreground">Chief Executive</li>
+                  <li className="py-2.5 text-sm text-muted-foreground last:pb-0">Ownership representative</li>
+                </ul>
+              </div>
+
+              {/* Deliverables */}
+              <div className="card-surface rounded-xl overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-border/50">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">Deliverables</h3>
+                </div>
+                <ul className="p-5 divide-y divide-border/50">
+                  <li className="flex items-center justify-between gap-3 py-3 first:pt-0">
+                    <span className="text-sm text-foreground">Initial shortlist</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="success">Done</Badge>
+                      <span className="text-2xs text-muted-foreground">—</span>
+                    </div>
+                  </li>
+                  <li className="flex items-center justify-between gap-3 py-3">
+                    <span className="text-sm text-foreground">Due diligence pack</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="warning">In progress</Badge>
+                      <span className="text-2xs text-muted-foreground">—</span>
+                    </div>
+                  </li>
+                  <li className="flex items-center justify-between gap-3 py-3">
+                    <span className="text-sm text-foreground">Board presentation</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="outline">Pending</Badge>
+                      <span className="text-2xs text-muted-foreground">—</span>
+                    </div>
+                  </li>
+                  <li className="flex items-center justify-between gap-3 py-3 last:pb-0">
+                    <span className="text-sm text-foreground">Final recommendation</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="outline">Pending</Badge>
+                      <span className="text-2xs text-muted-foreground">—</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )
@@ -319,28 +483,17 @@ function MatchesContent() {
 
 /* Helper Components */
 
-function ParamCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="px-5 py-3">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/50 block mb-1">
-        {label}
-      </span>
-      <span className="text-sm font-medium text-foreground">{value}</span>
-    </div>
-  )
-}
-
 function MiniBar({ score }: { score: number }) {
   const color = score >= 80
-    ? 'bg-emerald-400/70'
+    ? 'bg-emerald-500/60'
     : score >= 60
-      ? 'bg-yellow-400/70'
+      ? 'bg-yellow-500/60'
       : score >= 40
-        ? 'bg-orange-400/70'
-        : 'bg-red-400/70'
+        ? 'bg-orange-500/60'
+        : 'bg-red-500/60'
 
   return (
-    <div className="w-10 h-1 bg-secondary rounded-full overflow-hidden">
+    <div className="w-10 h-1 bg-gray-200 rounded-full overflow-hidden">
       <div
         className={cn('h-full rounded-full', color)}
         style={{ width: `${score}%` }}
@@ -352,10 +505,10 @@ function MiniBar({ score }: { score: number }) {
 /* Data Helpers */
 
 function getScoreColorClass(score: number): string {
-  if (score >= 80) return 'text-emerald-400'
-  if (score >= 60) return 'text-yellow-400'
-  if (score >= 40) return 'text-orange-400'
-  return 'text-red-400'
+  if (score >= 80) return 'text-emerald-600'
+  if (score >= 60) return 'text-yellow-600'
+  if (score >= 40) return 'text-orange-500'
+  return 'text-red-500'
 }
 
 function getContractStatus(status: string): string {
@@ -369,20 +522,20 @@ function getContractStatus(status: string): string {
   }
 }
 
-function getCompensationInfo(status: string, financialScore: number): { label: string; color: string } {
+function getCompensationInfo(status: string, financialScore: number): { label: string; color: string; lightColor: string } {
   if (status === 'Available') {
-    return { label: 'No compensation', color: 'text-emerald-400' }
+    return { label: 'No compensation', color: 'text-emerald-400', lightColor: 'text-emerald-600' }
   }
   if (status === 'Open to offers') {
-    return { label: 'Minimal fee', color: 'text-sky-400' }
+    return { label: 'Minimal fee', color: 'text-sky-400', lightColor: 'text-sky-600' }
   }
   if (financialScore >= 70) {
-    return { label: 'Within budget', color: 'text-yellow-400' }
+    return { label: 'Within budget', color: 'text-yellow-400', lightColor: 'text-yellow-600' }
   }
   if (financialScore >= 40) {
-    return { label: 'Buyout required', color: 'text-orange-400' }
+    return { label: 'Buyout required', color: 'text-orange-400', lightColor: 'text-orange-500' }
   }
-  return { label: 'Significant outlay', color: 'text-red-400' }
+  return { label: 'Significant outlay', color: 'text-red-400', lightColor: 'text-red-500' }
 }
 
 function getStatusBadge(status: string): { variant: string; label: string } {

@@ -8,62 +8,70 @@
 
     --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial;
 
-    /* ── Background layers ── */
+    /* ── Dark surface layers (elevation system) ── */
     --background: #0b0d14;
-    --background-subtle: #0f1119;
+    --background-subtle: #0e1018;
 
-    /* ── Surface elevation system ── */
     --surface: #13151e;
-    --surface-raised: #181b27;
-    --surface-overlay: #1d2030;
+    --surface-raised: #171a25;
+    --surface-overlay: #1f2334;
 
     /* ── Foreground ── */
-    --foreground: #e8eaf0;
-    --foreground-muted: #7a8194;
+    --foreground: #e2e4eb;
+    --foreground-muted: #6b7280;
 
     /* ── Card ── */
     --card: #13151e;
-    --card-foreground: #e8eaf0;
+    --card-foreground: #e2e4eb;
 
-    /* ── Primary (emerald) ── */
+    /* ── Primary (emerald — used sparingly) ── */
     --primary: #10b981;
     --primary-foreground: #ffffff;
 
     /* ── Secondary ── */
-    --secondary: #1d2030;
-    --secondary-foreground: #e8eaf0;
+    --secondary: #1a1d28;
+    --secondary-foreground: #e2e4eb;
 
     /* ── Muted ── */
-    --muted: #1d2030;
-    --muted-foreground: #7a8194;
+    --muted: #1a1d28;
+    --muted-foreground: #6b7280;
 
     /* ── Accent ── */
-    --accent: #1d2030;
-    --accent-foreground: #e8eaf0;
+    --accent: #1a1d28;
+    --accent-foreground: #e2e4eb;
 
     /* ── Destructive ── */
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
 
-    /* ── Border ── */
-    --border: #1f2334;
-    --border-subtle: #181b27;
-    --input: #1f2334;
+    /* ── Borders — soft, no harsh lines ── */
+    --border: rgba(255, 255, 255, 0.06);
+    --border-subtle: rgba(255, 255, 255, 0.03);
+    --input: rgba(255, 255, 255, 0.08);
     --ring: #10b981;
 
     /* ── Popover ── */
     --popover: #13151e;
-    --popover-foreground: #e8eaf0;
+    --popover-foreground: #e2e4eb;
 
-    /* ── Shadows ── */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+    /* ── Shadows (dark context) ── */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+    /* ── Light surface tokens (hybrid data mode) ── */
+    --light-surface: #ffffff;
+    --light-surface-hover: #f8f9fb;
+    --light-border: #e6e8ee;
+    --light-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --light-foreground: #1a1d28;
+    --light-foreground-muted: #6b7280;
 
     /* ── Radius ── */
     --radius: 0.5rem;
+    --radius-lg: 0.75rem;
 
-    /* ── Semantic status colours ── */
+    /* ── Semantic status (used sparingly) ── */
     --status-success: #10b981;
     --status-warning: #f59e0b;
     --status-danger: #ef4444;
@@ -90,10 +98,18 @@
     background-color: var(--background);
     color: var(--foreground);
     min-height: 100vh;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
   }
 }
 
-/* ── Card elevation classes ── */
+/* ═══════════════════════════════════════════════
+   Dark elevation cards
+   ═══════════════════════════════════════════════ */
+
 .card-surface {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -110,7 +126,27 @@
   border: 1px solid var(--border-subtle);
 }
 
-/* ── Score bar animation ── */
+/* ═══════════════════════════════════════════════
+   Light surface cards (hybrid data mode)
+   Tables, forms, dense data components
+   ═══════════════════════════════════════════════ */
+
+.card-light {
+  background: var(--light-surface);
+  border: 1px solid var(--light-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--light-shadow);
+  color: var(--light-foreground);
+}
+
+.card-light .text-muted-foreground {
+  color: var(--light-foreground-muted);
+}
+
+/* ═══════════════════════════════════════════════
+   Score bar animation
+   ═══════════════════════════════════════════════ */
+
 .score-bar-track {
   animation: score-fill 0.8s ease-out;
 }
@@ -119,7 +155,10 @@
   from { width: 0%; }
 }
 
-/* ── Timeline connector ── */
+/* ═══════════════════════════════════════════════
+   Timeline connector
+   ═══════════════════════════════════════════════ */
+
 .timeline-connector {
   position: relative;
 }
@@ -134,13 +173,34 @@
   background: var(--border);
 }
 
-/* ── Form select dark styling ── */
+/* ═══════════════════════════════════════════════
+   Form elements
+   ═══════════════════════════════════════════════ */
+
 select option {
   background: var(--surface);
   color: var(--foreground);
 }
 
-/* ── Scrollbar ── */
+/* Light form inputs (inside .card-light) */
+.card-light select,
+.card-light input[type="text"],
+.card-light input[type="email"],
+.card-light textarea {
+  background: #f8f9fb;
+  border-color: var(--light-border);
+  color: var(--light-foreground);
+}
+
+.card-light select option {
+  background: var(--light-surface);
+  color: var(--light-foreground);
+}
+
+/* ═══════════════════════════════════════════════
+   Scrollbar
+   ═══════════════════════════════════════════════ */
+
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -150,10 +210,10 @@ select option {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: rgba(255, 255, 255, 0.14);
 }

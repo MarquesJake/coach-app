@@ -1,11 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Coach, CoachUpdate } from '@/lib/types/database'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { Section, SectionLabel, DataRow } from '@/components/ui/section'
 import { cn } from '@/lib/utils'
 import {
   Shield,
@@ -16,8 +14,6 @@ import {
   Clock,
   Flag,
   ChevronLeft,
-  TrendingUp,
-  TrendingDown,
   AlertCircle,
   Briefcase,
   Globe,
@@ -40,7 +36,7 @@ const REPUTATION_VARIANT: Record<string, 'purple' | 'info' | 'default' | 'second
 }
 
 const UPDATE_TYPE_COLOR: Record<string, string> = {
-  'general': 'bg-zinc-500',
+  'general': 'bg-zinc-400',
   'performance': 'bg-emerald-500',
   'tactical': 'bg-sky-500',
   'transfer': 'bg-amber-500',
@@ -84,11 +80,95 @@ const STYLE_BAR: Record<string, number> = {
   'Transitional': 65, 'Tiki-taka': 95, 'Direct': 40, 'Gegenpressing': 92, 'Balanced': 55,
 }
 
+const SOURCE_TIER_VARIANT: Record<string, 'success' | 'info' | 'secondary'> = {
+  'Tier 1': 'success',
+  'Tier 2': 'info',
+  'Tier 3': 'secondary',
+}
+
+const CONFIDENCE_VARIANT: Record<string, 'success' | 'warning' | 'secondary'> = {
+  High: 'success',
+  Medium: 'warning',
+  Low: 'secondary',
+}
+
+type CoachUpdateRow = {
+  id: string
+  coach_id: string
+  update_note: string
+  update_type: string
+  occurred_at: string | null
+  confidence: string | null
+  source_tier: string | null
+  source_note: string | null
+}
+
+type CoachProfileRow = {
+  id: string
+  user_id: string
+  name: string
+  age: number | null
+  nationality: string | null
+  role_current: string | null
+  club_current: string | null
+  preferred_style: string
+  pressing_intensity: string
+  build_preference: string
+  leadership_style: string
+  wage_expectation: string
+  staff_cost_estimate: string
+  available_status: string
+  reputation_tier: string | null
+  league_experience: string[]
+  last_updated: string
+  created_at: string
+  updated_at: string
+}
+
+function DossierInput({
+  value,
+  onChange,
+  placeholder,
+}: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full px-3 py-2 bg-surface rounded-md text-sm text-foreground placeholder-muted-foreground/50 border border-border focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors"
+    />
+  )
+}
+
 export default function CoachProfilePage({ params }: { params: { id: string } }) {
-  const [coach, setCoach] = useState<Coach | null>(null)
-  const [updates, setUpdates] = useState<CoachUpdate[]>([])
+  const [coach, setCoach] = useState<CoachProfileRow | null>(null)
+  const [updates, setUpdates] = useState<CoachUpdateRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [draft, setDraft] = useState<Partial<CoachProfileRow> | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showAddUpdate, setShowAddUpdate] = useState(false)
+  const [updateFormError, setUpdateFormError] = useState<string | null>(null)
+  const [savingUpdate, setSavingUpdate] = useState(false)
+  const [newUpdate, setNewUpdate] = useState({
+    update_type: 'general',
+    confidence: '',
+    source_tier: '',
+    source_note: '',
+    occurred_at: '',
+    update_note: '',
+  })
   const supabase = createClient()
+
+  const loadUpdates = useCallback(async () => {
+    const { data } = await supabase
+      .from('coach_updates')
+      .select('id, coach_id, update_note, update_type, occurred_at, confidence, source_tier, source_note')
+      .eq('coach_id', params.id)
+      .order('occurred_at', { ascending: false, nullsFirst: false })
+    setUpdates((data || []) as CoachUpdateRow[])
+  }, [params.id, supabase])
 
   useEffect(() => {
     async function load() {
@@ -99,19 +179,105 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
         .single()
 
       if (coachData) {
-        setCoach(coachData)
-        const { data: updatesData } = await supabase
-          .from('coach_updates')
-          .select('*')
-          .eq('coach_id', params.id)
-          .order('date_added', { ascending: false })
-          .limit(10)
-        setUpdates(updatesData || [])
+        const typedCoach = coachData as CoachProfileRow
+        setCoach(typedCoach)
+        setDraft(typedCoach)
+        await loadUpdates()
       }
       setLoading(false)
     }
     load()
-  }, [params.id, supabase])
+  }, [loadUpdates, params.id, supabase])
+
+  async function handleSave() {
+    if (!coach || !draft) return
+    setSaving(true)
+    setError(null)
+    const payload = {
+      name: (draft.name ?? coach.name).trim() || coach.name,
+      age: draft.age !== undefined ? draft.age : coach.age,
+      nationality: draft.nationality ?? coach.nationality,
+      role_current: draft.role_current ?? coach.role_current,
+      club_current: draft.club_current ?? coach.club_current,
+      preferred_style: draft.preferred_style ?? coach.preferred_style,
+      pressing_intensity: draft.pressing_intensity ?? coach.pressing_intensity,
+      build_preference: draft.build_preference ?? coach.build_preference,
+      leadership_style: draft.leadership_style ?? coach.leadership_style,
+      wage_expectation: draft.wage_expectation ?? coach.wage_expectation,
+      staff_cost_estimate: draft.staff_cost_estimate ?? coach.staff_cost_estimate,
+      available_status: draft.available_status ?? coach.available_status,
+      reputation_tier: draft.reputation_tier ?? coach.reputation_tier,
+      league_experience: draft.league_experience ?? coach.league_experience,
+      last_updated: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    const { data, error: updateError } = await supabase
+      .from('coaches')
+      .update(payload)
+      .eq('id', params.id)
+      .select('*')
+      .single()
+    if (updateError) {
+      setError(updateError.message)
+      setSaving(false)
+      return
+    }
+    const typedCoach = data as CoachProfileRow
+    setCoach(typedCoach)
+    setDraft(typedCoach)
+    setIsEditing(false)
+    setSaving(false)
+  }
+
+  function handleCancel() {
+    if (coach) setDraft(coach)
+    setIsEditing(false)
+    setError(null)
+  }
+
+  async function handleAddUpdateSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setUpdateFormError(null)
+    setSavingUpdate(true)
+    const note = newUpdate.update_note.trim()
+    if (!note) {
+      setUpdateFormError('Update note is required.')
+      setSavingUpdate(false)
+      return
+    }
+    let occurredAt = new Date().toISOString()
+    if (newUpdate.occurred_at) {
+      const [year, month, day] = newUpdate.occurred_at.split('-').map(Number)
+      occurredAt = new Date(year, month - 1, day, 12, 0, 0, 0).toISOString()
+    }
+    const { error: insertError } = await supabase
+      .from('coach_updates')
+      .insert({
+        coach_id: params.id,
+        update_type: newUpdate.update_type,
+        update_note: note,
+        confidence: newUpdate.confidence || null,
+        source_tier: newUpdate.source_tier || null,
+        source_note: newUpdate.source_note.trim() || null,
+        occurred_at: occurredAt,
+      })
+    if (insertError) {
+      setUpdateFormError(insertError.message)
+      setSavingUpdate(false)
+      return
+    }
+    await loadUpdates()
+    setNewUpdate({
+      update_type: 'general',
+      confidence: '',
+      source_tier: '',
+      source_note: '',
+      occurred_at: '',
+      update_note: '',
+    })
+    setShowAddUpdate(false)
+    setSavingUpdate(false)
+  }
 
   if (loading) {
     return (
@@ -132,10 +298,10 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
     )
   }
 
-  const leadershipNote = LEADERSHIP_CONTEXT[coach.leadership_style] || null
+  const leadershipNote = LEADERSHIP_CONTEXT[(draft?.leadership_style ?? coach.leadership_style)] || null
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5 animate-fade-in">
+    <div className="max-w-6xl mx-auto animate-fade-in">
       {/* Back link */}
       <Link
         href="/coaches"
@@ -145,257 +311,526 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
         Coach Database
       </Link>
 
-      {/* Header / Dossier Banner */}
-      <div className="card-surface rounded-lg px-6 py-5">
+      {error && (
+        <div className="mt-4 rounded-lg border border-border bg-surface-overlay/30 px-4 py-3">
+          <p className="text-xs text-destructive">{error}</p>
+        </div>
+      )}
+
+      {/* ── Header / Dossier Banner (Dark Surface) ── */}
+      <div className="card-surface rounded-xl px-6 py-5 mt-4">
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-foreground tracking-tight truncate">
-              {coach.name}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted-foreground">
-              {coach.current_role && (
-                <span className="inline-flex items-center gap-1">
-                  <Briefcase className="h-3 w-3 shrink-0" />
-                  {coach.current_role}
-                </span>
-              )}
-              {coach.current_club && (
-                <span className="inline-flex items-center gap-1">
-                  <Shield className="h-3 w-3 shrink-0" />
-                  {coach.current_club}
-                </span>
-              )}
-              {coach.nationality && (
-                <span className="inline-flex items-center gap-1">
-                  <Flag className="h-3 w-3 shrink-0" />
-                  {coach.nationality}
-                </span>
-              )}
-              {coach.age && (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3 shrink-0" />
-                  Age {coach.age}
-                </span>
-              )}
-            </div>
+          <div className="min-w-0 flex-1">
+            {!isEditing ? (
+              <>
+                <h1 className="text-2xl font-bold text-foreground tracking-tight truncate">
+                  {coach.name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-muted-foreground">
+                  {coach.role_current && (
+                    <span className="inline-flex items-center gap-1">
+                      <Briefcase className="h-3 w-3 shrink-0" />
+                      {coach.role_current}
+                    </span>
+                  )}
+                  {coach.club_current && (
+                    <span className="inline-flex items-center gap-1">
+                      <Shield className="h-3 w-3 shrink-0" />
+                      {coach.club_current}
+                    </span>
+                  )}
+                  {coach.nationality && (
+                    <span className="inline-flex items-center gap-1">
+                      <Flag className="h-3 w-3 shrink-0" />
+                      {coach.nationality}
+                    </span>
+                  )}
+                  {coach.age != null && (
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3 w-3 shrink-0" />
+                      Age {coach.age}
+                    </span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Name</label>
+                  <DossierInput value={draft?.name ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, name: v } : null))} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Current role</label>
+                    <DossierInput value={draft?.role_current ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, role_current: v } : null))} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Current club</label>
+                    <DossierInput value={draft?.club_current ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, club_current: v } : null))} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Nationality</label>
+                    <DossierInput value={draft?.nationality ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, nationality: v } : null))} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Age</label>
+                    <DossierInput
+                      value={draft?.age != null ? String(draft.age) : ''}
+                      onChange={(v) => setDraft((d) => (d ? { ...d, age: v === '' ? null : Number(v) } : null))}
+                      placeholder="e.g. 47"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col items-end gap-2 shrink-0">
-            <Badge variant={AVAILABILITY_VARIANT[coach.available_status] || 'secondary'}>
-              {coach.available_status}
-            </Badge>
-            {coach.reputation_tier && (
-              <Badge variant={REPUTATION_VARIANT[coach.reputation_tier] || 'secondary'} className="opacity-70">
-                {coach.reputation_tier}
-              </Badge>
+            {!isEditing ? (
+              <>
+                <Badge variant={AVAILABILITY_VARIANT[coach.available_status] || 'secondary'}>
+                  {coach.available_status}
+                </Badge>
+                {coach.reputation_tier && (
+                  <Badge variant={REPUTATION_VARIANT[coach.reputation_tier] || 'secondary'} className="opacity-70">
+                    {coach.reputation_tier}
+                  </Badge>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="mt-1 inline-flex items-center gap-2 px-4 h-9 bg-surface border border-border rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-overlay/30 transition-colors"
+                >
+                  Edit profile
+                </button>
+              </>
+            ) : (
+              <>
+                <Badge variant={AVAILABILITY_VARIANT[(draft?.available_status ?? coach.available_status)] || 'secondary'}>
+                  {draft?.available_status ?? coach.available_status}
+                </Badge>
+                {((draft?.reputation_tier ?? coach.reputation_tier)) && (
+                  <Badge variant={REPUTATION_VARIANT[(draft?.reputation_tier ?? coach.reputation_tier)] || 'secondary'} className="opacity-70">
+                    {draft?.reputation_tier ?? coach.reputation_tier}
+                  </Badge>
+                )}
+                <div className="flex items-center gap-2 mt-1">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 px-4 h-9 bg-surface border border-border rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-overlay/30 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Two-column dossier grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      {/* ── Two-column dossier grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-8">
         {/* LEFT COLUMN (2/3) */}
         <div className="lg:col-span-2 space-y-5">
-          {/* Tactical Identity */}
-          <Section
+          {/* Tactical Identity (card-light) */}
+          <DossierCard
             title="Tactical Identity"
-            badge={<Brain className="h-3.5 w-3.5 text-muted-foreground" />}
-            variant="surface"
+            icon={<Brain className="h-3.5 w-3.5 text-light-muted/50" />}
           >
-            <div className="space-y-0">
-              <DataRow label="Preferred Style" value={coach.preferred_style} />
-              <DataRow label="Pressing Intensity" value={coach.pressing_intensity} />
-              <DataRow label="Build Preference" value={coach.build_preference} />
-            </div>
-
-            <div className="mt-5">
-              <SectionLabel className="mb-3 block">Tactical Signature</SectionLabel>
-              <div className="card-inset rounded-md p-3.5 space-y-3">
-                <TacticalBar
-                  label="Style"
-                  value={coach.preferred_style}
-                  width={STYLE_BAR[coach.preferred_style] ?? 50}
-                  color="bg-emerald-500/70"
-                />
-                <TacticalBar
-                  label="Pressing"
-                  value={coach.pressing_intensity}
-                  width={PRESSING_BAR[coach.pressing_intensity] ?? 50}
-                  color="bg-sky-500/70"
-                />
-                <TacticalBar
-                  label="Build-up"
-                  value={coach.build_preference}
-                  width={BUILD_BAR[coach.build_preference] ?? 50}
-                  color="bg-purple-500/70"
-                />
-              </div>
-            </div>
-          </Section>
-
-          {/* Leadership & Culture */}
-          <Section
-            title="Leadership & Culture"
-            badge={<Users className="h-3.5 w-3.5 text-muted-foreground" />}
-            variant="surface"
-          >
-            <DataRow label="Leadership Style" value={coach.leadership_style} />
-            {leadershipNote && (
-              <div className="mt-3 card-inset rounded-md p-3.5">
-                <p className="text-[11px] leading-relaxed text-muted-foreground italic">
-                  {leadershipNote}
-                </p>
-              </div>
-            )}
-          </Section>
-
-          {/* Intelligence Notes Timeline */}
-          <Section
-            title="Intelligence Notes"
-            badge={<FileText className="h-3.5 w-3.5 text-muted-foreground" />}
-            variant="surface"
-            action={
-              updates.length > 0 ? (
-                <span className="text-[10px] text-muted-foreground tabular-nums">
-                  {updates.length} {updates.length === 1 ? 'entry' : 'entries'}
-                </span>
-              ) : null
-            }
-          >
-            {updates.length > 0 ? (
-              <div className="space-y-0">
-                {updates.map((update, idx) => {
-                  const isLast = idx === updates.length - 1
-                  const dotColor = UPDATE_TYPE_COLOR[update.update_type] || 'bg-zinc-500'
-                  const typeVariant = UPDATE_TYPE_VARIANT[update.update_type] || 'secondary'
-
-                  return (
-                    <div
-                      key={update.id}
-                      className={cn(
-                        'relative pl-9 pb-5',
-                        !isLast && 'timeline-connector'
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          'absolute left-[11px] top-[5px] h-[9px] w-[9px] rounded-full ring-2 ring-[var(--card)]',
-                          dotColor
-                        )}
-                      />
-
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] text-muted-foreground tabular-nums">
-                            {new Date(update.date_added).toLocaleDateString('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                            })}
-                          </span>
-                          <Badge variant={typeVariant}>{update.update_type}</Badge>
-                        </div>
-
-                        <p className="text-xs text-foreground/90 leading-relaxed">
-                          {update.update_note}
-                        </p>
-
-                        {(update.availability_change || update.reputation_shift) && (
-                          <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                            {update.availability_change && (
-                              <Badge variant="warning" className="text-[9px]">
-                                <AlertCircle className="h-2.5 w-2.5 mr-1" />
-                                {update.availability_change}
-                              </Badge>
-                            )}
-                            {update.reputation_shift && (
-                              <Badge
-                                variant={update.reputation_shift.toLowerCase().includes('up') ? 'success' : 'danger'}
-                                className="text-[9px]"
-                              >
-                                {update.reputation_shift.toLowerCase().includes('up') ? (
-                                  <TrendingUp className="h-2.5 w-2.5 mr-1" />
-                                ) : (
-                                  <TrendingDown className="h-2.5 w-2.5 mr-1" />
-                                )}
-                                {update.reputation_shift}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+            {!isEditing ? (
+              <>
+                <div className="space-y-0">
+                  <LightRow label="Preferred Style" value={coach.preferred_style} />
+                  <LightRow label="Pressing Intensity" value={coach.pressing_intensity} />
+                  <LightRow label="Build Preference" value={coach.build_preference} />
+                </div>
+                <div className="mt-5">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-light-muted/60 mb-3 block">
+                    Tactical Signature
+                  </span>
+                  <div className="bg-light-hover rounded-lg p-4 space-y-3 border border-border-light/50">
+                    <TacticalBar
+                      label="Style"
+                      value={coach.preferred_style}
+                      width={STYLE_BAR[coach.preferred_style] ?? 50}
+                      color="bg-emerald-500/50"
+                    />
+                    <TacticalBar
+                      label="Pressing"
+                      value={coach.pressing_intensity}
+                      width={PRESSING_BAR[coach.pressing_intensity] ?? 50}
+                      color="bg-sky-500/50"
+                    />
+                    <TacticalBar
+                      label="Build-up"
+                      value={coach.build_preference}
+                      width={BUILD_BAR[coach.build_preference] ?? 50}
+                      color="bg-purple-500/50"
+                    />
+                  </div>
+                </div>
+              </>
             ) : (
-              <p className="text-xs text-muted-foreground">No intelligence updates available.</p>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Preferred style</label>
+                  <DossierInput value={draft?.preferred_style ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, preferred_style: v } : null))} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Pressing intensity</label>
+                  <DossierInput value={draft?.pressing_intensity ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, pressing_intensity: v } : null))} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Build preference</label>
+                  <DossierInput value={draft?.build_preference ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, build_preference: v } : null))} />
+                </div>
+              </div>
             )}
-          </Section>
+          </DossierCard>
+
+          {/* Leadership & Culture (card-light) */}
+          <DossierCard
+            title="Leadership & Culture"
+            icon={<Users className="h-3.5 w-3.5 text-light-muted/50" />}
+          >
+            {!isEditing ? (
+              <>
+                <LightRow label="Leadership Style" value={coach.leadership_style} />
+                {leadershipNote && (
+                  <div className="mt-4 bg-light-hover rounded-lg p-4 border border-border-light/50">
+                    <p className="text-[11px] leading-relaxed text-light-muted italic">
+                      {leadershipNote}
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Leadership style</label>
+                <DossierInput value={draft?.leadership_style ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, leadership_style: v } : null))} />
+              </div>
+            )}
+          </DossierCard>
+
+          {/* Staff Ecosystem (card-light) */}
+          <DossierCard
+            title="Staff Ecosystem"
+            icon={<Briefcase className="h-3.5 w-3.5 text-light-muted/50" />}
+          >
+            {!isEditing ? (
+              <>
+                <LightRow label="Staff Cost Estimate" value={coach.staff_cost_estimate} />
+                <div className="mt-4 bg-light-hover rounded-lg p-4 border border-border-light/50">
+                  <p className="text-[11px] leading-relaxed text-light-muted italic">
+                    {getStaffNote(coach.staff_cost_estimate)}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Staff cost estimate</label>
+                <DossierInput value={draft?.staff_cost_estimate ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, staff_cost_estimate: v } : null))} />
+              </div>
+            )}
+          </DossierCard>
         </div>
 
         {/* RIGHT COLUMN (1/3) */}
         <div className="space-y-5">
-          {/* Financial Profile */}
-          <Section
-            title="Financial Profile"
-            badge={<Wallet className="h-3.5 w-3.5 text-muted-foreground" />}
-            variant="surface"
+          {/* Career Snapshot (card-light) */}
+          <DossierCard
+            title="Career Snapshot"
+            icon={<Globe className="h-3.5 w-3.5 text-light-muted/50" />}
           >
-            <div className="space-y-0">
-              <DataRow label="Wage Expectation" value={coach.wage_expectation} />
-              <DataRow label="Staff Costs" value={coach.staff_cost_estimate} />
-            </div>
-
-            <div className="mt-4 card-inset rounded-md p-3.5">
-              <SectionLabel className="mb-2 block">Total Package Estimate</SectionLabel>
-              <p className="text-sm font-semibold text-foreground">
-                {computePackageEstimate(coach.wage_expectation, coach.staff_cost_estimate)}
-              </p>
-              <div className="mt-2">
-                <FeasibilityIndicator wage={coach.wage_expectation} />
+            {!isEditing ? (
+              (coach.league_experience && coach.league_experience.length > 0) ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {coach.league_experience.map((league) => (
+                    <span
+                      key={league}
+                      className="inline-flex items-center rounded-md px-2 py-0.5 text-2xs font-medium text-light-muted bg-light-hover border border-border-light/60"
+                    >
+                      {league}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-light-muted">No league experience recorded.</p>
+              )
+            ) : (
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">League experience (comma-separated)</label>
+                <DossierInput
+                  value={Array.isArray(draft?.league_experience) ? draft.league_experience.join(', ') : ''}
+                  onChange={(v) => setDraft((d) => (d ? { ...d, league_experience: v ? v.split(',').map((s) => s.trim()).filter(Boolean) : [] } : null))}
+                  placeholder="e.g. Premier League, La Liga"
+                />
               </div>
-            </div>
-          </Section>
+            )}
+          </DossierCard>
 
-          {/* Staff Ecosystem */}
-          <Section
-            title="Staff Ecosystem"
-            badge={<Briefcase className="h-3.5 w-3.5 text-muted-foreground" />}
-            variant="surface"
+          {/* Compensation & Contract (card-light) */}
+          <DossierCard
+            title="Compensation & Contract"
+            icon={<Wallet className="h-3.5 w-3.5 text-light-muted/50" />}
           >
-            <DataRow label="Staff Cost Estimate" value={coach.staff_cost_estimate} />
-            <div className="mt-3 card-inset rounded-md p-3.5">
-              <p className="text-[11px] leading-relaxed text-muted-foreground italic">
-                {getStaffNote(coach.staff_cost_estimate)}
-              </p>
-            </div>
-          </Section>
+            {!isEditing ? (
+              <>
+                <div className="space-y-0">
+                  <LightRow label="Wage Expectation" value={coach.wage_expectation} />
+                  <LightRow label="Staff Costs" value={coach.staff_cost_estimate} />
+                </div>
+                <div className="mt-4 bg-light-hover rounded-lg p-4 border border-border-light/50">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-light-muted/60 mb-2 block">
+                    Total Package Estimate
+                  </span>
+                  <p className="text-sm font-semibold text-light-fg">
+                    {computePackageEstimate(coach.wage_expectation, coach.staff_cost_estimate)}
+                  </p>
+                  <div className="mt-2">
+                    <FeasibilityIndicator wage={coach.wage_expectation} />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Wage expectation</label>
+                  <DossierInput value={draft?.wage_expectation ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, wage_expectation: v } : null))} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Staff cost estimate</label>
+                  <DossierInput value={draft?.staff_cost_estimate ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, staff_cost_estimate: v } : null))} />
+                </div>
+              </div>
+            )}
+          </DossierCard>
 
-          {/* League Experience */}
-          <Section
-            title="League Experience"
-            badge={<Globe className="h-3.5 w-3.5 text-muted-foreground" />}
-            variant="surface"
+          {/* Risk Assessment (card-light) — visual grouping of existing data */}
+          <DossierCard
+            title="Risk Assessment"
+            icon={<AlertCircle className="h-3.5 w-3.5 text-light-muted/50" />}
           >
-            {coach.league_experience && coach.league_experience.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {coach.league_experience.map((league) => (
-                  <Badge key={league} variant="outline">
-                    {league}
-                  </Badge>
-                ))}
+            {!isEditing ? (
+              <div className="space-y-0">
+                <LightRow label="Availability" value={coach.available_status} />
+                {coach.reputation_tier && (
+                  <LightRow label="Reputation Tier" value={coach.reputation_tier} />
+                )}
+                <LightRow
+                  label="Contract Risk"
+                  value={getContractRisk(coach.available_status)}
+                />
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">No league experience recorded.</p>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Availability status</label>
+                  <DossierInput value={draft?.available_status ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, available_status: v } : null))} placeholder="Available / Open to offers / Under contract" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Reputation tier</label>
+                  <DossierInput value={draft?.reputation_tier ?? ''} onChange={(v) => setDraft((d) => (d ? { ...d, reputation_tier: v } : null))} placeholder="Elite / Established / Emerging" />
+                </div>
+              </div>
             )}
-          </Section>
+          </DossierCard>
         </div>
       </div>
 
+      {/* ── Intelligence Notes (Full Width, card-light) ── */}
+      <div className="card-light overflow-hidden mt-8">
+        <div className="flex items-center justify-between px-6 py-3.5 border-b border-light">
+          <div className="flex items-center gap-2.5">
+            <FileText className="h-3.5 w-3.5 text-light-muted/50" />
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-light-muted/60">
+              Intelligence Notes
+            </h3>
+          </div>
+          <div className="flex items-center gap-3">
+            {updates.length > 0 && (
+              <span className="text-[10px] text-light-muted/40 tabular-nums">
+                {updates.length} {updates.length === 1 ? 'entry' : 'entries'}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setShowAddUpdate((v) => !v)
+                setUpdateFormError(null)
+              }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface border border-border text-muted-foreground hover:text-foreground hover:bg-surface-overlay/30 transition-colors"
+            >
+              Add update
+            </button>
+          </div>
+        </div>
+
+        {showAddUpdate && (
+          <div className="px-6 py-4 border-b border-border bg-surface-overlay/30">
+            <form onSubmit={handleAddUpdateSubmit} className="space-y-3 max-w-xl">
+              {updateFormError && (
+                <p className="text-xs text-destructive">{updateFormError}</p>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Update type</label>
+                  <select
+                    value={newUpdate.update_type}
+                    onChange={(e) => setNewUpdate((u) => ({ ...u, update_type: e.target.value }))}
+                    className="w-full px-3 py-2 bg-surface rounded-md text-sm text-foreground border border-border focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors"
+                  >
+                    {Object.keys(UPDATE_TYPE_VARIANT).map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Confidence</label>
+                  <select
+                    value={newUpdate.confidence}
+                    onChange={(e) => setNewUpdate((u) => ({ ...u, confidence: e.target.value }))}
+                    className="w-full px-3 py-2 bg-surface rounded-md text-sm text-foreground border border-border focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors"
+                  >
+                    <option value="">Not set</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Source tier</label>
+                  <select
+                    value={newUpdate.source_tier}
+                    onChange={(e) => setNewUpdate((u) => ({ ...u, source_tier: e.target.value }))}
+                    className="w-full px-3 py-2 bg-surface rounded-md text-sm text-foreground border border-border focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors"
+                  >
+                    <option value="">Not set</option>
+                    <option value="Tier 1">Tier 1</option>
+                    <option value="Tier 2">Tier 2</option>
+                    <option value="Tier 3">Tier 3</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Occurred at</label>
+                  <input
+                    type="date"
+                    value={newUpdate.occurred_at}
+                    onChange={(e) => setNewUpdate((u) => ({ ...u, occurred_at: e.target.value }))}
+                    className="w-full px-3 py-2 bg-surface rounded-md text-sm text-foreground border border-border focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Source note</label>
+                <input
+                  value={newUpdate.source_note}
+                  onChange={(e) => setNewUpdate((u) => ({ ...u, source_note: e.target.value }))}
+                  placeholder="Optional source context"
+                  className="w-full px-3 py-2 bg-surface rounded-md text-sm text-foreground placeholder-muted-foreground/50 border border-border focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1 block">Update note</label>
+                <textarea
+                  value={newUpdate.update_note}
+                  onChange={(e) => setNewUpdate((u) => ({ ...u, update_note: e.target.value }))}
+                  placeholder="Enter the intelligence update..."
+                  rows={3}
+                  className="w-full px-3 py-2 bg-surface rounded-md text-sm text-foreground placeholder-muted-foreground/50 border border-border focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors resize-y"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="submit"
+                  disabled={savingUpdate}
+                  className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {savingUpdate ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddUpdate(false)
+                    setUpdateFormError(null)
+                  }}
+                  disabled={savingUpdate}
+                  className="inline-flex items-center gap-2 px-4 h-9 bg-surface border border-border rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-overlay/30 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {updates.length > 0 ? (
+          <div className="divide-y divide-border-light/70">
+            {updates.map((update) => {
+              const dotColor = UPDATE_TYPE_COLOR[update.update_type] || 'bg-zinc-400'
+              const typeVariant = UPDATE_TYPE_VARIANT[update.update_type] || 'secondary'
+              const occurredDateLabel = update.occurred_at
+                ? new Date(update.occurred_at).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                })
+                : 'Created unknown'
+
+              return (
+                <div key={update.id} className="px-6 py-4">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className={cn('h-2 w-2 rounded-full shrink-0', dotColor)} />
+                    <span className="text-[10px] text-light-muted tabular-nums">
+                      {occurredDateLabel}
+                    </span>
+                    <Badge variant={typeVariant}>{update.update_type}</Badge>
+                    {update.source_tier && (
+                      <Badge variant={SOURCE_TIER_VARIANT[update.source_tier] || 'secondary'}>
+                        {update.source_tier}
+                      </Badge>
+                    )}
+                    {update.confidence && (
+                      <Badge variant={CONFIDENCE_VARIANT[update.confidence] || 'secondary'}>
+                        {update.confidence}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-light-fg/90 leading-relaxed pl-[18px]">
+                    {update.update_note}
+                  </p>
+
+                  {update.source_note && (
+                    <p className="text-[11px] text-light-muted mt-2 pl-[18px]">
+                      Source: {update.source_note}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="px-6 py-8 text-center">
+            <p className="text-xs text-light-muted">No intelligence updates available.</p>
+          </div>
+        )}
+      </div>
+
       {/* Bottom timestamp */}
-      <div className="text-[10px] text-muted-foreground/50 text-right pb-4 tabular-nums">
+      <div className="text-[10px] text-muted-foreground/50 text-right pb-4 pt-6 tabular-nums">
         Dossier last refreshed: {new Date(coach.last_updated).toLocaleDateString('en-GB', {
           day: '2-digit',
           month: 'short',
@@ -406,16 +841,53 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
   )
 }
 
-/* Helper Components */
+/* ═══════════════════════════════════════════════
+   Light card components (local to this page)
+   ═══════════════════════════════════════════════ */
+
+function DossierCard({
+  title,
+  icon,
+  children,
+}: {
+  title: string
+  icon?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <div className="card-light overflow-hidden">
+      <div className="flex items-center gap-2.5 px-6 py-3.5 border-b border-light">
+        {icon}
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-light-muted/60">
+          {title}
+        </h3>
+      </div>
+      <div className="px-6 py-5">{children}</div>
+    </div>
+  )
+}
+
+function LightRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between py-2.5 border-b border-border-light/50 last:border-0">
+      <span className="text-xs text-light-muted">{label}</span>
+      <span className="text-xs font-medium text-light-fg">{value}</span>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════
+   Tactical bar (light background variant)
+   ═══════════════════════════════════════════════ */
 
 function TacticalBar({ label, value, width, color }: { label: string; value: string; width: number; color: string }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
-        <span className="text-[10px] text-muted-foreground">{value}</span>
+        <span className="text-[10px] text-light-muted/60 uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] text-light-muted font-medium">{value}</span>
       </div>
-      <div className="h-1.5 rounded-full bg-border/60 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-border-light/80 overflow-hidden">
         <div
           className={cn('h-full rounded-full score-bar-track', color)}
           style={{ width: `${width}%` }}
@@ -424,6 +896,10 @@ function TacticalBar({ label, value, width, color }: { label: string; value: str
     </div>
   )
 }
+
+/* ═══════════════════════════════════════════════
+   Data helpers (logic unchanged)
+   ═══════════════════════════════════════════════ */
 
 function computePackageEstimate(wage: string, staff: string): string {
   const parseRange = (s: string): [number, number] | null => {
@@ -466,13 +942,13 @@ function FeasibilityIndicator({ wage }: { wage: string }) {
   }
 
   const colors = {
-    low: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    mid: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-    high: 'text-red-400 bg-red-500/10 border-red-500/20',
+    low: 'text-emerald-600 bg-emerald-50 border-emerald-200/60',
+    mid: 'text-amber-600 bg-amber-50 border-amber-200/60',
+    high: 'text-red-600 bg-red-50 border-red-200/60',
   }
 
   return (
-    <div className={cn('text-[10px] font-medium px-2.5 py-1.5 rounded border', colors[level])}>
+    <div className={cn('text-[10px] font-medium px-2.5 py-1.5 rounded-md border', colors[level])}>
       {label}
     </div>
   )
@@ -487,4 +963,15 @@ function getStaffNote(estimate: string): string {
     return 'Usually requires a core team of 4-6 support staff including an assistant manager, a set-piece coach, and fitness personnel. Moderate infrastructure overhead.'
   }
   return 'Tends to work with a lean backroom setup of 2-3 staff, often adapting to the existing coaching infrastructure at the club.'
+}
+
+function getContractRisk(status: string): string {
+  switch (status) {
+    case 'Available': return 'Low — no buyout required'
+    case 'Open to offers': return 'Low-Medium — negotiable exit'
+    case 'Under contract - interested': return 'Medium — willing but contracted'
+    case 'Under contract': return 'High — full buyout expected'
+    case 'Not available': return 'Very High — not seeking move'
+    default: return 'Unknown'
+  }
 }

@@ -55,10 +55,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users from login to dashboard
+  // Redirect authenticated users from login to dashboard overview (stable destination, no bounce)
   if (user && request.nextUrl.pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
+    url.pathname = '/dashboard/overview'
     return NextResponse.redirect(url)
   }
 

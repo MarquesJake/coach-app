@@ -34,7 +34,7 @@ export function ScoreRing({ score, size = 64, strokeWidth = 4, className, label 
             fill="none"
             stroke="currentColor"
             strokeWidth={strokeWidth}
-            className="text-secondary"
+            className="text-border/40"
           />
           <circle
             cx={size / 2}
@@ -47,7 +47,7 @@ export function ScoreRing({ score, size = 64, strokeWidth = 4, className, label 
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             className="transition-all duration-1000 ease-out"
-            style={{ filter: `drop-shadow(0 0 4px ${colors.stroke}40)` }}
+            style={{ filter: `drop-shadow(0 0 3px ${colors.stroke}30)` }}
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
@@ -57,7 +57,7 @@ export function ScoreRing({ score, size = 64, strokeWidth = 4, className, label 
         </div>
       </div>
       {label && (
-        <span className="text-2xs text-muted-foreground uppercase tracking-wider">{label}</span>
+        <span className="text-2xs text-muted-foreground/60 uppercase tracking-wider">{label}</span>
       )}
     </div>
   )
@@ -80,17 +80,17 @@ export function ScoreBar({
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{label}</span>
           {weight && (
-            <span className="text-2xs text-muted-foreground/50">{weight}</span>
+            <span className="text-2xs text-muted-foreground/40">{weight}</span>
           )}
         </div>
         <span className={cn("text-xs font-semibold tabular-nums", colors.text)}>
           {score}
         </span>
       </div>
-      <div className="h-1 bg-secondary rounded-full overflow-hidden">
+      <div className="h-1 bg-border/30 rounded-full overflow-hidden">
         <div
           className={cn("h-full rounded-full score-bar-track", colors.bg)}
-          style={{ width: `${score}%`, opacity: 0.8 }}
+          style={{ width: `${score}%`, opacity: 0.7 }}
         />
       </div>
     </div>

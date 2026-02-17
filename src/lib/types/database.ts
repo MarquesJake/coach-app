@@ -104,6 +104,15 @@ export type Database = {
           reputation_tier: string
           league_experience: string[]
           last_updated: string
+          placement_score: number | null
+          board_compatibility: number | null
+          ownership_fit: number | null
+          cultural_risk: number | null
+          agent_relationship: number | null
+          media_risk: number | null
+          overall_fit: number | null
+          tactical_fit: number | null
+          financial_feasibility: number | null
         }
         Insert: {
           id?: string
@@ -122,6 +131,15 @@ export type Database = {
           reputation_tier?: string
           league_experience?: string[]
           last_updated?: string
+          placement_score?: number | null
+          board_compatibility?: number | null
+          ownership_fit?: number | null
+          cultural_risk?: number | null
+          agent_relationship?: number | null
+          media_risk?: number | null
+          overall_fit?: number | null
+          tactical_fit?: number | null
+          financial_feasibility?: number | null
         }
         Update: {
           id?: string
@@ -140,6 +158,15 @@ export type Database = {
           reputation_tier?: string
           league_experience?: string[]
           last_updated?: string
+          placement_score?: number | null
+          board_compatibility?: number | null
+          ownership_fit?: number | null
+          cultural_risk?: number | null
+          agent_relationship?: number | null
+          media_risk?: number | null
+          overall_fit?: number | null
+          tactical_fit?: number | null
+          financial_feasibility?: number | null
         }
         Relationships: []
       }
@@ -149,33 +176,174 @@ export type Database = {
           coach_id: string
           update_note: string
           update_type: string
-          availability_change: string | null
-          reputation_shift: string | null
-          date_added: string
+          occurred_at: string | null
+          confidence: string | null
+          source_tier: string | null
+          source_note: string | null
         }
         Insert: {
           id?: string
           coach_id: string
           update_note: string
           update_type?: string
-          availability_change?: string | null
-          reputation_shift?: string | null
-          date_added?: string
+          occurred_at?: string | null
+          confidence?: string | null
+          source_tier?: string | null
+          source_note?: string | null
         }
         Update: {
           id?: string
           coach_id?: string
           update_note?: string
           update_type?: string
-          availability_change?: string | null
-          reputation_shift?: string | null
-          date_added?: string
+          occurred_at?: string | null
+          confidence?: string | null
+          source_tier?: string | null
+          source_note?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "coach_updates_coach_id_fkey"
             columns: ["coach_id"]
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      mandates: {
+        Row: {
+          id: string
+          user_id: string
+          club_id: string
+          status: string
+          engagement_date: string
+          target_completion_date: string
+          priority: string
+          ownership_structure: string
+          budget_band: string
+          strategic_objective: string
+          board_risk_appetite: string
+          succession_timeline: string
+          key_stakeholders: string[]
+          confidentiality_level: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          club_id: string
+          status: string
+          engagement_date: string
+          target_completion_date: string
+          priority: string
+          ownership_structure: string
+          budget_band: string
+          strategic_objective: string
+          board_risk_appetite: string
+          succession_timeline: string
+          key_stakeholders?: string[]
+          confidentiality_level?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          club_id?: string
+          status?: string
+          engagement_date?: string
+          target_completion_date?: string
+          priority?: string
+          ownership_structure?: string
+          budget_band?: string
+          strategic_objective?: string
+          board_risk_appetite?: string
+          succession_timeline?: string
+          key_stakeholders?: string[]
+          confidentiality_level?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mandates_club_id_fkey"
+            columns: ["club_id"]
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      mandate_shortlist: {
+        Row: {
+          id: string
+          mandate_id: string
+          coach_id: string
+          placement_probability: number
+          risk_rating: string
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          mandate_id: string
+          coach_id: string
+          placement_probability: number
+          risk_rating: string
+          status: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mandate_id?: string
+          coach_id?: string
+          placement_probability?: number
+          risk_rating?: string
+          status?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mandate_shortlist_coach_id_fkey"
+            columns: ["coach_id"]
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mandate_shortlist_mandate_id_fkey"
+            columns: ["mandate_id"]
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      mandate_deliverables: {
+        Row: {
+          id: string
+          mandate_id: string
+          item: string
+          due_date: string
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          mandate_id: string
+          item: string
+          due_date: string
+          status: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mandate_id?: string
+          item?: string
+          due_date?: string
+          status?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mandate_deliverables_mandate_id_fkey"
+            columns: ["mandate_id"]
+            referencedRelation: "mandates"
             referencedColumns: ["id"]
           }
         ]
@@ -249,6 +417,9 @@ export type Club = Database['public']['Tables']['clubs']['Row']
 export type Vacancy = Database['public']['Tables']['vacancies']['Row']
 export type Coach = Database['public']['Tables']['coaches']['Row']
 export type CoachUpdate = Database['public']['Tables']['coach_updates']['Row']
+export type Mandate = Database['public']['Tables']['mandates']['Row']
+export type MandateShortlist = Database['public']['Tables']['mandate_shortlist']['Row']
+export type MandateDeliverable = Database['public']['Tables']['mandate_deliverables']['Row']
 export type Match = Database['public']['Tables']['matches']['Row']
 
 export type MatchWithCoach = Match & {

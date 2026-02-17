@@ -12,7 +12,6 @@ import {
   Loader2,
   ArrowRight,
   Info,
-  X,
 } from 'lucide-react'
 
 const STYLES = ['Possession-based', 'Tiki-taka', 'Counter-attacking', 'High press', 'Gegenpressing', 'Direct', 'Long ball', 'Defensive', 'Low block', 'Build from back', 'Balanced']
@@ -104,14 +103,14 @@ export default function NewVacancyPage() {
     form.timeline
 
   return (
-    <div className="max-w-2xl mx-auto pb-16 animate-fade-in">
+    <div className="max-w-3xl mx-auto pb-16 animate-fade-in">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <Badge variant="outline">Recruitment Brief</Badge>
         </div>
         <h1 className="text-lg font-semibold text-foreground mt-2 tracking-tight">
-          Vacancy Builder
+          Mandate Setup
         </h1>
         <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-lg">
           Define the coaching profile for this appointment. We will score every
@@ -119,28 +118,39 @@ export default function NewVacancyPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Club Profile */}
-        <FormSection title="Club Profile">
-          <FormField label="Role Type">
-            <div className="grid grid-cols-2 gap-3">
-              {['Head Coach', 'Assistant Coach'].map((role) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => updateForm('role_type', role)}
-                  className={cn(
-                    'px-4 py-3 rounded-md border text-sm font-medium transition-all',
-                    form.role_type === role
-                      ? 'border-primary/40 bg-primary/[0.08] text-primary'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:border-border/80 bg-surface'
-                  )}
-                >
-                  {role}
-                </button>
-              ))}
-            </div>
-          </FormField>
+      <form onSubmit={handleSubmit}>
+        {/* Club Profile & Timeline — two-column layout */}
+        <MandateSection title="Club Profile">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FormField label="Role Type">
+              <div className="grid grid-cols-2 gap-3">
+                {['Head Coach', 'Assistant Coach'].map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => updateForm('role_type', role)}
+                    className={cn(
+                      'px-4 py-3 rounded-lg border text-sm font-medium transition-all',
+                      form.role_type === role
+                        ? 'border-emerald-400/40 bg-emerald-50 text-emerald-700'
+                        : 'border-border-light bg-light-hover text-light-muted hover:text-light-fg hover:border-border-light/80'
+                    )}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            </FormField>
+
+            <FormField label="Timeline">
+              <SelectInput
+                value={form.timeline}
+                onChange={(v) => updateForm('timeline', v)}
+                options={TIMELINES}
+                placeholder="Select timeline..."
+              />
+            </FormField>
+          </div>
 
           <FormField label="Club Objective">
             <SelectInput
@@ -150,36 +160,29 @@ export default function NewVacancyPage() {
               placeholder="Select objective..."
             />
           </FormField>
-
-          <FormField label="Timeline">
-            <SelectInput
-              value={form.timeline}
-              onChange={(v) => updateForm('timeline', v)}
-              options={TIMELINES}
-              placeholder="Select timeline..."
-            />
-          </FormField>
-        </FormSection>
+        </MandateSection>
 
         {/* Tactical Requirements */}
-        <FormSection title="Tactical Requirements">
-          <FormField label="Style of Play">
-            <SelectInput
-              value={form.style_of_play}
-              onChange={(v) => updateForm('style_of_play', v)}
-              options={STYLES}
-              placeholder="Select style..."
-            />
-          </FormField>
+        <MandateSection title="Tactical Requirements" className="mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FormField label="Style of Play">
+              <SelectInput
+                value={form.style_of_play}
+                onChange={(v) => updateForm('style_of_play', v)}
+                options={STYLES}
+                placeholder="Select style..."
+              />
+            </FormField>
 
-          <FormField label="Pressing Intensity">
-            <SelectInput
-              value={form.pressing_level}
-              onChange={(v) => updateForm('pressing_level', v)}
-              options={PRESSING}
-              placeholder="Select pressing level..."
-            />
-          </FormField>
+            <FormField label="Pressing Intensity">
+              <SelectInput
+                value={form.pressing_level}
+                onChange={(v) => updateForm('pressing_level', v)}
+                options={PRESSING}
+                placeholder="Select pressing level..."
+              />
+            </FormField>
+          </div>
 
           <FormField label="Build-up Style">
             <SelectInput
@@ -191,45 +194,47 @@ export default function NewVacancyPage() {
           </FormField>
 
           {/* Formation Flexibility callout */}
-          <div className="card-inset rounded-md p-4 flex gap-3">
-            <Info className="w-4 h-4 text-primary/60 shrink-0 mt-0.5" />
+          <div className="rounded-lg border border-border-light bg-light-hover p-4 flex gap-3">
+            <Info className="w-4 h-4 text-emerald-500/60 shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-medium text-foreground mb-0.5">Formation Flexibility</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <p className="text-xs font-medium text-light-fg mb-0.5">Formation Flexibility</p>
+              <p className="text-[11px] text-light-muted leading-relaxed">
                 Our matching algorithm considers tactical adaptability. Coaches who have demonstrated
                 success across multiple formations will score higher in tactical fit assessments.
               </p>
             </div>
           </div>
-        </FormSection>
+        </MandateSection>
 
-        {/* Practical Constraints */}
-        <FormSection title="Practical Constraints">
-          <FormField label="Transfer Budget">
-            <SelectInput
-              value={form.budget_range}
-              onChange={(v) => updateForm('budget_range', v)}
-              options={BUDGETS}
-              placeholder="Select budget range..."
-            />
-          </FormField>
+        {/* Financial Constraints — two-column */}
+        <MandateSection title="Financial Constraints" className="mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FormField label="Transfer Budget">
+              <SelectInput
+                value={form.budget_range}
+                onChange={(v) => updateForm('budget_range', v)}
+                options={BUDGETS}
+                placeholder="Select budget range..."
+              />
+            </FormField>
 
-          <FormField label="Coaching Staff Budget">
-            <SelectInput
-              value={form.staff_budget}
-              onChange={(v) => updateForm('staff_budget', v)}
-              options={STAFF_BUDGETS}
-              placeholder="Select staff budget..."
-            />
-          </FormField>
-        </FormSection>
+            <FormField label="Coaching Staff Budget">
+              <SelectInput
+                value={form.staff_budget}
+                onChange={(v) => updateForm('staff_budget', v)}
+                options={STAFF_BUDGETS}
+                placeholder="Select staff budget..."
+              />
+            </FormField>
+          </div>
+        </MandateSection>
 
         {/* Experience Requirements */}
-        <FormSection title="Experience Requirements">
+        <MandateSection title="Experience Requirements" className="mt-8">
           <div className="flex items-center justify-between py-1">
             <div>
-              <p className="text-sm text-foreground font-medium">League Experience Required</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <p className="text-[13px] text-light-fg font-medium">League Experience Required</p>
+              <p className="text-[11px] text-light-muted mt-0.5">
                 Only match coaches with experience in this division
               </p>
             </div>
@@ -238,55 +243,52 @@ export default function NewVacancyPage() {
               onClick={() => updateForm('league_experience_required', !form.league_experience_required)}
               className={cn(
                 'relative w-10 h-[22px] rounded-full transition-colors',
-                form.league_experience_required ? 'bg-primary' : 'bg-border'
+                form.league_experience_required ? 'bg-emerald-500' : 'bg-border-light'
               )}
             >
               <div
                 className={cn(
-                  'absolute top-[3px] w-4 h-4 rounded-full bg-white transition-transform',
+                  'absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform',
                   form.league_experience_required ? 'left-[22px]' : 'left-[3px]'
                 )}
               />
             </button>
           </div>
-        </FormSection>
+        </MandateSection>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-border/50">
+        <div className="flex items-center justify-between pt-6 mt-8 border-t border-border/30">
           <button
             type="button"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="text-xs text-light-muted hover:text-foreground hover:underline transition-colors"
           >
-            <X className="w-3.5 h-3.5" />
             Cancel
           </button>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={loading || !isComplete}
-              className={cn(
-                'inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-xs font-semibold transition-all',
-                isComplete && !loading
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'bg-surface border border-border text-muted-foreground/50 cursor-not-allowed'
-              )}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Target className="w-3.5 h-3.5" />
-                  Generate Matches
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading || !isComplete}
+            className={cn(
+              'inline-flex items-center gap-2 px-5 h-9 rounded-lg text-xs font-semibold transition-all',
+              isComplete && !loading
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'bg-surface border border-border text-muted-foreground/50 cursor-not-allowed'
+            )}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Target className="w-3.5 h-3.5" />
+                Generate Shortlist
+                <ArrowRight className="w-3.5 h-3.5" />
+              </>
+            )}
+          </button>
         </div>
       </form>
     </div>
@@ -295,15 +297,15 @@ export default function NewVacancyPage() {
 
 /* Helper Components */
 
-function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+function MandateSection({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="card-surface rounded-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-border/50">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+    <div className={cn('card-light rounded-xl overflow-hidden', className)}>
+      <div className="px-6 py-3.5 border-b border-border-light">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-light-muted/60">
           {title}
         </h3>
       </div>
-      <div className="p-5 space-y-5">
+      <div className="px-6 py-5 space-y-5">
         {children}
       </div>
     </div>
@@ -313,7 +315,7 @@ function FormSection({ title, children }: { title: string; children: React.React
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-foreground mb-2">
+      <label className="block text-xs font-medium text-light-fg mb-2">
         {label}
       </label>
       {children}
@@ -338,8 +340,8 @@ function SelectInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          'w-full appearance-none px-3 py-2.5 bg-surface border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors cursor-pointer',
-          value ? 'text-foreground' : 'text-muted-foreground/50'
+          'w-full appearance-none px-3 py-2.5 bg-light-hover border border-border-light rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500/30 focus:border-emerald-500/30 transition-colors cursor-pointer',
+          value ? 'text-light-fg' : 'text-light-muted/50'
         )}
       >
         <option value="" disabled>{placeholder}</option>
@@ -347,7 +349,7 @@ function SelectInput({
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
-      <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" viewBox="0 0 16 16" fill="none">
+      <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-light-muted pointer-events-none" viewBox="0 0 16 16" fill="none">
         <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     </div>
