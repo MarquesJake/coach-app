@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { CoachUpdate, Coach } from '@/lib/types/database'
+import type { Database } from '@/lib/types/db'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import {
@@ -13,13 +13,14 @@ import {
   RefreshCw,
   Briefcase,
   Signal,
-  AlertTriangle,
   Loader2,
   TrendingUp,
   Filter,
   Bell,
 } from 'lucide-react'
 
+type CoachUpdate = Database['public']['Tables']['coach_updates']['Row']
+type Coach = Database['public']['Tables']['coaches']['Row']
 type UpdateWithCoach = CoachUpdate & { coaches: Coach }
 
 const TYPE_ICON: Record<string, React.ElementType> = {
@@ -103,9 +104,9 @@ export default function IntelligencePage() {
   const now = new Date()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
   const thisWeek = updates.filter((u) => u.occurred_at && new Date(u.occurred_at) >= weekAgo).length
-  const highPriority = updates.filter(u => ['sacking', 'appointment'].includes(u.update_type)).length
-  const availabilityChanges = updates.filter((u) => u.update_type === 'availability').length
-  const contractUpdates = updates.filter(u => u.update_type === 'contract').length
+  const highPriority = updates.filter(u => ['sacking', 'appointment'].includes(u.update_type ?? 'general')).length
+  const availabilityChanges = updates.filter((u) => (u.update_type ?? 'general') === 'availability').length
+  const contractUpdates = updates.filter(u => (u.update_type ?? 'general') === 'contract').length
 
   if (loading) {
     return (
@@ -176,9 +177,10 @@ export default function IntelligencePage() {
         ) : (
           <div className="divide-y divide-border">
             {updates.map((update) => {
-              const confidence = getConfidenceByValue(update.confidence) || getConfidence(update.update_type)
-              const IconComponent = TYPE_ICON[update.update_type] || Briefcase
-              const iconColor = TYPE_ICON_COLOR[update.update_type] || TYPE_ICON_COLOR['general']
+              const updateType = update.update_type ?? 'general'
+              const confidence = getConfidenceByValue(update.confidence) || getConfidence(updateType)
+              const IconComponent = TYPE_ICON[updateType] || Briefcase
+              const iconColor = TYPE_ICON_COLOR[updateType] || TYPE_ICON_COLOR['general']
 
               return (
                 <div key={update.id} className="px-6 py-5 hover:bg-surface-raised transition-colors">
@@ -193,7 +195,7 @@ export default function IntelligencePage() {
                       {/* Title row: title left, badges right */}
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <span className="text-sm font-semibold text-foreground leading-snug">
-                          {getUpdateTitle(update.update_type)}
+                          {getUpdateTitle(updateType)}
                         </span>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span className={cn(
@@ -203,7 +205,7 @@ export default function IntelligencePage() {
                             {confidence.label}
                           </span>
                           <span className="inline-flex items-center rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                            {update.update_type}
+                            {updateType}
                           </span>
                           {update.source_tier && (
                             <span className="inline-flex items-center rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">

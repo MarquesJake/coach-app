@@ -121,8 +121,56 @@ type CoachProfileRow = {
   reputation_tier: string | null
   league_experience: string[]
   last_updated: string
-  created_at: string
-  updated_at: string
+}
+
+function isCoachProfileRow(value: unknown): value is CoachProfileRow {
+  if (!value || typeof value !== 'object') return false
+  const row = value as Record<string, unknown>
+  return (
+    typeof row.id === 'string' &&
+    typeof row.user_id === 'string' &&
+    typeof row.name === 'string' &&
+    (typeof row.age === 'number' || row.age === null) &&
+    (typeof row.nationality === 'string' || row.nationality === null) &&
+    (typeof row.role_current === 'string' || row.role_current === null) &&
+    (typeof row.club_current === 'string' || row.club_current === null) &&
+    typeof row.preferred_style === 'string' &&
+    typeof row.pressing_intensity === 'string' &&
+    typeof row.build_preference === 'string' &&
+    typeof row.leadership_style === 'string' &&
+    typeof row.wage_expectation === 'string' &&
+    typeof row.staff_cost_estimate === 'string' &&
+    typeof row.available_status === 'string' &&
+    (typeof row.reputation_tier === 'string' || row.reputation_tier === null) &&
+    Array.isArray(row.league_experience) &&
+    typeof row.last_updated === 'string'
+  )
+}
+
+const COACH_PROFILE_SELECT = `
+  id,
+  user_id,
+  name,
+  age,
+  nationality,
+  role_current,
+  club_current,
+  preferred_style,
+  pressing_intensity,
+  build_preference,
+  leadership_style,
+  wage_expectation,
+  staff_cost_estimate,
+  available_status,
+  reputation_tier,
+  league_experience,
+  last_updated
+`
+
+function stripNullValues<T extends Record<string, unknown>>(obj: T, keepNullKeys: Array<keyof T> = []): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key, value]) => value !== null || keepNullKeys.includes(key as keyof T))
+  ) as Partial<T>
 }
 
 function DossierInput({
@@ -172,17 +220,33 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
 
   useEffect(() => {
     async function load() {
-      const { data: coachData } = await supabase
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        setCoach(null)
+        setLoading(false)
+        return
+      }
+
+      const { data: coachData, error: coachError } = await supabase
         .from('coaches')
-        .select('*')
+        .select(COACH_PROFILE_SELECT)
         .eq('id', params.id)
+        .eq('user_id', user.id)
         .single()
 
-      if (coachData) {
-        const typedCoach = coachData as CoachProfileRow
-        setCoach(typedCoach)
-        setDraft(typedCoach)
+      if (coachError) {
+        setError(coachError.message)
+        setLoading(false)
+        return
+      }
+
+      if (coachData && isCoachProfileRow(coachData)) {
+        setCoach(coachData)
+        setDraft(coachData)
         await loadUpdates()
+      } else if (coachData) {
+        setError('Coach profile data shape mismatch.')
       }
       setLoading(false)
     }
@@ -197,8 +261,8 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
       name: (draft.name ?? coach.name).trim() || coach.name,
       age: draft.age !== undefined ? draft.age : coach.age,
       nationality: draft.nationality ?? coach.nationality,
-      role_current: draft.role_current ?? coach.role_current,
-      club_current: draft.club_current ?? coach.club_current,
+      role_current: (draft.role_current ?? coach.role_current) ?? undefined,
+      club_current: (draft.club_current ?? coach.club_current) ?? undefined,
       preferred_style: draft.preferred_style ?? coach.preferred_style,
       pressing_intensity: draft.pressing_intensity ?? coach.pressing_intensity,
       build_preference: draft.build_preference ?? coach.build_preference,
@@ -206,25 +270,29 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
       wage_expectation: draft.wage_expectation ?? coach.wage_expectation,
       staff_cost_estimate: draft.staff_cost_estimate ?? coach.staff_cost_estimate,
       available_status: draft.available_status ?? coach.available_status,
-      reputation_tier: draft.reputation_tier ?? coach.reputation_tier,
+      reputation_tier: (draft.reputation_tier ?? coach.reputation_tier) ?? undefined,
       league_experience: draft.league_experience ?? coach.league_experience,
       last_updated: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     }
+    const sanitizedPayload = stripNullValues(payload, ['age', 'nationality'])
     const { data, error: updateError } = await supabase
       .from('coaches')
-      .update(payload)
+      .update(sanitizedPayload)
       .eq('id', params.id)
-      .select('*')
+      .select(COACH_PROFILE_SELECT)
       .single()
     if (updateError) {
       setError(updateError.message)
       setSaving(false)
       return
     }
-    const typedCoach = data as CoachProfileRow
-    setCoach(typedCoach)
-    setDraft(typedCoach)
+    if (!data || !isCoachProfileRow(data)) {
+      setError('Failed to load updated coach profile.')
+      setSaving(false)
+      return
+    }
+    setCoach(data)
+    setDraft(data)
     setIsEditing(false)
     setSaving(false)
   }
@@ -299,6 +367,7 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
   }
 
   const leadershipNote = LEADERSHIP_CONTEXT[(draft?.leadership_style ?? coach.leadership_style)] || null
+  const reputationKey = (draft?.reputation_tier ?? coach.reputation_tier) || 'Unrated'
 
   return (
     <div className="max-w-6xl mx-auto animate-fade-in">
@@ -411,8 +480,8 @@ export default function CoachProfilePage({ params }: { params: { id: string } })
                 <Badge variant={AVAILABILITY_VARIANT[(draft?.available_status ?? coach.available_status)] || 'secondary'}>
                   {draft?.available_status ?? coach.available_status}
                 </Badge>
-                {((draft?.reputation_tier ?? coach.reputation_tier)) && (
-                  <Badge variant={REPUTATION_VARIANT[(draft?.reputation_tier ?? coach.reputation_tier)] || 'secondary'} className="opacity-70">
+                {(draft?.reputation_tier ?? coach.reputation_tier) && (
+                  <Badge variant={REPUTATION_VARIANT[reputationKey] || 'secondary'} className="opacity-70">
                     {draft?.reputation_tier ?? coach.reputation_tier}
                   </Badge>
                 )}

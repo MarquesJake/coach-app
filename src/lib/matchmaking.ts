@@ -1,4 +1,7 @@
-import { Vacancy, Coach } from '@/lib/types/database'
+import type { Database } from '@/lib/types/db'
+
+type Vacancy = Database['public']['Tables']['vacancies']['Row']
+type Coach = Database['public']['Tables']['coaches']['Row']
 
 export interface MatchScores {
   tactical_fit_score: number
@@ -190,7 +193,8 @@ export function calculateMatchScores(vacancy: Vacancy, coach: Coach): MatchScore
 
   // Squad fit: league experience + reputation
   let squad_fit_score = 50
-  if (vacancy.league_experience_required && coach.league_experience.length > 0) {
+  const coachLeagues = coach.league_experience ?? []
+  if (vacancy.league_experience_required && coachLeagues.length > 0) {
     // Check if the coach has experience in the vacancy's club league
     squad_fit_score = 75
   } else if (!vacancy.league_experience_required) {

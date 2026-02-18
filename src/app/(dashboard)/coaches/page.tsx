@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Coach } from '@/lib/types/database'
+import type { Database } from '@/lib/types/db'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Search, Users, ChevronRight, Filter } from 'lucide-react'
+
+type Coach = Database['public']['Tables']['coaches']['Row']
 
 const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'danger' | 'secondary' | 'outline'> = {
   'Available': 'success',
@@ -41,9 +43,18 @@ export default function CoachesPage() {
 
   useEffect(() => {
     async function loadCoaches() {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        setCoaches([])
+        setLoading(false)
+        return
+      }
+
       const { data } = await supabase
         .from('coaches')
-        .select('*')
+        .select('id, user_id, name, age, nationality, role_current, club_current, preferred_style, pressing_intensity, build_preference, leadership_style, wage_expectation, staff_cost_estimate, available_status, reputation_tier, league_experience, last_updated, placement_score, board_compatibility, ownership_fit, cultural_risk, agent_relationship, media_risk, overall_fit, tactical_fit, financial_feasibility')
+        .eq('user_id', user.id)
         .order('name')
       setCoaches(data || [])
       setLoading(false)
@@ -53,7 +64,7 @@ export default function CoachesPage() {
 
   const filtered = coaches.filter((c) => {
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
-      (c.current_club || '').toLowerCase().includes(search.toLowerCase()) ||
+      (c.club_current || '').toLowerCase().includes(search.toLowerCase()) ||
       c.preferred_style.toLowerCase().includes(search.toLowerCase()) ||
       (c.nationality || '').toLowerCase().includes(search.toLowerCase())
     const matchStatus = statusFilter === 'all' || c.available_status === statusFilter
@@ -152,7 +163,7 @@ export default function CoachesPage() {
                   )}
                 </div>
                 <span className="text-2xs text-muted-foreground truncate block">
-                  {coach.current_role}{coach.current_club ? ` · ${coach.current_club}` : ''}
+                  {coach.role_current}{coach.club_current ? ` · ${coach.club_current}` : ''}
                 </span>
               </div>
 

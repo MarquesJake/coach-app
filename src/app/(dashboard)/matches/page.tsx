@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Vacancy, MatchWithCoach } from '@/lib/types/database'
+import type { Database } from '@/lib/types/db'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -21,6 +21,13 @@ import {
   AlertCircle,
   FileText,
 } from 'lucide-react'
+
+type Vacancy = Database['public']['Tables']['vacancies']['Row']
+type MatchRow = Database['public']['Tables']['matches']['Row']
+type CoachRow = Database['public']['Tables']['coaches']['Row']
+type MatchWithCoach = MatchRow & {
+  coaches: Pick<CoachRow, 'id' | 'name' | 'role_current' | 'club_current' | 'available_status' | 'league_experience'> | null
+}
 
 export default function MatchesPage() {
   return (
@@ -372,10 +379,15 @@ function MatchesContent() {
                     <div className="divide-y divide-border/50">
                       {matches.map((match, index) => {
                         const coach = match.coaches
-                        const compensation = getCompensationInfo(coach.available_status, match.financial_fit_score)
+                        if (!coach) return null
+                        const overallScore = match.overall_score ?? 0
+                        const tacticalScore = match.tactical_fit_score ?? 0
+                        const financialScore = match.financial_fit_score ?? 0
+                        const coachLeagues = coach.league_experience ?? []
+                        const compensation = getCompensationInfo(coach.available_status, financialScore)
                         const statusBadge = getStatusBadge(coach.available_status)
-                        const overallColor = getScoreColorClass(match.overall_score)
-                        const tacticalColor = getScoreColorClass(match.tactical_fit_score)
+                        const overallColor = getScoreColorClass(overallScore)
+                        const tacticalColor = getScoreColorClass(tacticalScore)
                         return (
                           <div
                             key={match.id}
@@ -389,21 +401,21 @@ function MatchesContent() {
                                 {coach.name}
                               </Link>
                               <span className="text-2xs text-muted-foreground truncate block">
-                                {coach.current_role}{coach.current_club ? ` · ${coach.current_club}` : ''}
+                                {coach.role_current}{coach.club_current ? ` · ${coach.club_current}` : ''}
                               </span>
                             </div>
                             <span className="text-2xs text-muted-foreground">
-                              {coach.league_experience?.length > 0 ? coach.league_experience[0] : '—'}
+                              {coachLeagues.length > 0 ? coachLeagues[0] : '—'}
                             </span>
                             <span className="text-2xs text-muted-foreground">{getContractStatus(coach.available_status)}</span>
                             <span className={cn('text-2xs font-medium', compensation.color)}>{compensation.label}</span>
                             <div className="flex items-center gap-2">
-                              <span className={cn('text-xs font-semibold tabular-nums', overallColor)}>{match.overall_score}</span>
-                              <MiniBar score={match.overall_score} />
+                              <span className={cn('text-xs font-semibold tabular-nums', overallColor)}>{overallScore}</span>
+                              <MiniBar score={overallScore} />
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className={cn('text-xs font-semibold tabular-nums', tacticalColor)}>{match.tactical_fit_score}</span>
-                              <MiniBar score={match.tactical_fit_score} />
+                              <span className={cn('text-xs font-semibold tabular-nums', tacticalColor)}>{tacticalScore}</span>
+                              <MiniBar score={tacticalScore} />
                             </div>
                             <Badge variant={statusBadge.variant as 'success' | 'warning' | 'danger' | 'outline'}>
                               {statusBadge.label}

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Club, Coach, Vacancy } from '@/lib/types/database'
+import type { Database } from '@/lib/types/db'
 import { calculateMatchScores } from '@/lib/matchmaking'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,10 @@ import {
   ArrowRight,
   Info,
 } from 'lucide-react'
+
+type Club = Database['public']['Tables']['clubs']['Row']
+type Coach = Database['public']['Tables']['coaches']['Row']
+type Vacancy = Database['public']['Tables']['vacancies']['Row']
 
 const STYLES = ['Possession-based', 'Tiki-taka', 'Counter-attacking', 'High press', 'Gegenpressing', 'Direct', 'Long ball', 'Defensive', 'Low block', 'Build from back', 'Balanced']
 const PRESSING = ['Very Low', 'Low', 'Medium', 'High', 'Very High']

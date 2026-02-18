@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Club } from '@/lib/types/database'
+import type { Database } from '@/lib/types/db'
 import { Zap } from 'lucide-react'
+
+type Club = Database['public']['Tables']['clubs']['Row']
 
 export default function SetupPage() {
   const [form, setForm] = useState({

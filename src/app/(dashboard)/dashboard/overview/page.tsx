@@ -26,6 +26,30 @@ function signalTypeLabel(updateType: string | null) {
   return 'performance'
 }
 
+
+type PlacementReadyRow = {
+  id: string
+  name: string
+  nationality: string | null
+  club_current: string | null
+  placement_score: number | null
+}
+
+type TopPlacementRow = {
+  id: string
+  name: string
+  available_status: string
+  placement_score: number | null
+}
+
+type RecentSignalRow = {
+  id: string
+  update_type: string | null
+  update_note: string
+  occurred_at: string | null
+  coaches: { name: string } | null
+}
+
 export default async function DashboardOverviewPage() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -67,18 +91,24 @@ export default async function DashboardOverviewPage() {
     throw new Error(`Failed to load scoped coach ids: ${coachIdsError.message}`)
   }
 
-  const coachIds = Array.from(new Set(scopedCoachIdsRows.map((row) => row.coach_id)))
+  const coachIds = Array.from(
+    new Set(
+      (scopedCoachIdsRows ?? [])
+        .map((row: { coach_id: string | null }) => row.coach_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  )
 
-  let placementReady: Array<{ id: string; name: string; nationality: string | null; current_club: string | null; placement_score: number | null }> = []
-  let topPlacementScores: Array<{ id: string; name: string; available_status: string; placement_score: number | null }> = []
-  let recentSignals: Array<{ id: string; update_type: string; update_note: string; occurred_at: string | null; coaches: { name: string } | null }> = []
+  let placementReady: PlacementReadyRow[] = []
+  let topPlacementScores: TopPlacementRow[] = []
+  let recentSignals: RecentSignalRow[] = []
   let highConfidenceSignalsCount = 0
 
   if (coachIds.length > 0) {
     const [placementReadyResult, topScoresResult, highSignalCountResult, signalsResult] = await Promise.all([
       supabase
         .from('coaches')
-        .select('id, name, nationality, current_club, placement_score')
+        .select('id, name, nationality, club_current, placement_score')
         .in('id', coachIds)
         .eq('available_status', 'Available')
         .gte('placement_score', 85)
@@ -125,9 +155,9 @@ export default async function DashboardOverviewPage() {
       throw new Error(`Failed to load intelligence signals: ${signalsResult.error.message}`)
     }
 
-    placementReady = placementReadyResult.data
-    topPlacementScores = topScoresResult.data
-    recentSignals = signalsResult.data
+    placementReady = (placementReadyResult.data || []) as PlacementReadyRow[]
+    topPlacementScores = (topScoresResult.data || []) as TopPlacementRow[]
+    recentSignals = (signalsResult.data || []) as RecentSignalRow[]
     highConfidenceSignalsCount = highSignalCountResult.count ?? 0
   }
 
@@ -247,15 +277,17 @@ export default async function DashboardOverviewPage() {
                       </div>
                       <div className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wide">
                         {mandate.clubs?.league ?? 'Unknown League'} · Target:{' '}
-                        {new Date(mandate.target_completion_date).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
+                        {mandate.target_completion_date
+                          ? new Date(mandate.target_completion_date).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                            })
+                          : 'Unknown'}
                       </div>
                       <div className="text-xs text-muted-foreground leading-relaxed">
-                        {mandate.strategic_objective.length > 120
-                          ? `${mandate.strategic_objective.slice(0, 120)}...`
-                          : mandate.strategic_objective}
+                        {(mandate.strategic_objective ?? '').length > 120
+                          ? `${(mandate.strategic_objective ?? '').slice(0, 120)}...`
+                          : (mandate.strategic_objective ?? '')}
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 ml-3" />
@@ -290,7 +322,7 @@ export default async function DashboardOverviewPage() {
                         </span>
                       </div>
                       <div className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                        {coach.current_club || 'Free Agent'} · {coach.nationality || 'Unknown'}
+                        {coach.club_current || 'Free Agent'} · {coach.nationality || 'Unknown'}
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">
@@ -318,13 +350,15 @@ export default async function DashboardOverviewPage() {
                       <div className="text-sm font-semibold text-foreground">{mandate.clubs?.name ?? 'Unknown Club'}</div>
                       <div className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wide">
                         Deadline:{' '}
-                        {new Date(mandate.target_completion_date).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
+                        {mandate.target_completion_date
+                          ? new Date(mandate.target_completion_date).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                            })
+                          : 'Unknown'}
                       </div>
                       <div className="text-[10px] text-destructive mt-1">
-                        {mandate.mandate_shortlist.filter((s) => s.status === 'In Negotiations').length > 0
+                        {mandate.mandate_shortlist.filter((s: { status: string }) => s.status === 'In Negotiations').length > 0
                           ? 'Negotiations active'
                           : 'Awaiting decision'}
                       </div>
