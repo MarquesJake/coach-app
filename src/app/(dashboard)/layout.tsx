@@ -1,7 +1,7 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { TopNav } from './_components/top-nav'
+import { Sidebar } from './_components/sidebar'
 
 export default async function DashboardLayout({
   children,
@@ -33,15 +33,18 @@ export default async function DashboardLayout({
     redirect('/dashboard/setup')
   }
 
-  // On setup page → render without nav
+  // On setup page → render with sidebar so Admin nav is always available
   if (!hasClub && isSetupPage) {
     return (
       <div className="min-h-screen bg-background">
-        <main className="min-h-screen">
-          <div className="max-w-6xl mx-auto px-8 py-8">
-            {children}
-          </div>
-        </main>
+        <Sidebar />
+        <div className="pl-[220px]">
+          <main className="min-h-screen">
+            <div className="max-w-[1400px] mx-auto px-6 py-6">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     )
   }
@@ -53,12 +56,14 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <TopNav />
-      <main className="pt-[calc(var(--nav-height)+var(--tab-height))] min-h-screen">
-        <div className="max-w-6xl mx-auto px-8 py-6">
-          {children}
-        </div>
-      </main>
+      <Sidebar />
+      <div className="pl-[220px]">
+        <main className="min-h-screen">
+          <div className="max-w-[1400px] mx-auto px-6 py-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

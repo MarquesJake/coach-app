@@ -1,4 +1,4 @@
-
+// TODO: Future: migrate filtering from user_id to org_id for multi-tenant support.
 
 import { db } from './client'
 
@@ -39,16 +39,36 @@ export async function getMandatesForUser(userId: string) {
       id,
       status,
       priority,
+      pipeline_stage,
       engagement_date,
       target_completion_date,
+      budget_band,
       created_at,
+      custom_club_name,
       clubs (
         name
+      ),
+      mandate_shortlist (
+        id
       )
     `
     )
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
+}
+
+/** Fetch mandate row with fit-relevant fields for coach vs mandate comparison. */
+export async function getMandateFitFields(userId: string, mandateId: string) {
+  const supabase = db()
+  const { data, error } = await supabase
+    .from('mandates')
+    .select(
+      'id, custom_club_name, tactical_model_required, pressing_intensity_required, build_preference_required, leadership_profile_required, risk_tolerance, language_requirements, relocation_required'
+    )
+    .eq('id', mandateId)
+    .eq('user_id', userId)
+    .single()
+  return { data, error }
 }
 
 export async function getMandateDetailForUser(userId: string, mandateId: string) {
@@ -61,6 +81,7 @@ export async function getMandateDetailForUser(userId: string, mandateId: string)
       id,
       status,
       priority,
+      pipeline_stage,
       engagement_date,
       target_completion_date,
       ownership_structure,
@@ -70,6 +91,7 @@ export async function getMandateDetailForUser(userId: string, mandateId: string)
       succession_timeline,
       key_stakeholders,
       confidentiality_level,
+      custom_club_name,
       clubs (
         name,
         league
@@ -93,6 +115,7 @@ export async function getMandateDetailForUser(userId: string, mandateId: string)
       placement_probability,
       risk_rating,
       status,
+      notes,
       coaches (
         name,
         club_current,

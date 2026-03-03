@@ -4,47 +4,34 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  LayoutDashboard,
-  PlusCircle,
   Users,
+  Briefcase,
   BarChart3,
   Radio,
+  Building2,
+  Settings,
+  Sliders,
   LogOut,
   Zap,
+  Database,
+  Bell,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const navItems = [
-  {
-    label: 'Overview',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-    section: 'main',
-  },
-  {
-    label: 'New Search',
-    href: '/vacancies/new',
-    icon: PlusCircle,
-    section: 'main',
-  },
-  {
-    label: 'Coach Database',
-    href: '/coaches',
-    icon: Users,
-    section: 'intelligence',
-  },
-  {
-    label: 'Shortlists',
-    href: '/matches',
-    icon: BarChart3,
-    section: 'intelligence',
-  },
-  {
-    label: 'Intel Feed',
-    href: '/intelligence',
-    icon: Radio,
-    section: 'intelligence',
-  },
+const platformNav = [
+  { label: 'Coaches', href: '/coaches', icon: Users },
+  { label: 'Intelligence', href: '/intelligence', icon: Radio },
+  { label: 'Alerts', href: '/alerts', icon: Bell },
+  { label: 'Staff', href: '/staff', icon: Users },
+  { label: 'Clubs', href: '/clubs', icon: Building2 },
+  { label: 'Mandates', href: '/mandates', icon: Briefcase },
+  { label: 'Matches', href: '/matches', icon: BarChart3 },
+]
+
+const adminNav = [
+  { label: 'Config', href: '/config', icon: Sliders },
+  { label: 'Settings', href: '/settings', icon: Settings },
+  { label: 'Data tools', href: '/admin/data-tools', icon: Database },
 ]
 
 export function Sidebar() {
@@ -58,23 +45,20 @@ export function Sidebar() {
     router.refresh()
   }
 
-  const mainNav = navItems.filter((i) => i.section === 'main')
-  const intelNav = navItems.filter((i) => i.section === 'intelligence')
-
   return (
     <aside className="w-[220px] bg-card border-r border-border flex flex-col fixed h-full z-30">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-border">
-        <Link href="/dashboard" className="flex items-center gap-2.5">
+        <Link href="/coaches" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
             <Zap className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-foreground text-[13px] leading-tight tracking-tight">
-              CoachMatch
+              Coach First
             </span>
             <span className="text-[9px] text-muted-foreground uppercase tracking-[0.12em] leading-tight">
-              Intelligence
+              Intelligence OS
             </span>
           </div>
         </Link>
@@ -82,11 +66,17 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <div className="mb-2 px-3">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
+            Platform
+          </span>
+        </div>
         <div className="space-y-0.5">
-          {mainNav.map((item) => {
+          {platformNav.map((item) => {
             const isActive =
               pathname === item.href ||
-              pathname.startsWith(item.href + '/')
+              (item.href !== '/coaches' && pathname.startsWith(item.href + '/')) ||
+              (item.href === '/coaches' && (pathname === '/coaches' || pathname.startsWith('/coaches/')))
             const Icon = item.icon
             return (
               <Link
@@ -111,12 +101,12 @@ export function Sidebar() {
 
         <div className="mt-6 mb-2 px-3">
           <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
-            Intelligence
+            Admin
           </span>
         </div>
 
         <div className="space-y-0.5">
-          {intelNav.map((item) => {
+          {adminNav.map((item) => {
             const isActive =
               pathname === item.href ||
               pathname.startsWith(item.href + '/')

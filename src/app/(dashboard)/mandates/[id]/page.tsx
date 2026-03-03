@@ -1,9 +1,23 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, FileText, Users } from 'lucide-react'
+import { ArrowLeft, FileText, Users, History, Pencil } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { getConfigList } from '@/lib/db/config'
 import { getMandateDetailForUser } from '@/lib/db/mandate'
-import { addDeliverableAction, addShortlistAction } from '../actions'
+import { getActivityForEntity } from '@/lib/db/activity'
+import { MandateToasts } from '../_components/mandate-toasts'
+import { RealtimeMandateSubscriber } from './_components/realtime-mandate-subscriber'
+import { ShortlistStatusSelect } from './_components/shortlist-status-select'
+import { ExportShortlistButton } from './_components/export-shortlist-button'
+import { DeleteMandateButton } from './_components/delete-mandate-button'
+import { SelectWithOther } from '@/components/ui/select-with-other'
+import { addDeliverableAction, addShortlistAction, updateShortlistEntryAction } from '../actions'
+
+const DELIVERABLE_STATUS_OPTIONS = ['Not Started', 'In Progress', 'Completed', 'Other']
+const RISK_RATING_OPTIONS = ['Low', 'Medium', 'High', 'Other']
+import { MANDATE_PIPELINE_STAGES, getStageIndex, getStageLabel } from '@/lib/constants/mandateStages'
+import { cn } from '@/lib/utils'
+import { Timeline } from '@/components/ui/timeline'
 
 type ShortlistRow = {
   id: string
@@ -11,6 +25,7 @@ type ShortlistRow = {
   placement_probability: number
   risk_rating: string
   status: string
+  notes: string | null
   coaches: {
     name: string | null
     club_current: string | null
@@ -39,17 +54,10 @@ function formatDate(value: string) {
   })
 }
 
-function readSearchParam(value: string | string[] | undefined) {
-  if (Array.isArray(value)) return value[0]
-  return value
-}
-
 export default async function MandateDetailPage({
   params,
-  searchParams,
 }: {
   params: { id: string }
-  searchParams?: { [key: string]: string | string[] | undefined }
 }) {
   const supabase = createServerSupabaseClient()
   const {
@@ -96,14 +104,22 @@ export default async function MandateDetailPage({
 
   const coaches = (coachesResult.data ?? []) as CoachOptionRow[]
 
-  const success = readSearchParam(searchParams?.success)
-  const shortlistSuccess = readSearchParam(searchParams?.shortlist_success)
-  const shortlistErrorMessage = readSearchParam(searchParams?.shortlist_error)
-  const deliverableSuccess = readSearchParam(searchParams?.deliverable_success)
-  const deliverableErrorMessage = readSearchParam(searchParams?.deliverable_error)
+  const { data: pipelineStages } = await getConfigList(user.id, 'config_pipeline_stages')
+  const pipelineOptions = (pipelineStages ?? []).map((r) => ({ id: r.id, name: r.name }))
+  const defaultShortlistStatus = pipelineOptions.find((o) => /review|shortlist|negotiation|declined/i.test(o.name))?.name ?? pipelineOptions[0]?.name ?? 'Under Review'
+
+  const activityResult = await getActivityForEntity('mandate', params.id)
+  const activity = (activityResult.data ?? []).map((row) => ({
+    id: row.id,
+    action_type: row.action_type,
+    description: row.description,
+    created_at: row.created_at,
+  }))
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-5">
+      <RealtimeMandateSubscriber mandateId={params.id} />
+      <MandateToasts />
       <Link
         href="/mandates"
         className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-[10px] font-bold uppercase tracking-widest"
@@ -112,17 +128,33 @@ export default async function MandateDetailPage({
         Back to mandates
       </Link>
 
+      <div className="flex gap-1 border-b border-border mb-4">
+        <Link href={`/mandates/${params.id}`} className="px-3 py-2 text-xs font-medium text-primary border-b-2 border-primary -mb-px">Overview</Link>
+        <Link href={`/mandates/${params.id}/longlist`} className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Longlist</Link>
+        <Link href={`/mandates/${params.id}/shortlist`} className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Shortlist</Link>
+      </div>
+
       <div className="card-surface rounded p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-foreground">{mandate.clubs?.name ?? 'Unknown club'}</h1>
+            <h1 className="text-xl font-bold text-foreground">{mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'}</h1>
             <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">
-              {mandate.clubs?.league ?? 'Unknown league'} · {mandate.status} · {mandate.priority} priority
+              {(mandate.clubs?.league ?? (mandate.custom_club_name ? '—' : 'Unknown league'))} · {mandate.status} · {mandate.priority} priority
             </p>
           </div>
-          <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold border uppercase tracking-wider bg-surface text-muted-foreground border-border">
-            {mandate.confidentiality_level}
-          </span>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/mandates/${params.id}/edit`}
+              className="inline-flex items-center gap-2 px-3 h-9 bg-surface border border-border rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-overlay/30 transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Edit mandate
+            </Link>
+            <DeleteMandateButton mandateId={params.id} />
+            <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold border uppercase tracking-wider bg-surface text-muted-foreground border-border">
+              {mandate.confidentiality_level}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-border">
@@ -145,9 +177,32 @@ export default async function MandateDetailPage({
         </div>
       </div>
 
-      {success && (
-        <div className="rounded border border-emerald-900/40 bg-emerald-950/30 px-3 py-2 text-xs text-emerald-400">{success}</div>
-      )}
+      <div className="card-surface rounded p-4">
+        <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-2">Pipeline stage</p>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-1">
+            {MANDATE_PIPELINE_STAGES.map((stage, i) => {
+              const currentIndex = getStageIndex(mandate.pipeline_stage ?? null)
+              const filled = i <= currentIndex
+              return (
+                <div
+                  key={stage}
+                  className={cn(
+                    'flex-1 h-2 rounded-full transition-colors',
+                    filled ? 'bg-primary' : 'bg-surface border border-border'
+                  )}
+                  title={getStageLabel(stage)}
+                />
+              )
+            })}
+          </div>
+          <div className="flex justify-between text-[9px] text-muted-foreground uppercase tracking-wider">
+            <span>{getStageLabel(MANDATE_PIPELINE_STAGES[0])}</span>
+            <span>{getStageLabel(mandate.pipeline_stage ?? MANDATE_PIPELINE_STAGES[0])}</span>
+            <span>{getStageLabel(MANDATE_PIPELINE_STAGES[MANDATE_PIPELINE_STAGES.length - 1])}</span>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-5">
@@ -186,19 +241,22 @@ export default async function MandateDetailPage({
           </div>
 
           <div className="card-surface rounded p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Shortlist</h2>
-              <span className="text-xs text-muted-foreground">{shortlist.length} coaches</span>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-lg font-medium text-foreground">Shortlist</h2>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">{shortlist.length} coaches</span>
+                <ExportShortlistButton mandateId={params.id} />
+              </div>
             </div>
 
             {shortlist.length === 0 ? (
               <div className="rounded border border-border bg-surface/60 px-3 py-4 text-sm text-muted-foreground">
-                No coaches in shortlist yet
+                No data available.
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {shortlist.map((item: ShortlistRow) => (
-                  <div key={item.id} className="rounded border border-border bg-surface/40 px-3 py-2.5">
+                  <div key={item.id} className="rounded border border-border bg-surface/40 px-3 py-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-foreground">{item.coaches?.name ?? 'Unknown coach'}</p>
@@ -211,6 +269,24 @@ export default async function MandateDetailPage({
                         <p className="text-[10px] text-muted-foreground mt-0.5">{item.risk_rating} risk · {item.status}</p>
                       </div>
                     </div>
+                    {item.notes && (
+                      <p className="text-xs text-muted-foreground border-t border-border/50 pt-2 mt-2">{item.notes}</p>
+                    )}
+                    <form action={updateShortlistEntryAction} className="flex flex-wrap items-end gap-2 pt-2 border-t border-border/50">
+                      <input type="hidden" name="mandate_id" value={params.id} />
+                      <input type="hidden" name="shortlist_id" value={item.id} />
+                      <div className="min-w-[140px]">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">Status</span>
+                        <ShortlistStatusSelect options={pipelineOptions} defaultValue={item.status} />
+                      </div>
+                      <div className="flex-1 min-w-[160px]">
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">Notes</span>
+                        <input type="text" name="notes" defaultValue={item.notes ?? ''} placeholder="Free text notes..." className="w-full h-10 rounded bg-surface border border-border px-3 text-sm text-foreground placeholder-muted-foreground/50" />
+                      </div>
+                      <button type="submit" className="h-10 px-3 rounded-lg bg-surface border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-overlay/30">
+                        Update
+                      </button>
+                    </form>
                   </div>
                 ))}
               </div>
@@ -218,16 +294,6 @@ export default async function MandateDetailPage({
 
             <div className="pt-2 border-t border-border">
               <h3 className="text-xs font-semibold text-foreground">Add to shortlist</h3>
-              {shortlistSuccess && (
-                <div className="mt-2 rounded border border-emerald-900/40 bg-emerald-950/30 px-3 py-2 text-xs text-emerald-400">
-                  {shortlistSuccess}
-                </div>
-              )}
-              {shortlistErrorMessage && (
-                <div className="mt-2 rounded border border-red-900/40 bg-red-950/30 px-3 py-2 text-xs text-red-400">
-                  {shortlistErrorMessage}
-                </div>
-              )}
               <form action={addShortlistAction} className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                 <input type="hidden" name="mandate_id" value={mandate.id} />
 
@@ -261,24 +327,26 @@ export default async function MandateDetailPage({
 
                 <label className="space-y-1">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Risk rating</span>
-                  <select name="risk_rating" required defaultValue="Medium" className="w-full h-10 rounded bg-surface border border-border px-3 text-sm text-foreground">
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                  </select>
+                  <SelectWithOther name="risk_rating" options={RISK_RATING_OPTIONS} defaultValue="Medium" required placeholder="Select risk..." otherPlaceholder="Type risk rating..." />
                 </label>
 
                 <label className="space-y-1">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Status</span>
-                  <select name="status" required defaultValue="Under Review" className="w-full h-10 rounded bg-surface border border-border px-3 text-sm text-foreground">
-                    <option value="Under Review">Under Review</option>
-                    <option value="Shortlisted">Shortlisted</option>
-                    <option value="In Negotiations">In Negotiations</option>
-                    <option value="Declined">Declined</option>
-                  </select>
+                  <ShortlistStatusSelect options={pipelineOptions} defaultValue={defaultShortlistStatus} />
                 </label>
 
-                <div className="md:col-span-2 flex justify-end">
+                <label className="space-y-1 md:col-span-2">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Notes</span>
+                  <input type="text" name="notes" placeholder="Free text notes (optional)" className="w-full h-10 rounded bg-surface border border-border px-3 text-sm text-foreground placeholder-muted-foreground/50" />
+                </label>
+
+                <div className="md:col-span-2 flex flex-wrap items-center justify-end gap-3">
+                  <Link
+                    href={`/coaches/new?returnTo=${encodeURIComponent(`/mandates/${params.id}`)}`}
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                  >
+                    Add a coach not in the list? Create one first
+                  </Link>
                   <button
                     type="submit"
                     className="inline-flex items-center px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90"
@@ -317,18 +385,6 @@ export default async function MandateDetailPage({
 
             <div className="pt-2 border-t border-border">
               <h3 className="text-xs font-semibold text-foreground">Add deliverable</h3>
-
-              {deliverableSuccess && (
-                <div className="mt-2 rounded border border-emerald-900/40 bg-emerald-950/30 px-3 py-2 text-xs text-emerald-400">
-                  {deliverableSuccess}
-                </div>
-              )}
-              {deliverableErrorMessage && (
-                <div className="mt-2 rounded border border-red-900/40 bg-red-950/30 px-3 py-2 text-xs text-red-400">
-                  {deliverableErrorMessage}
-                </div>
-              )}
-
               <form action={addDeliverableAction} className="space-y-3 mt-3">
                 <input type="hidden" name="mandate_id" value={mandate.id} />
 
@@ -344,11 +400,7 @@ export default async function MandateDetailPage({
 
                 <label className="space-y-1 block">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Status</span>
-                  <select name="status" required defaultValue="Not Started" className="w-full h-10 rounded bg-surface border border-border px-3 text-sm text-foreground">
-                    <option value="Not Started">Not Started</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                  </select>
+                  <SelectWithOther name="status" options={DELIVERABLE_STATUS_OPTIONS} defaultValue="Not Started" required placeholder="Select status..." otherPlaceholder="Type status..." />
                 </label>
 
                 <button
@@ -359,6 +411,14 @@ export default async function MandateDetailPage({
                 </button>
               </form>
             </div>
+          </div>
+
+          <div className="card-surface rounded p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-muted-foreground" />
+              <h2 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Activity</h2>
+            </div>
+            <Timeline items={activity} emptyMessage="No data available." />
           </div>
 
           <div className="card-surface rounded p-4">

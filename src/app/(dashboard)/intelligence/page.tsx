@@ -15,9 +15,26 @@ import {
   Signal,
   Loader2,
   TrendingUp,
-  Filter,
   Bell,
 } from 'lucide-react'
+import { IntelligenceItemsFeed } from './_components/intelligence-items-feed'
+
+const CATEGORY_OPTIONS = ['All', 'Media', 'Tactical', 'Legal', 'Staff', 'Performance'] as const
+const CONFIDENCE_OPTIONS = ['All', 'High', 'Medium', 'Low'] as const
+const RISK_OPTIONS = ['All', 'Low', 'Medium', 'High'] as const
+
+function updateTypeToCategory(updateType: string): string {
+  switch (updateType) {
+    case 'reputation': return 'Media'
+    case 'contract': return 'Legal'
+    case 'availability':
+    case 'sacking':
+    case 'appointment':
+    case 'transfer': return 'Performance'
+    case 'general': return 'Staff'
+    default: return 'Tactical'
+  }
+}
 
 type CoachUpdate = Database['public']['Tables']['coach_updates']['Row']
 type Coach = Database['public']['Tables']['coaches']['Row']
@@ -75,16 +92,40 @@ function getConfidenceByValue(confidence?: string | null): { label: string; clas
 
 export default function IntelligencePage() {
   const [updates, setUpdates] = useState<UpdateWithCoach[]>([])
+  const [coaches, setCoaches] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [limit, setLimit] = useState(20)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [coachFilter, setCoachFilter] = useState<string>('all')
+  const [riskFilter, setRiskFilter] = useState<string>('all')
+  const [confidenceFilter, setConfidenceFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const supabase = createClient()
 
   useEffect(() => {
     async function loadUpdates() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setUpdates([])
+        setCoaches([])
+        setLoading(false)
+        setLoadingMore(false)
+        return
+      }
+      const { data: coachRows } = await supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name')
+      const coachList = (coachRows ?? []).map((c) => ({ id: c.id, name: (c as { name: string }).name }))
+      setCoaches(coachList)
+      const coachIds = coachList.map((c) => c.id)
+      if (coachIds.length === 0) {
+        setUpdates([])
+        setLoading(false)
+        setLoadingMore(false)
+        return
+      }
       const { data } = await supabase
         .from('coach_updates')
         .select('*, coaches(*)')
+        .in('coach_id', coachIds)
         .order('occurred_at', { ascending: false, nullsFirst: false })
         .limit(limit)
 
@@ -94,6 +135,15 @@ export default function IntelligencePage() {
     }
     loadUpdates()
   }, [supabase, limit])
+
+  const filteredUpdates = updates.filter((u) => {
+    if (coachFilter !== 'all' && u.coach_id !== coachFilter) return false
+    const conf = (u.confidence ?? '') as string
+    if (confidenceFilter !== 'all' && conf !== confidenceFilter) return false
+    const category = updateTypeToCategory(u.update_type ?? 'general')
+    if (categoryFilter !== 'all' && category !== categoryFilter) return false
+    return true
+  })
 
   async function loadMore() {
     setLoadingMore(true)
@@ -120,23 +170,56 @@ export default function IntelligencePage() {
   }
 
   return (
-    <div className="animate-fade-in">
-      {/* Page Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Weekly Intelligence Feed</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Market intelligence and coaching movements</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground border border-border hover:text-foreground hover:bg-surface-raised transition-colors">
-            <Filter className="w-3.5 h-3.5" />
-            Filter
-          </button>
-          <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground border border-border hover:text-foreground hover:bg-surface-raised transition-colors">
-            <Bell className="w-3.5 h-3.5" />
-            Alerts
-          </button>
-        </div>
+    <div className="animate-fade-in pb-20">
+      <div className="flex justify-end mb-4">
+        <a
+          href="/alerts"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground border border-border hover:text-foreground hover:bg-surface/50 transition-colors"
+        >
+          <Bell className="w-3.5 h-3.5" />
+          Alerts
+        </a>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <select
+          value={coachFilter}
+          onChange={(e) => setCoachFilter(e.target.value)}
+          className="h-8 rounded-md border border-border bg-card px-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+        >
+          <option value="all">All coaches</option>
+          {coaches.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+        <select
+          value={riskFilter}
+          onChange={(e) => setRiskFilter(e.target.value)}
+          className="h-8 rounded-md border border-border bg-card px-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+        >
+          {RISK_OPTIONS.map((o) => (
+            <option key={o} value={o}>{o} risk</option>
+          ))}
+        </select>
+        <select
+          value={confidenceFilter}
+          onChange={(e) => setConfidenceFilter(e.target.value)}
+          className="h-8 rounded-md border border-border bg-card px-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+        >
+          {CONFIDENCE_OPTIONS.map((o) => (
+            <option key={o} value={o}>{o} confidence</option>
+          ))}
+        </select>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="h-8 rounded-md border border-border bg-card px-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+        >
+          {CATEGORY_OPTIONS.map((o) => (
+            <option key={o} value={o}>{o}</option>
+          ))}
+        </select>
       </div>
 
       {/* Summary Stats */}
@@ -160,94 +243,68 @@ export default function IntelligencePage() {
       </div>
 
       {/* Intelligence Timeline */}
-      <div className="card-surface rounded-xl overflow-hidden">
-        {/* Section header */}
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
-          <h2 className="text-base font-semibold text-foreground">Intelligence Timeline</h2>
+          <h2 className="text-lg font-medium text-foreground">Intelligence Timeline</h2>
         </div>
 
-        {updates.length === 0 ? (
+        {filteredUpdates.length === 0 ? (
           <div className="py-16 text-center">
             <Radio className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground mb-1">No intelligence updates</p>
-            <p className="text-xs text-muted-foreground/60">
-              Updates will appear here as coaching market intelligence comes in.
-            </p>
+            <p className="text-sm text-muted-foreground mb-1">No data available.</p>
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {updates.map((update) => {
+            {filteredUpdates.map((update) => {
               const updateType = update.update_type ?? 'general'
-              const confidence = getConfidenceByValue(update.confidence) || getConfidence(updateType)
+              const confidenceVal = getConfidenceByValue(update.confidence) || getConfidence(updateType)
+              const confidencePercent = (update.confidence === 'High' ? 85 : update.confidence === 'Medium' ? 50 : 25) as number
+              const category = updateTypeToCategory(updateType)
               const IconComponent = TYPE_ICON[updateType] || Briefcase
               const iconColor = TYPE_ICON_COLOR[updateType] || TYPE_ICON_COLOR['general']
 
               return (
-                <div key={update.id} className="px-6 py-5 hover:bg-surface-raised transition-colors">
+                <div key={update.id} className="px-6 py-5 hover:bg-muted/30 transition-colors">
                   <div className="flex gap-4">
-                    {/* Icon */}
                     <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5', iconColor)}>
                       <IconComponent className="w-4 h-4" />
                     </div>
-
-                    {/* Content */}
                     <div className="flex-1 min-w-0">
-                      {/* Title row: title left, badges right */}
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <span className="text-sm font-semibold text-foreground leading-snug">
                           {getUpdateTitle(updateType)}
                         </span>
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                           <span className={cn(
                             'inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide',
-                            confidence.classes
+                            confidenceVal.classes
                           )}>
-                            {confidence.label}
-                          </span>
-                          <span className="inline-flex items-center rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                            {updateType}
+                            {confidencePercent}%
                           </span>
                           {update.source_tier && (
                             <span className="inline-flex items-center rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
                               {update.source_tier}
                             </span>
                           )}
+                          <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                            {category}
+                          </span>
                         </div>
                       </div>
-
-                      {/* Coach name + time */}
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <Link
-                          href={`/coaches/${update.coach_id}`}
-                          className="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors"
-                        >
+                      <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground">
+                        <Link href={`/coaches/${update.coach_id}`} className="font-medium text-primary hover:underline">
                           {update.coaches.name}
                         </Link>
-                        <span className="text-muted-foreground/40">·</span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(update.occurred_at)}
-                        </span>
+                        <span>·</span>
+                        <span>{formatDate(update.occurred_at)}</span>
                       </div>
-
-                      {/* Body */}
                       <p className="text-sm text-muted-foreground leading-relaxed mb-3">
                         {update.update_note}
                       </p>
-
-                      {/* Action links */}
                       <div className="flex items-center gap-4">
-                        <Link
-                          href={`/coaches/${update.coach_id}`}
-                          className="text-xs text-muted-foreground hover:text-emerald-400 transition-colors"
-                        >
-                          View Details
+                        <Link href={`/coaches/${update.coach_id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                          View profile
                         </Link>
-                        <button className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                          Add Note
-                        </button>
-                        <button className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                          Share with Team
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -276,6 +333,10 @@ export default function IntelligencePage() {
             </button>
           </div>
         )}
+      </div>
+
+      <div className="mt-6">
+        <IntelligenceItemsFeed />
       </div>
     </div>
   )
