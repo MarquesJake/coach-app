@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { ArrowLeft } from 'lucide-react'
+import { ClubAgentsSection } from './_components/club-agents-section'
 
 type Club = { id: string; name: string; country: string; league: string; notes: string | null }
 
@@ -98,6 +99,7 @@ export default function EditClubPage() {
 
   return (
     <div className="max-w-xl mx-auto space-y-5">
+      <ClubAgentsSection clubId={id} />
       <Link
         href="/clubs"
         className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-[10px] font-bold uppercase tracking-widest"

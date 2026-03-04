@@ -15,11 +15,13 @@ import {
   Zap,
   Database,
   Bell,
+  UserCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const platformNav = [
   { label: 'Coaches', href: '/coaches', icon: Users },
+  { label: 'Agents', href: '/agents', icon: UserCircle },
   { label: 'Intelligence', href: '/intelligence', icon: Radio },
   { label: 'Alerts', href: '/alerts', icon: Bell },
   { label: 'Staff', href: '/staff', icon: Users },
@@ -75,8 +77,9 @@ export function Sidebar() {
           {platformNav.map((item) => {
             const isActive =
               pathname === item.href ||
-              (item.href !== '/coaches' && pathname.startsWith(item.href + '/')) ||
-              (item.href === '/coaches' && (pathname === '/coaches' || pathname.startsWith('/coaches/')))
+              (item.href !== '/coaches' && item.href !== '/agents' && pathname.startsWith(item.href + '/')) ||
+              (item.href === '/coaches' && (pathname === '/coaches' || pathname.startsWith('/coaches/'))) ||
+              (item.href === '/agents' && (pathname === '/agents' || pathname.startsWith('/agents/')))
             const Icon = item.icon
             return (
               <Link

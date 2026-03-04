@@ -45,7 +45,7 @@ export function SectionShell({
         {showSubnav && (
           <nav className="flex items-center gap-0.5 -mb-px" aria-label="Section navigation">
             {subnav.map((item) => {
-              const isExactOnly = ['/coaches', '/mandates', '/intelligence', '/staff', '/clubs', '/matches'].includes(item.href)
+              const isExactOnly = ['/coaches', '/agents', '/mandates', '/intelligence', '/staff', '/clubs', '/matches'].includes(item.href)
               const isActive =
                 pathname === item.href ||
                 (!isExactOnly && pathname.startsWith(item.href + '/'))

@@ -12,6 +12,9 @@ import { getEvidenceCountForCoach } from '@/lib/db/fit'
 import { computeIntelligenceConfidence } from '@/lib/intelligence-confidence'
 import { getActivityForEntity } from '@/lib/db/activity'
 import { Timeline } from '@/components/ui/timeline'
+import { listCoachAgentsForCoach } from '@/lib/db/agentLinks'
+import { getAgentsForUser } from '@/lib/db/agents'
+import { CoachAgentsSection } from './_components/coach-agents-section'
 
 export default async function CoachDetailLayout({
   children,
@@ -65,6 +68,20 @@ export default async function CoachDetailLayout({
     .from('coach_staff_history')
     .select('id', { count: 'exact', head: true })
     .eq('coach_id', params.id)
+
+  let coachAgentsLinks: Array<{ id: string; agent_id: string; relationship_type: string; relationship_strength: number | null; confidence: number | null; notes: string | null; agents?: { id: string; full_name: string | null; agency_name: string | null } | null }> = []
+  let agentsOptions: Array<{ id: string; full_name: string | null; agency_name: string | null }> = []
+  try {
+    const [linksRes, agentsRes] = await Promise.all([
+      listCoachAgentsForCoach(user.id, params.id),
+      getAgentsForUser(user.id),
+    ])
+    coachAgentsLinks = ((linksRes.data ?? []) as unknown) as typeof coachAgentsLinks
+    agentsOptions = ((agentsRes.data ?? []) as Array<{ id: string; full_name: string | null; agency_name: string | null }>).map((a) => ({ id: a.id, full_name: a.full_name ?? null, agency_name: a.agency_name ?? null }))
+  } catch {
+    // coach_agents table may not exist before migration
+  }
+
   const hasTactical = Boolean(
     (coachRecord.preferred_style as string)?.trim() ||
     (coachRecord.build_preference as string)?.trim() ||
@@ -104,6 +121,7 @@ export default async function CoachDetailLayout({
             intelligenceItemCount={intelligenceConfidence.itemCount}
             hasRecruitmentDensity={hasRecruitmentDensity}
           />
+          <CoachAgentsSection coachId={params.id} links={coachAgentsLinks} agentsOptions={agentsOptions} />
           {children}
           <section className="mt-6 rounded-lg border border-border bg-card p-6">
             <h2 className="text-lg font-medium text-foreground mb-3">Activity Timeline</h2>

@@ -6,6 +6,10 @@ export const COACHES_SUBNAV: SubNavItem[] = [
   { label: 'Watchlist', href: '/coaches/watchlist' },
 ]
 
+export const AGENTS_SUBNAV: SubNavItem[] = [
+  { label: 'Inventory', href: '/agents' },
+]
+
 export const MANDATES_SUBNAV: SubNavItem[] = [
   { label: 'Board', href: '/mandates' },
   { label: 'New mandate', href: '/mandates/new' },

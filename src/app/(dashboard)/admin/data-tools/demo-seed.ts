@@ -121,3 +121,23 @@ export const STAFF_NAMES = [
 export const CLUB_NAMES = ['Northgate FC', 'Riverside Athletic', 'Metro United']
 export const CLUB_LEAGUES = ['Championship', 'League One', 'Premier League']
 export const CLUB_COUNTRIES = ['United Kingdom', 'United Kingdom', 'United Kingdom']
+
+/** Demo agent full names (8). */
+export const DEMO_AGENT_FULL_NAMES = [
+  'James Walsh', 'Sarah Chen', 'Marc Dubois', 'Elena Rodrigues', 'Thomas Berg',
+  'Laura van Dijk', 'Oliver Nielsen', 'Sophie Laurent',
+]
+/** Demo agent agencies (some null for independents). */
+export const DEMO_AGENT_AGENCIES = [
+  'Summit Sports', 'Elite Talent Group', null, 'Prime Represents', 'Apex Football',
+  'Pinnacle Agency', null, 'Elite Talent Group',
+] as (string | null)[]
+export const DEMO_AGENT_MARKETS: string[][] = [
+  ['UK', 'France'], ['UK', 'Portugal'], ['France', 'Belgium'], ['Portugal', 'Spain'],
+  ['UK', 'Netherlands'], ['Netherlands', 'Belgium'], ['Scandinavia', 'UK'], ['France', 'Portugal'],
+]
+export const DEMO_AGENT_LANGUAGES: string[][] = [
+  ['English', 'French'], ['English', 'Mandarin'], ['French', 'English'], ['Portuguese', 'Spanish', 'English'],
+  ['English', 'Dutch'], ['Dutch', 'English'], ['English', 'Norwegian'], ['French', 'English'],
+]
+export const DEMO_AGENT_CONTACT_CHANNELS = ['WhatsApp', 'Email', 'WhatsApp', 'Email', 'Phone', 'WhatsApp', 'Email', 'WhatsApp']

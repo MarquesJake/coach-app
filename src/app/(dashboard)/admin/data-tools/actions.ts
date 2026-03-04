@@ -49,6 +49,11 @@ export type SeedDemoResult = {
     coach_due_diligence_items: number
     coach_background_checks: number
     coach_recruitment_history: number
+    agents?: number
+    coach_agents?: number
+    agent_club_relationships?: number
+    agent_interactions?: number
+    agent_deals?: number
   }
 } | { ok: false; error: string }
 
@@ -62,6 +67,7 @@ export async function seedDemoDataAction(): Promise<SeedDemoResult> {
 
   revalidatePath('/admin/data-tools')
   revalidatePath('/coaches')
+  revalidatePath('/agents')
   revalidatePath('/mandates')
   for (const id of coachIds) {
     revalidatePath(`/coaches/${id}`)
@@ -179,6 +185,13 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
     await deleteWhere('vacancies', 'club_id', clubIds)
   }
 
+  // Agent-related (all user-scoped)
+  await deleteByUserId('agent_deals')
+  await deleteByUserId('agent_interactions')
+  await deleteByUserId('agent_club_relationships')
+  await deleteByUserId('coach_agents')
+  await deleteByUserId('agents')
+
   // Coach children
   if (coachIds.length > 0) {
     await deleteWhere('coach_stints', 'coach_id', coachIds)
@@ -249,6 +262,7 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
   revalidatePath('/intelligence')
   revalidatePath('/staff')
   revalidatePath('/clubs')
+  revalidatePath('/agents')
   revalidatePath('/matches')
   revalidatePath('/admin/data-tools')
 

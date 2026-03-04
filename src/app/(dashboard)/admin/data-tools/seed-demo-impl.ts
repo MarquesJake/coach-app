@@ -23,6 +23,11 @@ import {
   CLUB_NAMES,
   CLUB_LEAGUES,
   CLUB_COUNTRIES,
+  DEMO_AGENT_FULL_NAMES,
+  DEMO_AGENT_AGENCIES,
+  DEMO_AGENT_MARKETS,
+  DEMO_AGENT_LANGUAGES,
+  DEMO_AGENT_CONTACT_CHANNELS,
 } from './demo-seed'
 import { buildCoachNarrative, RECRUITMENT_IMPACT_SUMMARIES, DEMO_AGENT_NAMES, INTEL_TITLE_DETAIL_PAIRS } from './demo-narrative'
 
@@ -56,6 +61,11 @@ export type SeedCounts = {
   coach_recruitment_history: number
   activity_log?: number
   coach_updates?: number
+  agents?: number
+  coach_agents?: number
+  agent_club_relationships?: number
+  agent_interactions?: number
+  agent_deals?: number
 }
 
 export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts; coachIds: string[]; error?: string }> {
@@ -83,6 +93,11 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     coach_recruitment_history: 0,
     activity_log: 0,
     coach_updates: 0,
+    agents: 0,
+    coach_agents: 0,
+    agent_club_relationships: 0,
+    agent_interactions: 0,
+    agent_deals: 0,
   }
 
   // 1) Demo seed marker
@@ -374,6 +389,153 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
         { onConflict: 'id' }
       )
       if (!error) counts.coach_updates = (counts.coach_updates ?? 0) + 1
+    }
+  }
+
+  // 7d) Agents (8) + coach_agents, agent_club_relationships, agent_interactions, agent_deals
+  const agentIds: string[] = []
+  for (let i = 0; i < 8; i++) {
+    const id = demoUuid(userId, 'agent', i)
+    agentIds.push(id)
+    const influence = 50 + (i % 45) + (i < 4 ? 10 : 0)
+    const reliability = 55 + (i % 40)
+    const responsiveness = i % 3 === 0 ? 85 : 60 + (i % 30)
+    const { error } = await supabase.from('agents').upsert(
+      {
+        id,
+        user_id: userId,
+        full_name: DEMO_AGENT_FULL_NAMES[i]!,
+        agency_name: DEMO_AGENT_AGENCIES[i] ?? null,
+        base_location: DEMO_BASE_LOCATIONS[i % DEMO_BASE_LOCATIONS.length]!,
+        markets: DEMO_AGENT_MARKETS[i] ?? [],
+        languages: DEMO_AGENT_LANGUAGES[i] ?? ['English'],
+        preferred_contact_channel: DEMO_AGENT_CONTACT_CHANNELS[i] ?? 'Email',
+        email: `agent${i + 1}@demo.co`,
+        whatsapp: i % 2 === 0 ? `+44${7000000000 + i}` : null,
+        reliability_score: Math.min(100, reliability),
+        influence_score: Math.min(100, influence),
+        responsiveness_score: Math.min(100, responsiveness),
+        risk_flag: i === 7,
+        risk_notes: i === 7 ? 'Monitor conflict of interest.' : null,
+      },
+      { onConflict: 'id' }
+    )
+    if (!error) counts.agents = (counts.agents ?? 0) + 1
+  }
+  for (let c = 0; c < 12; c++) {
+    const agentIdx = c % 8
+    const linkId = demoUuid(userId, 'coach-agent', c)
+    const { error } = await supabase.from('coach_agents').upsert(
+      {
+        id: linkId,
+        user_id: userId,
+        coach_id: coachIds[c]!,
+        agent_id: agentIds[agentIdx]!,
+        relationship_type: 'Primary',
+        relationship_strength: 65 + (c % 30),
+        confidence: 70 + (c % 25),
+        started_on: pastDate(24),
+      },
+      { onConflict: 'coach_id,agent_id' }
+    )
+    if (!error) counts.coach_agents = (counts.coach_agents ?? 0) + 1
+    if (c % 3 === 1 && c < 10) {
+      const secondAgentIdx = (agentIdx + 2) % 8
+      const linkId2 = demoUuid(userId, 'coach-agent-2', c)
+      const { error: err2 } = await supabase.from('coach_agents').upsert(
+        {
+          id: linkId2,
+          user_id: userId,
+          coach_id: coachIds[c]!,
+          agent_id: agentIds[secondAgentIdx]!,
+          relationship_type: 'Secondary',
+          relationship_strength: 40 + (c % 30),
+          confidence: 50 + (c % 30),
+        },
+        { onConflict: 'coach_id,agent_id' }
+      )
+      if (!err2) counts.coach_agents = (counts.coach_agents ?? 0) + 1
+    }
+  }
+  for (let cl = 0; cl < 3; cl++) {
+    const numLinks = 2 + (cl % 3)
+    for (let a = 0; a < numLinks; a++) {
+      const agentIdx = (cl * 2 + a) % 8
+      const relId = demoUuid(userId, 'agent-club', cl * 10 + a)
+      const { error } = await supabase.from('agent_club_relationships').upsert(
+        {
+          id: relId,
+          user_id: userId,
+          agent_id: agentIds[agentIdx]!,
+          club_id: clubIds[cl]!,
+          relationship_type: a === 0 ? 'Preferred' : 'Intermediary',
+          relationship_strength: 50 + (cl + a) * 15,
+          last_active_on: pastDate(2 + (cl + a) % 6),
+        },
+        { onConflict: 'agent_id,club_id' }
+      )
+      if (!error) counts.agent_club_relationships = (counts.agent_club_relationships ?? 0) + 1
+    }
+  }
+  const INTERACTION_TOPICS = ['Mandate', 'Availability', 'Compensation', 'Staff', 'Reputation', 'Other']
+  const INTERACTION_CHANNELS = ['Phone', 'WhatsApp', 'Email', 'In person', 'Video call']
+  const INTERACTION_SUMMARIES = [
+    'Discussed mandate fit and timeline.',
+    'Availability confirmed; open to conversation.',
+    'Compensation expectations aligned.',
+    'Staff package and backroom discussed.',
+    'Reputation check; positive feedback.',
+    'General catch-up; relationship maintained.',
+    'Follow-up on shortlist; next steps agreed.',
+    'Intro call with club; positive.',
+  ]
+  for (let a = 0; a < 8; a++) {
+    const numInt = 8 + (a % 13)
+    for (let i = 0; i < numInt; i++) {
+      const intId = demoUuid(userId, 'agent-int', a * 50 + i)
+      const monthsAgo = i % 12
+      const occurredAt = (() => { const d = new Date(); d.setMonth(d.getMonth() - monthsAgo); d.setDate(1 + (i % 20)); return d.toISOString() })()
+      const { error } = await supabase.from('agent_interactions').upsert(
+        {
+          id: intId,
+          user_id: userId,
+          agent_id: agentIds[a]!,
+          occurred_at: occurredAt,
+          channel: INTERACTION_CHANNELS[i % INTERACTION_CHANNELS.length],
+          direction: i % 2 === 0 ? 'Inbound' : 'Outbound',
+          topic: INTERACTION_TOPICS[i % INTERACTION_TOPICS.length],
+          summary: INTERACTION_SUMMARIES[i % INTERACTION_SUMMARIES.length]!,
+          detail: 'Demo interaction.',
+          sentiment: ['Positive', 'Neutral', 'Negative'][i % 3]!,
+          confidence: 60 + (i % 35),
+        },
+        { onConflict: 'id' }
+      )
+      if (!error) counts.agent_interactions = (counts.agent_interactions ?? 0) + 1
+    }
+  }
+  const DEAL_TYPES = ['Appointment', 'Extension', 'Termination', 'Settlement', 'Advisory']
+  for (let a = 0; a < 8; a++) {
+    const numDeals = 1 + (a % 4)
+    for (let d = 0; d < numDeals; d++) {
+      const dealId = demoUuid(userId, 'agent-deal', a * 10 + d)
+      const coachId = a < 12 ? coachIds[a % 12]! : null
+      const clubId = d % 3 === 0 ? clubIds[d % 3]! : null
+      const { error } = await supabase.from('agent_deals').upsert(
+        {
+          id: dealId,
+          user_id: userId,
+          agent_id: agentIds[a]!,
+          coach_id: coachId,
+          club_id: clubId,
+          deal_type: DEAL_TYPES[d % DEAL_TYPES.length]!,
+          season: `202${3 + (d % 2)}/${4 + (d % 2)}`,
+          value_band: d % 2 === 0 ? '£1m - £2m' : null,
+          occurred_on: pastDate(6 + d * 2),
+        },
+        { onConflict: 'id' }
+      )
+      if (!error) counts.agent_deals = (counts.agent_deals ?? 0) + 1
     }
   }
 
