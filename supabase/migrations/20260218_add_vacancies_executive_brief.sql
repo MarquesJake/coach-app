@@ -3,7 +3,8 @@ alter table public.vacancies
   add column if not exists executive_brief text;
 
 -- Allow users to update vacancies for their clubs (e.g. executive_brief)
-create policy if not exists "Users can update vacancies for their clubs"
+drop policy if exists "Users can update vacancies for their clubs" on public.vacancies;
+create policy "Users can update vacancies for their clubs"
   on public.vacancies for update
   using (
     club_id in (
@@ -12,7 +13,8 @@ create policy if not exists "Users can update vacancies for their clubs"
   );
 
 -- Allow users to insert/update matches for their vacancies
-create policy if not exists "Users can insert matches for their vacancies"
+drop policy if exists "Users can insert matches for their vacancies" on public.matches;
+create policy "Users can insert matches for their vacancies"
   on public.matches for insert
   with check (
     vacancy_id in (
@@ -22,7 +24,8 @@ create policy if not exists "Users can insert matches for their vacancies"
     )
   );
 
-create policy if not exists "Users can update matches for their vacancies"
+drop policy if exists "Users can update matches for their vacancies" on public.matches;
+create policy "Users can update matches for their vacancies"
   on public.matches for update
   using (
     vacancy_id in (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
 
@@ -41,6 +42,7 @@ function getDefaultValue(field: EditCoachField, initial: unknown): string | numb
 }
 
 export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, onSave, onSuccess, open: controlledOpen, onOpenChange, renderTrigger = true }: Props) {
+  const router = useRouter()
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen ?? internalOpen
   const setOpen = onOpenChange ?? setInternalOpen
@@ -92,6 +94,7 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
       return
     }
     setOpen(false)
+    router.refresh()
     onSuccess?.()
   }
 

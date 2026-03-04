@@ -52,7 +52,7 @@ export default async function MandateShortlistPage({ params }: { params: { id: s
             shortlist.map((row) => (
               <div key={row.id} className="grid grid-cols-[1fr_100px_120px_200px] px-5 py-3 items-center gap-2">
                 <Link href={`/coaches/${row.coach_id}`} className="text-sm font-medium text-primary hover:underline">
-                  {coachMap.get(row.coach_id)?.name ?? row.coach_id}
+                  {coachMap.get(row.coach_id)?.name ?? 'Unknown coach'}
                 </Link>
                 <span className="text-2xs">{row.status}</span>
                 <span className="tabular-nums text-2xs">{row.placement_probability}%</span>

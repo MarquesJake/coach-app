@@ -223,6 +223,7 @@ export async function updateCoachCoreAction(coachId: string, payload: Record<str
     }
 
     revalidatePath(`/coaches/${coachId}`)
+    revalidatePath('/coaches')
     revalidatePath(`/coaches/${coachId}/tactical`)
     revalidatePath(`/coaches/${coachId}/leadership`)
     revalidatePath(`/coaches/${coachId}/risk`)

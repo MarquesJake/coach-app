@@ -1574,6 +1574,12 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_seeds: {
+        Row: { id: string; user_id: string; created_at: string; updated_at: string; version: number }
+        Insert: { id?: string; user_id: string; created_at?: string; updated_at?: string; version?: number }
+        Update: { id?: string; user_id?: string; created_at?: string; updated_at?: string; version?: number }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

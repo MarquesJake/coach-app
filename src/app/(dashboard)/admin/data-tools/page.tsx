@@ -2,7 +2,9 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { ClaimDataButton } from './_components/claim-data-button'
 import { CopyMigrationButton } from './_components/copy-migration-button'
-import { Database, Shield } from 'lucide-react'
+import { GenerateDemoDataButton } from './_components/generate-demo-data-button'
+import { ClearMyDataButton } from './_components/clear-my-data-button'
+import { Database, Shield, Sparkles, Trash2 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,6 +79,31 @@ export default async function DataToolsPage() {
           <Shield className="w-3.5 h-3.5" />
           Safe to run repeatedly. Only rows with user_id null are updated to your user.
         </div>
+      </div>
+
+      <div className="card-surface rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <Sparkles className="w-4 h-4" />
+          Demo data
+        </div>
+        <p className="text-xs text-muted-foreground max-w-xl">
+          One-click generator for investor demos. Creates 12 coaches with full profiles, 3–6 career stints each,
+          staff network links, 6–15 intelligence items per coach, versioned scoring, derived metrics, similarity pairs,
+          3 clubs, 3 mandates with longlist and shortlist. All records are linked to your account and pass RLS.
+          Idempotent: re-running updates or skips cleanly without duplicating.
+        </p>
+        <GenerateDemoDataButton />
+      </div>
+
+      <div className="card-surface rounded-xl p-6 space-y-4 border border-destructive/20">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <Trash2 className="w-4 h-4 text-destructive" />
+          Clear my data
+        </div>
+        <p className="text-xs text-muted-foreground max-w-xl">
+          Deletes all of your records so you can start from scratch. Only rows owned by you (user_id) are removed; other users’ data is never touched. Requires confirmation and typing CLEAR.
+        </p>
+        <ClearMyDataButton />
       </div>
     </div>
   )

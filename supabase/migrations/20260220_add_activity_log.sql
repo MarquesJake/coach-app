@@ -15,10 +15,12 @@ create index if not exists activity_log_created_at_idx on public.activity_log (c
 
 alter table public.activity_log enable row level security;
 
-create policy if not exists "Users can view own activity log"
+drop policy if exists "Users can view own activity log" on public.activity_log;
+create policy "Users can view own activity log"
   on public.activity_log for select
   using (auth.uid() = user_id);
 
-create policy if not exists "Users can insert own activity log"
+drop policy if exists "Users can insert own activity log" on public.activity_log;
+create policy "Users can insert own activity log"
   on public.activity_log for insert
   with check (auth.uid() = user_id);

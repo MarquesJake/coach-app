@@ -18,15 +18,18 @@ create table if not exists public.clubs (
 
 alter table public.clubs enable row level security;
 
-create policy if not exists "Users can view their own club"
+drop policy if exists "Users can view their own club" on public.clubs;
+create policy "Users can view their own club"
   on public.clubs for select
   using (auth.uid() = user_id);
 
-create policy if not exists "Users can insert their own club"
+drop policy if exists "Users can insert their own club" on public.clubs;
+create policy "Users can insert their own club"
   on public.clubs for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "Users can update their own club"
+drop policy if exists "Users can update their own club" on public.clubs;
+create policy "Users can update their own club"
   on public.clubs for update
   using (auth.uid() = user_id);
 
@@ -51,7 +54,8 @@ create table if not exists public.vacancies (
 
 alter table public.vacancies enable row level security;
 
-create policy if not exists "Users can view vacancies for their clubs"
+drop policy if exists "Users can view vacancies for their clubs" on public.vacancies;
+create policy "Users can view vacancies for their clubs"
   on public.vacancies for select
   using (
     club_id in (
@@ -59,7 +63,8 @@ create policy if not exists "Users can view vacancies for their clubs"
     )
   );
 
-create policy if not exists "Users can insert vacancies for their clubs"
+drop policy if exists "Users can insert vacancies for their clubs" on public.vacancies;
+create policy "Users can insert vacancies for their clubs"
   on public.vacancies for insert
   with check (
     club_id in (
@@ -91,7 +96,8 @@ create table if not exists public.coaches (
 
 alter table public.coaches enable row level security;
 
-create policy if not exists "Authenticated users can view coaches"
+drop policy if exists "Authenticated users can view coaches" on public.coaches;
+create policy "Authenticated users can view coaches"
   on public.coaches for select
   using (auth.role() = 'authenticated');
 
@@ -110,7 +116,8 @@ create table if not exists public.coach_updates (
 
 alter table public.coach_updates enable row level security;
 
-create policy if not exists "Authenticated users can view coach updates"
+drop policy if exists "Authenticated users can view coach updates" on public.coach_updates;
+create policy "Authenticated users can view coach updates"
   on public.coach_updates for select
   using (auth.role() = 'authenticated');
 
@@ -133,7 +140,8 @@ create table if not exists public.matches (
 
 alter table public.matches enable row level security;
 
-create policy if not exists "Users can view matches for their vacancies"
+drop policy if exists "Users can view matches for their vacancies" on public.matches;
+create policy "Users can view matches for their vacancies"
   on public.matches for select
   using (
     vacancy_id in (

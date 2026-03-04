@@ -110,7 +110,7 @@ export function MandateLonglistClient({
                 <div key={row.id} className="px-5 py-3">
                   <div className="grid grid-cols-[1fr_80px_1fr_80px] items-center gap-2">
                     <Link href={`/coaches/${row.coach_id}`} className="text-sm font-medium text-primary hover:underline">
-                      {coach?.name ?? row.coach_id}
+                      {coach?.name ?? 'Unknown coach'}
                     </Link>
                     <span className="tabular-nums text-sm">{row.ranking_score ?? '—'}</span>
                     <span className="text-2xs text-muted-foreground truncate">{row.fit_explanation ?? '—'}</span>

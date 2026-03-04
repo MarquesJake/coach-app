@@ -39,6 +39,27 @@ const CONFIDENTIALITY_LEVEL_VALUES = ['Standard', 'High', 'Board Only'] as const
 /** Lowercase values allowed by DB constraint mandates_pipeline_stage_check. */
 const PIPELINE_STAGE_VALUES = MANDATE_PIPELINE_STAGES
 
+/** Allowed by mandate_shortlist_status_check. */
+const SHORTLIST_STATUS_VALUES = ['Under Review', 'Shortlisted', 'In Negotiations', 'Declined'] as const
+/** Allowed by mandate_shortlist_risk_rating_check. */
+const SHORTLIST_RISK_RATING_VALUES = ['Low', 'Medium', 'High'] as const
+
+function normalizeShortlistStatus(raw: string | null | undefined): (typeof SHORTLIST_STATUS_VALUES)[number] {
+  if (!raw || typeof raw !== 'string') return 'Under Review'
+  const t = raw.trim()
+  if (!t) return 'Under Review'
+  const found = SHORTLIST_STATUS_VALUES.find((s) => s.toLowerCase() === t.toLowerCase())
+  return found ?? 'Under Review'
+}
+
+function normalizeShortlistRiskRating(raw: string | null | undefined): (typeof SHORTLIST_RISK_RATING_VALUES)[number] {
+  if (!raw || typeof raw !== 'string') return 'Medium'
+  const t = raw.trim()
+  if (!t) return 'Medium'
+  const found = SHORTLIST_RISK_RATING_VALUES.find((r) => r.toLowerCase() === t.toLowerCase())
+  return found ?? 'Medium'
+}
+
 function redirectWithMessage(path: string, key: string, message: string): never {
   const params = new URLSearchParams({ [key]: message })
   redirect(`${path}?${params.toString()}`)
@@ -336,12 +357,15 @@ export async function addShortlistAction(formData: FormData) {
     redirectWithMessage('/mandates', 'error', 'Mandate not found')
   }
 
+  const normalizedStatus = normalizeShortlistStatus(status)
+  const normalizedRiskRating = normalizeShortlistRiskRating(riskRating)
+
   const { error } = await supabase.from('mandate_shortlist').insert({
     mandate_id: mandateId,
     coach_id: coachId,
     placement_probability: placementProbability,
-    risk_rating: riskRating,
-    status,
+    risk_rating: normalizedRiskRating,
+    status: normalizedStatus,
     notes: notes || null,
   })
 
@@ -389,7 +413,7 @@ export async function updateShortlistEntryAction(formData: FormData) {
   }
 
   const updates: Record<string, unknown> = {}
-  if (status !== undefined) updates.status = status
+  if (status !== undefined) updates.status = normalizeShortlistStatus(status)
   if (notes !== undefined) updates.notes = notes || null
 
   if (Object.keys(updates).length === 0) {

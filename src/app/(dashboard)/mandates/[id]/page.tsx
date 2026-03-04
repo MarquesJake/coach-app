@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft, FileText, Users, History, Pencil } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { getConfigList } from '@/lib/db/config'
 import { getMandateDetailForUser } from '@/lib/db/mandate'
 import { getActivityForEntity } from '@/lib/db/activity'
 import { MandateToasts } from '../_components/mandate-toasts'
@@ -104,9 +103,10 @@ export default async function MandateDetailPage({
 
   const coaches = (coachesResult.data ?? []) as CoachOptionRow[]
 
-  const { data: pipelineStages } = await getConfigList(user.id, 'config_pipeline_stages')
-  const pipelineOptions = (pipelineStages ?? []).map((r) => ({ id: r.id, name: r.name }))
-  const defaultShortlistStatus = pipelineOptions.find((o) => /review|shortlist|negotiation|declined/i.test(o.name))?.name ?? pipelineOptions[0]?.name ?? 'Under Review'
+  /** Only these four satisfy mandate_shortlist_status_check. UI must restrict to avoid insert errors. */
+  const ALLOWED_SHORTLIST_STATUSES = ['Under Review', 'Shortlisted', 'In Negotiations', 'Declined'] as const
+  const shortlistStatusOptions = ALLOWED_SHORTLIST_STATUSES.map((name) => ({ id: name, name }))
+  const defaultShortlistStatus = 'Under Review'
 
   const activityResult = await getActivityForEntity('mandate', params.id)
   const activity = (activityResult.data ?? []).map((row) => ({
@@ -277,7 +277,7 @@ export default async function MandateDetailPage({
                       <input type="hidden" name="shortlist_id" value={item.id} />
                       <div className="min-w-[140px]">
                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">Status</span>
-                        <ShortlistStatusSelect options={pipelineOptions} defaultValue={item.status} />
+                        <ShortlistStatusSelect options={shortlistStatusOptions} defaultValue={item.status} />
                       </div>
                       <div className="flex-1 min-w-[160px]">
                         <span className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">Notes</span>
@@ -299,18 +299,19 @@ export default async function MandateDetailPage({
 
                 <label className="space-y-1 md:col-span-2">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Coach</span>
-                  <input
-                    list="coach-options"
+                  <select
                     name="coach_id"
-                    placeholder="Start typing coach id"
                     required
                     className="w-full h-10 rounded bg-surface border border-border px-3 text-sm text-foreground"
-                  />
-                  <datalist id="coach-options">
+                    aria-label="Select coach"
+                  >
+                    <option value="">Select coach...</option>
                     {coaches.map((coach) => (
-                      <option key={coach.id} value={coach.id}>{coach.name} {coach.club_current ? `(${coach.club_current})` : ''}</option>
+                      <option key={coach.id} value={coach.id}>
+                        {coach.name}{coach.club_current ? ` (${coach.club_current})` : ''}
+                      </option>
                     ))}
-                  </datalist>
+                  </select>
                 </label>
 
                 <label className="space-y-1">
@@ -332,7 +333,7 @@ export default async function MandateDetailPage({
 
                 <label className="space-y-1">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Status</span>
-                  <ShortlistStatusSelect options={pipelineOptions} defaultValue={defaultShortlistStatus} />
+                  <ShortlistStatusSelect options={shortlistStatusOptions} defaultValue={defaultShortlistStatus} />
                 </label>
 
                 <label className="space-y-1 md:col-span-2">
