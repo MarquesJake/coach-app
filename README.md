@@ -1,5 +1,17 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Supabase migrations (local)
+
+To apply migrations without the SQL editor:
+
+```bash
+# One-time: link to your project (use the ref from your Supabase URL, e.g. https://XXXX.supabase.co → XXXX)
+npx supabase link --project-ref YOUR_PROJECT_REF
+
+# Apply pending migrations
+npx supabase db push
+```
+
 ## Getting Started
 
 First, run the development server:

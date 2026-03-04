@@ -55,6 +55,7 @@ export type SeedCounts = {
   coach_background_checks: number
   coach_recruitment_history: number
   activity_log?: number
+  coach_updates?: number
 }
 
 export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts; coachIds: string[]; error?: string }> {
@@ -81,6 +82,7 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     coach_background_checks: 0,
     coach_recruitment_history: 0,
     activity_log: 0,
+    coach_updates: 0,
   }
 
   // 1) Demo seed marker
@@ -335,6 +337,43 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
         created_at: pastDate(monthsAgo) + 'T12:00:00.000Z',
       })
       if (!error) counts.activity_log = (counts.activity_log ?? 0) + 1
+    }
+  }
+
+  // 7c) Coach updates – feed Intelligence page timeline and summary cards (This Week, High Priority, Availability, Contract)
+  const UPDATE_TYPES = ['availability', 'appointment', 'contract', 'reputation', 'transfer', 'general', 'sacking'] as const
+  const UPDATE_NOTES: Record<string, string[]> = {
+    availability: ['Coach now open to offers; contract expires summer.', 'Availability status updated; interested in right project.', 'No longer in discussions; back on market.'],
+    appointment: ['Appointed head coach; three-year deal.', 'New role confirmed; starts next month.', 'Official announcement; contract signed.'],
+    contract: ['Contract extension agreed; two further years.', 'Terms renegotiated; improved package.', 'Option triggered; one more season.'],
+    reputation: ['Strong run of results; stock rising.', 'Board and fans aligned; positive coverage.', 'Media narrative shifted after cup run.'],
+    transfer: ['Active in winter window; two key signings.', 'Recruitment aligned with style; profile fit.', 'Loan market used; squad depth improved.'],
+    general: ['Training intensity and standards noted by sources.', 'Staff delegation and match prep structure observed.', 'Dressing room and board relationship stable.'],
+    sacking: ['Departure confirmed; mutual consent.', 'Role ended; club seeking replacement.', 'Contract terminated; search underway.'],
+  }
+  for (let c = 0; c < 12; c++) {
+    const numUpdates = 12 + (c % 7)
+    for (let u = 0; u < numUpdates; u++) {
+      const id = demoUuid(userId, `coach-update-${c}`, u)
+      const type = UPDATE_TYPES[(c + u) % UPDATE_TYPES.length]!
+      const notes = UPDATE_NOTES[type]
+      const updateNote = notes?.[u % (notes?.length ?? 1)] ?? 'Market update; source confident.'
+      const daysAgo = u < 4 ? u : 7 + (u % 25)
+      const occurredDate = (() => { const d = new Date(); d.setDate(d.getDate() - daysAgo); return d.toISOString().slice(0, 10) + 'T12:00:00.000Z' })()
+      const { error } = await supabase.from('coach_updates').upsert(
+        {
+          id,
+          coach_id: coachIds[c]!,
+          update_type: type,
+          update_note: updateNote,
+          occurred_at: occurredDate,
+          confidence: type === 'sacking' || type === 'appointment' ? 'High' : (u % 3 === 0 ? 'High' : u % 3 === 1 ? 'Medium' : 'Low'),
+          source_tier: ['A', 'B', 'C'][(c + u) % 3]!,
+          source_note: 'Internal source.',
+        },
+        { onConflict: 'id' }
+      )
+      if (!error) counts.coach_updates = (counts.coach_updates ?? 0) + 1
     }
   }
 
