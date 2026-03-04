@@ -42,6 +42,8 @@ export default async function CoachDetailLayout({
     supabase.from('intelligence_items').select('occurred_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
   ])
   const lastIntelligenceAt = (lastIntelRes?.data as { occurred_at?: string | null } | null)?.occurred_at ?? null
+  const { data: intelSourceRows } = await supabase.from('intelligence_items').select('source_name').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id)
+  const sourcesCount = new Set((intelSourceRows ?? []).map((r) => r.source_name).filter(Boolean)).size
   const dm = derivedRow?.data as { repeat_signings_count?: number | null; repeat_agents_count?: number | null; loan_reliance_score?: number | null; network_density_score?: number | null } | null
   const hasRecruitmentDensity = Boolean(
     dm &&
@@ -83,7 +85,7 @@ export default async function CoachDetailLayout({
 
   return (
     <div className="animate-fade-in">
-      <CoachCommandBar coachId={params.id} coach={coachRecord} completenessPercent={coachCompleteness} evidenceCoverage={coverage.evidenceCoverage} verifiedCoverage={coverage.verifiedCoverage} profileAuditStatus={auditStatus} intelligenceWeightedConfidence={intelligenceConfidence.weightedConfidence} onWatchlist={onWatchlist} stintCount={stintCount ?? 0} intelligenceCount={evidenceCount} staffNetworkCount={staffNetworkCount ?? 0} lastIntelligenceAt={lastIntelligenceAt} intelligenceItemCount={intelligenceConfidence.itemCount} />
+      <CoachCommandBar coachId={params.id} coach={coachRecord} completenessPercent={coachCompleteness} evidenceCoverage={coverage.evidenceCoverage} verifiedCoverage={coverage.verifiedCoverage} profileAuditStatus={auditStatus} intelligenceWeightedConfidence={intelligenceConfidence.weightedConfidence} onWatchlist={onWatchlist} stintCount={stintCount ?? 0} intelligenceCount={evidenceCount} staffNetworkCount={staffNetworkCount ?? 0} lastIntelligenceAt={lastIntelligenceAt} intelligenceItemCount={intelligenceConfidence.itemCount} dataCoverage={{ signalsCount: coverage.evidenceCoverage, sourcesCount, lastUpdate: lastIntelligenceAt }} />
       <div className="flex gap-6 mt-4">
         <CoachDossierRail coach={coachRecord} />
         <div className="flex-1 min-w-0">

@@ -78,6 +78,7 @@ export function CoachCommandBar({
   staffNetworkCount = 0,
   lastIntelligenceAt = null,
   intelligenceItemCount = 0,
+  dataCoverage,
 }: {
   coachId: string
   coach: CoachRecord
@@ -92,6 +93,7 @@ export function CoachCommandBar({
   staffNetworkCount?: number
   lastIntelligenceAt?: string | null
   intelligenceItemCount?: number
+  dataCoverage?: { signalsCount: number; sourcesCount: number; lastUpdate: string | null }
 }) {
   const router = useRouter()
   const [modifyOpen, setModifyOpen] = useState(false)
@@ -164,6 +166,21 @@ export function CoachCommandBar({
               <span className="text-xs text-muted-foreground">{baseLocation}</span>
             )}
           </div>
+          {dataCoverage && (dataCoverage.signalsCount > 0 || dataCoverage.sourcesCount > 0) && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground mt-0.5">
+              <span className="font-medium text-muted-foreground/90">Data coverage</span>
+              <span>{dataCoverage.signalsCount} signals</span>
+              <span>{dataCoverage.sourcesCount} sources</span>
+              <span>
+                {dataCoverage.lastUpdate
+                  ? (() => {
+                      const days = Math.floor((Date.now() - new Date(dataCoverage.lastUpdate).getTime()) / (24 * 60 * 60 * 1000))
+                      return `last update ${days} day${days !== 1 ? 's' : ''} ago`
+                    })()
+                  : '—'}
+              </span>
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-3">

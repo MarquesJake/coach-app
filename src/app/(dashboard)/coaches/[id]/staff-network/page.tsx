@@ -16,6 +16,7 @@ export default async function CoachStaffNetworkPage({ params }: { params: { id: 
     .select('id, staff_id, club_name, role_title, started_on, ended_on, times_worked_together, followed_from_previous, relationship_strength, impact_summary, source_type, source_name, confidence, verified')
     .eq('coach_id', params.id)
     .order('ended_on', { ascending: false, nullsFirst: true })
+    .order('started_on', { ascending: false })
 
   const staffIds = Array.from(new Set((history ?? []).map((h) => h.staff_id)))
   const { data: staffRows } = staffIds.length

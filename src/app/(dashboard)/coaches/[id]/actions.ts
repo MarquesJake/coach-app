@@ -701,6 +701,35 @@ export async function upsertStaffHistoryAction(coachId: string, formData: FormDa
   return { error: null }
 }
 
+/** Get default values for Add staff link form from most recent link for this staff (current user's coaches only). */
+export async function getStaffLinkDefaultsAction(staffId: string): Promise<{
+  club_name: string
+  role_title: string
+  started_on: string | null
+  ended_on: string | null
+  times_worked_together: number
+  relationship_strength: number | null
+  confidence: number | null
+} | null> {
+  if (!staffId) return null
+  const supabase = createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data: coachIds } = await supabase.from('coaches').select('id').eq('user_id', user.id)
+  const ids = (coachIds ?? []).map((r) => r.id)
+  if (ids.length === 0) return null
+  const { data } = await supabase
+    .from('coach_staff_history')
+    .select('club_name, role_title, started_on, ended_on, times_worked_together, relationship_strength, confidence')
+    .eq('staff_id', staffId)
+    .in('coach_id', ids)
+    .order('ended_on', { ascending: false, nullsFirst: true })
+    .order('started_on', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data as typeof data
+}
+
 /** Delete a staff history row. */
 export async function deleteStaffHistoryAction(coachId: string, historyId: string) {
   await assertCoachOwnership(coachId)

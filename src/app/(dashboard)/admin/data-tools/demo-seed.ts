@@ -58,10 +58,43 @@ export const INTEL_TITLES: Record<string, string[]> = {
 /** Roles used for staff records and coach_staff_history (Staff Network tab). */
 export const STAFF_NETWORK_ROLES = [
   'Assistant Coach',
+  'First Team Coach',
   'Performance Analyst',
   'Goalkeeper Coach',
   'Set Piece Coach',
   'Sporting Director',
+  'President',
+] as const
+
+/** Specialties for staff (2–4 per staff). */
+export const STAFF_SPECIALTIES_POOL = [
+  'Tactical analysis', 'Player development', 'Set pieces', 'Opposition analysis',
+  'Data & video', 'Goalkeeping', 'Fitness & periodisation', 'Recruitment',
+  'Match preparation', 'In-game adjustments', 'Academy pathway', 'Leadership',
+] as const
+
+/** Short profile notes for demo staff. */
+export const STAFF_NOTES_POOL = [
+  'Long-serving assistant with strong tactical input.',
+  'Data-driven analyst; set piece and opposition focus.',
+  'Former player; goalkeeper specialist and distribution.',
+  'Set piece specialist; improved goals from dead balls.',
+  'Aligned on recruitment and squad building.',
+  'Trusted with in-game adjustments and bench communication.',
+  'Collaborative on training design and periodisation.',
+  'Led performance analysis and video review.',
+  'Strong academy links and youth development.',
+  'Board-level experience; strategic oversight.',
+  'Hands-on first team coach; session delivery.',
+  'Recruitment and scouting network.',
+  'Match day operations and prep.',
+  'Sports science and load management.',
+  'Multi-club experience; adaptable.',
+  'Language skills; international experience.',
+  'Promotion and relegation battle experience.',
+  'Cup run and knockout experience.',
+  'Stable long-term partnerships with head coaches.',
+  'Versatile across analysis and coaching.',
 ] as const
 
 /** Legacy list for any other use; prefer STAFF_NETWORK_ROLES for demo staff. */

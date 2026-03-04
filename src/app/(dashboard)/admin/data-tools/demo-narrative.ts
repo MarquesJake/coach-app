@@ -235,6 +235,25 @@ const INTEL_SCOUT_TITLES = [
   'Set piece and second ball focus',
 ]
 
+/** Realistic football intel: title + detail for seeding. Categories: performance, leadership, tactics, recruitment, risk. */
+export const INTEL_TITLE_DETAIL_PAIRS: { category: string; title: string; detail: string }[] = [
+  { category: 'performance', title: 'Training intensity significantly above league average', detail: 'Two staff sources described daily training intensity as among the highest in the league. Tactical walkthroughs are heavily video led and match preparation is structured three days in advance.' },
+  { category: 'leadership', title: 'Strong dressing room authority', detail: 'Players and senior staff report clear standards around punctuality, training tempo and behaviour. Several sources describe the environment as demanding but fair.' },
+  { category: 'tactics', title: 'Mid block triggers well coached', detail: 'Opposition analysts note consistent execution of pressing triggers when ball enters midfield. Lock onto 6 and wide trap on touchline evident in recent fixtures.' },
+  { category: 'recruitment', title: 'Recruitment preference for athletic wide players', detail: 'Scouting and DoF alignment on profile: pace, work rate and ability to play in high press. Repeat agents used for key positions.' },
+  { category: 'risk', title: 'Board relationship stable', detail: 'No reported tension; contract and objectives aligned. One reference flagged minor media scrutiny in previous role; no ongoing issues.' },
+  { category: 'performance', title: 'Set piece routines effective', detail: 'Goals from dead balls and defensive set piece organisation improved since arrival. Dedicated blocks in training; analyst input on opposition set pieces.' },
+  { category: 'leadership', title: 'Staff delegation clear', detail: 'Assistants and analysts have defined roles. Match prep and video work delegated; head coach retains final say on selection and in-game changes.' },
+  { category: 'tactics', title: 'Rest defence compact in recent games', detail: 'Shape behind the ball consistent; counter-press on loss executed with clear triggers. Build-up through 2-3-5 with overloads in half-spaces.' },
+  { category: 'recruitment', title: 'Academy pathway in use', detail: 'Minutes for young players; integration with first-team training. Loan market used selectively; development model clear.' },
+  { category: 'performance', title: 'Cup run and league form', detail: 'Strong run in knockout competition; league position improved in second half of season. Fitness and availability well managed.' },
+  { category: 'leadership', title: 'Senior players bought in', detail: 'Key figures in dressing room support methods. Standards in training non-negotiable; communication in meetings structured and clear.' },
+  { category: 'tactics', title: 'Pressing intensity consistent', detail: 'High line and aggressive counter-press in evidence. Opposition find it difficult to play through central areas; wide trap used effectively.' },
+  { category: 'risk', title: 'Media handling measured', detail: 'No sensational content; press and board handled professionally. One historical disciplinary note; no repeat.' },
+  { category: 'performance', title: 'Defensive organisation improved', detail: 'Clean sheet run and fewer goals conceded from set pieces. Rest defence and transition structure prioritised in training.' },
+  { category: 'leadership', title: 'Board alignment on style', detail: 'Strategic objective and playing style aligned. Recruitment and budget discussions constructive; no public friction.' },
+]
+
 const FIT_EXPLANATIONS = [
   'Strong tactical and leadership fit. Pressing and build preference align with mandate. Recommend shortlist.',
   'Profile matches requirements; style and development model aligned. Good cultural fit.',

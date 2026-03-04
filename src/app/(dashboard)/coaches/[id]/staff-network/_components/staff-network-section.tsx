@@ -1,13 +1,23 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
 import { SourceConfidenceFields, IntelPill } from '@/components/source-confidence-fields'
-import { upsertStaffHistoryAction, deleteStaffHistoryAction } from '../../actions'
+import { upsertStaffHistoryAction, deleteStaffHistoryAction, getStaffLinkDefaultsAction } from '../../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
+
+type StaffLinkDefaults = {
+  club_name: string
+  role_title: string
+  started_on: string | null
+  ended_on: string | null
+  times_worked_together: number
+  relationship_strength: number | null
+  confidence: number | null
+}
 
 type StaffRow = { id: string; full_name: string }
 type HistoryRow = {
@@ -63,22 +73,40 @@ export function StaffNetworkSection({
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<HistoryRow | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [selectedStaffId, setSelectedStaffId] = useState('')
+  const [linkDefaults, setLinkDefaults] = useState<StaffLinkDefaults | null>(null)
 
   const openAdd = () => {
     setEditing(null)
     setError(null)
+    setSelectedStaffId('')
+    setLinkDefaults(null)
     setDrawerOpen(true)
   }
   const openEdit = (row: HistoryRow) => {
     setEditing(row)
     setError(null)
+    setSelectedStaffId('')
+    setLinkDefaults(null)
     setDrawerOpen(true)
   }
   const closeDrawer = () => {
     setDrawerOpen(false)
     setEditing(null)
+    setSelectedStaffId('')
+    setLinkDefaults(null)
     setError(null)
   }
+
+  const onStaffSelect = useCallback(async (staffId: string) => {
+    setSelectedStaffId(staffId)
+    if (!staffId) {
+      setLinkDefaults(null)
+      return
+    }
+    const defaults = await getStaffLinkDefaultsAction(staffId)
+    setLinkDefaults(defaults)
+  }, [])
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -223,7 +251,7 @@ export function StaffNetworkSection({
           </>
         }
       >
-        <form id="staff-history-form" onSubmit={onSubmit} className="space-y-4">
+        <form id="staff-history-form" key={editing ? editing.id : `add-${selectedStaffId}-${linkDefaults ? '1' : '0'}`} onSubmit={onSubmit} className="space-y-4">
           {error && <p className="text-sm text-destructive">{error}</p>}
           <input type="hidden" name="id" value={editing?.id ?? ''} />
           <div>
@@ -231,7 +259,8 @@ export function StaffNetworkSection({
             <select
               name="staff_id"
               required
-              defaultValue={editing?.staff_id ?? ''}
+              defaultValue={editing?.staff_id ?? selectedStaffId}
+              onChange={(e) => { if (!editing) onStaffSelect(e.target.value) }}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
             >
               <option value="">Select</option>
@@ -242,20 +271,20 @@ export function StaffNetworkSection({
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Club name</label>
-            <input name="club_name" defaultValue={editing?.club_name ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+            <input name="club_name" defaultValue={editing?.club_name ?? linkDefaults?.club_name ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Role title</label>
-            <input name="role_title" defaultValue={editing?.role_title ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+            <input name="role_title" defaultValue={editing?.role_title ?? linkDefaults?.role_title ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Started</label>
-              <input type="date" name="started_on" defaultValue={formatDate(editing?.started_on)} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+              <input type="date" name="started_on" defaultValue={editing ? formatDate(editing.started_on) : formatDate(linkDefaults?.started_on)} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Ended</label>
-              <input type="date" name="ended_on" defaultValue={formatDate(editing?.ended_on)} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+              <input type="date" name="ended_on" defaultValue={editing ? formatDate(editing.ended_on) : formatDate(linkDefaults?.ended_on)} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -264,11 +293,11 @@ export function StaffNetworkSection({
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Times worked together</label>
-            <input type="number" min={1} name="times_worked_together" defaultValue={editing?.times_worked_together ?? 1} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+            <input type="number" min={1} name="times_worked_together" defaultValue={editing?.times_worked_together ?? linkDefaults?.times_worked_together ?? 1} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Relationship strength (0–100)</label>
-            <input type="number" min={0} max={100} name="relationship_strength" defaultValue={editing?.relationship_strength ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+            <input type="number" min={0} max={100} name="relationship_strength" defaultValue={editing?.relationship_strength ?? linkDefaults?.relationship_strength ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Impact summary</label>
@@ -284,7 +313,7 @@ export function StaffNetworkSection({
               source_name: editing?.source_name ?? null,
               source_link: (editing as { source_link?: string | null })?.source_link ?? null,
               source_notes: (editing as { source_notes?: string | null })?.source_notes ?? null,
-              confidence: editing?.confidence ?? null,
+              confidence: editing?.confidence ?? linkDefaults?.confidence ?? null,
               verified: (editing as { verified?: boolean })?.verified ?? false,
               verified_by: (editing as { verified_by?: string | null })?.verified_by ?? null,
               verified_at: null,

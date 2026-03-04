@@ -15,15 +15,16 @@ import {
   PRESSING_OPTIONS,
   BUILD_OPTIONS,
   LEADERSHIP_OPTIONS,
-  INTEL_CATEGORIES,
   STAFF_NETWORK_ROLES,
+  STAFF_SPECIALTIES_POOL,
+  STAFF_NOTES_POOL,
   IMPACT_SUMMARIES,
   STAFF_NAMES,
   CLUB_NAMES,
   CLUB_LEAGUES,
   CLUB_COUNTRIES,
 } from './demo-seed'
-import { buildCoachNarrative, RECRUITMENT_IMPACT_SUMMARIES, DEMO_AGENT_NAMES } from './demo-narrative'
+import { buildCoachNarrative, RECRUITMENT_IMPACT_SUMMARIES, DEMO_AGENT_NAMES, INTEL_TITLE_DETAIL_PAIRS } from './demo-narrative'
 
 const now = () => new Date().toISOString()
 const pastDate = (monthsAgo: number) => {
@@ -53,6 +54,7 @@ export type SeedCounts = {
   coach_due_diligence_items: number
   coach_background_checks: number
   coach_recruitment_history: number
+  activity_log?: number
 }
 
 export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts; coachIds: string[]; error?: string }> {
@@ -78,6 +80,7 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     coach_due_diligence_items: 0,
     coach_background_checks: 0,
     coach_recruitment_history: 0,
+    activity_log: 0,
   }
 
   // 1) Demo seed marker
@@ -169,19 +172,21 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     if (!error) counts.coaches++
   }
 
-  // 4) Staff (20) – roles from STAFF_NETWORK_ROLES so Staff Network tab shows varied roles
+  // 4) Staff (20) – roles, 2–4 specialties, notes so Staff list and detail look rich
   const staffIds: string[] = []
   for (let i = 0; i < 20; i++) {
     const id = demoUuid(userId, 'staff', i)
     staffIds.push(id)
+    const numSpec = 2 + (i % 3)
+    const specialties = Array.from({ length: numSpec }, (_, j) => STAFF_SPECIALTIES_POOL[(i + j * 3) % STAFF_SPECIALTIES_POOL.length]!)
     const { error } = await supabase.from('staff').upsert(
       {
         id,
         user_id: userId,
         full_name: STAFF_NAMES[i]!,
         primary_role: STAFF_NETWORK_ROLES[i % STAFF_NETWORK_ROLES.length]!,
-        specialties: ['Tactical analysis', 'Player development'],
-        notes: null,
+        specialties,
+        notes: STAFF_NOTES_POOL[i % STAFF_NOTES_POOL.length]!,
       },
       { onConflict: 'id' }
     )
@@ -228,33 +233,36 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     }
   }
 
-  // 6) Coach–staff history: 3–6 staff per coach, real roles, impact + before_after from narrative
-  const STAFF_ROLES_EXTENDED = ['Assistant Coach', 'First Team Analyst', 'Goalkeeper Coach', 'Head of Performance', 'Set Piece Coach', 'Sporting Director']
+  // 6) Coach–staff history: 6–8 links per coach across 2–3 clubs, real roles, full fields for Staff Network tab
+  const STAFF_ROLES_EXTENDED = ['Assistant Coach', 'First Team Coach', 'Analyst', 'Goalkeeper Coach', 'Head of Performance', 'Set Piece Coach', 'Sporting Director', 'President']
   for (let c = 0; c < 12; c++) {
-    const numLinks = 3 + (c % 4) // 3–6
+    const numLinks = 6 + (c % 3) // 6–8
     const nar = narratives[c]!
     for (let t = 0; t < numLinks; t++) {
-      const staffIdx = (c * 5 + t) % 20
+      const staffIdx = (c * 7 + t) % 20
       const staffId = staffIds[staffIdx]!
       const id = demoUuid(userId, `staffhist-${c}`, t)
-      const startMonthsAgo = 48 - c * 3 - t * 6
-      const endMonthsAgo = t === 0 ? null : Math.max(0, startMonthsAgo - 18)
+      const startMonthsAgo = 48 - c * 3 - t * 5
+      const endMonthsAgo = t <= 1 ? null : Math.max(0, startMonthsAgo - 18)
+      const clubIdx = t % 3
+      const clubName = clubIdx === 0 ? nar.fictionalClubName(Math.min(t, 2)) : (clubIdx === 1 ? nar.fictionalClubName(1) : CLUB_NAMES[c % 3]!)
       const { error } = await supabase.from('coach_staff_history').upsert(
         {
           id,
           coach_id: coachIds[c]!,
           staff_id: staffId,
-          club_name: t % 2 === 0 ? nar.fictionalClubName(t) : CLUB_NAMES[c % 3]!,
+          club_name: clubName,
+          club_id: null,
           role_title: STAFF_ROLES_EXTENDED[t % STAFF_ROLES_EXTENDED.length]!,
           started_on: pastDate(startMonthsAgo),
           ended_on: endMonthsAgo != null ? pastDate(endMonthsAgo) : null,
-          followed_from_previous: (c + t) % 2 === 1,
+          followed_from_previous: t === 1 || (c + t) % 4 === 0,
           times_worked_together: 1 + ((c + t) % 3),
-          relationship_strength: 60 + ((c + t) % 36),
+          relationship_strength: 55 + ((c + t) % 41),
           impact_summary: IMPACT_SUMMARIES[(c + t) % IMPACT_SUMMARIES.length]!,
           before_after_observation: nar.beforeAfterObservation,
-          confidence: 75 + ((c + t) % 21),
-          verified: true,
+          confidence: 60 + ((c + t) % 31),
+          verified: t % 3 !== 1,
         },
         { onConflict: 'id' }
       )
@@ -265,35 +273,67 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     }
   }
 
-  // 7) Intelligence items (10–18 per coach), scout-note style, spread over 18 months
+  // 7) Intelligence items (10–14 per coach), realistic football intel, spread over 18 months
+  const INTEL_SOURCE_NAMES = ['Scouting team', 'Internal network', 'Match observer', 'Club contact', 'Agent source', 'Media review', 'Reference check']
   for (let c = 0; c < 12; c++) {
-    const n = 10 + (c % 9)
-    const nar = narratives[c]!
-    const intelTitles = nar.intelTitles
+    const n = 10 + (c % 5)
     for (let i = 0; i < n; i++) {
       const id = demoUuid(userId, `intel-${c}`, i)
-      const cat = INTEL_CATEGORIES[i % INTEL_CATEGORIES.length]!
-      const title = intelTitles[i % intelTitles.length]!
+      const pair = INTEL_TITLE_DETAIL_PAIRS[(c + i) % INTEL_TITLE_DETAIL_PAIRS.length]!
       const monthsAgo = 18 - (i % 14)
-      const detail = `${title}. Themes: ${nar.tacticalIdentityText.slice(0, 60)}… ${nar.leadershipNarrativeText.slice(0, 50)}…`
+      const sourceIdx = (c + i) % INTEL_SOURCE_NAMES.length
       const { error } = await supabase.from('intelligence_items').upsert(
         {
           id,
           user_id: userId,
           entity_type: 'coach',
           entity_id: coachIds[c]!,
-          category: cat,
-          title,
-          detail,
+          category: pair.category,
+          title: pair.title,
+          detail: pair.detail,
           source_type: 'Internal',
-          source_name: 'Scouting team',
-          confidence: 50 + (c + i) % 45,
+          source_name: INTEL_SOURCE_NAMES[sourceIdx]!,
+          source_link: i % 4 === 0 ? 'https://example.com/source' : null,
+          source_tier: ['A', 'B', 'C'][(c + i) % 3]!,
+          confidence: 60 + ((c + i) % 36),
           occurred_at: pastDate(monthsAgo),
-          verified: i % 3 === 0,
+          verified: i % 3 !== 1,
         },
         { onConflict: 'id' }
       )
       if (!error) counts.intelligence_items++
+    }
+  }
+
+  // 7b) Activity log (6–10 per coach), spread over last 12 months. Delete existing for idempotency (no update policy).
+  await supabase.from('activity_log').delete().eq('user_id', userId)
+  const ACTIVITY_TYPES = [
+    { action_type: 'profile_created', description: 'Coach profile created in system.' },
+    { action_type: 'intel_added', description: 'Tactical observation added following match review.' },
+    { action_type: 'staff_linked', description: 'Assistant coach relationship recorded from previous spell.' },
+    { action_type: 'score_updated', description: 'Scoring model run; overall and dimension scores updated.' },
+    { action_type: 'added_to_longlist', description: 'Coach added to mandate longlist; fit rationale recorded.' },
+    { action_type: 'added_to_shortlist', description: 'Coach shortlisted for mandate; notes added.' },
+    { action_type: 'mandate_reviewed', description: 'Mandate fit reviewed; alignment checked.' },
+    { action_type: 'risk_assessment_updated', description: 'Risk and due diligence fields updated.' },
+  ]
+  for (let c = 0; c < 12; c++) {
+    const numActivity = 6 + (c % 5)
+    for (let a = 0; a < numActivity; a++) {
+      const id = demoUuid(userId, `activity-${c}`, a)
+      const monthsAgo = 12 - (a % 10)
+      const act = ACTIVITY_TYPES[a % ACTIVITY_TYPES.length]!
+      const { error } = await supabase.from('activity_log').insert({
+        id,
+        user_id: userId,
+        entity_type: 'coach',
+        entity_id: coachIds[c]!,
+        action_type: act.action_type,
+        description: act.description,
+        metadata: null,
+        created_at: pastDate(monthsAgo) + 'T12:00:00.000Z',
+      })
+      if (!error) counts.activity_log = (counts.activity_log ?? 0) + 1
     }
   }
 
