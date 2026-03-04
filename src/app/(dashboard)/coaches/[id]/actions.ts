@@ -696,13 +696,15 @@ export async function upsertStaffHistoryAction(coachId: string, formData: FormDa
     const { error } = await supabase.from('coach_staff_history').insert(insert)
     if (error) return { error: error.message }
   }
+  revalidatePath('/coaches')
   revalidatePath(`/coaches/${coachId}`)
   revalidatePath(`/coaches/${coachId}/staff-network`)
   return { error: null }
 }
 
-/** Get default values for Add staff link form from most recent link for this staff (current user's coaches only). */
-export async function getStaffLinkDefaultsAction(staffId: string): Promise<{
+/** Autofill for Add staff link: existing link for this coach+staff, or coach/staff defaults. */
+export async function getStaffLinkAutofillAction(coachId: string, staffId: string): Promise<{
+  existingLink: boolean
   club_name: string
   role_title: string
   started_on: string | null
@@ -710,24 +712,84 @@ export async function getStaffLinkDefaultsAction(staffId: string): Promise<{
   times_worked_together: number
   relationship_strength: number | null
   confidence: number | null
+  impact_summary: string | null
+  before_after_observation: string | null
 } | null> {
-  if (!staffId) return null
+  if (!staffId || !coachId) return null
+  await assertCoachOwnership(coachId)
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data: coachIds } = await supabase.from('coaches').select('id').eq('user_id', user.id)
-  const ids = (coachIds ?? []).map((r) => r.id)
-  if (ids.length === 0) return null
-  const { data } = await supabase
+
+  const existing = await supabase
     .from('coach_staff_history')
-    .select('club_name, role_title, started_on, ended_on, times_worked_together, relationship_strength, confidence')
+    .select('id, club_name, role_title, started_on, ended_on, times_worked_together, relationship_strength, confidence, impact_summary, before_after_observation')
+    .eq('coach_id', coachId)
     .eq('staff_id', staffId)
-    .in('coach_id', ids)
     .order('ended_on', { ascending: false, nullsFirst: true })
-    .order('started_on', { ascending: false })
     .limit(1)
     .maybeSingle()
-  return data as typeof data
+
+  if (existing.data) {
+    const r = existing.data as typeof existing.data
+    return {
+      existingLink: true,
+      club_name: r.club_name ?? '',
+      role_title: r.role_title ?? '',
+      started_on: r.started_on ?? null,
+      ended_on: r.ended_on ?? null,
+      times_worked_together: r.times_worked_together ?? 1,
+      relationship_strength: r.relationship_strength ?? null,
+      confidence: r.confidence ?? null,
+      impact_summary: r.impact_summary ?? null,
+      before_after_observation: r.before_after_observation ?? null,
+    }
+  }
+
+  const [coachRes, stintRes, staffRes] = await Promise.all([
+    supabase.from('coaches').select('club_current').eq('id', coachId).single(),
+    supabase.from('coach_stints').select('club_name, started_on').eq('coach_id', coachId).is('ended_on', null).order('started_on', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('staff').select('primary_role').eq('id', staffId).single(),
+  ])
+  const coach = coachRes.data as { club_current?: string | null } | null
+  const stint = stintRes.data as { club_name?: string; started_on?: string | null } | null
+  const staff = staffRes.data as { primary_role?: string | null } | null
+
+  const role = (staff?.primary_role ?? '').trim() || 'Assistant Coach'
+  const twelveMonthsAgo = (() => { const d = new Date(); d.setMonth(d.getMonth() - 12); return d.toISOString().slice(0, 10) })()
+  const impactByRole: Record<string, string> = {
+    'Assistant Coach': 'Trusted with tactical preparation and match-day support.',
+    'First Team Coach': 'Session delivery and in-game support; clear communication.',
+    'Analyst': 'Data and video input; set piece and opposition analysis.',
+    'Goalkeeper Coach': 'Goalkeeper unit; distribution and shot-stopping focus.',
+    'Set Piece Coach': 'Set piece design and execution; improved dead-ball outcomes.',
+    'Head of Performance': 'Load management and periodisation; availability.',
+    'Sporting Director': 'Recruitment alignment and squad building.',
+    'President': 'Strategic and board-level relationship.',
+  }
+  const beforeAfterByRole: Record<string, string> = {
+    'Assistant Coach': 'More consistent match prep and clearer in-game adjustments.',
+    'First Team Coach': 'Training intensity and clarity improved.',
+    'Analyst': 'Opposition and set piece prep more structured.',
+    'Goalkeeper Coach': 'Clean sheet run and distribution improved.',
+    'Set Piece Coach': 'Goals from dead balls increased.',
+    'Head of Performance': 'Fewer soft-tissue issues; availability improved.',
+    'Sporting Director': 'Recruitment and profile alignment stronger.',
+    'President': 'Board and strategic alignment clear.',
+  }
+
+  return {
+    existingLink: false,
+    club_name: (stint?.club_name ?? coach?.club_current ?? '').trim() || 'Club',
+    role_title: role,
+    started_on: stint?.started_on ?? twelveMonthsAgo,
+    ended_on: null,
+    times_worked_together: 1,
+    relationship_strength: 70,
+    confidence: 75,
+    impact_summary: impactByRole[role] ?? 'Key collaboration; impact positive.',
+    before_after_observation: beforeAfterByRole[role] ?? 'Observable improvement in area of responsibility.',
+  }
 }
 
 /** Delete a staff history row. */

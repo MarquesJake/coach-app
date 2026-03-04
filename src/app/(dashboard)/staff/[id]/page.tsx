@@ -29,6 +29,7 @@ export default async function StaffDetailPage({ params }: { params: { id: string
   const repeatCollaborations = (history ?? []).filter((h) => h.times_worked_together > 1).length
   const strengthValues = (history ?? []).map((h) => h.relationship_strength).filter((v): v is number => v != null)
   const avgStrength = strengthValues.length ? Math.round(strengthValues.reduce((a, b) => a + b, 0) / strengthValues.length) : null
+  const currentClubInvolvement = (history ?? []).filter((h) => h.ended_on == null).length
 
   return (
     <div className="max-w-[900px] mx-auto">
@@ -72,9 +73,9 @@ export default async function StaffDetailPage({ params }: { params: { id: string
         {history && history.length > 0 && (
           <div className="card-surface rounded-lg p-5">
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Network summary</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Coaches worked with</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Linked coaches</p>
                 <p className="text-lg font-semibold tabular-nums text-foreground">{totalCoaches}</p>
               </div>
               <div>
@@ -84,6 +85,10 @@ export default async function StaffDetailPage({ params }: { params: { id: string
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Avg relationship strength</p>
                 <p className="text-lg font-semibold tabular-nums text-foreground">{avgStrength != null ? `${avgStrength}%` : '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Current club involvement</p>
+                <p className="text-lg font-semibold tabular-nums text-foreground">{currentClubInvolvement}</p>
               </div>
             </div>
           </div>

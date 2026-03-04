@@ -233,19 +233,20 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     }
   }
 
-  // 6) Coach–staff history: 6–8 links per coach across 2–3 clubs, real roles, full fields for Staff Network tab
+  // 6) Coach–staff history: 6–10 links per coach; club_name matches stint clubs; 1–2 current (ended_on null) per coach
   const STAFF_ROLES_EXTENDED = ['Assistant Coach', 'First Team Coach', 'Analyst', 'Goalkeeper Coach', 'Head of Performance', 'Set Piece Coach', 'Sporting Director', 'President']
   for (let c = 0; c < 12; c++) {
-    const numLinks = 6 + (c % 3) // 6–8
+    const numLinks = 6 + (c % 5) // 6–10
     const nar = narratives[c]!
+    const stintClubNames = Array.from({ length: stintCountPerCoach[c]! }, (_, s) => nar.fictionalClubName(s))
     for (let t = 0; t < numLinks; t++) {
-      const staffIdx = (c * 7 + t) % 20
+      const staffIdx = (c * 5 + t * 3) % 20
       const staffId = staffIds[staffIdx]!
       const id = demoUuid(userId, `staffhist-${c}`, t)
-      const startMonthsAgo = 48 - c * 3 - t * 5
-      const endMonthsAgo = t <= 1 ? null : Math.max(0, startMonthsAgo - 18)
-      const clubIdx = t % 3
-      const clubName = clubIdx === 0 ? nar.fictionalClubName(Math.min(t, 2)) : (clubIdx === 1 ? nar.fictionalClubName(1) : CLUB_NAMES[c % 3]!)
+      const isCurrentLink = t <= 1
+      const startMonthsAgo = isCurrentLink ? 6 : 48 - c * 3 - t * 5
+      const endMonthsAgo = isCurrentLink ? null : Math.max(0, startMonthsAgo - 18)
+      const clubName = stintClubNames[t % stintClubNames.length] ?? nar.fictionalClubName(0)
       const { error } = await supabase.from('coach_staff_history').upsert(
         {
           id,

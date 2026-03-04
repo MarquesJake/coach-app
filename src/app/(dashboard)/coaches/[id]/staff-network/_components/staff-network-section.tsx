@@ -6,10 +6,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
 import { SourceConfidenceFields, IntelPill } from '@/components/source-confidence-fields'
-import { upsertStaffHistoryAction, deleteStaffHistoryAction, getStaffLinkDefaultsAction } from '../../actions'
+import { upsertStaffHistoryAction, deleteStaffHistoryAction, getStaffLinkAutofillAction } from '../../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 
 type StaffLinkDefaults = {
+  existingLink?: boolean
   club_name: string
   role_title: string
   started_on: string | null
@@ -17,6 +18,8 @@ type StaffLinkDefaults = {
   times_worked_together: number
   relationship_strength: number | null
   confidence: number | null
+  impact_summary?: string | null
+  before_after_observation?: string | null
 }
 
 type StaffRow = { id: string; full_name: string }
@@ -104,9 +107,9 @@ export function StaffNetworkSection({
       setLinkDefaults(null)
       return
     }
-    const defaults = await getStaffLinkDefaultsAction(staffId)
-    setLinkDefaults(defaults)
-  }, [])
+    const defaults = await getStaffLinkAutofillAction(coachId, staffId)
+    setLinkDefaults(defaults ?? null)
+  }, [coachId])
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -299,13 +302,18 @@ export function StaffNetworkSection({
             <label className="block text-xs font-medium text-muted-foreground mb-1">Relationship strength (0–100)</label>
             <input type="number" min={0} max={100} name="relationship_strength" defaultValue={editing?.relationship_strength ?? linkDefaults?.relationship_strength ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
           </div>
+          {linkDefaults?.existingLink && !editing && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+              This coach already has a link with this staff member. You are adding another collaboration period; or edit the existing one from the table.
+            </p>
+          )}
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Impact summary</label>
-            <textarea name="impact_summary" rows={2} defaultValue={editing?.impact_summary ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm resize-none" />
+            <textarea name="impact_summary" rows={2} defaultValue={editing?.impact_summary ?? linkDefaults?.impact_summary ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm resize-none" />
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Before/after observation</label>
-            <textarea name="before_after_observation" rows={2} defaultValue={(editing as { before_after_observation?: string | null })?.before_after_observation ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm resize-none" />
+            <textarea name="before_after_observation" rows={2} defaultValue={(editing as { before_after_observation?: string | null })?.before_after_observation ?? linkDefaults?.before_after_observation ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm resize-none" />
           </div>
           <SourceConfidenceFields
             initial={{
