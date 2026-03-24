@@ -16,15 +16,6 @@ const OWNERSHIP_TYPES = [
   'Unknown',
 ]
 
-const CLUB_MODELS = [
-  'Development',
-  'Selling club',
-  'Promotion push',
-  'Established mid-table',
-  'Trophy hunting',
-  'Rebuilding',
-  'Other',
-]
 
 type Club = {
   id: string
@@ -89,8 +80,8 @@ export default function ClubOverviewPage() {
         name: form.name.trim(),
         country: form.country.trim() || 'TBC',
         league: form.league.trim() || 'Other',
-        tier: form.tier.trim() || null,
-        ownership_model: form.ownership_model.trim() || null,
+        tier: form.tier.trim() || undefined,
+        ownership_model: form.ownership_model.trim() || undefined,
         notes: form.notes.trim() || null,
         updated_at: new Date().toISOString(),
       })
