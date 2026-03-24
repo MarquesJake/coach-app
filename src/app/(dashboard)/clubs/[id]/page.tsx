@@ -16,15 +16,6 @@ const OWNERSHIP_TYPES = [
   'Unknown',
 ]
 
-const CLUB_MODELS = [
-  'Development',
-  'Selling club',
-  'Promotion push',
-  'Established mid-table',
-  'Trophy hunting',
-  'Rebuilding',
-  'Other',
-]
 
 type Club = {
   id: string
