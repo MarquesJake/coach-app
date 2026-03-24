@@ -38,6 +38,10 @@ export type Database = {
           instability_risk: string | null
           external_id: string | null
           external_source: string | null
+          badge_url: string | null
+          description: string | null
+          stadium: string | null
+          founded_year: string | null
         }
         Insert: {
           country: string
@@ -62,6 +66,10 @@ export type Database = {
           instability_risk?: string | null
           external_id?: string | null
           external_source?: string | null
+          badge_url?: string | null
+          description?: string | null
+          stadium?: string | null
+          founded_year?: string | null
         }
         Update: {
           country?: string
@@ -86,6 +94,10 @@ export type Database = {
           instability_risk?: string | null
           external_id?: string | null
           external_source?: string | null
+          badge_url?: string | null
+          description?: string | null
+          stadium?: string | null
+          founded_year?: string | null
         }
         Relationships: []
       }
