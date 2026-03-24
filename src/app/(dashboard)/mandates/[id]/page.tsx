@@ -17,6 +17,7 @@ const RISK_RATING_OPTIONS = ['Low', 'Medium', 'High', 'Other']
 import { MANDATE_PIPELINE_STAGES, getStageIndex, getStageLabel } from '@/lib/constants/mandateStages'
 import { cn } from '@/lib/utils'
 import { Timeline } from '@/components/ui/timeline'
+import { MandateTabNav } from './_components/mandate-tab-nav'
 
 type ShortlistRow = {
   id: string
@@ -128,11 +129,7 @@ export default async function MandateDetailPage({
         Back to mandates
       </Link>
 
-      <div className="flex gap-1 border-b border-border mb-4">
-        <Link href={`/mandates/${params.id}`} className="px-3 py-2 text-xs font-medium text-primary border-b-2 border-primary -mb-px">Overview</Link>
-        <Link href={`/mandates/${params.id}/longlist`} className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Longlist</Link>
-        <Link href={`/mandates/${params.id}/shortlist`} className="px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">Shortlist</Link>
-      </div>
+      <MandateTabNav mandateId={params.id} />
 
       <div className="card-surface rounded p-5">
         <div className="flex items-start justify-between gap-4">

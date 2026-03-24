@@ -4,7 +4,17 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(ls:*)",
-      "Bash(supabase --version)"
+      "Bash(supabase --version)",
+      "Bash(gh run:*)",
+      "Bash(brew install:*)",
+      "Bash(pdftotext --version)",
+      "Bash(brew list:*)",
+      "Bash(/opt/homebrew/Cellar/poppler/26.03.0/bin/pdftotext \"/Users/jake/Downloads/Head Coach recruitment at multi-club ownership groups  examining the decision-making of Sporting Directors in elite men s football.pdf\" /tmp/headcoach_paper.txt)",
+      "Read(//tmp/**)",
+      "Bash(GIT_DIR=\"/Users/jake/Desktop/Coach App/.git/worktrees/elastic-hypatia\" GIT_WORK_TREE=\"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia\" git commit -m \"Restructure nav: Workspace / Intelligence / Network / Admin:*)",
+      "Bash(touch \"/Users/jake/Desktop/Coach App/.git/worktrees/elastic-hypatia/index.lock\")",
+      "Bash(rm \"/Users/jake/Desktop/Coach App/.git/worktrees/elastic-hypatia/index.lock\")",
+      "Bash(wc -l \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/mandates/actions.ts\")"
     ]
   }
 }
