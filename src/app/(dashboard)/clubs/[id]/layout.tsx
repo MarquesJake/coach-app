@@ -20,10 +20,12 @@ export default async function ClubLayout({
   if (error || !club) notFound()
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in flex flex-col min-h-full">
       <ClubCommandBar club={club} />
-      <ClubTabNav clubId={id} />
-      {children}
+      <div className="px-6 pt-4 flex-1">
+        <ClubTabNav clubId={id} />
+        {children}
+      </div>
     </div>
   )
 }

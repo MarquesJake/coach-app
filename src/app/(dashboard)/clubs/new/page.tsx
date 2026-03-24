@@ -121,7 +121,7 @@ export default function NewClubPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-5">
+    <div className="max-w-xl mx-auto space-y-5 px-6 py-6">
       <Link
         href="/clubs"
         className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-[10px] font-bold uppercase tracking-widest"
