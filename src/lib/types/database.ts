@@ -1343,6 +1343,16 @@ export type Database = {
           placement_probability: number
           risk_rating: string
           status: string
+          candidate_stage: string
+          network_source: string | null
+          network_recommender: string | null
+          network_relationship: string | null
+          fit_tactical: string | null
+          fit_cultural: string | null
+          fit_level: string | null
+          fit_communication: string | null
+          fit_network: string | null
+          fit_notes: string | null
         }
         Insert: {
           coach_id: string
@@ -1353,6 +1363,16 @@ export type Database = {
           placement_probability: number
           risk_rating: string
           status: string
+          candidate_stage?: string
+          network_source?: string | null
+          network_recommender?: string | null
+          network_relationship?: string | null
+          fit_tactical?: string | null
+          fit_cultural?: string | null
+          fit_level?: string | null
+          fit_communication?: string | null
+          fit_network?: string | null
+          fit_notes?: string | null
         }
         Update: {
           coach_id?: string
@@ -1363,6 +1383,16 @@ export type Database = {
           placement_probability?: number
           risk_rating?: string
           status?: string
+          candidate_stage?: string
+          network_source?: string | null
+          network_recommender?: string | null
+          network_relationship?: string | null
+          fit_tactical?: string | null
+          fit_cultural?: string | null
+          fit_level?: string | null
+          fit_communication?: string | null
+          fit_network?: string | null
+          fit_notes?: string | null
         }
         Relationships: [
           {

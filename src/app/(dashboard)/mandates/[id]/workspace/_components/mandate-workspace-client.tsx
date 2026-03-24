@@ -1,0 +1,533 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { cn } from '@/lib/utils'
+import { updateShortlistWorkspaceAction } from '../../../actions'
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type Club = {
+  id?: string
+  name: string | null
+  league: string | null
+  country: string | null
+  tier: string | null
+  ownership_model: string | null
+  tactical_model: string | null
+  board_risk_tolerance: string | null
+  notes: string | null
+}
+
+type Mandate = {
+  id: string
+  strategic_objective: string | null
+  board_risk_appetite: string | null
+  budget_band: string | null
+  succession_timeline: string | null
+  custom_club_name: string | null
+  status: string | null
+  priority: string | null
+  clubs: Club | null
+}
+
+type Candidate = {
+  id: string
+  coach_id: string
+  candidate_stage: string
+  placement_probability: number
+  risk_rating: string
+  status: string
+  notes: string | null
+  network_source: string | null
+  network_recommender: string | null
+  network_relationship: string | null
+  fit_tactical: string | null
+  fit_cultural: string | null
+  fit_level: string | null
+  fit_communication: string | null
+  fit_network: string | null
+  fit_notes: string | null
+  coaches: { name: string | null; club_current: string | null; nationality: string | null } | null
+}
+
+type SeasonResult = {
+  season: string
+  league_position: number | null
+  points: number | null
+  goals_for: number | null
+  goals_against: number | null
+}
+
+type CoachingRecord = {
+  coach_name: string
+  start_date: string | null
+  end_date: string | null
+  reason_for_exit: string | null
+  style_tags: string[]
+}
+
+export type { Mandate, Candidate, SeasonResult, CoachingRecord }
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const CANDIDATE_STAGES = ['Tracked', 'Longlist', 'Shortlist', 'Interview', 'Final'] as const
+const FIT_SIGNALS = ['Strong', 'Moderate', 'Weak', 'Unknown'] as const
+const NETWORK_SOURCES = ['Data search', 'Direct recommendation', 'Network suggestion', 'Proactive approach'] as const
+const NETWORK_RELATIONSHIPS = ['Direct', 'Indirect', 'Cold'] as const
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function fitDot(signal: string | null) {
+  if (signal === 'Strong') return 'bg-emerald-400'
+  if (signal === 'Moderate') return 'bg-amber-400'
+  if (signal === 'Weak') return 'bg-red-400'
+  return 'bg-muted-foreground/30'
+}
+
+function overallFit(c: Candidate): 'strong' | 'moderate' | 'weak' | 'unknown' {
+  const signals = [c.fit_tactical, c.fit_cultural, c.fit_level, c.fit_communication, c.fit_network]
+  const scored = signals.filter(Boolean)
+  if (scored.length === 0) return 'unknown'
+  if (scored.some((s) => s === 'Weak')) return 'weak'
+  if (scored.every((s) => s === 'Strong')) return 'strong'
+  return 'moderate'
+}
+
+function tenure(start: string | null, end: string | null) {
+  if (!start) return '—'
+  const s = new Date(start).getFullYear()
+  const e = end ? new Date(end).getFullYear() : 'present'
+  return `${s}–${e}`
+}
+
+function provenanceDots(rel: string | null) {
+  if (rel === 'Direct') return '●●●'
+  if (rel === 'Indirect') return '●●○'
+  return '●○○'
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function FitSignalSelect({ name, label, value }: { name: string; label: string; value: string | null }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</label>
+      <select
+        name={name}
+        defaultValue={value ?? 'Unknown'}
+        className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground"
+      >
+        {FIT_SIGNALS.map((s) => (
+          <option key={s} value={s}>{s}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+// ── Left Panel: Club Brief ────────────────────────────────────────────────────
+
+function ClubBrief({
+  mandate,
+  seasonResults,
+  coachingHistory,
+}: {
+  mandate: Mandate
+  seasonResults: SeasonResult[]
+  coachingHistory: CoachingRecord[]
+}) {
+  const club = mandate.clubs
+  const clubName = mandate.custom_club_name ?? club?.name ?? 'Unknown club'
+
+  return (
+    <div className="h-full overflow-y-auto space-y-5 pr-1">
+      {/* Header */}
+      <div>
+        <h2 className="text-base font-semibold text-foreground">{clubName}</h2>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {club?.league && (
+            <span className="text-[10px] border border-border bg-surface px-2 py-0.5 rounded text-muted-foreground">{club.league}</span>
+          )}
+          {club?.country && (
+            <span className="text-[10px] border border-border bg-surface px-2 py-0.5 rounded text-muted-foreground">{club.country}</span>
+          )}
+          {club?.tier && (
+            <span className="text-[10px] border border-primary/20 bg-primary/10 px-2 py-0.5 rounded text-primary">{club.tier}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Environment */}
+      <section className="space-y-2">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Environment</h3>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <p className="text-muted-foreground">Ownership</p>
+            <p className="text-foreground font-medium mt-0.5">{club?.ownership_model || '—'}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Board risk</p>
+            <p className="text-foreground font-medium mt-0.5">{mandate.board_risk_appetite || '—'}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Playing style</p>
+            <p className="text-foreground font-medium mt-0.5">{club?.tactical_model || '—'}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Budget band</p>
+            <p className="text-foreground font-medium mt-0.5">{mandate.budget_band || '—'}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Performance trajectory */}
+      {seasonResults.length > 0 && (
+        <section className="space-y-2">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Performance trajectory</h3>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-muted-foreground">
+                <th className="text-left py-1 font-medium">Season</th>
+                <th className="text-right py-1 font-medium">Pos</th>
+                <th className="text-right py-1 font-medium">Pts</th>
+                <th className="text-right py-1 font-medium">GD</th>
+              </tr>
+            </thead>
+            <tbody>
+              {seasonResults.map((r) => (
+                <tr key={r.season} className="border-t border-border/50">
+                  <td className="py-1 text-foreground">{r.season}</td>
+                  <td className="py-1 text-right text-foreground">{r.league_position ?? '—'}</td>
+                  <td className="py-1 text-right text-foreground">{r.points ?? '—'}</td>
+                  <td className="py-1 text-right text-muted-foreground">
+                    {r.goals_for != null && r.goals_against != null
+                      ? `${r.goals_for - r.goals_against > 0 ? '+' : ''}${r.goals_for - r.goals_against}`
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {/* Coaching history */}
+      {coachingHistory.length > 0 && (
+        <section className="space-y-2">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Coaching history</h3>
+          <div className="space-y-2">
+            {coachingHistory.map((c, i) => (
+              <div key={i} className="text-xs">
+                <p className="text-foreground font-medium">{c.coach_name}</p>
+                <p className="text-muted-foreground">
+                  {tenure(c.start_date, c.end_date)}
+                  {c.reason_for_exit ? ` · ${c.reason_for_exit}` : ''}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Mandate brief */}
+      {mandate.strategic_objective && (
+        <section className="space-y-2">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Mandate brief</h3>
+          <p className="text-xs text-foreground leading-relaxed">{mandate.strategic_objective}</p>
+        </section>
+      )}
+
+      {mandate.succession_timeline && (
+        <section className="space-y-1">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Succession timeline</h3>
+          <p className="text-xs text-foreground">{mandate.succession_timeline}</p>
+        </section>
+      )}
+    </div>
+  )
+}
+
+// ── Center Panel: Fit Assessment ──────────────────────────────────────────────
+
+function FitAssessment({
+  candidate,
+  mandateId,
+}: {
+  candidate: Candidate | null
+  mandateId: string
+}) {
+  const [isPending, startTransition] = useTransition()
+  const [saved, setSaved] = useState(false)
+
+  if (!candidate) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-center px-8 gap-3">
+        <div className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center">
+          <span className="text-lg">←</span>
+        </div>
+        <p className="text-sm font-medium text-foreground">Select a candidate</p>
+        <p className="text-xs text-muted-foreground">Click any candidate in the pipeline to open their fit assessment here.</p>
+      </div>
+    )
+  }
+
+  const coachName = candidate.coaches?.name ?? 'Unknown coach'
+  const overall = overallFit(candidate)
+
+  async function handleSubmit(formData: FormData) {
+    startTransition(async () => {
+      await updateShortlistWorkspaceAction(formData)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    })
+  }
+
+  return (
+    <div className="h-full overflow-y-auto space-y-5 pr-1">
+      {/* Candidate header */}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">{coachName}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {candidate.coaches?.club_current || 'Free agent'}
+            {candidate.coaches?.nationality ? ` · ${candidate.coaches.nationality}` : ''}
+          </p>
+        </div>
+        <span className={cn(
+          'text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded border',
+          overall === 'strong' && 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+          overall === 'moderate' && 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+          overall === 'weak' && 'text-red-400 bg-red-400/10 border-red-400/20',
+          overall === 'unknown' && 'text-muted-foreground bg-surface border-border',
+        )}>
+          {overall === 'unknown' ? 'Unscored' : overall}
+        </span>
+      </div>
+
+      <form action={handleSubmit} className="space-y-5">
+        <input type="hidden" name="shortlist_id" value={candidate.id} />
+        <input type="hidden" name="mandate_id" value={mandateId} />
+
+        {/* Stage */}
+        <section className="space-y-2">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Stage</h3>
+          <select
+            name="candidate_stage"
+            defaultValue={candidate.candidate_stage}
+            className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground"
+          >
+            {CANDIDATE_STAGES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </section>
+
+        {/* Network provenance */}
+        <section className="space-y-3">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Network provenance</h3>
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">How identified</label>
+            <select
+              name="network_source"
+              defaultValue={candidate.network_source ?? ''}
+              className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground"
+            >
+              <option value="">Select…</option>
+              {NETWORK_SOURCES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Recommended by</label>
+              <input
+                type="text"
+                name="network_recommender"
+                defaultValue={candidate.network_recommender ?? ''}
+                placeholder="Name, role"
+                className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground placeholder-muted-foreground/40"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Relationship</label>
+              <select
+                name="network_relationship"
+                defaultValue={candidate.network_relationship ?? ''}
+                className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground"
+              >
+                <option value="">Select…</option>
+                {NETWORK_RELATIONSHIPS.map((r) => (
+                  <option key={r} value={r}>{r === 'Direct' ? '●●● Direct' : r === 'Indirect' ? '●●○ Indirect' : '●○○ Cold'}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {candidate.network_relationship && (
+            <p className="text-[10px] text-muted-foreground">
+              {candidate.network_relationship === 'Direct' && 'Recommender worked directly with this coach in a similar setup.'}
+              {candidate.network_relationship === 'Indirect' && 'Recommender has observed or studied this coach without working together.'}
+              {candidate.network_relationship === 'Cold' && 'Based on reputation or third-hand information only.'}
+            </p>
+          )}
+        </section>
+
+        {/* Fit dimensions */}
+        <section className="space-y-3">
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Fit assessment</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <FitSignalSelect name="fit_tactical" label="Tactical / style fit" value={candidate.fit_tactical} />
+            <FitSignalSelect name="fit_level" label="League / level fit" value={candidate.fit_level} />
+            <FitSignalSelect name="fit_cultural" label="Cultural fit" value={candidate.fit_cultural} />
+            <FitSignalSelect name="fit_communication" label="Communication" value={candidate.fit_communication} />
+            <FitSignalSelect name="fit_network" label="Network standing" value={candidate.fit_network} />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Assessment notes</label>
+            <textarea
+              name="fit_notes"
+              defaultValue={candidate.fit_notes ?? ''}
+              rows={3}
+              placeholder="Observations, risks, behavioural signals…"
+              className="w-full rounded bg-surface border border-border px-2 py-2 text-xs text-foreground placeholder-muted-foreground/40 resize-none"
+            />
+          </div>
+        </section>
+
+        <button
+          type="submit"
+          disabled={isPending}
+          className="w-full h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 disabled:opacity-50"
+        >
+          {isPending ? 'Saving…' : saved ? '✓ Saved' : 'Save assessment'}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+// ── Right Panel: Candidate Pipeline ───────────────────────────────────────────
+
+function CandidatePipeline({
+  candidates,
+  selectedId,
+  onSelect,
+}: {
+  candidates: Candidate[]
+  selectedId: string | null
+  onSelect: (id: string) => void
+}) {
+  const byStage = CANDIDATE_STAGES.map((stage) => ({
+    stage,
+    items: candidates.filter((c) => c.candidate_stage === stage),
+  })).filter((g) => g.items.length > 0)
+
+  const unstaged = candidates.filter(
+    (c) => !CANDIDATE_STAGES.includes(c.candidate_stage as typeof CANDIDATE_STAGES[number])
+  )
+
+  const allGroups = [
+    ...byStage,
+    ...(unstaged.length > 0 ? [{ stage: 'Unassigned', items: unstaged }] : []),
+  ]
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4 pr-1">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Candidates</h2>
+        <span className="text-[10px] text-muted-foreground">{candidates.length} total</span>
+      </div>
+
+      {candidates.length === 0 && (
+        <p className="text-xs text-muted-foreground py-4 text-center">
+          No candidates added yet. Use the Shortlist tab to add coaches to this mandate.
+        </p>
+      )}
+
+      {allGroups.map(({ stage, items }) => (
+        <div key={stage} className="space-y-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-1">{stage}</p>
+          {items.map((c) => {
+            const overall = overallFit(c)
+            const isSelected = c.id === selectedId
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => onSelect(c.id)}
+                className={cn(
+                  'w-full text-left rounded-lg border px-3 py-2.5 transition-colors',
+                  isSelected
+                    ? 'border-primary bg-primary/[0.06]'
+                    : 'border-border bg-surface/40 hover:bg-surface-overlay/30'
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium text-foreground truncate">{c.coaches?.name ?? 'Unknown'}</p>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {c.network_relationship && (
+                      <span className="text-[9px] text-muted-foreground font-mono">{provenanceDots(c.network_relationship)}</span>
+                    )}
+                    <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', fitDot(
+                      overall === 'strong' ? 'Strong'
+                        : overall === 'moderate' ? 'Moderate'
+                          : overall === 'weak' ? 'Weak'
+                            : null
+                    ))} />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                  {c.coaches?.club_current || 'Free agent'}
+                </p>
+              </button>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Main Workspace ────────────────────────────────────────────────────────────
+
+export function MandateWorkspaceClient({
+  mandate,
+  shortlist,
+  seasonResults,
+  coachingHistory,
+}: {
+  mandate: Mandate
+  shortlist: Candidate[]
+  seasonResults: SeasonResult[]
+  coachingHistory: CoachingRecord[]
+}) {
+  const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
+  const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
+
+  return (
+    <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-12rem)]">
+      {/* Left: Club Brief */}
+      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
+        <ClubBrief
+          mandate={mandate}
+          seasonResults={seasonResults}
+          coachingHistory={coachingHistory}
+        />
+      </div>
+
+      {/* Center: Fit Assessment */}
+      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
+        <FitAssessment candidate={selectedCandidate} mandateId={mandate.id} />
+      </div>
+
+      {/* Right: Candidate Pipeline */}
+      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
+        <CandidatePipeline
+          candidates={shortlist}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+      </div>
+    </div>
+  )
+}

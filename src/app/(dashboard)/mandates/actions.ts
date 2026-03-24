@@ -670,3 +670,50 @@ export async function updateMandateStageAction(
     return { error: e instanceof Error ? e.message : 'Failed to update stage' }
   }
 }
+
+const FIT_SIGNAL_VALUES = ['Strong', 'Moderate', 'Weak', 'Unknown'] as const
+const CANDIDATE_STAGE_VALUES = ['Tracked', 'Longlist', 'Shortlist', 'Interview', 'Final'] as const
+const NETWORK_SOURCE_VALUES = ['Data search', 'Direct recommendation', 'Network suggestion', 'Proactive approach'] as const
+const NETWORK_RELATIONSHIP_VALUES = ['Direct', 'Indirect', 'Cold'] as const
+
+export async function updateShortlistWorkspaceAction(formData: FormData) {
+  const { supabase, user } = await requireUser()
+  const shortlistId = toText(formData.get('shortlist_id'))
+  const mandateId = toText(formData.get('mandate_id'))
+  if (!shortlistId || !mandateId) return { error: 'Missing fields' }
+
+  // Verify ownership
+  const { data: entry } = await supabase
+    .from('mandate_shortlist')
+    .select('id, mandates!inner(user_id)')
+    .eq('id', shortlistId)
+    .single()
+
+  if (!entry || (entry.mandates as { user_id: string }).user_id !== user.id) {
+    return { error: 'Not found' }
+  }
+
+  const update: Record<string, string | null> = {
+    candidate_stage: cleanEnum(toText(formData.get('candidate_stage')), CANDIDATE_STAGE_VALUES) ?? 'Longlist',
+    network_source: cleanEnum(toText(formData.get('network_source')), NETWORK_SOURCE_VALUES) ?? null,
+    network_recommender: cleanText(formData.get('network_recommender')) ?? null,
+    network_relationship: cleanEnum(toText(formData.get('network_relationship')), NETWORK_RELATIONSHIP_VALUES) ?? null,
+    fit_tactical: cleanEnum(toText(formData.get('fit_tactical')), FIT_SIGNAL_VALUES) ?? null,
+    fit_cultural: cleanEnum(toText(formData.get('fit_cultural')), FIT_SIGNAL_VALUES) ?? null,
+    fit_level: cleanEnum(toText(formData.get('fit_level')), FIT_SIGNAL_VALUES) ?? null,
+    fit_communication: cleanEnum(toText(formData.get('fit_communication')), FIT_SIGNAL_VALUES) ?? null,
+    fit_network: cleanEnum(toText(formData.get('fit_network')), FIT_SIGNAL_VALUES) ?? null,
+    fit_notes: cleanText(formData.get('fit_notes')) ?? null,
+  }
+
+  const { error } = await supabase
+    .from('mandate_shortlist')
+    .update(update)
+    .eq('id', shortlistId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/mandates/${mandateId}`)
+  revalidatePath(`/mandates/${mandateId}/workspace`)
+  return {}
+}
