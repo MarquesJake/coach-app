@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { ClubAgentsSection } from './_components/club-agents-section'
+import { ClubSeasonResultsSection } from './_components/club-season-results-section'
 
 const OWNERSHIP_TYPES = [
   'Private',
@@ -286,6 +287,8 @@ export default function ClubOverviewPage() {
           </div>
         </form>
       </section>
+
+      <ClubSeasonResultsSection clubId={id} />
 
       <ClubAgentsSection clubId={id} />
     </div>
