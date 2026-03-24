@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import { updateShortlistWorkspaceAction } from '../../../actions'
+import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -81,7 +82,7 @@ type CoachingRecord = {
   data_source: string | null
 }
 
-export type { Mandate, Candidate, SeasonResult, CoachingRecord }
+export type { Mandate, Candidate, SeasonResult, CoachingRecord, StabilityMetrics }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -140,29 +141,34 @@ function FitSignalSelect({ name, label, value }: { name: string; label: string; 
   )
 }
 
+// ── Stability label styles ────────────────────────────────────────────────────
+
+const STABILITY_STYLES: Record<string, string> = {
+  emerald: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10',
+  amber:   'text-amber-400  border-amber-400/30  bg-amber-400/10',
+  red:     'text-red-400    border-red-400/30    bg-red-400/10',
+  muted:   'text-muted-foreground border-border bg-surface',
+}
+
 // ── Left Panel: Club Brief ────────────────────────────────────────────────────
 
 function ClubBrief({
   mandate,
   seasonResults,
   coachingHistory,
+  stabilityMetrics,
 }: {
   mandate: Mandate
   seasonResults: SeasonResult[]
   coachingHistory: CoachingRecord[]
+  stabilityMetrics: StabilityMetrics
 }) {
   const club = mandate.clubs
   const clubName = mandate.custom_club_name ?? club?.name ?? 'Unknown club'
 
-  // Compute instability signal from coaching history
-  const recentManagers = coachingHistory.filter((c) => {
-    if (!c.start_date) return false
-    const year = new Date(c.start_date).getFullYear()
-    return year >= new Date().getFullYear() - 5
-  })
-
   return (
     <div className="h-full overflow-y-auto space-y-5 pr-1">
+
       {/* Header */}
       <div>
         <h2 className="text-base font-semibold text-foreground">{clubName}</h2>
@@ -180,14 +186,16 @@ function ClubBrief({
             <span className="text-[10px] border border-border bg-surface px-2 py-0.5 rounded text-muted-foreground">{club.market_reputation}</span>
           )}
         </div>
-        {club?.founded_year && club?.stadium && (
+        {(club?.founded_year || club?.stadium) && (
           <p className="text-[10px] text-muted-foreground mt-1.5">
-            Est. {club.founded_year} · {club.stadium}
+            {club.founded_year ? `Est. ${club.founded_year}` : ''}
+            {club.founded_year && club.stadium ? ' · ' : ''}
+            {club.stadium ?? ''}
           </p>
         )}
       </div>
 
-      {/* Intelligence layer */}
+      {/* Club intelligence */}
       <section className="space-y-2">
         <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club intelligence</h3>
         <div className="grid grid-cols-2 gap-2 text-xs">
@@ -225,14 +233,6 @@ function ClubBrief({
             <p className="text-muted-foreground">Budget band</p>
             <p className="text-foreground font-medium mt-0.5">{mandate.budget_band || '—'}</p>
           </div>
-          {recentManagers.length > 0 && (
-            <div>
-              <p className="text-muted-foreground">Managers (5yr)</p>
-              <p className={`font-medium mt-0.5 ${recentManagers.length >= 4 ? 'text-red-400' : recentManagers.length >= 3 ? 'text-amber-400' : 'text-foreground'}`}>
-                {recentManagers.length}
-              </p>
-            </div>
-          )}
         </div>
         {club?.environment_assessment && (
           <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 italic">
@@ -245,6 +245,56 @@ function ClubBrief({
           </div>
         )}
       </section>
+
+      {/* Coaching stability */}
+      {stabilityMetrics.has_sufficient_data && (
+        <section className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Coaching stability</h3>
+            <span className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${STABILITY_STYLES[stabilityMetrics.stability_color]}`}>
+              {stabilityMetrics.stability_label}
+            </span>
+          </div>
+
+          {/* Key metrics — 3 compact figures */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <p className="text-muted-foreground text-[10px]">Avg tenure</p>
+              <p className="text-foreground font-semibold tabular-nums mt-0.5">
+                {fmtTenure(stabilityMetrics.avg_tenure_months)}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[10px]">Last 5yr</p>
+              <p className={`font-semibold tabular-nums mt-0.5 ${
+                stabilityMetrics.coaches_last_5_years >= 4 ? 'text-red-400'
+                  : stabilityMetrics.coaches_last_5_years >= 3 ? 'text-amber-400'
+                    : 'text-foreground'
+              }`}>
+                {stabilityMetrics.coaches_last_5_years}
+              </p>
+            </div>
+            {stabilityMetrics.current_tenure_months !== null && (
+              <div>
+                <p className="text-muted-foreground text-[10px]">Current</p>
+                <p className="text-foreground font-semibold tabular-nums mt-0.5">
+                  {fmtTenure(stabilityMetrics.current_tenure_months)}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 1-line interpretation */}
+          <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+            {stabilityMetrics.interpretation}
+          </p>
+
+          {/* Recruitment risk note */}
+          <div className={`rounded border px-2 py-1.5 ${STABILITY_STYLES[stabilityMetrics.stability_color]}`}>
+            <p className="text-[10px] leading-relaxed">{stabilityMetrics.recruitment_note}</p>
+          </div>
+        </section>
+      )}
 
       {/* Performance trajectory */}
       {seasonResults.length > 0 && (
@@ -569,11 +619,13 @@ export function MandateWorkspaceClient({
   shortlist,
   seasonResults,
   coachingHistory,
+  stabilityMetrics,
 }: {
   mandate: Mandate
   shortlist: Candidate[]
   seasonResults: SeasonResult[]
   coachingHistory: CoachingRecord[]
+  stabilityMetrics: StabilityMetrics
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
@@ -586,6 +638,7 @@ export function MandateWorkspaceClient({
           mandate={mandate}
           seasonResults={seasonResults}
           coachingHistory={coachingHistory}
+          stabilityMetrics={stabilityMetrics}
         />
       </div>
 

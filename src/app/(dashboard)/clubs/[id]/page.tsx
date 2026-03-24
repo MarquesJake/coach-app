@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { ClubAgentsSection } from './_components/club-agents-section'
 import { ClubSeasonResultsSection } from './_components/club-season-results-section'
+import { ClubStabilitySection } from './_components/club-stability-section'
 
 const OWNERSHIP_TYPES = [
   'Private',
@@ -542,6 +543,9 @@ export default function ClubOverviewPage() {
           </button>
         </form>
       </section>
+
+      {/* ── Derived intelligence: Coaching stability ────────────────────────── */}
+      <ClubStabilitySection clubId={id} />
 
       {/* ── Layer C: Workflow data ──────────────────────────────────────────── */}
       <ClubSeasonResultsSection clubId={id} />

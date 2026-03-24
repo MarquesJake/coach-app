@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MandateWorkspaceClient } from './_components/mandate-workspace-client'
 import { MandateTabNav } from '../_components/mandate-tab-nav'
+import { computeCoachingStability } from '@/lib/analysis/coaching-stability'
 
 export default async function MandateWorkspacePage({ params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient()
@@ -66,6 +67,9 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
         .limit(10)
     : { data: [] }
 
+  // Compute stability metrics server-side from the already-fetched coaching history
+  const stabilityMetrics = computeCoachingStability(coachingHistory ?? [])
+
   return (
     <div>
       <MandateTabNav mandateId={params.id} />
@@ -74,6 +78,7 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
         shortlist={(shortlist ?? []) as Parameters<typeof MandateWorkspaceClient>[0]['shortlist']}
         seasonResults={(seasonResults ?? []) as Parameters<typeof MandateWorkspaceClient>[0]['seasonResults']}
         coachingHistory={(coachingHistory ?? []) as Parameters<typeof MandateWorkspaceClient>[0]['coachingHistory']}
+        stabilityMetrics={stabilityMetrics}
       />
     </div>
   )
