@@ -36,6 +36,8 @@ export type Database = {
           budget_ceiling: string | null
           governance_complexity: string | null
           instability_risk: string | null
+          external_id: string | null
+          external_source: string | null
         }
         Insert: {
           country: string
@@ -58,6 +60,8 @@ export type Database = {
           budget_ceiling?: string | null
           governance_complexity?: string | null
           instability_risk?: string | null
+          external_id?: string | null
+          external_source?: string | null
         }
         Update: {
           country?: string
@@ -80,6 +84,8 @@ export type Database = {
           budget_ceiling?: string | null
           governance_complexity?: string | null
           instability_risk?: string | null
+          external_id?: string | null
+          external_source?: string | null
         }
         Relationships: []
       }

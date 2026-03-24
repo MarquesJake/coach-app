@@ -6,6 +6,7 @@ type Club = {
   country: string
   tier: string | null
   ownership_model: string | null
+  external_source: string | null
 }
 
 export function ClubCommandBar({ club }: { club: Club }) {
@@ -33,6 +34,11 @@ export function ClubCommandBar({ club }: { club: Club }) {
             {club.ownership_model && club.ownership_model !== 'Unknown' && (
               <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs text-muted-foreground">
                 {club.ownership_model}
+              </span>
+            )}
+            {club.external_source && (
+              <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
+                Synced
               </span>
             )}
           </div>
