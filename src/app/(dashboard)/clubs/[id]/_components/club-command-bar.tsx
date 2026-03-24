@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { ClubSyncButton } from './club-sync-button'
 
 type Club = {
   id: string
@@ -10,7 +11,9 @@ type Club = {
   tier: string | null
   ownership_model: string | null
   external_source: string | null
+  external_id: string | null
   badge_url: string | null
+  last_synced_at: string | null
 }
 
 export function ClubCommandBar({ club }: { club: Club }) {
@@ -56,13 +59,21 @@ export function ClubCommandBar({ club }: { club: Club }) {
           </div>
         </div>
 
-        {/* Right: primary action */}
-        <Link
-          href={`/mandates/new?club_id=${club.id}&club_name=${encodeURIComponent(club.name)}`}
-          className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors shrink-0"
-        >
-          + Open mandate
-        </Link>
+        {/* Right: sync + primary action */}
+        <div className="flex items-center gap-3 shrink-0">
+          <ClubSyncButton
+            clubId={club.id}
+            hasExternalSource={!!club.external_source}
+            lastSyncedAt={club.last_synced_at}
+            autoSync={!!club.external_source && !club.last_synced_at}
+          />
+          <Link
+            href={`/mandates/new?club_id=${club.id}&club_name=${encodeURIComponent(club.name)}`}
+            className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors shrink-0"
+          >
+            + Open mandate
+          </Link>
+        </div>
 
       </div>
     </header>

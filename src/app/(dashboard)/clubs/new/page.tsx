@@ -27,6 +27,7 @@ type SearchResult = {
   manager: string | null
   stadium: string | null
   formed_year: string | null
+  id_league: string | null
 }
 
 export default function NewClubPage() {
@@ -42,6 +43,7 @@ export default function NewClubPage() {
     description: string | null
     stadium: string | null
     founded_year: string | null
+    id_league: string | null
   } | null>(null)
   const [form, setForm] = useState({
     name: '',
@@ -83,6 +85,7 @@ export default function NewClubPage() {
       description: result.description,
       stadium: result.stadium,
       founded_year: result.formed_year,
+      id_league: result.id_league ?? null,
     })
     setSearchResults([])
     setSearchQuery('')
@@ -110,12 +113,14 @@ export default function NewClubPage() {
         description: imported.description,
         stadium: imported.stadium,
         founded_year: imported.founded_year,
+        id_league: imported.id_league,
       } : {}),
     }).select('id').single()
 
     setLoading(false)
     if (error) { toastError(error.message); return }
     toastSuccess('Club created')
+    fetch(`/api/integrations/clubs/enrich/${data.id}`, { method: 'POST' }).catch(() => {})
     router.push(`/clubs/${data.id}`)
     router.refresh()
   }

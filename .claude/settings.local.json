@@ -15,7 +15,22 @@
       "Bash(touch \"/Users/jake/Desktop/Coach App/.git/worktrees/elastic-hypatia/index.lock\")",
       "Bash(rm \"/Users/jake/Desktop/Coach App/.git/worktrees/elastic-hypatia/index.lock\")",
       "Bash(wc -l \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/mandates/actions.ts\")",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find '/Users/jake/Desktop/Coach App' -name .env* -maxdepth 3 -not -path */node_modules/*)",
+      "Bash(supabase status:*)",
+      "Bash(supabase db:*)",
+      "Bash(supabase projects:*)",
+      "Bash(supabase link:*)",
+      "Bash(supabase --help)",
+      "Bash(psql --version)",
+      "Read(//Users/jake/.supabase/**)",
+      "Read(//Users/jake/**)",
+      "Bash(find ~ -name access-token -path */supabase/*)",
+      "Bash(find ~ -name *.json -path *supabase* -maxdepth 6)",
+      "Bash(find ~/Library -name *supabase* -maxdepth 5)",
+      "Bash(supabase migration:*)",
+      "Bash(for version:*)",
+      "Bash(do echo:*)"
     ]
   }
 }

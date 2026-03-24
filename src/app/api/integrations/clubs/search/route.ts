@@ -11,6 +11,10 @@ type SportsDBTeam = {
   strStadium: string | null
   strBadge: string | null
   intFormedYear: string | null
+  idLeague: string | null
+  strWebsite: string | null
+  strStadiumLocation: string | null
+  intStadiumCapacity: string | null
 }
 
 export async function GET(req: NextRequest) {
@@ -42,6 +46,7 @@ export async function GET(req: NextRequest) {
         manager: t.strManager ?? null,
         stadium: t.strStadium ?? null,
         formed_year: t.intFormedYear ?? null,
+        id_league: t.idLeague ?? null,
       }))
 
     return NextResponse.json({ results })
