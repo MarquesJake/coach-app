@@ -12,6 +12,7 @@ type SeasonRow = {
   points: number | null
   goals_for: number | null
   goals_against: number | null
+  data_source?: string
 }
 
 function PositionTrend({ rows }: { rows: SeasonRow[] }) {
@@ -45,7 +46,7 @@ export function ClubSeasonResultsSection({ clubId }: { clubId: string }) {
     if (!user) { setLoading(false); return }
     const { data } = await supabase
       .from('club_season_results')
-      .select('id, season, league_position, points, goals_for, goals_against')
+      .select('id, season, league_position, points, goals_for, goals_against, data_source')
       .eq('club_id', clubId)
       .eq('user_id', user.id)
       .order('season', { ascending: false })
@@ -205,6 +206,7 @@ export function ClubSeasonResultsSection({ clubId }: { clubId: string }) {
                 <th className="text-center px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">GF</th>
                 <th className="text-center px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">GA</th>
                 <th className="text-center px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">GD</th>
+                <th className="w-24 px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Source</th>
                 <th className="w-16 px-4 py-2.5" />
               </tr>
             </thead>
@@ -235,6 +237,13 @@ export function ClubSeasonResultsSection({ clubId }: { clubId: string }) {
                         </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {row.data_source === 'thesportsdb' ? (
+                        <span className="text-[9px] text-emerald-400/70">TheSportsDB</span>
+                      ) : (
+                        <span className="text-[9px] text-muted-foreground/50">Manual</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">

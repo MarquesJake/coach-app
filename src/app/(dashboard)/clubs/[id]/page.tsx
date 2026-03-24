@@ -31,6 +31,12 @@ type Club = {
   stadium: string | null
   founded_year: string | null
   external_source: string | null
+  current_manager: string | null
+  website: string | null
+  stadium_location: string | null
+  stadium_capacity: string | null
+  id_league: string | null
+  last_synced_at: string | null
 }
 
 export default function ClubOverviewPage() {
@@ -50,13 +56,15 @@ export default function ClubOverviewPage() {
     description: '',
     stadium: '',
     founded_year: '',
+    current_manager: '',
+    website: '',
   })
 
   useEffect(() => {
     const supabase = createClient()
     supabase
       .from('clubs')
-      .select('id, name, country, league, tier, ownership_model, notes, badge_url, description, stadium, founded_year, external_source')
+      .select('id, name, country, league, tier, ownership_model, notes, badge_url, description, stadium, founded_year, external_source, current_manager, website, stadium_location, stadium_capacity, id_league, last_synced_at')
       .eq('id', id)
       .single()
       .then(({ data, error }) => {
@@ -77,6 +85,8 @@ export default function ClubOverviewPage() {
           description: d.description ?? '',
           stadium: d.stadium ?? '',
           founded_year: d.founded_year ?? '',
+          current_manager: d.current_manager ?? '',
+          website: d.website ?? '',
         })
       })
   }, [id])
@@ -98,6 +108,8 @@ export default function ClubOverviewPage() {
         description: form.description.trim() || null,
         stadium: form.stadium.trim() || null,
         founded_year: form.founded_year.trim() || null,
+        current_manager: form.current_manager.trim() || null,
+        website: form.website.trim() || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -145,7 +157,7 @@ export default function ClubOverviewPage() {
     <div className="space-y-6">
 
       {/* External context panel — shown when synced from TheSportsDB */}
-      {(club.description || club.stadium || club.founded_year) && (
+      {(club.description || club.stadium || club.founded_year || club.current_manager || club.website) && (
         <section className="rounded-lg border border-border bg-card p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club context</h2>
@@ -164,6 +176,25 @@ export default function ClubOverviewPage() {
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Founded</p>
                 <p className="text-sm text-foreground mt-0.5">{club.founded_year}</p>
+              </div>
+            )}
+            {club.current_manager && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Manager</p>
+                <p className="text-sm text-foreground mt-0.5">{club.current_manager}</p>
+              </div>
+            )}
+            {club.website && (
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Website</p>
+                <a
+                  href={club.website.startsWith('http') ? club.website : `https://${club.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline mt-0.5 block"
+                >
+                  {club.website}
+                </a>
               </div>
             )}
           </div>
@@ -245,6 +276,26 @@ export default function ClubOverviewPage() {
                 value={form.founded_year}
                 onChange={(e) => setForm((f) => ({ ...f, founded_year: e.target.value }))}
                 placeholder="e.g. 1892"
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Current manager</span>
+              <input
+                type="text"
+                value={form.current_manager}
+                onChange={(e) => setForm((f) => ({ ...f, current_manager: e.target.value }))}
+                placeholder="e.g. Pep Guardiola"
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Website</span>
+              <input
+                type="text"
+                value={form.website}
+                onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+                placeholder="e.g. www.mancity.com"
                 className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
               />
             </label>

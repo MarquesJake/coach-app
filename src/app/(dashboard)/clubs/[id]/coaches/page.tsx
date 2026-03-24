@@ -43,6 +43,7 @@ type HistoryRow = {
   reason_for_exit: string | null
   style_tags: string[]
   created_at: string
+  data_source?: string | null
 }
 
 function formatDate(d: string | null) {
@@ -174,6 +175,7 @@ export default function ClubCoachesPage() {
                   <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Tenure</th>
                   <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Exit reason</th>
                   <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Style</th>
+                  <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Source</th>
                   <th className="w-16 px-5 py-3" />
                 </tr>
               </thead>
@@ -199,6 +201,13 @@ export default function ClubCoachesPage() {
                         </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3">
+                      {row.data_source === 'thesportsdb' ? (
+                        <span className="text-[9px] text-emerald-400/70">TheSportsDB</span>
+                      ) : (
+                        <span className="text-[9px] text-muted-foreground/50">Manual</span>
                       )}
                     </td>
                     <td className="px-5 py-3">

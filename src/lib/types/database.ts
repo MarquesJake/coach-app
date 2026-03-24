@@ -42,6 +42,12 @@ export type Database = {
           description: string | null
           stadium: string | null
           founded_year: string | null
+          id_league: string | null
+          current_manager: string | null
+          website: string | null
+          stadium_location: string | null
+          stadium_capacity: string | null
+          last_synced_at: string | null
         }
         Insert: {
           country: string
@@ -70,6 +76,12 @@ export type Database = {
           description?: string | null
           stadium?: string | null
           founded_year?: string | null
+          id_league?: string | null
+          current_manager?: string | null
+          website?: string | null
+          stadium_location?: string | null
+          stadium_capacity?: string | null
+          last_synced_at?: string | null
         }
         Update: {
           country?: string
@@ -98,6 +110,12 @@ export type Database = {
           description?: string | null
           stadium?: string | null
           founded_year?: string | null
+          id_league?: string | null
+          current_manager?: string | null
+          website?: string | null
+          stadium_location?: string | null
+          stadium_capacity?: string | null
+          last_synced_at?: string | null
         }
         Relationships: []
       }
@@ -112,6 +130,7 @@ export type Database = {
           reason_for_exit: string | null
           style_tags: string[]
           created_at: string
+          data_source: string
         }
         Insert: {
           id?: string
@@ -123,6 +142,7 @@ export type Database = {
           reason_for_exit?: string | null
           style_tags?: string[]
           created_at?: string
+          data_source?: string
         }
         Update: {
           id?: string
@@ -134,6 +154,7 @@ export type Database = {
           reason_for_exit?: string | null
           style_tags?: string[]
           created_at?: string
+          data_source?: string
         }
         Relationships: [{ foreignKeyName: "club_coaching_history_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
       }
@@ -148,6 +169,7 @@ export type Database = {
           goals_for: number | null
           goals_against: number | null
           created_at: string
+          data_source: string
         }
         Insert: {
           id?: string
@@ -159,6 +181,7 @@ export type Database = {
           goals_for?: number | null
           goals_against?: number | null
           created_at?: string
+          data_source?: string
         }
         Update: {
           id?: string
@@ -170,6 +193,7 @@ export type Database = {
           goals_for?: number | null
           goals_against?: number | null
           created_at?: string
+          data_source?: string
         }
         Relationships: [{ foreignKeyName: "club_season_results_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
       }
