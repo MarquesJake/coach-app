@@ -58,7 +58,7 @@ export function ClubBrowserPanel() {
   const selectedId = pathname.match(/^\/clubs\/([a-f0-9-]{36})/)?.[1] ?? null
 
   return (
-    <div className="flex flex-col h-full bg-card">
+    <div className="flex flex-col h-full bg-transparent">
 
       {/* Header */}
       <div className="px-4 py-3 border-b border-border space-y-2.5 shrink-0">
@@ -122,8 +122,8 @@ export function ClubBrowserPanel() {
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 border-b border-border/30 transition-colors group',
                     isSelected
-                      ? 'bg-primary/[0.06] border-l-2 border-l-primary'
-                      : 'hover:bg-surface-overlay/20 border-l-2 border-l-transparent'
+                      ? 'bg-white/[0.06] border-l-2 border-l-primary'
+                      : 'hover:bg-white/[0.04] border-l-2 border-l-transparent'
                   )}
                 >
                   {/* Badge / fallback avatar */}

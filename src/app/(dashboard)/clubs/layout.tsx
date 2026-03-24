@@ -10,12 +10,12 @@ export default function ClubsLayout({
     <div className="flex -mx-6 -mt-6 h-[calc(100vh-1.5rem)]">
 
       {/* Left: persistent club browser */}
-      <div className="w-[272px] shrink-0 border-r border-border overflow-hidden flex flex-col">
+      <div className="w-[272px] shrink-0 border-r border-white/10 overflow-hidden flex flex-col bg-[#0f111a]">
         <ClubBrowserPanel />
       </div>
 
       {/* Right: club detail / new / list */}
-      <div className="flex-1 min-w-0 overflow-y-auto">
+      <div className="flex-1 min-w-0 overflow-y-auto bg-background">
         {children}
       </div>
 
