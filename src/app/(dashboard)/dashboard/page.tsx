@@ -1,5 +1,7 @@
-import { redirect } from 'next/navigation'
-
 export default function DashboardPage() {
-  redirect('/coaches')
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">Mandate Control Centre — coming soon.</p>
+    </div>
+  )
 }
