@@ -11,7 +11,7 @@ export default async function ClubsPage() {
 
   const { data: clubs } = await supabase
     .from('clubs')
-    .select('id, name, league, country, notes')
+    .select('id, name, league, country, tier, notes')
     .eq('user_id', user.id)
     .order('name', { ascending: true })
 
@@ -45,6 +45,7 @@ export default async function ClubsPage() {
                   <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Name</th>
                   <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">League</th>
                   <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Country</th>
+                  <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Tier</th>
                   <th className="w-20 px-5 py-3" />
                 </tr>
               </thead>
@@ -58,12 +59,13 @@ export default async function ClubsPage() {
                     </td>
                     <td className="px-5 py-3 text-muted-foreground">{club.league}</td>
                     <td className="px-5 py-3 text-muted-foreground">{club.country}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{club.tier ?? '—'}</td>
                     <td className="px-5 py-3">
                       <Link
                         href={`/clubs/${club.id}`}
                         className="text-xs text-muted-foreground hover:text-foreground"
                       >
-                        Edit
+                        View
                       </Link>
                     </td>
                   </tr>

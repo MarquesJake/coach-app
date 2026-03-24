@@ -18,11 +18,13 @@ export type Database = {
         Row: {
           country: string
           created_at: string
+          updated_at: string
           id: string
           league: string
           name: string
           notes: string | null
           ownership_model: string
+          tier: string | null
           user_id: string
           tactical_model: string | null
           pressing_model: string | null
@@ -38,11 +40,13 @@ export type Database = {
         Insert: {
           country: string
           created_at?: string
+          updated_at?: string
           id?: string
           league: string
           name: string
           notes?: string | null
           ownership_model?: string
+          tier?: string | null
           user_id: string
           tactical_model?: string | null
           pressing_model?: string | null
@@ -58,11 +62,13 @@ export type Database = {
         Update: {
           country?: string
           created_at?: string
+          updated_at?: string
           id?: string
           league?: string
           name?: string
           notes?: string | null
           ownership_model?: string
+          tier?: string | null
           user_id?: string
           tactical_model?: string | null
           pressing_model?: string | null
@@ -76,6 +82,78 @@ export type Database = {
           instability_risk?: string | null
         }
         Relationships: []
+      }
+      club_coaching_history: {
+        Row: {
+          id: string
+          user_id: string
+          club_id: string
+          coach_name: string
+          start_date: string | null
+          end_date: string | null
+          reason_for_exit: string | null
+          style_tags: string[]
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          club_id: string
+          coach_name: string
+          start_date?: string | null
+          end_date?: string | null
+          reason_for_exit?: string | null
+          style_tags?: string[]
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          club_id?: string
+          coach_name?: string
+          start_date?: string | null
+          end_date?: string | null
+          reason_for_exit?: string | null
+          style_tags?: string[]
+          created_at?: string
+        }
+        Relationships: [{ foreignKeyName: "club_coaching_history_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
+      }
+      club_season_results: {
+        Row: {
+          id: string
+          user_id: string
+          club_id: string
+          season: string
+          league_position: number | null
+          points: number | null
+          goals_for: number | null
+          goals_against: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          club_id: string
+          season: string
+          league_position?: number | null
+          points?: number | null
+          goals_for?: number | null
+          goals_against?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          club_id?: string
+          season?: string
+          league_position?: number | null
+          points?: number | null
+          goals_for?: number | null
+          goals_against?: number | null
+          created_at?: string
+        }
+        Relationships: [{ foreignKeyName: "club_season_results_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
       }
       config_pipeline_stages: {
         Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }

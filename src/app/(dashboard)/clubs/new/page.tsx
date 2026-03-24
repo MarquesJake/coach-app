@@ -7,10 +7,26 @@ import { createClient } from '@/lib/supabase/client'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { ArrowLeft } from 'lucide-react'
 
+const OWNERSHIP_TYPES = [
+  'Private',
+  'Group / Consortium',
+  'State / Government',
+  'Listed / Public',
+  'Fan-owned',
+  'Unknown',
+]
+
 export default function NewClubPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({ name: '', country: '', league: 'Other', notes: '' })
+  const [form, setForm] = useState({
+    name: '',
+    country: '',
+    league: 'Other',
+    tier: '',
+    ownership_model: '',
+    notes: '',
+  })
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -21,20 +37,22 @@ export default function NewClubPage() {
       setLoading(false)
       return
     }
-    const { error } = await supabase.from('clubs').insert({
+    const { error, data } = await supabase.from('clubs').insert({
       user_id: user.id,
       name: form.name.trim(),
       country: form.country.trim() || 'TBC',
       league: form.league.trim() || 'Other',
+      tier: form.tier.trim() || null,
+      ownership_model: form.ownership_model.trim() || null,
       notes: form.notes.trim() || null,
-    })
+    }).select('id').single()
     setLoading(false)
     if (error) {
       toastError(error.message)
       return
     }
     toastSuccess('Club created')
-    router.push('/clubs')
+    router.push(`/clubs/${data.id}`)
     router.refresh()
   }
 
@@ -77,6 +95,29 @@ export default function NewClubPage() {
             onChange={(e) => setForm((f) => ({ ...f, league: e.target.value }))}
             className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
           />
+        </label>
+        <label className="block">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Tier</span>
+          <input
+            type="text"
+            value={form.tier}
+            onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value }))}
+            placeholder="e.g. Tier 1, Championship"
+            className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+          />
+        </label>
+        <label className="block">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Ownership type</span>
+          <select
+            value={form.ownership_model}
+            onChange={(e) => setForm((f) => ({ ...f, ownership_model: e.target.value }))}
+            className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+          >
+            <option value="">Select…</option>
+            {OWNERSHIP_TYPES.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
         </label>
         <label className="block">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Notes</span>

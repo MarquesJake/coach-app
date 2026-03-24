@@ -5,25 +5,58 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
-import { ArrowLeft } from 'lucide-react'
 import { ClubAgentsSection } from './_components/club-agents-section'
 
-type Club = { id: string; name: string; country: string; league: string; notes: string | null }
+const OWNERSHIP_TYPES = [
+  'Private',
+  'Group / Consortium',
+  'State / Government',
+  'Listed / Public',
+  'Fan-owned',
+  'Unknown',
+]
 
-export default function EditClubPage() {
+const CLUB_MODELS = [
+  'Development',
+  'Selling club',
+  'Promotion push',
+  'Established mid-table',
+  'Trophy hunting',
+  'Rebuilding',
+  'Other',
+]
+
+type Club = {
+  id: string
+  name: string
+  country: string
+  league: string
+  tier: string | null
+  ownership_model: string | null
+  notes: string | null
+}
+
+export default function ClubOverviewPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [club, setClub] = useState<Club | null>(null)
-  const [form, setForm] = useState({ name: '', country: '', league: '', notes: '' })
+  const [form, setForm] = useState({
+    name: '',
+    country: '',
+    league: '',
+    tier: '',
+    ownership_model: '',
+    notes: '',
+  })
 
   useEffect(() => {
     const supabase = createClient()
     supabase
       .from('clubs')
-      .select('id, name, country, league, notes')
+      .select('id, name, country, league, tier, ownership_model, notes')
       .eq('id', id)
       .single()
       .then(({ data, error }) => {
@@ -38,6 +71,8 @@ export default function EditClubPage() {
           name: d.name,
           country: d.country ?? '',
           league: d.league ?? '',
+          tier: d.tier ?? '',
+          ownership_model: d.ownership_model ?? '',
           notes: d.notes ?? '',
         })
       })
@@ -54,7 +89,10 @@ export default function EditClubPage() {
         name: form.name.trim(),
         country: form.country.trim() || 'TBC',
         league: form.league.trim() || 'Other',
+        tier: form.tier.trim() || null,
+        ownership_model: form.ownership_model.trim() || null,
         notes: form.notes.trim() || null,
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
     setSaving(false)
@@ -83,14 +121,14 @@ export default function EditClubPage() {
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto space-y-5">
+      <div className="space-y-4">
         <p className="text-sm text-muted-foreground">Loading…</p>
       </div>
     )
   }
   if (!club) {
     return (
-      <div className="max-w-xl mx-auto space-y-5">
+      <div className="space-y-4">
         <p className="text-sm text-muted-foreground">Club not found.</p>
         <Link href="/clubs" className="text-xs text-primary hover:underline">Back to clubs</Link>
       </div>
@@ -98,75 +136,93 @@ export default function EditClubPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-5">
+    <div className="space-y-6">
+      <section className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-sm font-medium text-foreground mb-4">Club details</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Name</span>
+              <input
+                type="text"
+                required
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Country</span>
+              <input
+                type="text"
+                value={form.country}
+                onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">League</span>
+              <input
+                type="text"
+                value={form.league}
+                onChange={(e) => setForm((f) => ({ ...f, league: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Tier</span>
+              <input
+                type="text"
+                value={form.tier}
+                onChange={(e) => setForm((f) => ({ ...f, tier: e.target.value }))}
+                placeholder="e.g. Tier 1, Championship"
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Ownership type</span>
+              <select
+                value={form.ownership_model}
+                onChange={(e) => setForm((f) => ({ ...f, ownership_model: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              >
+                <option value="">Select…</option>
+                {OWNERSHIP_TYPES.map((o) => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="block">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Notes</span>
+            <textarea
+              value={form.notes}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              rows={3}
+              className="mt-1 w-full rounded bg-surface border border-border px-3 py-2 text-sm"
+            />
+          </label>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={saving}
+              className="ml-auto px-4 h-9 border border-red-500/50 text-red-500 rounded-lg text-xs font-medium hover:bg-red-500/10 disabled:opacity-50"
+            >
+              Delete club
+            </button>
+          </div>
+        </form>
+      </section>
+
       <ClubAgentsSection clubId={id} />
-      <Link
-        href="/clubs"
-        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground text-[10px] font-bold uppercase tracking-widest"
-      >
-        <ArrowLeft className="w-3 h-3" />
-        Back to clubs
-      </Link>
-      <h1 className="text-lg font-semibold text-foreground">Edit club</h1>
-      <form onSubmit={handleSubmit} className="card-surface rounded-xl p-5 space-y-4">
-        <label className="block">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Name</span>
-          <input
-            type="text"
-            required
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Country</span>
-          <input
-            type="text"
-            value={form.country}
-            onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-            className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">League</span>
-          <input
-            type="text"
-            value={form.league}
-            onChange={(e) => setForm((f) => ({ ...f, league: e.target.value }))}
-            className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
-          />
-        </label>
-        <label className="block">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Notes</span>
-          <textarea
-            value={form.notes}
-            onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-            rows={3}
-            className="mt-1 w-full rounded bg-surface border border-border px-3 py-2 text-sm"
-          />
-        </label>
-        <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save changes'}
-          </button>
-          <Link href="/clubs" className="px-4 h-9 border border-border rounded-lg text-xs font-medium inline-flex items-center">
-            Cancel
-          </Link>
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={saving}
-            className="ml-auto px-4 h-9 border border-red-500/50 text-red-500 rounded-lg text-xs font-medium hover:bg-red-500/10 disabled:opacity-50"
-          >
-            Delete club
-          </button>
-        </div>
-      </form>
     </div>
   )
 }
