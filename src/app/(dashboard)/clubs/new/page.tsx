@@ -25,6 +25,8 @@ type SearchResult = {
   badge_url: string | null
   description: string | null
   manager: string | null
+  stadium: string | null
+  formed_year: string | null
 }
 
 export default function NewClubPage() {
@@ -33,7 +35,14 @@ export default function NewClubPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-  const [imported, setImported] = useState<{ external_id: string; external_source: string } | null>(null)
+  const [imported, setImported] = useState<{
+    external_id: string
+    external_source: string
+    badge_url: string | null
+    description: string | null
+    stadium: string | null
+    founded_year: string | null
+  } | null>(null)
   const [form, setForm] = useState({
     name: '',
     country: '',
@@ -67,7 +76,14 @@ export default function NewClubPage() {
       ownership_model: '',
       notes: result.description ?? '',
     })
-    setImported({ external_id: result.external_id, external_source: result.external_source })
+    setImported({
+      external_id: result.external_id,
+      external_source: result.external_source,
+      badge_url: result.badge_url,
+      description: result.description,
+      stadium: result.stadium,
+      founded_year: result.formed_year,
+    })
     setSearchResults([])
     setSearchQuery('')
   }
@@ -87,7 +103,14 @@ export default function NewClubPage() {
       tier: form.tier.trim() || undefined,
       ownership_model: form.ownership_model.trim() || undefined,
       notes: form.notes.trim() || null,
-      ...(imported ?? {}),
+      ...(imported ? {
+        external_id: imported.external_id,
+        external_source: imported.external_source,
+        badge_url: imported.badge_url,
+        description: imported.description,
+        stadium: imported.stadium,
+        founded_year: imported.founded_year,
+      } : {}),
     }).select('id').single()
 
     setLoading(false)
@@ -137,9 +160,15 @@ export default function NewClubPage() {
           <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
             {searchResults.map((r) => (
               <li key={r.external_id} className="flex items-center justify-between px-4 py-2.5 bg-surface hover:bg-surface-overlay/30 gap-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{r.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{r.league} · {r.country}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  {r.badge_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={r.badge_url} alt={r.name} className="w-7 h-7 object-contain shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{r.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{r.league} · {r.country}</p>
+                  </div>
                 </div>
                 <button
                   type="button"

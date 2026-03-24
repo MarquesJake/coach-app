@@ -11,11 +11,19 @@ import { createMandateStep1Action } from '../actions'
 
 const PRIORITIES = ['High', 'Medium', 'Low', 'Other']
 
-export default async function NewMandatePage() {
+export default async function NewMandatePage({
+  searchParams,
+}: {
+  searchParams: { club_id?: string; club_name?: string }
+}) {
   const supabase = createServerSupabaseClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Pre-fill from club profile "Open mandate" button
+  const prefilledClubId = searchParams.club_id ?? null
+  const prefilledClubName = searchParams.club_name ? decodeURIComponent(searchParams.club_name) : null
 
   if (!user) {
     redirect('/login')
@@ -75,6 +83,8 @@ export default async function NewMandatePage() {
               allowCustomOnly
               required
               aria-label="Club"
+              defaultValue={prefilledClubId ?? undefined}
+              defaultDisplay={prefilledClubName ?? undefined}
             />
           </label>
 

@@ -14,7 +14,8 @@
       "Bash(GIT_DIR=\"/Users/jake/Desktop/Coach App/.git/worktrees/elastic-hypatia\" GIT_WORK_TREE=\"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia\" git commit -m \"Restructure nav: Workspace / Intelligence / Network / Admin:*)",
       "Bash(touch \"/Users/jake/Desktop/Coach App/.git/worktrees/elastic-hypatia/index.lock\")",
       "Bash(rm \"/Users/jake/Desktop/Coach App/.git/worktrees/elastic-hypatia/index.lock\")",
-      "Bash(wc -l \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/mandates/actions.ts\")"
+      "Bash(wc -l \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/mandates/actions.ts\")",
+      "Bash(npm run:*)"
     ]
   }
 }
