@@ -108,11 +108,10 @@ export async function POST(
     const now = new Date()
     const month = now.getMonth() + 1
     const startYear = month >= 7 ? now.getFullYear() : now.getFullYear() - 1
-    const seasons = [
-      `${startYear}-${startYear + 1}`,
-      `${startYear - 1}-${startYear}`,
-      `${startYear - 2}-${startYear - 1}`,
-    ]
+    const seasons: string[] = []
+    for (let i = 0; i < 7; i++) {
+      seasons.push(`${startYear - i}-${startYear - i + 1}`)
+    }
 
     // Fetch existing season results for this club
     const { data: existingRows } = await supabase

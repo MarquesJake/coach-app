@@ -17,6 +17,20 @@ const OWNERSHIP_TYPES = [
   'Unknown',
 ]
 
+const BOARD_RISK_OPTIONS = ['Low', 'Moderate', 'High', 'Extreme']
+const MARKET_REP_OPTIONS = ['Elite', 'Top tier', 'Mid-market', 'Lower-tier', 'Rising', 'Unknown']
+const MEDIA_PRESSURE_OPTIONS = ['Extreme', 'High', 'Moderate', 'Low']
+const DEV_VS_WIN_OPTIONS = ['Win now', 'Balanced', 'Long-term build', 'Transition', 'Unknown']
+const STRATEGIC_PRIORITY_OPTIONS = [
+  'Champions League contention',
+  'Top four / promotion',
+  'Mid-table stability',
+  'Relegation survival',
+  'European qualification',
+  'Youth development',
+  'Financial sustainability',
+  'Other',
+]
 
 type Club = {
   id: string
@@ -37,6 +51,17 @@ type Club = {
   stadium_capacity: string | null
   id_league: string | null
   last_synced_at: string | null
+  // Internal intelligence
+  board_risk_tolerance: string | null
+  tactical_model: string | null
+  pressing_model: string | null
+  build_model: string | null
+  strategic_priority: string | null
+  market_reputation: string | null
+  media_pressure: string | null
+  development_vs_win_now: string | null
+  environment_assessment: string | null
+  instability_risk: string | null
 }
 
 export default function ClubOverviewPage() {
@@ -45,7 +70,10 @@ export default function ClubOverviewPage() {
   const id = params.id as string
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [savingIntel, setSavingIntel] = useState(false)
   const [club, setClub] = useState<Club | null>(null)
+
+  // Factual/external form
   const [form, setForm] = useState({
     name: '',
     country: '',
@@ -60,11 +88,25 @@ export default function ClubOverviewPage() {
     website: '',
   })
 
+  // Internal intelligence form
+  const [intel, setIntel] = useState({
+    board_risk_tolerance: '',
+    tactical_model: '',
+    pressing_model: '',
+    build_model: '',
+    strategic_priority: '',
+    market_reputation: '',
+    media_pressure: '',
+    development_vs_win_now: '',
+    environment_assessment: '',
+    instability_risk: '',
+  })
+
   useEffect(() => {
     const supabase = createClient()
     supabase
       .from('clubs')
-      .select('id, name, country, league, tier, ownership_model, notes, badge_url, description, stadium, founded_year, external_source, current_manager, website, stadium_location, stadium_capacity, id_league, last_synced_at')
+      .select('id, name, country, league, tier, ownership_model, notes, badge_url, description, stadium, founded_year, external_source, current_manager, website, stadium_location, stadium_capacity, id_league, last_synced_at, board_risk_tolerance, tactical_model, pressing_model, build_model, strategic_priority, market_reputation, media_pressure, development_vs_win_now, environment_assessment, instability_risk')
       .eq('id', id)
       .single()
       .then(({ data, error }) => {
@@ -87,6 +129,18 @@ export default function ClubOverviewPage() {
           founded_year: d.founded_year ?? '',
           current_manager: d.current_manager ?? '',
           website: d.website ?? '',
+        })
+        setIntel({
+          board_risk_tolerance: d.board_risk_tolerance ?? '',
+          tactical_model: d.tactical_model ?? '',
+          pressing_model: d.pressing_model ?? '',
+          build_model: d.build_model ?? '',
+          strategic_priority: d.strategic_priority ?? '',
+          market_reputation: d.market_reputation ?? '',
+          media_pressure: d.media_pressure ?? '',
+          development_vs_win_now: d.development_vs_win_now ?? '',
+          environment_assessment: d.environment_assessment ?? '',
+          instability_risk: d.instability_risk ?? '',
         })
       })
   }, [id])
@@ -114,11 +168,35 @@ export default function ClubOverviewPage() {
       })
       .eq('id', id)
     setSaving(false)
-    if (error) {
-      toastError(error.message)
-      return
-    }
-    toastSuccess('Club updated')
+    if (error) { toastError(error.message); return }
+    toastSuccess('Club details saved')
+    router.refresh()
+  }
+
+  async function handleSaveIntel(e: React.FormEvent) {
+    e.preventDefault()
+    if (!club) return
+    setSavingIntel(true)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('clubs')
+      .update({
+        board_risk_tolerance: intel.board_risk_tolerance || null,
+        tactical_model: intel.tactical_model.trim() || null,
+        pressing_model: intel.pressing_model.trim() || null,
+        build_model: intel.build_model.trim() || null,
+        strategic_priority: intel.strategic_priority || null,
+        market_reputation: intel.market_reputation || null,
+        media_pressure: intel.media_pressure || null,
+        development_vs_win_now: intel.development_vs_win_now || null,
+        environment_assessment: intel.environment_assessment.trim() || null,
+        instability_risk: intel.instability_risk.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+    setSavingIntel(false)
+    if (error) { toastError(error.message); return }
+    toastSuccess('Intelligence saved')
     router.refresh()
   }
 
@@ -128,10 +206,7 @@ export default function ClubOverviewPage() {
     const supabase = createClient()
     const { error } = await supabase.from('clubs').delete().eq('id', id)
     setSaving(false)
-    if (error) {
-      toastError(error.message)
-      return
-    }
+    if (error) { toastError(error.message); return }
     toastSuccess('Club deleted')
     router.push('/clubs')
     router.refresh()
@@ -156,11 +231,14 @@ export default function ClubOverviewPage() {
   return (
     <div className="space-y-6">
 
-      {/* External context panel — shown when synced from TheSportsDB */}
+      {/* ── Layer A: External factual context (TheSportsDB) ─────────────────── */}
       {(club.description || club.stadium || club.founded_year || club.current_manager || club.website) && (
         <section className="rounded-lg border border-border bg-card p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club context</h2>
+            <div>
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">External data</h2>
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">Auto-imported · read only</p>
+            </div>
             {club.external_source && (
               <span className="text-[10px] text-emerald-400 font-medium">via TheSportsDB</span>
             )}
@@ -180,7 +258,7 @@ export default function ClubOverviewPage() {
             )}
             {club.current_manager && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Manager</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Current manager</p>
                 <p className="text-sm text-foreground mt-0.5">{club.current_manager}</p>
               </div>
             )}
@@ -204,8 +282,10 @@ export default function ClubOverviewPage() {
         </section>
       )}
 
+      {/* ── Layer A continued: Club identity form ──────────────────────────── */}
       <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-sm font-medium text-foreground mb-4">Club details</h2>
+        <h2 className="text-sm font-medium text-foreground mb-1">Club details</h2>
+        <p className="text-xs text-muted-foreground mb-4">Basic identity and structural info.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
@@ -306,16 +386,7 @@ export default function ClubOverviewPage() {
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={3}
-              placeholder="Brief overview of the club — auto-filled from TheSportsDB on import"
-              className="mt-1 w-full rounded bg-surface border border-border px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="block">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Internal notes</span>
-            <textarea
-              value={form.notes}
-              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              rows={3}
+              placeholder="Brief overview — auto-filled from TheSportsDB on import"
               className="mt-1 w-full rounded bg-surface border border-border px-3 py-2 text-sm"
             />
           </label>
@@ -325,7 +396,7 @@ export default function ClubOverviewPage() {
               disabled={saving}
               className="px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 disabled:opacity-50"
             >
-              {saving ? 'Saving…' : 'Save changes'}
+              {saving ? 'Saving…' : 'Save details'}
             </button>
             <button
               type="button"
@@ -339,8 +410,141 @@ export default function ClubOverviewPage() {
         </form>
       </section>
 
-      <ClubSeasonResultsSection clubId={id} />
+      {/* ── Layer B: Internal intelligence ─────────────────────────────────── */}
+      <section className="rounded-lg border border-border bg-card p-6">
+        <div className="mb-4">
+          <h2 className="text-sm font-medium text-foreground">Internal intelligence</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Bespoke assessment — never overwritten by external sync.</p>
+        </div>
+        <form onSubmit={handleSaveIntel} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Board risk tolerance</span>
+              <select
+                value={intel.board_risk_tolerance}
+                onChange={(e) => setIntel((f) => ({ ...f, board_risk_tolerance: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              >
+                <option value="">Select…</option>
+                {BOARD_RISK_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Strategic priority</span>
+              <select
+                value={intel.strategic_priority}
+                onChange={(e) => setIntel((f) => ({ ...f, strategic_priority: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              >
+                <option value="">Select…</option>
+                {STRATEGIC_PRIORITY_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Development vs win now</span>
+              <select
+                value={intel.development_vs_win_now}
+                onChange={(e) => setIntel((f) => ({ ...f, development_vs_win_now: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              >
+                <option value="">Select…</option>
+                {DEV_VS_WIN_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Market reputation</span>
+              <select
+                value={intel.market_reputation}
+                onChange={(e) => setIntel((f) => ({ ...f, market_reputation: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              >
+                <option value="">Select…</option>
+                {MARKET_REP_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Media pressure</span>
+              <select
+                value={intel.media_pressure}
+                onChange={(e) => setIntel((f) => ({ ...f, media_pressure: e.target.value }))}
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              >
+                <option value="">Select…</option>
+                {MEDIA_PRESSURE_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Tactical identity / playing style</span>
+              <input
+                type="text"
+                value={intel.tactical_model}
+                onChange={(e) => setIntel((f) => ({ ...f, tactical_model: e.target.value }))}
+                placeholder="e.g. High press, possession"
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Pressing model</span>
+              <input
+                type="text"
+                value={intel.pressing_model}
+                onChange={(e) => setIntel((f) => ({ ...f, pressing_model: e.target.value }))}
+                placeholder="e.g. High, mid-block, reactive"
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Build-up model</span>
+              <input
+                type="text"
+                value={intel.build_model}
+                onChange={(e) => setIntel((f) => ({ ...f, build_model: e.target.value }))}
+                placeholder="e.g. From the back, direct, hybrid"
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+            <label className="block sm:col-span-2">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Instability / governance risk</span>
+              <input
+                type="text"
+                value={intel.instability_risk}
+                onChange={(e) => setIntel((f) => ({ ...f, instability_risk: e.target.value }))}
+                placeholder="e.g. ownership dispute, frequent boardroom change"
+                className="mt-1 w-full h-10 rounded bg-surface border border-border px-3 text-sm"
+              />
+            </label>
+          </div>
+          <label className="block">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Environment assessment</span>
+            <textarea
+              value={intel.environment_assessment}
+              onChange={(e) => setIntel((f) => ({ ...f, environment_assessment: e.target.value }))}
+              rows={3}
+              placeholder="Subjective assessment of the club environment — culture, stakeholder dynamics, working conditions…"
+              className="mt-1 w-full rounded bg-surface border border-border px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Internal notes</span>
+            <textarea
+              value={form.notes}
+              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              rows={3}
+              className="mt-1 w-full rounded bg-surface border border-border px-3 py-2 text-sm"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={savingIntel}
+            className="px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 disabled:opacity-50"
+          >
+            {savingIntel ? 'Saving…' : 'Save intelligence'}
+          </button>
+        </form>
+      </section>
 
+      {/* ── Layer C: Workflow data ──────────────────────────────────────────── */}
+      <ClubSeasonResultsSection clubId={id} />
       <ClubAgentsSection clubId={id} />
     </div>
   )

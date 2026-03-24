@@ -48,6 +48,12 @@ export type Database = {
           stadium_location: string | null
           stadium_capacity: string | null
           last_synced_at: string | null
+          wikidata_id: string | null
+          wikidata_synced_at: string | null
+          market_reputation: string | null
+          media_pressure: string | null
+          environment_assessment: string | null
+          development_vs_win_now: string | null
         }
         Insert: {
           country: string
@@ -82,6 +88,12 @@ export type Database = {
           stadium_location?: string | null
           stadium_capacity?: string | null
           last_synced_at?: string | null
+          wikidata_id?: string | null
+          wikidata_synced_at?: string | null
+          market_reputation?: string | null
+          media_pressure?: string | null
+          environment_assessment?: string | null
+          development_vs_win_now?: string | null
         }
         Update: {
           country?: string
@@ -116,6 +128,12 @@ export type Database = {
           stadium_location?: string | null
           stadium_capacity?: string | null
           last_synced_at?: string | null
+          wikidata_id?: string | null
+          wikidata_synced_at?: string | null
+          market_reputation?: string | null
+          media_pressure?: string | null
+          environment_assessment?: string | null
+          development_vs_win_now?: string | null
         }
         Relationships: []
       }
@@ -131,6 +149,9 @@ export type Database = {
           style_tags: string[]
           created_at: string
           data_source: string
+          wikidata_id: string | null
+          start_date_approx: boolean
+          end_date_approx: boolean
         }
         Insert: {
           id?: string
@@ -143,6 +164,9 @@ export type Database = {
           style_tags?: string[]
           created_at?: string
           data_source?: string
+          wikidata_id?: string | null
+          start_date_approx?: boolean
+          end_date_approx?: boolean
         }
         Update: {
           id?: string
@@ -155,8 +179,44 @@ export type Database = {
           style_tags?: string[]
           created_at?: string
           data_source?: string
+          wikidata_id?: string | null
+          start_date_approx?: boolean
+          end_date_approx?: boolean
         }
         Relationships: [{ foreignKeyName: "club_coaching_history_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
+      }
+      club_data_sync_log: {
+        Row: {
+          id: string
+          club_id: string
+          user_id: string
+          sync_type: string
+          sync_at: string
+          result: Json | null
+          error: string | null
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          user_id: string
+          sync_type: string
+          sync_at?: string
+          result?: Json | null
+          error?: string | null
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          user_id?: string
+          sync_type?: string
+          sync_at?: string
+          result?: Json | null
+          error?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: "club_data_sync_log_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] },
+          { foreignKeyName: "club_data_sync_log_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }
+        ]
       }
       club_season_results: {
         Row: {

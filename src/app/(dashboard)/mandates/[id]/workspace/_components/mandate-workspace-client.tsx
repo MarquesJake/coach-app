@@ -14,8 +14,22 @@ type Club = {
   tier: string | null
   ownership_model: string | null
   tactical_model: string | null
+  pressing_model: string | null
+  build_model: string | null
   board_risk_tolerance: string | null
+  strategic_priority: string | null
+  market_reputation: string | null
+  media_pressure: string | null
+  development_vs_win_now: string | null
+  environment_assessment: string | null
+  instability_risk: string | null
+  stadium: string | null
+  founded_year: string | null
+  current_manager: string | null
+  website: string | null
+  badge_url: string | null
   notes: string | null
+  last_synced_at: string | null
 }
 
 type Mandate = {
@@ -64,6 +78,7 @@ type CoachingRecord = {
   end_date: string | null
   reason_for_exit: string | null
   style_tags: string[]
+  data_source: string | null
 }
 
 export type { Mandate, Candidate, SeasonResult, CoachingRecord }
@@ -139,6 +154,13 @@ function ClubBrief({
   const club = mandate.clubs
   const clubName = mandate.custom_club_name ?? club?.name ?? 'Unknown club'
 
+  // Compute instability signal from coaching history
+  const recentManagers = coachingHistory.filter((c) => {
+    if (!c.start_date) return false
+    const year = new Date(c.start_date).getFullYear()
+    return year >= new Date().getFullYear() - 5
+  })
+
   return (
     <div className="h-full overflow-y-auto space-y-5 pr-1">
       {/* Header */}
@@ -154,12 +176,20 @@ function ClubBrief({
           {club?.tier && (
             <span className="text-[10px] border border-primary/20 bg-primary/10 px-2 py-0.5 rounded text-primary">{club.tier}</span>
           )}
+          {club?.market_reputation && (
+            <span className="text-[10px] border border-border bg-surface px-2 py-0.5 rounded text-muted-foreground">{club.market_reputation}</span>
+          )}
         </div>
+        {club?.founded_year && club?.stadium && (
+          <p className="text-[10px] text-muted-foreground mt-1.5">
+            Est. {club.founded_year} · {club.stadium}
+          </p>
+        )}
       </div>
 
-      {/* Environment */}
+      {/* Intelligence layer */}
       <section className="space-y-2">
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Environment</h3>
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club intelligence</h3>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
             <p className="text-muted-foreground">Ownership</p>
@@ -167,17 +197,53 @@ function ClubBrief({
           </div>
           <div>
             <p className="text-muted-foreground">Board risk</p>
-            <p className="text-foreground font-medium mt-0.5">{mandate.board_risk_appetite || '—'}</p>
+            <p className="text-foreground font-medium mt-0.5">
+              {club?.board_risk_tolerance || mandate.board_risk_appetite || '—'}
+            </p>
           </div>
           <div>
-            <p className="text-muted-foreground">Playing style</p>
+            <p className="text-muted-foreground">Tactical identity</p>
             <p className="text-foreground font-medium mt-0.5">{club?.tactical_model || '—'}</p>
           </div>
+          <div>
+            <p className="text-muted-foreground">Strategic priority</p>
+            <p className="text-foreground font-medium mt-0.5">{club?.strategic_priority || '—'}</p>
+          </div>
+          {club?.development_vs_win_now && (
+            <div>
+              <p className="text-muted-foreground">Focus</p>
+              <p className="text-foreground font-medium mt-0.5">{club.development_vs_win_now}</p>
+            </div>
+          )}
+          {club?.media_pressure && (
+            <div>
+              <p className="text-muted-foreground">Media pressure</p>
+              <p className="text-foreground font-medium mt-0.5">{club.media_pressure}</p>
+            </div>
+          )}
           <div>
             <p className="text-muted-foreground">Budget band</p>
             <p className="text-foreground font-medium mt-0.5">{mandate.budget_band || '—'}</p>
           </div>
+          {recentManagers.length > 0 && (
+            <div>
+              <p className="text-muted-foreground">Managers (5yr)</p>
+              <p className={`font-medium mt-0.5 ${recentManagers.length >= 4 ? 'text-red-400' : recentManagers.length >= 3 ? 'text-amber-400' : 'text-foreground'}`}>
+                {recentManagers.length}
+              </p>
+            </div>
+          )}
         </div>
+        {club?.environment_assessment && (
+          <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 italic">
+            {club.environment_assessment}
+          </p>
+        )}
+        {club?.instability_risk && (
+          <div className="rounded border border-amber-500/20 bg-amber-500/5 px-2 py-1.5">
+            <p className="text-[10px] text-amber-400 leading-relaxed">⚠ {club.instability_risk}</p>
+          </div>
+        )}
       </section>
 
       {/* Performance trajectory */}
@@ -194,18 +260,19 @@ function ClubBrief({
               </tr>
             </thead>
             <tbody>
-              {seasonResults.map((r) => (
-                <tr key={r.season} className="border-t border-border/50">
-                  <td className="py-1 text-foreground">{r.season}</td>
-                  <td className="py-1 text-right text-foreground">{r.league_position ?? '—'}</td>
-                  <td className="py-1 text-right text-foreground">{r.points ?? '—'}</td>
-                  <td className="py-1 text-right text-muted-foreground">
-                    {r.goals_for != null && r.goals_against != null
-                      ? `${r.goals_for - r.goals_against > 0 ? '+' : ''}${r.goals_for - r.goals_against}`
-                      : '—'}
-                  </td>
-                </tr>
-              ))}
+              {seasonResults.map((r) => {
+                const gd = r.goals_for != null && r.goals_against != null ? r.goals_for - r.goals_against : null
+                return (
+                  <tr key={r.season} className="border-t border-border/50">
+                    <td className="py-1 text-foreground">{r.season}</td>
+                    <td className="py-1 text-right text-foreground">{r.league_position ?? '—'}</td>
+                    <td className="py-1 text-right text-foreground">{r.points ?? '—'}</td>
+                    <td className={`py-1 text-right ${gd != null && gd > 0 ? 'text-emerald-400' : gd != null && gd < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                      {gd != null ? `${gd > 0 ? '+' : ''}${gd}` : '—'}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </section>
@@ -223,6 +290,13 @@ function ClubBrief({
                   {tenure(c.start_date, c.end_date)}
                   {c.reason_for_exit ? ` · ${c.reason_for_exit}` : ''}
                 </p>
+                {c.style_tags && c.style_tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {c.style_tags.slice(0, 3).map((tag: string) => (
+                      <span key={tag} className="text-[9px] border border-border px-1 rounded text-muted-foreground">{tag}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
