@@ -9,7 +9,7 @@ const TABS = [
   { label: 'Coaches', href: '/coaches' },
   { label: 'Recruitment', href: '/recruitment' },
   { label: 'Squad', href: '/squad' },
-  { label: 'Pathway', href: '/pathway' },
+  { label: 'History', href: '/pathway' },
 ] as const
 
 export function ClubTabNav({ clubId }: { clubId: string }) {
