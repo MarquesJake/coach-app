@@ -52,6 +52,8 @@ type Club = {
   stadium_capacity: string | null
   id_league: string | null
   last_synced_at: string | null
+  squad_synced_at: string | null
+  coaches_synced_at: string | null
   // Internal intelligence
   board_risk_tolerance: string | null
   tactical_model: string | null
@@ -107,7 +109,7 @@ export default function ClubOverviewPage() {
     const supabase = createClient()
     supabase
       .from('clubs')
-      .select('id, name, country, league, tier, ownership_model, notes, badge_url, description, stadium, founded_year, external_source, current_manager, website, stadium_location, stadium_capacity, id_league, last_synced_at, board_risk_tolerance, tactical_model, pressing_model, build_model, strategic_priority, market_reputation, media_pressure, development_vs_win_now, environment_assessment, instability_risk')
+      .select('id, name, country, league, tier, ownership_model, notes, badge_url, description, stadium, founded_year, external_source, current_manager, website, stadium_location, stadium_capacity, id_league, last_synced_at, squad_synced_at, coaches_synced_at, board_risk_tolerance, tactical_model, pressing_model, build_model, strategic_priority, market_reputation, media_pressure, development_vs_win_now, environment_assessment, instability_risk')
       .eq('id', id)
       .single()
       .then(({ data, error }) => {
@@ -143,6 +145,17 @@ export default function ClubOverviewPage() {
           environment_assessment: d.environment_assessment ?? '',
           instability_risk: d.instability_risk ?? '',
         })
+
+        // Auto-sync squad + coaches if never synced or >48h ago
+        if (d.external_source === 'api-football') {
+          const stale = (ts: string | null) => {
+            if (!ts) return true
+            return Date.now() - new Date(ts).getTime() > 48 * 60 * 60 * 1000
+          }
+          if (stale(d.squad_synced_at) || stale(d.coaches_synced_at)) {
+            fetch(`/api/integrations/clubs/sync-club/${id}`, { method: 'POST' }).catch(() => {})
+          }
+        }
       })
   }, [id])
 

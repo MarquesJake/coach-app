@@ -204,7 +204,9 @@ export default function ClubCoachesPage() {
                       )}
                     </td>
                     <td className="px-5 py-3">
-                      {row.data_source === 'thesportsdb' ? (
+                      {row.data_source === 'api-football' ? (
+                        <span className="text-[9px] text-blue-400/70">API-Football</span>
+                      ) : row.data_source === 'thesportsdb' ? (
                         <span className="text-[9px] text-emerald-400/70">TheSportsDB</span>
                       ) : (
                         <span className="text-[9px] text-muted-foreground/50">Manual</span>

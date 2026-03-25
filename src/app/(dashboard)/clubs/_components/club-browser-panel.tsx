@@ -16,13 +16,22 @@ type ClubRow = {
   badge_url: string | null
 }
 
-const PAGE_SIZE = 25
+const PAGE_SIZE = 30
+
+// Ordered tier labels for English football pyramid — shown as quick-filter chips
+const ENGLISH_TIERS = [
+  { tier: '1', label: 'PL' },
+  { tier: '2', label: 'Champ' },
+  { tier: '3', label: 'L1' },
+  { tier: '4', label: 'L2' },
+]
 
 export function ClubBrowserPanel() {
   const pathname = usePathname()
   const [clubs, setClubs] = useState<ClubRow[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [tierFilter, setTierFilter] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {
@@ -33,8 +42,9 @@ export function ClubBrowserPanel() {
         .from('clubs')
         .select('id, name, league, country, tier, badge_url')
         .eq('user_id', user.id)
+        .order('tier', { ascending: true, nullsFirst: false })
         .order('name', { ascending: true })
-        .limit(200)
+        .limit(500)
         .then(({ data }) => {
           setClubs((data as ClubRow[]) ?? [])
           setLoading(false)
@@ -42,19 +52,26 @@ export function ClubBrowserPanel() {
     })
   }, [])
 
+  // Which tier chips to show (only tiers present in data)
+  const presentTiers = useMemo(() => {
+    const tiers = new Set(clubs.map(c => c.tier).filter(Boolean))
+    return ENGLISH_TIERS.filter(t => tiers.has(t.tier))
+  }, [clubs])
+
   const filtered = useMemo(() => {
+    let result = clubs
+    if (tierFilter) result = result.filter(c => c.tier === tierFilter)
     const q = query.trim().toLowerCase()
-    if (!q) return clubs
-    return clubs.filter(c =>
+    if (q) result = result.filter(c =>
       c.name.toLowerCase().includes(q) ||
       (c.league ?? '').toLowerCase().includes(q) ||
       (c.country ?? '').toLowerCase().includes(q)
     )
-  }, [clubs, query])
+    return result
+  }, [clubs, query, tierFilter])
 
   const visible = filtered.slice(0, visibleCount)
 
-  // Extract club id from path like /clubs/[id] or /clubs/[id]/coaches etc.
   const selectedId = pathname.match(/^\/clubs\/([a-f0-9-]{36})/)?.[1] ?? null
 
   return (
@@ -74,6 +91,8 @@ export function ClubBrowserPanel() {
             <Plus className="w-3.5 h-3.5" />
           </Link>
         </div>
+
+        {/* Search */}
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
           <input
@@ -84,6 +103,39 @@ export function ClubBrowserPanel() {
             className="w-full h-8 pl-8 pr-3 rounded bg-surface border border-border text-xs text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-primary/50 transition-colors"
           />
         </div>
+
+        {/* League tier filter chips — only shown when English pyramid clubs exist */}
+        {presentTiers.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => { setTierFilter(null); setVisibleCount(PAGE_SIZE) }}
+              className={cn(
+                'h-5 px-2 rounded text-[9px] font-semibold uppercase tracking-wide border transition-colors',
+                tierFilter === null
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+              )}
+            >
+              All
+            </button>
+            {presentTiers.map(t => (
+              <button
+                key={t.tier}
+                type="button"
+                onClick={() => { setTierFilter(tierFilter === t.tier ? null : t.tier); setVisibleCount(PAGE_SIZE) }}
+                className={cn(
+                  'h-5 px-2 rounded text-[9px] font-semibold uppercase tracking-wide border transition-colors',
+                  tierFilter === t.tier
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* List */}
@@ -103,9 +155,9 @@ export function ClubBrowserPanel() {
         ) : filtered.length === 0 ? (
           <div className="px-4 py-8 text-center space-y-2">
             <p className="text-xs text-muted-foreground">
-              {query ? `No clubs matching "${query}"` : 'No clubs yet'}
+              {query || tierFilter ? `No clubs matching filters` : 'No clubs yet'}
             </p>
-            {!query && (
+            {!query && !tierFilter && (
               <Link href="/clubs/new" className="text-xs text-primary hover:underline">
                 Add your first club →
               </Link>
@@ -165,7 +217,7 @@ export function ClubBrowserPanel() {
                         ? 'text-primary border-primary/30 bg-primary/5'
                         : 'text-muted-foreground border-border bg-surface'
                     )}>
-                      {club.tier}
+                      T{club.tier}
                     </span>
                   )}
                 </Link>
@@ -189,7 +241,7 @@ export function ClubBrowserPanel() {
       {/* Footer count */}
       <div className="px-4 py-2 border-t border-border shrink-0">
         <p className="text-[10px] text-muted-foreground/60">
-          {loading ? '…' : `${filtered.length} club${filtered.length !== 1 ? 's' : ''}${query ? ` found` : ''}`}
+          {loading ? '…' : `${filtered.length} club${filtered.length !== 1 ? 's' : ''}${query || tierFilter ? ` found` : ''}`}
         </p>
       </div>
     </div>
