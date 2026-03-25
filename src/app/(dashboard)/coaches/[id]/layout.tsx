@@ -37,10 +37,12 @@ export default async function CoachDetailLayout({
     supabase.from('coach_stints').select('id', { count: 'exact', head: true }).eq('coach_id', params.id),
     computeIntelligenceConfidence(user.id, params.id),
     (async () => {
+      // @ts-ignore - watchlist_coaches table not yet in DB schema
       const { data } = await supabase.from('watchlist_coaches').select('coach_id').eq('coach_id', params.id).eq('user_id', user.id).maybeSingle()
       return { onWatchlist: !!data }
     })(),
     getActivityForEntity('coach', params.id),
+    // @ts-ignore - coach_derived_metrics table not yet in DB schema
     supabase.from('coach_derived_metrics').select('repeat_signings_count, repeat_agents_count, loan_reliance_score, network_density_score').eq('coach_id', params.id).maybeSingle(),
     supabase.from('intelligence_items').select('occurred_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
   ])

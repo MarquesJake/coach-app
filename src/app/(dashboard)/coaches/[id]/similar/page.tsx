@@ -14,14 +14,10 @@ export default async function CoachSimilarPage({ params }: { params: { id: strin
   const { data: coach, error } = await getCoachById(user.id, params.id)
   if (error || !coach) notFound()
 
-  const { data: similarityRows } = await supabase
-    .from('coach_similarity')
-    .select('coach_a_id, coach_b_id, similarity_score')
-    .or(`coach_a_id.eq.${params.id},coach_b_id.eq.${params.id}`)
-    .order('similarity_score', { ascending: false })
-    .limit(TOP_N)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: similarityRows } = await (supabase as any).from('coach_similarity').select('coach_a_id, coach_b_id, similarity_score').or(`coach_a_id.eq.${params.id},coach_b_id.eq.${params.id}`).order('similarity_score', { ascending: false }).limit(TOP_N)
 
-  const entries = (similarityRows ?? []).map((row: { coach_a_id: string; coach_b_id: string; similarity_score: number }) => {
+  const entries = ((similarityRows ?? []) as unknown as { coach_a_id: string; coach_b_id: string; similarity_score: number }[]).map((row) => {
     const otherId = row.coach_a_id === params.id ? row.coach_b_id : row.coach_a_id
     return { coachId: otherId, score: row.similarity_score }
   })

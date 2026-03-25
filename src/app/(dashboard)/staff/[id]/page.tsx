@@ -26,7 +26,7 @@ export default async function StaffDetailPage({ params }: { params: { id: string
   const coachMap = new Map((coaches ?? []).map((c) => [c.id, c.name]))
 
   const totalCoaches = coachIds.length
-  const repeatCollaborations = (history ?? []).filter((h) => h.times_worked_together > 1).length
+  const repeatCollaborations = (history ?? []).filter((h) => (h.times_worked_together ?? 0) > 1).length
   const strengthValues = (history ?? []).map((h) => h.relationship_strength).filter((v): v is number => v != null)
   const avgStrength = strengthValues.length ? Math.round(strengthValues.reduce((a, b) => a + b, 0) / strengthValues.length) : null
   const currentClubInvolvement = (history ?? []).filter((h) => h.ended_on == null).length
@@ -125,7 +125,7 @@ export default async function StaffDetailPage({ params }: { params: { id: string
                       <td className="py-2 text-muted-foreground">{h.role_title}</td>
                       <td className="py-2 text-muted-foreground">
                         {h.started_on ?? '?'} – {h.ended_on ?? 'present'}
-                        {h.times_worked_together > 1 && <span className="ml-1">· {h.times_worked_together}×</span>}
+                        {(h.times_worked_together ?? 0) > 1 && <span className="ml-1">· {h.times_worked_together}×</span>}
                       </td>
                       <td className="py-2">
                         {h.followed_from_previous ? (

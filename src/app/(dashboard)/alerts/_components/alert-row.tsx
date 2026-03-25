@@ -12,7 +12,7 @@ type Alert = {
   title: string
   detail: string | null
   created_at: string
-  seen: boolean
+  is_seen: boolean
 }
 
 function getHref(a: Alert): string {
@@ -32,7 +32,7 @@ export function AlertRow({ alert }: { alert: Alert }) {
   }
 
   return (
-    <li className={cn('py-3 first:pt-0', alert.seen && 'opacity-70')}>
+    <li className={cn('py-3 first:pt-0', alert.is_seen && 'opacity-70')}>
       <button
         type="button"
         onClick={handleClick}
@@ -60,10 +60,10 @@ export function AlertRow({ alert }: { alert: Alert }) {
           </p>
         </div>
         <div className="shrink-0 flex items-center gap-2">
-          {alert.seen && (
+          {alert.is_seen && (
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Seen</span>
           )}
-          {!alert.seen && <span className="w-2 h-2 rounded-full bg-primary" aria-label="Unread" />}
+          {!alert.is_seen && <span className="w-2 h-2 rounded-full bg-primary" aria-label="Unread" />}
         </div>
       </button>
     </li>

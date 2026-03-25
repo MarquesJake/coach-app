@@ -71,12 +71,8 @@ export async function createIntelligenceItemAction(input: {
       metadata: { title: input.title.trim() },
     })
     if (input.entity_type === 'coach' && input.entity_id) {
-      const { data: onList } = await supabase
-        .from('watchlist_coaches')
-        .select('coach_id')
-        .eq('user_id', user.id)
-        .eq('coach_id', input.entity_id)
-        .maybeSingle()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: onList } = await (supabase as any).from('watchlist_coaches').select('coach_id').eq('user_id', user.id).eq('coach_id', input.entity_id).maybeSingle()
       if (onList) {
         await createAlert({
           userId: user.id,

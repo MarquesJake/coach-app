@@ -9,7 +9,7 @@ export type AlertRow = {
   title: string
   detail: string | null
   created_at: string
-  seen: boolean
+  is_seen: boolean
 }
 
 /**
@@ -52,11 +52,11 @@ export async function getAlertsForUser(
 
   let q = supabase
     .from('alerts')
-    .select('id, user_id, entity_type, entity_id, alert_type, title, detail, created_at, seen')
+    .select('id, user_id, entity_type, entity_id, alert_type, title, detail, created_at, is_seen')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(100)
-  if (options.unseenOnly) q = q.eq('seen', false)
+  if (options.unseenOnly) q = q.eq('is_seen', false)
   const { data, error } = await q
   if (error) return { data: [], error: error.message }
   return { data: (data ?? []) as AlertRow[] }
@@ -72,7 +72,7 @@ export async function markAlertSeen(userId: string, alertId: string): Promise<{ 
 
   const { error } = await supabase
     .from('alerts')
-    .update({ seen: true })
+    .update({ is_seen: true })
     .eq('id', alertId)
     .eq('user_id', userId)
   if (error) return { error: error.message }

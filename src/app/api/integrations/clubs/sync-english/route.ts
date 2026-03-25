@@ -42,8 +42,8 @@ export async function GET() {
     .select('id, name, external_id, external_source, tier, league')
     .eq('user_id', user.id)
 
-  const byExternalId = new Map<string, { id: string; tier: string; league: string }>()
-  const byName = new Map<string, { id: string; tier: string; league: string }>()
+  const byExternalId = new Map<string, { id: string; tier: string | null; league: string }>()
+  const byName = new Map<string, { id: string; tier: string | null; league: string }>()
   for (const c of existing ?? []) {
     if (c.external_id && c.external_source === 'api-football') {
       byExternalId.set(c.external_id, c)

@@ -62,21 +62,17 @@ export default async function CoachesComparePage({
   }
 
   const recruitmentCounts: Record<string, number> = {}
-  const { data: recruitmentRows } = await supabase
-    .from('coach_recruitment_history')
-    .select('coach_id')
-    .in('coach_id', rawIds)
-  for (const row of recruitmentRows ?? []) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = supabase as any
+  const { data: recruitmentRows } = await sb.from('coach_recruitment_history').select('coach_id').in('coach_id', rawIds)
+  for (const row of (recruitmentRows ?? []) as { coach_id: string }[]) {
     recruitmentCounts[row.coach_id] = (recruitmentCounts[row.coach_id] ?? 0) + 1
   }
 
   const mediaCounts: Record<string, number> = {}
   const mediaSeverity: Record<string, number[]> = {}
-  const { data: mediaRows } = await supabase
-    .from('coach_media_events')
-    .select('coach_id, severity_score')
-    .in('coach_id', rawIds)
-  for (const row of mediaRows ?? []) {
+  const { data: mediaRows } = await sb.from('coach_media_events').select('coach_id, severity_score').in('coach_id', rawIds)
+  for (const row of (mediaRows ?? []) as { coach_id: string; severity_score: number | null }[]) {
     mediaCounts[row.coach_id] = (mediaCounts[row.coach_id] ?? 0) + 1
     if (row.severity_score != null) {
       if (!mediaSeverity[row.coach_id]) mediaSeverity[row.coach_id] = []
@@ -111,13 +107,8 @@ export default async function CoachesComparePage({
   })
 
   const primaryId = coachRecords[0]?.id ?? ''
-  const { data: similarityRows } = await supabase
-    .from('coach_similarity')
-    .select('coach_a_id, coach_b_id, similarity_score')
-    .or(`coach_a_id.eq.${primaryId},coach_b_id.eq.${primaryId}`)
-    .order('similarity_score', { ascending: false })
-    .limit(10)
-  const peerGroupEntries = (similarityRows ?? []).map((row: { coach_a_id: string; coach_b_id: string; similarity_score: number }) => {
+  const { data: similarityRows } = await sb.from('coach_similarity').select('coach_a_id, coach_b_id, similarity_score').or(`coach_a_id.eq.${primaryId},coach_b_id.eq.${primaryId}`).order('similarity_score', { ascending: false }).limit(10)
+  const peerGroupEntries = ((similarityRows ?? []) as { coach_a_id: string; coach_b_id: string; similarity_score: number }[]).map((row) => {
     const otherId = row.coach_a_id === primaryId ? row.coach_b_id : row.coach_a_id
     return { coachId: otherId, score: row.similarity_score }
   })

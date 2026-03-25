@@ -151,7 +151,6 @@ export async function upsertCoachAgentAction(payload: {
       started_on: payload.started_on ?? null,
       ended_on: payload.ended_on ?? null,
       relationship_strength: payload.relationship_strength ?? null,
-      confidence: payload.confidence ?? null,
       notes: payload.notes ?? null,
     })
     if (error) return { ok: false, error: error.message ?? 'Failed to save link' }
@@ -194,8 +193,7 @@ export async function upsertAgentClubRelationshipAction(payload: {
       agent_id: payload.agent_id,
       club_id: payload.club_id,
       relationship_type: payload.relationship_type ?? 'Intermediary',
-      relationship_strength: payload.relationship_strength ?? null,
-      last_active_on: payload.last_active_on ?? null,
+      influence_level: payload.relationship_strength ?? null,
       notes: payload.notes ?? null,
     })
     if (error) return { ok: false, error: error.message ?? 'Failed to save relationship' }

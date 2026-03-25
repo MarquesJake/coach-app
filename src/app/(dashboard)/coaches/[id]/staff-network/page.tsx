@@ -29,7 +29,8 @@ export default async function CoachStaffNetworkPage({ params }: { params: { id: 
   return (
     <StaffNetworkSection
       coachId={params.id}
-      history={history ?? []}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      history={(history ?? []) as any}
       staffMap={staffMap}
       allStaff={allStaff ?? []}
     />

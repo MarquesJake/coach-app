@@ -215,6 +215,7 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
     // Similarity (either coach in pair) – one delete with or()
     try {
       const orClause = `coach_a_id.in.(${coachIds.join(',')}),coach_b_id.in.(${coachIds.join(',')})`
+      // @ts-ignore - coach_similarity table not yet in DB schema
       const { data, error } = await supabase.from('coach_similarity').delete().or(orClause).select('coach_a_id')
       if (error) {
         if (isMissingTable(error)) skippedTables.push('coach_similarity')

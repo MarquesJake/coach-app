@@ -13,7 +13,7 @@ export default async function CoachCareerPage({ params }: { params: { id: string
 
   const { data: stints } = await supabase
     .from('coach_stints')
-    .select('id, club_name, role_title, started_on, ended_on, appointment_context, exit_context, points_per_game, win_rate, notable_outcomes, source_type, source_name, source_link, source_notes, confidence, verified, verified_at, verified_by')
+    .select('id, club_name, role_title, started_on, ended_on, appointment_context, exit_context, points_per_game, win_rate, notable_outcomes')
     .eq('coach_id', params.id)
     .order('started_on', { ascending: false, nullsFirst: false })
 

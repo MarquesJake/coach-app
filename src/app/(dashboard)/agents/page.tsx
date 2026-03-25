@@ -87,7 +87,8 @@ export default async function AgentsPage({
 
   return (
     <AgentsInventoryClient
-      agents={filtered}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      agents={filtered as any}
       coachesCountByAgent={coachesCountByAgent}
       clubsCountByAgent={clubsCountByAgent}
       lastInteractionByAgent={lastInteractionByAgent}

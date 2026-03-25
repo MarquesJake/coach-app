@@ -25,7 +25,7 @@ export async function GET() {
   }
 
   // Fetch all clubs to build a tier map
-  const clubIds = [...new Set(rows.map(r => r.club_id))]
+  const clubIds = Array.from(new Set(rows.map(r => r.club_id)))
   const { data: clubs } = await supabase
     .from('clubs')
     .select('id, tier')

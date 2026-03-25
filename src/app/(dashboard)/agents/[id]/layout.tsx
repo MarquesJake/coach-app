@@ -32,8 +32,10 @@ export default async function AgentLayout({
   if (!user) redirect('/login')
 
   const { id } = await params
-  const { data: agent, error } = await getAgentById(user.id, id)
-  if (error || !agent) notFound()
+  const { data: agentRaw, error } = await getAgentById(user.id, id)
+  if (error || !agentRaw) notFound()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agent = agentRaw as any
 
   const counts = await getAgentCounts(user.id, id)
   const { count: interactionsCount } = await supabase

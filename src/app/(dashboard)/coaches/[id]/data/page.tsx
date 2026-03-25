@@ -11,31 +11,21 @@ export default async function CoachDataPage({ params }: { params: { id: string }
   const { data: coach, error } = await getCoachById(user.id, params.id)
   if (error || !coach) notFound()
 
-  const { data: profile } = await supabase
-    .from('coach_data_profiles')
-    .select('*')
-    .eq('coach_id', params.id)
-    .maybeSingle()
-
-  const { data: recruitment } = await supabase
-    .from('coach_recruitment_history')
-    .select('*')
-    .eq('coach_id', params.id)
-    .order('created_at', { ascending: false })
-
-  const { data: mediaEvents } = await supabase
-    .from('coach_media_events')
-    .select('*')
-    .eq('coach_id', params.id)
-    .order('severity_score', { ascending: false, nullsFirst: false })
-    .order('occurred_at', { ascending: false, nullsFirst: true })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = supabase as any
+  const { data: profile } = await sb.from('coach_data_profiles').select('*').eq('coach_id', params.id).maybeSingle()
+  const { data: recruitment } = await sb.from('coach_recruitment_history').select('*').eq('coach_id', params.id).order('created_at', { ascending: false })
+  const { data: mediaEvents } = await sb.from('coach_media_events').select('*').eq('coach_id', params.id).order('severity_score', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false, nullsFirst: true })
 
   return (
     <CoachDataTab
       coachId={params.id}
-      profile={profile ?? null}
-      recruitment={recruitment ?? []}
-      mediaEvents={mediaEvents ?? []}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      profile={(profile ?? null) as any}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recruitment={(recruitment ?? []) as any}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mediaEvents={(mediaEvents ?? []) as any}
     />
   )
 }

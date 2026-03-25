@@ -19,11 +19,8 @@ export default async function CoachRiskPage({ params }: { params: { id: string }
     .order('occurred_at', { ascending: false, nullsFirst: true })
     .limit(50)
 
-  const { data: dueDiligenceItems } = await supabase
-    .from('coach_due_diligence_items')
-    .select('*')
-    .eq('coach_id', params.id)
-    .order('created_at', { ascending: false })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: dueDiligenceItems } = await (supabase as any).from('coach_due_diligence_items').select('*').eq('coach_id', params.id).order('created_at', { ascending: false })
 
   const categories = ['Tactical', 'Leadership', 'Recruitment', 'Media', 'Legal', 'Integrity', 'Staff', 'Performance', 'Market'] as const
   const evidenceList = (evidence ?? []) as { category: string | null; confidence: number | null }[]
@@ -39,8 +36,10 @@ export default async function CoachRiskPage({ params }: { params: { id: string }
     <RiskSection
       coachId={params.id}
       coach={coach as Record<string, unknown>}
-      evidence={evidence ?? []}
-      dueDiligenceItems={dueDiligenceItems ?? []}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      evidence={(evidence ?? []) as any}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dueDiligenceItems={(dueDiligenceItems ?? []) as any}
       coverageByCategory={coverageByCategory}
     />
   )

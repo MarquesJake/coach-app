@@ -15,6 +15,7 @@ type SportsDBTeam = {
   strWebsite: string | null
   strStadiumLocation: string | null
   intStadiumCapacity: string | null
+  strSport?: string | null
 }
 
 type TableEntry = {
@@ -119,24 +120,27 @@ export async function POST(
     }
   }
 
+  // team is guaranteed non-null here (early returns handle null cases above)
+  const safeTeam = team!
+
   // 5. Build club update object
   const clubUpdate: Record<string, unknown> = {
     last_synced_at: new Date().toISOString(),
   }
-  if (team.strBadge) clubUpdate.badge_url = team.strBadge
-  if (team.strDescriptionEN) clubUpdate.description = team.strDescriptionEN
-  if (team.strStadium) clubUpdate.stadium = team.strStadium
-  if (team.intFormedYear) clubUpdate.founded_year = team.intFormedYear
-  if (team.idLeague) clubUpdate.id_league = team.idLeague
-  if (team.strManager) clubUpdate.current_manager = team.strManager
-  if (team.strWebsite) clubUpdate.website = team.strWebsite
-  if (team.strStadiumLocation) clubUpdate.stadium_location = team.strStadiumLocation
-  if (team.intStadiumCapacity) clubUpdate.stadium_capacity = team.intStadiumCapacity
+  if (safeTeam.strBadge) clubUpdate.badge_url = safeTeam.strBadge
+  if (safeTeam.strDescriptionEN) clubUpdate.description = safeTeam.strDescriptionEN
+  if (safeTeam.strStadium) clubUpdate.stadium = safeTeam.strStadium
+  if (safeTeam.intFormedYear) clubUpdate.founded_year = safeTeam.intFormedYear
+  if (safeTeam.idLeague) clubUpdate.id_league = safeTeam.idLeague
+  if (safeTeam.strManager) clubUpdate.current_manager = safeTeam.strManager
+  if (safeTeam.strWebsite) clubUpdate.website = safeTeam.strWebsite
+  if (safeTeam.strStadiumLocation) clubUpdate.stadium_location = safeTeam.strStadiumLocation
+  if (safeTeam.intStadiumCapacity) clubUpdate.stadium_capacity = safeTeam.intStadiumCapacity
 
   // 6. Update the club record
   await supabase.from('clubs').update(clubUpdate).eq('id', clubId)
 
-  const idLeague = team.idLeague ?? club.id_league
+  const idLeague = safeTeam.idLeague ?? club.id_league
 
   // 7. Season standings sync
   let seasons_added = 0
@@ -217,12 +221,12 @@ export async function POST(
   // 8. Coaching history sync
   let manager_added = false
 
-  if (team.strManager) {
+  if (safeTeam.strManager) {
     const { data: existingCoach } = await supabase
       .from('club_coaching_history')
       .select('id')
       .eq('club_id', clubId)
-      .eq('coach_name', team.strManager)
+      .eq('coach_name', safeTeam.strManager)
       .is('end_date', null)
       .eq('data_source', 'thesportsdb')
       .maybeSingle()
@@ -231,7 +235,7 @@ export async function POST(
       await supabase.from('club_coaching_history').insert({
         user_id: user.id,
         club_id: clubId,
-        coach_name: team.strManager,
+        coach_name: safeTeam.strManager,
         end_date: null,
         data_source: 'thesportsdb',
         style_tags: [],
