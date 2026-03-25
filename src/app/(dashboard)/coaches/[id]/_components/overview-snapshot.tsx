@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle, MapPin, TrendingUp, Shield, BarChart3 } from 'lucide-react'
@@ -124,9 +125,102 @@ export function OverviewSnapshot({ coachId, coach }: { coachId: string; coach: C
           </div>
         </div>
       </section>
+      {/* ── Quick Profile ────────────────────────────────────────────────── */}
+      <QuickProfile coach={coach} coachId={coachId} />
+
       <p className="text-sm text-muted-foreground">
-        Use the tabs above to view Tactical, Leadership, Career, Staff Network, Data, Risk & Intelligence, and Scoring.
+        Use the tabs above to view Tactical, Leadership, Career, Staff Network, Data, Risk &amp; Intelligence, and Scoring.
       </p>
     </div>
+  )
+}
+
+function QuickProfile({ coach, coachId }: { coach: CoachRecord; coachId: string }) {
+  const leagueExp = (coach.league_experience as string[] | null) ?? []
+  const preferredSystems = (coach.preferred_systems as string[] | null) ?? []
+  const pressingIntensity = (coach.pressing_intensity as string | null) ?? ''
+  const preferredStyle = (coach.preferred_style as string | null) ?? ''
+  const buildPreference = (coach.build_preference as string | null) ?? ''
+  const reputationTier = (coach.reputation_tier as string | null) ?? ''
+
+  const styleTags = [pressingIntensity, preferredStyle, buildPreference].filter(Boolean)
+  const hasAnyData = leagueExp.length > 0 || preferredSystems.length > 0 || styleTags.length > 0 || reputationTier
+
+  return (
+    <section className="rounded-lg border border-border bg-card p-6">
+      <h2 className="text-lg font-medium text-foreground mb-4">Quick profile</h2>
+      {!hasAnyData ? (
+        <p className="text-sm text-muted-foreground">
+          No profile data yet.{' '}
+          <Link href={`/coaches/${coachId}/career`} className="underline underline-offset-2 hover:text-foreground">
+            Add career stints →
+          </Link>{' '}
+          or edit the coach profile to add tactical info.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Leagues coached */}
+          {leagueExp.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Leagues coached</p>
+              <div className="flex flex-wrap gap-1">
+                {leagueExp.map((l) => (
+                  <span
+                    key={l}
+                    className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-foreground"
+                  >
+                    {l}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Preferred formations */}
+          {preferredSystems.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Preferred formations</p>
+              <div className="flex flex-wrap gap-1">
+                {preferredSystems.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 text-xs font-medium"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Style tags */}
+          {styleTags.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Style</p>
+              <div className="flex flex-wrap gap-1">
+                {styleTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2 py-0.5 text-xs font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Reputation tier */}
+          {reputationTier && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Reputation tier</p>
+              <span className="inline-flex items-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 text-xs font-semibold">
+                {reputationTier}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   )
 }
