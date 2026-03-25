@@ -33,5 +33,12 @@ create table if not exists public.club_data_sync_log (
 );
 
 alter table public.club_data_sync_log enable row level security;
-create policy "users own sync log" on public.club_data_sync_log
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+do $$ begin
+  if not exists (
+    select 1 from pg_policies
+    where tablename = 'club_data_sync_log' and policyname = 'users own sync log'
+  ) then
+    execute 'create policy "users own sync log" on public.club_data_sync_log
+      for all using (auth.uid() = user_id) with check (auth.uid() = user_id)';
+  end if;
+end $$;
