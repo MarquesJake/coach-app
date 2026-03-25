@@ -80,6 +80,45 @@ export async function POST(
     return NextResponse.json({ error: 'Team not found in TheSportsDB' }, { status: 404 })
   }
 
+  // Safety check: if TheSportsDB returned a different team ID, the lookup is broken
+  // (free tier lookupteam.php is known to return wrong data — fall back to search)
+  if (team.idTeam !== club.external_id) {
+    // Try to recover via searchteams — find the matching entry by external_id
+    const { data: clubRecord } = await supabase
+      .from('clubs')
+      .select('name')
+      .eq('id', clubId)
+      .single()
+
+    let recovered = false
+    if (clubRecord?.name) {
+      try {
+        const searchRes = await fetch(
+          `https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${encodeURIComponent(clubRecord.name)}`
+        )
+        if (searchRes.ok) {
+          const searchData = await searchRes.json()
+          const match = (searchData.teams ?? []).find(
+            (t: SportsDBTeam) => t.idTeam === club.external_id && t.strSport === 'Soccer'
+          )
+          if (match) {
+            team = match
+            recovered = true
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!recovered) {
+      return NextResponse.json(
+        { error: 'TheSportsDB returned mismatched team — lookup may be unavailable on free tier' },
+        { status: 422 }
+      )
+    }
+  }
+
   // 5. Build club update object
   const clubUpdate: Record<string, unknown> = {
     last_synced_at: new Date().toISOString(),
@@ -108,11 +147,10 @@ export async function POST(
     const now = new Date()
     const month = now.getMonth() + 1
     const startYear = month >= 7 ? now.getFullYear() : now.getFullYear() - 1
-    const seasons = [
-      `${startYear}-${startYear + 1}`,
-      `${startYear - 1}-${startYear}`,
-      `${startYear - 2}-${startYear - 1}`,
-    ]
+    const seasons: string[] = []
+    for (let i = 0; i < 7; i++) {
+      seasons.push(`${startYear - i}-${startYear - i + 1}`)
+    }
 
     // Fetch existing season results for this club
     const { data: existingRows } = await supabase

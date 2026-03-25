@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import { updateShortlistWorkspaceAction } from '../../../actions'
+import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -14,8 +15,22 @@ type Club = {
   tier: string | null
   ownership_model: string | null
   tactical_model: string | null
+  pressing_model: string | null
+  build_model: string | null
   board_risk_tolerance: string | null
+  strategic_priority: string | null
+  market_reputation: string | null
+  media_pressure: string | null
+  development_vs_win_now: string | null
+  environment_assessment: string | null
+  instability_risk: string | null
+  stadium: string | null
+  founded_year: string | null
+  current_manager: string | null
+  website: string | null
+  badge_url: string | null
   notes: string | null
+  last_synced_at: string | null
 }
 
 type Mandate = {
@@ -64,9 +79,10 @@ type CoachingRecord = {
   end_date: string | null
   reason_for_exit: string | null
   style_tags: string[]
+  data_source: string | null
 }
 
-export type { Mandate, Candidate, SeasonResult, CoachingRecord }
+export type { Mandate, Candidate, SeasonResult, CoachingRecord, StabilityMetrics }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -125,22 +141,34 @@ function FitSignalSelect({ name, label, value }: { name: string; label: string; 
   )
 }
 
+// ── Stability label styles ────────────────────────────────────────────────────
+
+const STABILITY_STYLES: Record<string, string> = {
+  emerald: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10',
+  amber:   'text-amber-400  border-amber-400/30  bg-amber-400/10',
+  red:     'text-red-400    border-red-400/30    bg-red-400/10',
+  muted:   'text-muted-foreground border-border bg-surface',
+}
+
 // ── Left Panel: Club Brief ────────────────────────────────────────────────────
 
 function ClubBrief({
   mandate,
   seasonResults,
   coachingHistory,
+  stabilityMetrics,
 }: {
   mandate: Mandate
   seasonResults: SeasonResult[]
   coachingHistory: CoachingRecord[]
+  stabilityMetrics: StabilityMetrics
 }) {
   const club = mandate.clubs
   const clubName = mandate.custom_club_name ?? club?.name ?? 'Unknown club'
 
   return (
     <div className="h-full overflow-y-auto space-y-5 pr-1">
+
       {/* Header */}
       <div>
         <h2 className="text-base font-semibold text-foreground">{clubName}</h2>
@@ -154,12 +182,22 @@ function ClubBrief({
           {club?.tier && (
             <span className="text-[10px] border border-primary/20 bg-primary/10 px-2 py-0.5 rounded text-primary">{club.tier}</span>
           )}
+          {club?.market_reputation && (
+            <span className="text-[10px] border border-border bg-surface px-2 py-0.5 rounded text-muted-foreground">{club.market_reputation}</span>
+          )}
         </div>
+        {(club?.founded_year || club?.stadium) && (
+          <p className="text-[10px] text-muted-foreground mt-1.5">
+            {club.founded_year ? `Est. ${club.founded_year}` : ''}
+            {club.founded_year && club.stadium ? ' · ' : ''}
+            {club.stadium ?? ''}
+          </p>
+        )}
       </div>
 
-      {/* Environment */}
+      {/* Club intelligence */}
       <section className="space-y-2">
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Environment</h3>
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club intelligence</h3>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
             <p className="text-muted-foreground">Ownership</p>
@@ -167,18 +205,96 @@ function ClubBrief({
           </div>
           <div>
             <p className="text-muted-foreground">Board risk</p>
-            <p className="text-foreground font-medium mt-0.5">{mandate.board_risk_appetite || '—'}</p>
+            <p className="text-foreground font-medium mt-0.5">
+              {club?.board_risk_tolerance || mandate.board_risk_appetite || '—'}
+            </p>
           </div>
           <div>
-            <p className="text-muted-foreground">Playing style</p>
+            <p className="text-muted-foreground">Tactical identity</p>
             <p className="text-foreground font-medium mt-0.5">{club?.tactical_model || '—'}</p>
           </div>
+          <div>
+            <p className="text-muted-foreground">Strategic priority</p>
+            <p className="text-foreground font-medium mt-0.5">{club?.strategic_priority || '—'}</p>
+          </div>
+          {club?.development_vs_win_now && (
+            <div>
+              <p className="text-muted-foreground">Focus</p>
+              <p className="text-foreground font-medium mt-0.5">{club.development_vs_win_now}</p>
+            </div>
+          )}
+          {club?.media_pressure && (
+            <div>
+              <p className="text-muted-foreground">Media pressure</p>
+              <p className="text-foreground font-medium mt-0.5">{club.media_pressure}</p>
+            </div>
+          )}
           <div>
             <p className="text-muted-foreground">Budget band</p>
             <p className="text-foreground font-medium mt-0.5">{mandate.budget_band || '—'}</p>
           </div>
         </div>
+        {club?.environment_assessment && (
+          <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 italic">
+            {club.environment_assessment}
+          </p>
+        )}
+        {club?.instability_risk && (
+          <div className="rounded border border-amber-500/20 bg-amber-500/5 px-2 py-1.5">
+            <p className="text-[10px] text-amber-400 leading-relaxed">⚠ {club.instability_risk}</p>
+          </div>
+        )}
       </section>
+
+      {/* Coaching stability */}
+      {stabilityMetrics.has_sufficient_data && (
+        <section className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Coaching stability</h3>
+            <span className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${STABILITY_STYLES[stabilityMetrics.stability_color]}`}>
+              {stabilityMetrics.stability_label}
+            </span>
+          </div>
+
+          {/* Key metrics — 3 compact figures */}
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <p className="text-muted-foreground text-[10px]">Avg tenure</p>
+              <p className="text-foreground font-semibold tabular-nums mt-0.5">
+                {fmtTenure(stabilityMetrics.avg_tenure_months)}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-[10px]">Last 5yr</p>
+              <p className={`font-semibold tabular-nums mt-0.5 ${
+                stabilityMetrics.coaches_last_5_years >= 4 ? 'text-red-400'
+                  : stabilityMetrics.coaches_last_5_years >= 3 ? 'text-amber-400'
+                    : 'text-foreground'
+              }`}>
+                {stabilityMetrics.coaches_last_5_years}
+              </p>
+            </div>
+            {stabilityMetrics.current_tenure_months !== null && (
+              <div>
+                <p className="text-muted-foreground text-[10px]">Current</p>
+                <p className="text-foreground font-semibold tabular-nums mt-0.5">
+                  {fmtTenure(stabilityMetrics.current_tenure_months)}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 1-line interpretation */}
+          <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+            {stabilityMetrics.interpretation}
+          </p>
+
+          {/* Recruitment risk note */}
+          <div className={`rounded border px-2 py-1.5 ${STABILITY_STYLES[stabilityMetrics.stability_color]}`}>
+            <p className="text-[10px] leading-relaxed">{stabilityMetrics.recruitment_note}</p>
+          </div>
+        </section>
+      )}
 
       {/* Performance trajectory */}
       {seasonResults.length > 0 && (
@@ -194,18 +310,19 @@ function ClubBrief({
               </tr>
             </thead>
             <tbody>
-              {seasonResults.map((r) => (
-                <tr key={r.season} className="border-t border-border/50">
-                  <td className="py-1 text-foreground">{r.season}</td>
-                  <td className="py-1 text-right text-foreground">{r.league_position ?? '—'}</td>
-                  <td className="py-1 text-right text-foreground">{r.points ?? '—'}</td>
-                  <td className="py-1 text-right text-muted-foreground">
-                    {r.goals_for != null && r.goals_against != null
-                      ? `${r.goals_for - r.goals_against > 0 ? '+' : ''}${r.goals_for - r.goals_against}`
-                      : '—'}
-                  </td>
-                </tr>
-              ))}
+              {seasonResults.map((r) => {
+                const gd = r.goals_for != null && r.goals_against != null ? r.goals_for - r.goals_against : null
+                return (
+                  <tr key={r.season} className="border-t border-border/50">
+                    <td className="py-1 text-foreground">{r.season}</td>
+                    <td className="py-1 text-right text-foreground">{r.league_position ?? '—'}</td>
+                    <td className="py-1 text-right text-foreground">{r.points ?? '—'}</td>
+                    <td className={`py-1 text-right ${gd != null && gd > 0 ? 'text-emerald-400' : gd != null && gd < 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                      {gd != null ? `${gd > 0 ? '+' : ''}${gd}` : '—'}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </section>
@@ -223,6 +340,13 @@ function ClubBrief({
                   {tenure(c.start_date, c.end_date)}
                   {c.reason_for_exit ? ` · ${c.reason_for_exit}` : ''}
                 </p>
+                {c.style_tags && c.style_tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {c.style_tags.slice(0, 3).map((tag: string) => (
+                      <span key={tag} className="text-[9px] border border-border px-1 rounded text-muted-foreground">{tag}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -495,11 +619,13 @@ export function MandateWorkspaceClient({
   shortlist,
   seasonResults,
   coachingHistory,
+  stabilityMetrics,
 }: {
   mandate: Mandate
   shortlist: Candidate[]
   seasonResults: SeasonResult[]
   coachingHistory: CoachingRecord[]
+  stabilityMetrics: StabilityMetrics
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
@@ -512,6 +638,7 @@ export function MandateWorkspaceClient({
           mandate={mandate}
           seasonResults={seasonResults}
           coachingHistory={coachingHistory}
+          stabilityMetrics={stabilityMetrics}
         />
       </div>
 
