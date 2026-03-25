@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { updateShortlistWorkspaceAction } from '../../../actions'
+import { updateShortlistWorkspaceAction, addCandidateToWorkspaceAction } from '../../../actions'
 import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
+import { createClient } from '@/lib/supabase/client'
+import { ArrowLeft, Plus, Search } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -65,6 +68,14 @@ type Candidate = {
   coaches: { name: string | null; club_current: string | null; nationality: string | null } | null
 }
 
+type CoachSearchResult = {
+  id: string
+  name: string | null
+  club_current: string | null
+  nationality: string | null
+  available_status: string | null
+}
+
 type SeasonResult = {
   season: string
   league_position: number | null
@@ -90,6 +101,8 @@ const CANDIDATE_STAGES = ['Tracked', 'Longlist', 'Shortlist', 'Interview', 'Fina
 const FIT_SIGNALS = ['Strong', 'Moderate', 'Weak', 'Unknown'] as const
 const NETWORK_SOURCES = ['Data search', 'Direct recommendation', 'Network suggestion', 'Proactive approach'] as const
 const NETWORK_RELATIONSHIPS = ['Direct', 'Indirect', 'Cold'] as const
+
+const AVAILABLE_STATUS_FILTERS = ['All', 'Available', 'Open to offers', 'Under contract'] as const
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -120,6 +133,13 @@ function provenanceDots(rel: string | null) {
   if (rel === 'Direct') return '●●●'
   if (rel === 'Indirect') return '●●○'
   return '●○○'
+}
+
+function availabilityDotClass(status: string | null) {
+  if (status === 'Available') return 'bg-emerald-400'
+  if (status === 'Open to offers') return 'bg-amber-400'
+  if (status === 'Under contract') return 'bg-blue-400'
+  return 'bg-muted-foreground/30'
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -530,17 +550,188 @@ function FitAssessment({
   )
 }
 
+// ── Add Candidate Search Panel ────────────────────────────────────────────────
+
+function AddCandidatePanel({
+  mandateId,
+  existingCoachIds,
+  onBack,
+  onAdded,
+}: {
+  mandateId: string
+  existingCoachIds: Set<string>
+  onBack: () => void
+  onAdded: () => void
+}) {
+  const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('All')
+  const [results, setResults] = useState<CoachSearchResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [addingId, setAddingId] = useState<string | null>(null)
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
+  const router = useRouter()
+
+  const search = useCallback(async () => {
+    setSearching(true)
+    const supabase = createClient()
+    let q = supabase
+      .from('coaches')
+      .select('id, name, club_current, nationality, available_status')
+      .order('name', { ascending: true })
+      .limit(30)
+
+    if (query.trim()) {
+      q = q.or(
+        `name.ilike.%${query.trim()}%,club_current.ilike.%${query.trim()}%,nationality.ilike.%${query.trim()}%`
+      )
+    }
+
+    if (statusFilter !== 'All') {
+      q = q.eq('available_status', statusFilter)
+    }
+
+    const { data } = await q
+    setResults((data as CoachSearchResult[]) ?? [])
+    setSearching(false)
+  }, [query, statusFilter])
+
+  useEffect(() => {
+    const timer = setTimeout(search, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  async function handleAdd(coachId: string) {
+    setAddingId(coachId)
+    const result = await addCandidateToWorkspaceAction(mandateId, coachId)
+    setAddingId(null)
+    if (result.error && result.error !== 'Already added') {
+      // silently handle — user can retry
+      return
+    }
+    setAddedIds((prev) => new Set(prev).add(coachId))
+    router.refresh()
+    onAdded()
+  }
+
+  return (
+    <div className="h-full flex flex-col gap-3">
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center justify-center w-7 h-7 rounded hover:bg-surface-overlay/30 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Back to pipeline"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Add candidate</h2>
+      </div>
+
+      {/* Search input */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Name, club, nationality…"
+          autoFocus
+          className="w-full h-9 rounded bg-surface border border-border pl-8 pr-3 text-xs text-foreground placeholder-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/50"
+        />
+      </div>
+
+      {/* Status filter */}
+      <div className="flex gap-1 flex-wrap">
+        {AVAILABLE_STATUS_FILTERS.map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => setStatusFilter(f)}
+            className={cn(
+              'px-2 py-0.5 rounded text-[10px] font-medium border transition-colors',
+              statusFilter === f
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'text-muted-foreground border-border hover:text-foreground'
+            )}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Results */}
+      <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5">
+        {searching && (
+          <div className="space-y-1.5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-14 rounded-lg bg-surface/50 animate-pulse border border-border" />
+            ))}
+          </div>
+        )}
+
+        {!searching && results.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-6">No coaches found.</p>
+        )}
+
+        {!searching && results.map((coach) => {
+          const alreadyOnShortlist = existingCoachIds.has(coach.id) || addedIds.has(coach.id)
+          const isAdding = addingId === coach.id
+          return (
+            <div
+              key={coach.id}
+              className="flex items-center gap-2 rounded-lg border border-border bg-surface/40 px-3 py-2"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={cn('w-1.5 h-1.5 rounded-full shrink-0', availabilityDotClass(coach.available_status))}
+                  />
+                  <p className="text-xs font-medium text-foreground truncate">{coach.name ?? 'Unknown'}</p>
+                </div>
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                  {coach.club_current || 'Free agent'}
+                  {coach.nationality ? ` · ${coach.nationality}` : ''}
+                </p>
+              </div>
+              {alreadyOnShortlist ? (
+                <span className="text-[10px] font-medium text-emerald-400 shrink-0">Added ✓</span>
+              ) : (
+                <button
+                  type="button"
+                  disabled={isAdding}
+                  onClick={() => handleAdd(coach.id)}
+                  className="flex items-center gap-1 px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20 disabled:opacity-50 transition-colors shrink-0"
+                >
+                  <Plus className="w-3 h-3" />
+                  {isAdding ? '…' : 'Add'}
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Right Panel: Candidate Pipeline ───────────────────────────────────────────
 
 function CandidatePipeline({
   candidates,
   selectedId,
   onSelect,
+  mandateId,
 }: {
   candidates: Candidate[]
   selectedId: string | null
   onSelect: (id: string) => void
+  mandateId: string
 }) {
+  const [showSearch, setShowSearch] = useState(false)
+
+  const existingCoachIds = new Set(candidates.map((c) => c.coach_id))
+
   const byStage = CANDIDATE_STAGES.map((stage) => ({
     stage,
     items: candidates.filter((c) => c.candidate_stage === stage),
@@ -555,17 +746,45 @@ function CandidatePipeline({
     ...(unstaged.length > 0 ? [{ stage: 'Unassigned', items: unstaged }] : []),
   ]
 
+  if (showSearch) {
+    return (
+      <AddCandidatePanel
+        mandateId={mandateId}
+        existingCoachIds={existingCoachIds}
+        onBack={() => setShowSearch(false)}
+        onAdded={() => setShowSearch(false)}
+      />
+    )
+  }
+
   return (
     <div className="h-full overflow-y-auto space-y-4 pr-1">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Candidates</h2>
-        <span className="text-[10px] text-muted-foreground">{candidates.length} total</span>
+        <button
+          type="button"
+          onClick={() => setShowSearch(true)}
+          className="flex items-center gap-1 px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20 transition-colors"
+        >
+          <Plus className="w-3 h-3" />
+          Add candidate
+        </button>
       </div>
 
       {candidates.length === 0 && (
-        <p className="text-xs text-muted-foreground py-4 text-center">
-          No candidates added yet. Use the Shortlist tab to add coaches to this mandate.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-8 text-center">
+          <p className="text-xs text-muted-foreground">
+            No candidates yet. Add a coach to get started.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowSearch(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add candidate
+          </button>
+        </div>
       )}
 
       {allGroups.map(({ stage, items }) => (
@@ -653,6 +872,7 @@ export function MandateWorkspaceClient({
           candidates={shortlist}
           selectedId={selectedId}
           onSelect={setSelectedId}
+          mandateId={mandate.id}
         />
       </div>
     </div>

@@ -9,6 +9,100 @@ import { ClubAgentsSection } from './_components/club-agents-section'
 import { ClubSeasonResultsSection } from './_components/club-season-results-section'
 import { ClubStabilitySection } from './_components/club-stability-section'
 
+// ── Club News Section ─────────────────────────────────────────────────────────
+
+type NewsItem = {
+  title: string
+  link: string
+  pubDate: string
+  source: string
+}
+
+function relativeTime(pubDate: string): string {
+  if (!pubDate) return ''
+  try {
+    const date = new Date(pubDate)
+    const diffMs = Date.now() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    if (diffMins < 60) return `${diffMins}m ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours}h ago`
+    const diffDays = Math.floor(diffHours / 24)
+    return `${diffDays}d ago`
+  } catch {
+    return ''
+  }
+}
+
+function ClubNewsSection({ clubName }: { clubName: string }) {
+  const [news, setNews] = useState<NewsItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!clubName) return
+    setLoading(true)
+    fetch(`/api/clubs/news?club=${encodeURIComponent(clubName)}`)
+      .then((r) => r.json())
+      .then((data: NewsItem[]) => {
+        setNews(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(() => {
+        setLoading(false)
+      })
+  }, [clubName])
+
+  if (!loading && news.length === 0) return null
+
+  return (
+    <section className="rounded-lg border border-border bg-card p-5 space-y-3">
+      <div className="flex items-center gap-2">
+        <h2 className="text-sm font-medium text-foreground">Latest news</h2>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+      </div>
+
+      {loading ? (
+        <div className="space-y-2.5">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="space-y-1.5">
+              <div className="h-3.5 bg-surface rounded animate-pulse w-4/5" />
+              <div className="h-3 bg-surface rounded animate-pulse w-1/3" />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <ul className="space-y-3 divide-y divide-border">
+          {news.map((item, i) => (
+            <li key={i} className={i > 0 ? 'pt-3' : ''}>
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block"
+              >
+                <p className="text-xs text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                  {item.title}
+                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  {item.source && (
+                    <span className="text-[10px] text-muted-foreground font-medium">{item.source}</span>
+                  )}
+                  {item.source && item.pubDate && (
+                    <span className="text-[10px] text-muted-foreground/50">·</span>
+                  )}
+                  {item.pubDate && (
+                    <span className="text-[10px] text-muted-foreground">{relativeTime(item.pubDate)}</span>
+                  )}
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 const OWNERSHIP_TYPES = [
   'Private',
   'Group / Consortium',
@@ -563,6 +657,9 @@ export default function ClubOverviewPage() {
       {/* ── Layer C: Workflow data ──────────────────────────────────────────── */}
       <ClubSeasonResultsSection clubId={id} />
       <ClubAgentsSection clubId={id} />
+
+      {/* ── Latest news ─────────────────────────────────────────────────────── */}
+      {club.name && <ClubNewsSection clubName={club.name} />}
     </div>
   )
 }

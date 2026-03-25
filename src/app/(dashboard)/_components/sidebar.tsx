@@ -23,8 +23,8 @@ const workspaceNav = [
 ]
 
 const intelligenceNav = [
-  { label: 'Clubs', href: '/clubs', icon: Building2 },
   { label: 'Coaches', href: '/coaches', icon: Users },
+  { label: 'Clubs', href: '/clubs', icon: Building2 },
 ]
 
 const networkNav = [

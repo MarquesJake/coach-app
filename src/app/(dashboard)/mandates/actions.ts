@@ -671,6 +671,31 @@ export async function updateMandateStageAction(
   }
 }
 
+export async function addCandidateToWorkspaceAction(mandateId: string, coachId: string): Promise<{ error?: string }> {
+  const { supabase, user } = await requireUser()
+
+  // Check coach belongs to user
+  const { data: coach } = await supabase.from('coaches').select('id').eq('id', coachId).eq('user_id', user.id).single()
+  if (!coach) return { error: 'Coach not found' }
+
+  const { error } = await supabase.from('mandate_shortlist').insert({
+    mandate_id: mandateId,
+    coach_id: coachId,
+    candidate_stage: 'Tracked',
+    placement_probability: 50,
+    risk_rating: 'Medium',
+    status: 'Under Review',
+  })
+
+  if (error) {
+    if (error.code === '23505') return { error: 'Already added' }
+    return { error: error.message }
+  }
+
+  revalidatePath(`/mandates/${mandateId}/workspace`)
+  return {}
+}
+
 const FIT_SIGNAL_VALUES = ['Strong', 'Moderate', 'Weak', 'Unknown'] as const
 const CANDIDATE_STAGE_VALUES = ['Tracked', 'Longlist', 'Shortlist', 'Interview', 'Final'] as const
 const NETWORK_SOURCE_VALUES = ['Data search', 'Direct recommendation', 'Network suggestion', 'Proactive approach'] as const
