@@ -372,6 +372,101 @@ const COACHES = [
       },
     ],
   },
+  {
+    profile: {
+      name: 'Roberto De Zerbi',
+      nationality: 'Italian',
+      date_of_birth: '1979-06-06',
+      base_location: 'Italy',
+      languages: ['Italian', 'French', 'English'],
+      role_current: 'Head Coach',
+      available_status: 'Available',
+      availability_status: 'Available',
+      market_status: 'Open to offers',
+      reputation_tier: 'Elite',
+      preferred_style: 'Positional play',
+      pressing_intensity: 'High',
+      build_preference: 'Build from back',
+      leadership_style: 'Visionary',
+      wage_expectation: '£4m+',
+      staff_cost_estimate: '£500k - £1m',
+      compensation_expectation: '£4m+',
+      tactical_identity: 'One of the most tactically distinctive coaches in world football. Pep-school positional play taken to an extreme — fluid rotations, positional superiority through structure, build-up from the goalkeeper. Demands very high technical standards and complete buy-in from the club.',
+      preferred_systems: ['4-3-3', '3-4-2-1', '4-2-3-1'],
+      league_experience: ['Serie A', 'Premier League', 'Ligue 1', 'UCL Group Stage'],
+      overall_manual_score: 85,
+      intelligence_confidence: 82,
+      tactical_fit_score: 91,
+      leadership_score: 82,
+      development_score: 88,
+      cultural_alignment_score: 72,
+      safeguarding_risk_flag: false,
+      integrity_risk_flag: false,
+      legal_risk_flag: false,
+    },
+    stints: [
+      {
+        club_name: 'Benevento',
+        role_title: 'Head Coach',
+        league: 'Serie B',
+        country: 'Italy',
+        started_on: '2017-06-01',
+        ended_on: '2019-05-31',
+        points_per_game: 1.82,
+        win_rate: 52.00,
+        exit_context: 'Promoted — moved to Sassuolo after successful stint',
+        notable_outcomes: 'Serie B winner 2016/17. Promoted Benevento to Serie A. Established attacking identity.',
+      },
+      {
+        club_name: 'Sassuolo',
+        role_title: 'Head Coach',
+        league: 'Serie A',
+        country: 'Italy',
+        started_on: '2019-06-01',
+        ended_on: '2021-06-05',
+        points_per_game: 1.48,
+        win_rate: 38.00,
+        exit_context: 'Left for Shakhtar Donetsk — new challenge',
+        notable_outcomes: '8th place Serie A 2020/21. Most attractive football in Italy that season. Attracted widespread attention from top European clubs.',
+      },
+      {
+        club_name: 'Shakhtar Donetsk',
+        role_title: 'Head Coach',
+        league: 'Ukrainian Premier League',
+        country: 'Ukraine',
+        started_on: '2021-07-01',
+        ended_on: '2022-05-31',
+        points_per_game: 2.05,
+        win_rate: 62.00,
+        exit_context: 'Mutual termination — Russian invasion of Ukraine made continuation impossible',
+        notable_outcomes: 'UCL group stage. Managed the club through extraordinary circumstances following the Russian invasion.',
+      },
+      {
+        club_name: 'Brighton & Hove Albion',
+        role_title: 'Head Coach',
+        league: 'Premier League',
+        country: 'England',
+        started_on: '2022-09-16',
+        ended_on: '2024-05-19',
+        points_per_game: 1.72,
+        win_rate: 46.00,
+        exit_context: 'Contract expired — departed by mutual agreement after Europa League campaign',
+        notable_outcomes: '6th place PL 2022/23 — highest ever Brighton finish. Europa League qualification. Transformed Brighton into one of Europe\'s most admired playing styles.',
+      },
+      {
+        club_name: 'Olympique de Marseille',
+        role_title: 'Head Coach',
+        league: 'Ligue 1',
+        country: 'France',
+        started_on: '2024-07-01',
+        ended_on: '2025-12-01',
+        points_per_game: 1.65,
+        win_rate: 44.00,
+        exit_context: 'Dismissed — board/coach misalignment on recruitment and playing style implementation',
+        notable_outcomes: 'Strong early UCL group stage. Playing identity clear but club structure not aligned with methodology demands.',
+      },
+    ],
+  },
 ]
 
 export async function GET() {
@@ -395,7 +490,9 @@ export async function GET() {
 
     if (existing) {
       coachId = existing.id
-      log.push(`[SKIP] ${coach.profile.name} already exists — updating stints only`)
+      // Also update the profile fields (status, availability etc may have changed)
+      await supabase.from('coaches').update({ ...coach.profile }).eq('id', coachId)
+      log.push(`[UPDATE] ${coach.profile.name} profile refreshed`)
       results[coach.profile.name] = { action: 'updated', stints: 0 }
     } else {
       const { data: inserted, error } = await supabase

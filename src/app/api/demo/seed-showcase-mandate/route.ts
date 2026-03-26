@@ -21,7 +21,7 @@ export async function GET() {
   log.push(`[OK] Club: ${club.name} (${club.id})`)
 
   // ── 2. Find the 4 showcase coaches ────────────────────────────────
-  const coachNames = ['Thomas Tuchel', 'Mauricio Pochettino', 'Enzo Maresca', 'Graham Potter']
+  const coachNames = ['Thomas Tuchel', 'Mauricio Pochettino', 'Enzo Maresca', 'Graham Potter', 'Roberto De Zerbi']
   const { data: coaches } = await supabase
     .from('coaches')
     .select('id, name')
@@ -140,10 +140,27 @@ export async function GET() {
       notes: 'Now available following Chelsea departure. Best tactical fit in the group. Board framing as long-term project needed.',
     },
     {
+      coach_id: byName['Roberto De Zerbi'],
+      candidate_stage: 'Shortlist',
+      status: 'Shortlisted',
+      placement_probability: 48,
+      risk_rating: 'Medium',
+      network_source: 'Network suggestion',
+      network_recommender: 'European agent network — introduced via Johan Lange',
+      network_relationship: 'Indirect',
+      fit_tactical: 'Strong',
+      fit_level: 'Strong',
+      fit_cultural: 'Moderate',
+      fit_communication: 'Moderate',
+      fit_network: 'Moderate',
+      fit_notes: `De Zerbi is one of the most tactically distinctive coaches available in this cycle. His work at Brighton — transforming them into one of Europe's most admired teams, finishing 6th in the Premier League, qualifying for Europe — represents genuine elite-level coaching output against limited resources. His Marseille stint demonstrated the same identity under more adverse structural conditions.\n\nHe is now available following his departure from Marseille in late 2025, removing any contractual complication.\n\nThe tactical fit at Tottenham is excellent. His positional play system, demand for build-up from the goalkeeper, and fluid attacking structures would suit the technical quality in the squad. The cultural fit is less certain — De Zerbi requires very strong institutional buy-in and alignment on recruitment philosophy. Tottenham's history of ownership friction with managers is a relevant risk.\n\nRecommendation: Active shortlist. Strong alternative to Maresca for the modern/developmental narrative. Stronger CV than Maresca but carries slightly more structural risk. Present to board alongside Tuchel and Pochettino.`,
+      notes: 'Available following Marseille departure. Elite tactical profile. Requires aligned recruitment structure.',
+    },
+    {
       coach_id: byName['Graham Potter'],
       candidate_stage: 'Tracked',
       status: 'Under Review',
-      placement_probability: 22,
+      placement_probability: 15,
       risk_rating: 'High',
       network_source: 'Data search',
       network_recommender: null,
@@ -153,8 +170,8 @@ export async function GET() {
       fit_cultural: 'Moderate',
       fit_communication: 'Weak',
       fit_network: 'Weak',
-      fit_notes: `Potter's underlying coaching quality is not in question. His Brighton record (9th place, consistent overperformance vs squad value, clear identity) demonstrated what he is capable of in an aligned environment. The problem is reputational damage from his Chelsea tenure, which — while arguably unfair given the chaos of that period — has reset market perception significantly.\n\nAt Tottenham, where media scrutiny is intense and the fanbase demands results quickly, Potter's current standing is a material risk. His public profile confidence rating is low, and there is limited network support within the current process.\n\nHis process orientation and calm leadership style would theoretically suit a rebuild, but the board's risk appetite and the timeline of this mandate make him a difficult sell at this stage.\n\nRecommendation: Keep tracked. Monitor for rehabilitation of public profile. Not suitable as a primary candidate in this cycle.`,
-      notes: 'Tracked only. Strong process coach but reputational volatility is a board-level concern at this moment.',
+      fit_notes: `Potter is currently committed as Sweden national team head coach (appointed March 2026) and is not available for this mandate cycle.\n\nHe is tracked here for future reference. His underlying coaching quality — demonstrated at Brighton (9th place, consistent overperformance) and Östersunds (4th division to European football) — is not in question. The Sweden appointment represents a credible rehabilitation path following his difficult Chelsea tenure.\n\nIf the Sweden project runs its course before this mandate closes, or for future mandates in 2027+, Potter warrants active reconsideration at the right club.\n\nRecommendation: Tracked only. Not available in this cycle. Flag for future mandates.`,
+      notes: 'Under contract — Sweden national team. Tracked for future consideration only.',
     },
   ]
 
@@ -167,7 +184,7 @@ export async function GET() {
   if (slErr) {
     return NextResponse.json({ error: `Shortlist insert failed: ${slErr.message}` }, { status: 500 })
   }
-  log.push(`[OK] 4 candidates added to shortlist`)
+  log.push(`[OK] 5 candidates added to shortlist`)
 
   // ── 6. Deliverables ───────────────────────────────────────────────
   const deliverables = [

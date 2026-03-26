@@ -12,6 +12,7 @@ const WIKIPEDIA_TITLES: Record<string, string> = {
   'Kieran McKenna': 'Kieran_McKenna_(footballer)',
   'Oliver Glasner': 'Oliver_Glasner',
   'Roberto De Zerbi': 'Roberto_De_Zerbi',
+  'Graham Potter': 'Graham_Potter_(footballer)',
 }
 
 // Known football club/national team keywords to validate employer matches
