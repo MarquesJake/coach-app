@@ -56,20 +56,19 @@ function parseCurrentRole(extract: string | null, description: string | null): {
   const text = (extract ?? '') + ' ' + (description ?? '')
   const lower = text.toLowerCase()
 
-  // National team patterns
+  // National team patterns — only match in first 2 sentences (current role, not career history)
+  const firstTwo = extract?.split('.').slice(0, 2).join('.') ?? ''
   const nationalPatterns = [
-    /head coach of (?:the )?([a-z\s]+national)/i,
-    /manager of (?:the )?([a-z\s]+national)/i,
-    /(?:is|as) (?:the )?([a-z\s]+) national team(?:'s)? (?:head )?(?:coach|manager)/i,
-    /managing (?:the )?([a-z\s]+) national/i,
-    /in charge of (?:the )?([a-z\s]+) national/i,
+    /(?:is|currently)(?: the)? (?:head )?(?:coach|manager) of (?:the )?([A-Z][a-z]+) (?:national|men's national)/i,
+    /(?:is|currently) (?:the )?([A-Z][a-z]+) national team(?:'s)? (?:head )?(?:coach|manager)/i,
+    /(?:head )?(?:coach|manager) of (?:the )?([A-Z][a-z]+) national team/i,
   ]
 
   for (const pattern of nationalPatterns) {
-    const match = text.match(pattern)
+    const match = firstTwo.match(pattern)
     if (match) {
       return {
-        currentClub: match[1]?.trim() ?? 'National Team',
+        currentClub: match[1]?.trim() + ' national',
         isNationalTeam: true,
         isAvailable: false,
         roleLabel: 'National Team Head Coach',
