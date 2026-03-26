@@ -21,7 +21,7 @@ export async function GET() {
   log.push(`[OK] Club: ${club.name} (${club.id})`)
 
   // ── 2. Find the 4 showcase coaches ────────────────────────────────
-  const coachNames = ['Thomas Tuchel', 'Mauricio Pochettino', 'Enzo Maresca', 'Graham Potter', 'Roberto De Zerbi']
+  const coachNames = ['Mauricio Pochettino', 'Enzo Maresca', 'Graham Potter', 'Roberto De Zerbi']
   const { data: coaches } = await supabase
     .from('coaches')
     .select('id, name')
@@ -89,27 +89,10 @@ export async function GET() {
   // ── 5. Shortlist entries ──────────────────────────────────────────
   const candidates = [
     {
-      coach_id: byName['Thomas Tuchel'],
+      coach_id: byName['Mauricio Pochettino'],
       candidate_stage: 'Final',
       status: 'Shortlisted',
-      placement_probability: 68,
-      risk_rating: 'Medium',
-      network_source: 'Direct recommendation',
-      network_recommender: 'Senior intermediary close to ENIC board',
-      network_relationship: 'Indirect',
-      fit_tactical: 'Strong',
-      fit_level: 'Strong',
-      fit_cultural: 'Moderate',
-      fit_communication: 'Strong',
-      fit_network: 'Strong',
-      fit_notes: `Tuchel is the highest-pedigree candidate in this process. His UCL win at Chelsea (2020/21) and consistent T1 performance across PSG, Bayern and Dortmund make him the standout name on paper. His tactical system — asymmetric pressing structures, fluid build-up, high defensive line — maps closely to the profile the club requires.\n\nThe primary risk is complexity. Tuchel has a well-documented pattern of friction with ownership and sporting directors, most notably at Dortmund, PSG, Chelsea, and Bayern. At Tottenham, where the Levy relationship demands a certain deference, this needs careful management.\n\nHe is currently with the England national team, which introduces a contractual complication. However, board-level interest has been signalled. If the project brief resonates, he is moveable.\n\nRecommendation: Lead candidate. Proceed to direct conversation if board appetite confirmed.`,
-      notes: 'UCL winner. Confirmed interest via intermediary. Contractual position needs resolving.',
-    },
-    {
-      coach_id: byName['Mauricio Pochettino'],
-      candidate_stage: 'Shortlist',
-      status: 'Shortlisted',
-      placement_probability: 54,
+      placement_probability: 64,
       risk_rating: 'Medium',
       network_source: 'Network suggestion',
       network_recommender: 'Former Spurs backroom contact',
@@ -120,7 +103,7 @@ export async function GET() {
       fit_communication: 'Strong',
       fit_network: 'Strong',
       fit_notes: `Pochettino carries the strongest cultural fit of any candidate in this process. His 2014–2019 Tottenham tenure remains the high watermark for the club in the modern era — top-4 consistency, a UCL final, and near-universal respect from players, staff, and fanbase. The Levy relationship, while historically strained at the point of his exit, has been repaired.\n\nHis more recent record (PSG 2021–23, Chelsea 2023–24) shows mixed results, particularly at Chelsea where squad instability undermined any fair assessment. The Chelsea spell should be contextualised carefully rather than taken at face value.\n\nThe cultural risk is low. The tactical fit is strong — his high-press, vertical style would suit the current squad. The emotional narrative of a return also has commercial and fan engagement value that cannot be ignored.\n\nRecommendation: Strong shortlist candidate. Explore availability and terms. Would benefit from a clear sporting project brief from Lange.`,
-      notes: 'Former Tottenham manager. Cultural fit is exceptional. Availability confirmed — open to conversations.',
+      notes: 'Lead candidate. Former Tottenham manager — cultural fit is exceptional. Availability confirmed, conversations initiated.',
     },
     {
       coach_id: byName['Enzo Maresca'],
@@ -184,14 +167,14 @@ export async function GET() {
   if (slErr) {
     return NextResponse.json({ error: `Shortlist insert failed: ${slErr.message}` }, { status: 500 })
   }
-  log.push(`[OK] 5 candidates added to shortlist`)
+  log.push(`[OK] 4 candidates added to shortlist`)
 
   // ── 6. Deliverables ───────────────────────────────────────────────
   const deliverables = [
-    { item: 'Confirm board shortlist approval for Tuchel approach', due_date: '2026-03-28', status: 'Not Started' },
+    { item: 'Confirm board approval — Pochettino as lead candidate', due_date: '2026-03-28', status: 'In Progress' },
     { item: 'Prepare candidate dossiers for presentation to Daniel Levy', due_date: '2026-04-05', status: 'Not Started' },
-    { item: 'Initiate discreet conversation — Pochettino camp', due_date: '2026-04-01', status: 'In Progress' },
-    { item: 'Resolve England FA contractual position re: Tuchel', due_date: '2026-04-10', status: 'Not Started' },
+    { item: 'Initiate direct conversation — Pochettino camp', due_date: '2026-04-01', status: 'In Progress' },
+    { item: 'Align De Zerbi on project brief and recruitment philosophy', due_date: '2026-04-08', status: 'Not Started' },
     { item: 'Final recommendation memo to board', due_date: '2026-05-01', status: 'Not Started' },
   ]
 
