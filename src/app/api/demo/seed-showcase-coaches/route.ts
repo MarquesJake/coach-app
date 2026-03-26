@@ -420,10 +420,6 @@ export async function GET() {
     const stintsToInsert = coach.stints.map(s => ({
       ...s,
       coach_id: coachId,
-      source_type: 'manual',
-      source_name: 'Demo seed',
-      confidence: 95,
-      verified: true,
     }))
 
     const { error: stintErr } = await supabase.from('coach_stints').insert(stintsToInsert)
