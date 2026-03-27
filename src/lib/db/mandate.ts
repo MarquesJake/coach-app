@@ -57,13 +57,17 @@ export async function getMandatesForUser(userId: string) {
     .order('created_at', { ascending: false })
 }
 
-/** Fetch mandate row with fit-relevant fields for coach vs mandate comparison. */
+/** Fetch mandate row with all fields required by mandateToContext() and the scoring engine. */
 export async function getMandateFitFields(userId: string, mandateId: string) {
   const supabase = db()
   const { data, error } = await supabase
     .from('mandates')
     .select(
-      'id, custom_club_name, tactical_model_required, pressing_intensity_required, build_preference_required, leadership_profile_required, risk_tolerance, language_requirements, relocation_required'
+      `id, custom_club_name,
+       tactical_model_required, pressing_intensity_required, build_preference_required,
+       leadership_profile_required, risk_tolerance,
+       budget_band, strategic_objective, board_risk_appetite, succession_timeline,
+       language_requirements, relocation_required`
     )
     .eq('id', mandateId)
     .eq('user_id', userId)

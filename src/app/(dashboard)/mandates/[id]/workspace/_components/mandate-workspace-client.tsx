@@ -1,12 +1,17 @@
 'use client'
 
-import { useState, useTransition, useEffect, useCallback } from 'react'
+import { useState, useTransition, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { updateShortlistWorkspaceAction, addCandidateToWorkspaceAction } from '../../../actions'
+import { addCandidateFromLonglistAction } from '../../../actions-longlist'
 import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Plus, Search } from 'lucide-react'
+import { MandateSearchPanel } from './mandate-search-panel'
+import { MandateFitDetail } from './mandate-fit-detail'
+import type { LonglistEntryData } from '../../../actions-longlist'
+import type { ParsedFit } from './mandate-search-panel'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -839,15 +844,63 @@ export function MandateWorkspaceClient({
   seasonResults,
   coachingHistory,
   stabilityMetrics,
+  longlistEntries,
 }: {
   mandate: Mandate
   shortlist: Candidate[]
   seasonResults: SeasonResult[]
   coachingHistory: CoachingRecord[]
   stabilityMetrics: StabilityMetrics
+  longlistEntries: LonglistEntryData[]
 }) {
-  const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
+  const router = useRouter()
+
+  // Pipeline candidate selection (center = FitAssessment)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  // Recommendation selection (center = MandateFitDetail)
+  const [recEntry, setRecEntry] = useState<LonglistEntryData | null>(null)
+  const [recFit, setRecFit] = useState<ParsedFit | null>(null)
+
+  // Right panel tab
+  const [rightTab, setRightTab] = useState<'recommendations' | 'pipeline'>('recommendations')
+
+  // Adding from fit-detail panel
+  const [addingFromDetail, setAddingFromDetail] = useState(false)
+
+  const existingCoachIds = new Set(shortlist.map((c) => c.coach_id))
+  const existingStages = new Map(shortlist.map((c) => [c.coach_id, c.candidate_stage]))
+
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
+
+  function handleSelectRec(entry: LonglistEntryData, fit: ParsedFit) {
+    setRecEntry(entry)
+    setRecFit(fit)
+    setSelectedId(null) // clear pipeline selection
+  }
+
+  function handleSelectPipeline(id: string) {
+    setSelectedId(id)
+    setRecEntry(null)
+    setRecFit(null)
+  }
+
+  function handleBackFromDetail() {
+    setRecEntry(null)
+    setRecFit(null)
+  }
+
+  async function handleAddFromDetail(coachId: string) {
+    setAddingFromDetail(true)
+    const result = await addCandidateFromLonglistAction(mandate.id, coachId)
+    setAddingFromDetail(false)
+    if (!result.error || result.error === 'Already added') {
+      router.refresh()
+    }
+  }
+
+  // Center panel: show fit-detail if a recommendation is selected, else pipeline assessment
+  const showFitDetail = recEntry !== null && recFit !== null
 
   return (
     <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-12rem)]">
@@ -861,19 +914,73 @@ export function MandateWorkspaceClient({
         />
       </div>
 
-      {/* Center: Fit Assessment */}
+      {/* Center: Fit Detail or Fit Assessment */}
       <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
-        <FitAssessment candidate={selectedCandidate} mandateId={mandate.id} />
+        {showFitDetail ? (
+          <MandateFitDetail
+            entry={recEntry}
+            fit={recFit}
+            isInPipeline={existingCoachIds.has(recEntry.coach_id)}
+            pipelineStage={existingStages.get(recEntry.coach_id)}
+            isAdding={addingFromDetail}
+            onAdd={handleAddFromDetail}
+            onBack={handleBackFromDetail}
+          />
+        ) : (
+          <FitAssessment candidate={selectedCandidate} mandateId={mandate.id} />
+        )}
       </div>
 
-      {/* Right: Candidate Pipeline */}
-      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
-        <CandidatePipeline
-          candidates={shortlist}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-          mandateId={mandate.id}
-        />
+      {/* Right: Tab switcher + panel */}
+      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden flex flex-col gap-3">
+        {/* Tab switcher */}
+        <div className="flex gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setRightTab('recommendations')}
+            className={cn(
+              'flex-1 h-7 rounded text-[10px] font-semibold uppercase tracking-wider transition-colors',
+              rightTab === 'recommendations'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Ranked
+          </button>
+          <button
+            type="button"
+            onClick={() => setRightTab('pipeline')}
+            className={cn(
+              'flex-1 h-7 rounded text-[10px] font-semibold uppercase tracking-wider transition-colors',
+              rightTab === 'pipeline'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Pipeline {shortlist.length > 0 && `(${shortlist.length})`}
+          </button>
+        </div>
+
+        {/* Panel content */}
+        <div className="flex-1 overflow-hidden">
+          {rightTab === 'recommendations' ? (
+            <MandateSearchPanel
+              mandateId={mandate.id}
+              initialEntries={longlistEntries}
+              existingCoachIds={existingCoachIds}
+              existingStages={existingStages}
+              onSelectEntry={handleSelectRec}
+              selectedCoachId={recEntry?.coach_id ?? null}
+            />
+          ) : (
+            <CandidatePipeline
+              candidates={shortlist}
+              selectedId={selectedId}
+              onSelect={handleSelectPipeline}
+              mandateId={mandate.id}
+            />
+          )}
+        </div>
       </div>
     </div>
   )

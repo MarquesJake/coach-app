@@ -70,6 +70,40 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
   // Compute stability metrics server-side from the already-fetched coaching history
   const stabilityMetrics = computeCoachingStability(coachingHistory ?? [])
 
+  // Fetch pre-computed longlist entries (scoring engine output)
+  const { data: longlistRaw } = await supabase
+    .from('mandate_longlist')
+    .select('id, coach_id, ranking_score, fit_explanation')
+    .eq('mandate_id', params.id)
+    .gt('ranking_score', 0)
+    .order('ranking_score', { ascending: false })
+    .limit(30)
+
+  // Enrich with coach display fields (name, status, club)
+  const longlistEntries: import('@/app/(dashboard)/mandates/actions-longlist').LonglistEntryData[] = []
+  if (longlistRaw?.length) {
+    const coachIds = longlistRaw.map((e) => e.coach_id)
+    const { data: coachMeta } = await supabase
+      .from('coaches')
+      .select('id, name, available_status, club_current')
+      .in('id', coachIds)
+      .eq('user_id', user.id)
+
+    const coachMap = new Map((coachMeta ?? []).map((c) => [c.id, c]))
+    for (const entry of longlistRaw) {
+      const c = coachMap.get(entry.coach_id)
+      longlistEntries.push({
+        id: entry.id,
+        coach_id: entry.coach_id,
+        ranking_score: entry.ranking_score ?? 0,
+        fit_explanation: entry.fit_explanation,
+        coach_name: c?.name ?? null,
+        coach_available_status: c?.available_status ?? null,
+        coach_club: c?.club_current ?? null,
+      })
+    }
+  }
+
   return (
     <div>
       <MandateTabNav mandateId={params.id} />
@@ -79,6 +113,7 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
         seasonResults={(seasonResults ?? []) as Parameters<typeof MandateWorkspaceClient>[0]['seasonResults']}
         coachingHistory={(coachingHistory ?? []) as Parameters<typeof MandateWorkspaceClient>[0]['coachingHistory']}
         stabilityMetrics={stabilityMetrics}
+        longlistEntries={longlistEntries}
       />
     </div>
   )
