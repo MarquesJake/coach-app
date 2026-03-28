@@ -10,11 +10,13 @@ import { computeCompleteness, computeCoachCompleteness } from './_lib/coach-comp
 import { getCoachCoverageAction } from './actions'
 import { getEvidenceCountForCoach } from '@/lib/db/fit'
 import { computeIntelligenceConfidence } from '@/lib/intelligence-confidence'
+import { computeCoachIntelSignals, type CoachIntelSignals } from '@/lib/intelligence/coach-intel-signals'
 import { getActivityForEntity } from '@/lib/db/activity'
 import { Timeline } from '@/components/ui/timeline'
 import { listCoachAgentsForCoach } from '@/lib/db/agentLinks'
 import { getAgentsForUser } from '@/lib/db/agents'
 import { CoachAgentsSection } from './_components/coach-agents-section'
+import { CoachAgentInteractions } from './_components/coach-agent-interactions'
 
 export default async function CoachDetailLayout({
   children,
@@ -45,8 +47,24 @@ export default async function CoachDetailLayout({
     supabase.from('intelligence_items').select('occurred_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
   ])
   const lastIntelligenceAt = (lastIntelRes?.data as { occurred_at?: string | null } | null)?.occurred_at ?? null
-  const { data: intelSourceRows } = await supabase.from('intelligence_items').select('source_name').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id)
+  const [{ data: intelSourceRows }, { data: intelSignalRows }] = await Promise.all([
+    supabase.from('intelligence_items').select('source_name').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id),
+    supabase.from('intelligence_items').select('id, direction, confidence, source_tier, category, title, sensitivity, occurred_at, created_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).eq('is_deleted', false),
+  ])
   const sourcesCount = new Set((intelSourceRows ?? []).map((r) => r.source_name).filter(Boolean)).size
+  const intelSignals: CoachIntelSignals = computeCoachIntelSignals(
+    (intelSignalRows ?? []).map((r) => ({
+      id: r.id,
+      direction: r.direction,
+      confidence: r.confidence,
+      source_tier: r.source_tier,
+      category: r.category,
+      title: r.title,
+      sensitivity: r.sensitivity ?? 'Standard',
+      occurred_at: r.occurred_at,
+      created_at: r.created_at,
+    }))
+  )
   const dm = derivedRow?.data as { repeat_signings_count?: number | null; repeat_agents_count?: number | null; loan_reliance_score?: number | null; network_density_score?: number | null } | null
   const hasRecruitmentDensity = Boolean(
     dm &&
@@ -71,13 +89,22 @@ export default async function CoachDetailLayout({
 
   let coachAgentsLinks: Array<{ id: string; agent_id: string; relationship_type: string; relationship_strength: number | null; confidence: number | null; notes: string | null; agents?: { id: string; full_name: string | null; agency_name: string | null } | null }> = []
   let agentsOptions: Array<{ id: string; full_name: string | null; agency_name: string | null }> = []
+  let recentAgentInteractions: Array<{ id: string; occurred_at: string | null; summary: string | null; interaction_type: string | null; agents?: { full_name: string | null; agency_name: string | null } | null }> = []
   try {
-    const [linksRes, agentsRes] = await Promise.all([
+    const [linksRes, agentsRes, interactionsRes] = await Promise.all([
       listCoachAgentsForCoach(user.id, params.id),
       getAgentsForUser(user.id),
+      supabase
+        .from('agent_interactions')
+        .select('id, occurred_at, summary, interaction_type, agents(full_name, agency_name)')
+        .eq('coach_id', params.id)
+        .eq('user_id', user.id)
+        .order('occurred_at', { ascending: false })
+        .limit(5),
     ])
     coachAgentsLinks = ((linksRes.data ?? []) as unknown) as typeof coachAgentsLinks
     agentsOptions = ((agentsRes.data ?? []) as Array<{ id: string; full_name: string | null; agency_name: string | null }>).map((a) => ({ id: a.id, full_name: a.full_name ?? null, agency_name: a.agency_name ?? null }))
+    recentAgentInteractions = ((interactionsRes.data ?? []) as unknown) as typeof recentAgentInteractions
   } catch {
     // coach_agents table may not exist before migration
   }
@@ -110,6 +137,7 @@ export default async function CoachDetailLayout({
             coach={coachRecord}
             completenessPercent={coachCompleteness}
             intelligenceWeightedConfidence={intelligenceConfidence.weightedConfidence}
+            intelSignals={intelSignals}
           />
           <CoachTabNav coachId={params.id} />
           <ExecutiveSummaryCard
@@ -122,6 +150,7 @@ export default async function CoachDetailLayout({
             hasRecruitmentDensity={hasRecruitmentDensity}
           />
           <CoachAgentsSection coachId={params.id} links={coachAgentsLinks} agentsOptions={agentsOptions} />
+          <CoachAgentInteractions interactions={recentAgentInteractions} />
           {children}
           <section className="mt-6 rounded-lg border border-border bg-card p-6">
             <h2 className="text-lg font-medium text-foreground mb-3">Activity Timeline</h2>

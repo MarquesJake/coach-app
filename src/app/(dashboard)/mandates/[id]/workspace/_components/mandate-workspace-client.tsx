@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import { updateShortlistWorkspaceAction } from '../../../actions'
 import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
+import { computeCoachIntelSignals, type IntelItem, type CoachIntelSignals } from '@/lib/intelligence/coach-intel-signals'
+import { ShieldAlert, TrendingUp, Info, Loader2 } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -371,6 +373,143 @@ function ClubBrief({
   )
 }
 
+// ── Intelligence Summary ──────────────────────────────────────────────────────
+
+function IntelligenceSummary({ coachId }: { coachId: string }) {
+  const [signals, setSignals] = useState<CoachIntelSignals | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    setSignals(null)
+    fetch(`/api/coaches/${coachId}/intelligence-items`)
+      .then((r) => r.json())
+      .then((data: { items: IntelItem[] }) => {
+        setSignals(computeCoachIntelSignals(data.items ?? []))
+      })
+      .catch(() => setSignals(computeCoachIntelSignals([])))
+      .finally(() => setLoading(false))
+  }, [coachId])
+
+  if (loading) {
+    return (
+      <section className="space-y-2">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Intelligence</h3>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Loading signals…
+        </div>
+      </section>
+    )
+  }
+
+  if (!signals || signals.count === 0) {
+    return (
+      <section className="space-y-2">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Intelligence</h3>
+        <p className="text-xs text-muted-foreground italic">No intelligence entries for this coach.</p>
+      </section>
+    )
+  }
+
+  const reliabilityColor =
+    signals.profileReliability === 'High' ? 'text-emerald-400' :
+    signals.profileReliability === 'Medium' ? 'text-amber-400' :
+    'text-muted-foreground'
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Intelligence</h3>
+        <div className="flex items-center gap-2">
+          {signals.hasSensitive && (
+            <span className="flex items-center gap-1 text-[10px] text-red-400">
+              <ShieldAlert className="w-3 h-3" />
+              Sensitive
+            </span>
+          )}
+          {signals.volatile && (
+            <span className="text-[10px] text-amber-400">Volatile</span>
+          )}
+          <span className={cn('text-[10px] font-medium', reliabilityColor)}>
+            {signals.profileReliability} reliability
+          </span>
+          <span className="text-[10px] text-muted-foreground">{signals.count} entries</span>
+        </div>
+      </div>
+
+      {/* Score row */}
+      {(signals.overallScore !== null || signals.riskIndex !== null) && (
+        <div className="flex gap-3">
+          {signals.overallScore !== null && (
+            <div className="flex-1 rounded bg-surface border border-border px-3 py-2">
+              <div className="text-[10px] text-muted-foreground mb-0.5">Overall signal</div>
+              <div className={cn(
+                'text-lg font-bold',
+                signals.overallScore >= 70 ? 'text-emerald-400' :
+                signals.overallScore >= 45 ? 'text-amber-400' : 'text-red-400'
+              )}>{signals.overallScore}</div>
+            </div>
+          )}
+          {signals.riskIndex !== null && (
+            <div className="flex-1 rounded bg-surface border border-border px-3 py-2">
+              <div className="text-[10px] text-muted-foreground mb-0.5">Risk index</div>
+              <div className={cn(
+                'text-lg font-bold',
+                signals.riskIndex <= 20 ? 'text-emerald-400' :
+                signals.riskIndex <= 50 ? 'text-amber-400' : 'text-red-400'
+              )}>{signals.riskIndex}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Top positive signals */}
+      {signals.topPositive.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-emerald-400 uppercase tracking-widest">
+            <TrendingUp className="w-3 h-3" />
+            Key positives
+          </div>
+          {signals.topPositive.map((item) => (
+            <div key={item.id} className="rounded bg-emerald-400/5 border border-emerald-400/15 px-2.5 py-1.5">
+              <p className="text-xs text-foreground leading-snug">{item.title}</p>
+              {item.category && (
+                <p className="text-[10px] text-muted-foreground mt-0.5">{item.category}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Top negative signals */}
+      {signals.topNegative.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-red-400 uppercase tracking-widest">
+            <ShieldAlert className="w-3 h-3" />
+            Key risks
+          </div>
+          {signals.topNegative.map((item) => (
+            <div key={item.id} className="rounded bg-red-400/5 border border-red-400/15 px-2.5 py-1.5">
+              <p className="text-xs text-foreground leading-snug">{item.title}</p>
+              {item.category && (
+                <p className="text-[10px] text-muted-foreground mt-0.5">{item.category}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {signals.topPositive.length === 0 && signals.topNegative.length === 0 && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Info className="w-3.5 h-3.5 flex-shrink-0" />
+          {signals.count} entries present but no directional signals recorded.
+        </div>
+      )}
+    </section>
+  )
+}
+
 // ── Center Panel: Fit Assessment ──────────────────────────────────────────────
 
 function FitAssessment({
@@ -526,6 +665,10 @@ function FitAssessment({
           {isPending ? 'Saving…' : saved ? '✓ Saved' : 'Save assessment'}
         </button>
       </form>
+
+      <div className="border-t border-border pt-5">
+        <IntelligenceSummary coachId={candidate.coach_id} />
+      </div>
     </div>
   )
 }
