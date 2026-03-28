@@ -452,7 +452,7 @@ export function generateExplanation(
   let comparisonNote: string | undefined
   if (options?.rank != null && options.rank <= 5) {
     if (options.rank === 1) {
-      comparisonNote = buildComparisonNote(1, options.comparisonResult ?? { type: 'CLEAR' }, undefined, undefined, undefined)
+      comparisonNote = buildComparisonNote(1, options.comparisonResult ?? { type: 'CLEAR' }, undefined, options.combinedAbove, options.combinedThis)
     } else if (options.comparisonResult && options.nameAbove) {
       comparisonNote = buildComparisonNote(
         options.rank,
