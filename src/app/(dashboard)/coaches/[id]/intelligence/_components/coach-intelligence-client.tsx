@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, TrendingUp } from 'lucide-react'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/lib/types/db'
+import { findPotentialDuplicate } from '@/lib/intelligence/coach-intel-signals'
 
 type IntelRow = Database['public']['Tables']['intelligence_items']['Row']
 
@@ -101,7 +102,9 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
     }
   }, [highlightedId])
 
-  let filtered = items.filter((i) => !i.is_deleted)
+  const active = useMemo(() => items.filter((i) => !i.is_deleted), [items])
+
+  let filtered = active
   if (categoryFilter) filtered = filtered.filter((i) => i.category === categoryFilter)
   if (directionFilter) filtered = filtered.filter((i) => i.direction === directionFilter)
 
@@ -111,6 +114,44 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
     const db = new Date(b.occurred_at ?? b.created_at).getTime()
     return db - da
   })
+
+  // Category groups for pattern detection
+  const categoryGroups = useMemo(() => {
+    const map: Record<string, { count: number; negCount: number }> = {}
+    for (const item of active) {
+      const cat = item.category ?? 'Uncategorised'
+      if (!map[cat]) map[cat] = { count: 0, negCount: 0 }
+      map[cat].count++
+      if (item.direction === 'Negative') map[cat].negCount++
+    }
+    return map
+  }, [active])
+
+  const patterns = Object.entries(categoryGroups)
+    .filter(([, v]) => v.count >= 3)
+    .sort((a, b) => b[1].count - a[1].count)
+
+  // Form quality warnings
+  const dupWarning = useMemo(() => {
+    if (!form.title.trim()) return null
+    const intelItems = active.map((i) => ({
+      id: i.id,
+      direction: i.direction,
+      confidence: i.confidence,
+      source_tier: i.source_tier,
+      category: i.category,
+      title: i.title,
+      sensitivity: i.sensitivity ?? 'Standard',
+      occurred_at: i.occurred_at,
+      created_at: i.created_at,
+    }))
+    return findPotentialDuplicate(intelItems, form.title, form.category || null, form.occurred_at || null)
+  }, [form.title, form.category, form.occurred_at, active])
+
+  const tier = form.source_tier ? parseInt(form.source_tier, 10) : null
+  const conf = form.confidence ? parseInt(form.confidence, 10) : null
+  const warnT1NoName = tier === 1 && !form.source_name.trim()
+  const warnHighConfWeakTier = conf !== null && conf >= 67 && tier !== null && tier >= 4
 
   async function handleAdd() {
     if (!form.title.trim()) {
@@ -206,6 +247,33 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
         })}
       </div>
 
+      {/* Pattern detection */}
+      {patterns.length > 0 && !categoryFilter && (
+        <div className="rounded-lg border border-amber-400/20 bg-amber-400/5 px-4 py-3 space-y-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-400">
+            <TrendingUp className="w-3.5 h-3.5" />
+            Patterns detected
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {patterns.map(([cat, { count, negCount }]) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategoryFilter(cat)}
+                className="flex items-center gap-1.5 rounded border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-xs text-amber-300 hover:bg-amber-400/20 transition-colors"
+              >
+                <span className="font-medium">{cat}</span>
+                <span className="text-amber-400/70">·</span>
+                <span>{count} entries</span>
+                {negCount > 0 && (
+                  <span className="ml-0.5 text-red-400">{negCount} negative</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* List */}
       <div className="rounded-lg border border-border bg-card divide-y divide-border">
         {filtered.length === 0 ? (
@@ -217,13 +285,17 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
             const isHighlighted = item.id === highlightedId
             const isExpanded = expandedId === item.id
             const ws = weightedScore(item)
+            const itemTier = item.source_tier ? parseInt(item.source_tier, 10) : null
+            const isLowSignal = itemTier !== null && itemTier >= 4 && (item.confidence ?? 100) <= 33
+            const isPattern = item.category !== null && (categoryGroups[item.category]?.count ?? 0) >= 3
             return (
               <div
                 key={item.id}
                 ref={isHighlighted ? highlightRef : undefined}
                 className={cn(
                   'px-5 py-4 transition-colors',
-                  isHighlighted ? 'bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-muted/20'
+                  isHighlighted ? 'bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-muted/20',
+                  isLowSignal && 'opacity-50'
                 )}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -238,6 +310,12 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
                       {item.category && (
                         <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
                           {item.category}
+                        </span>
+                      )}
+                      {isPattern && (
+                        <span className="inline-flex items-center gap-0.5 rounded border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[10px] text-amber-400">
+                          <TrendingUp className="w-2.5 h-2.5" />
+                          Pattern
                         </span>
                       )}
                       {item.sensitivity === 'High' && (
@@ -390,8 +468,28 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
 
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Source name</label>
-            <input type="text" value={form.source_name} onChange={(e) => setForm((f) => ({ ...f, source_name: e.target.value }))} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" placeholder="Optional" />
+            <input type="text" value={form.source_name} onChange={(e) => setForm((f) => ({ ...f, source_name: e.target.value }))} className={cn('w-full rounded-lg border bg-surface px-3 py-2 text-sm', warnT1NoName ? 'border-amber-400/60' : 'border-border')} placeholder="Optional" />
+            {warnT1NoName && (
+              <p className="mt-1 flex items-center gap-1 text-[11px] text-amber-400">
+                <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                T1 source requires a source name for traceability.
+              </p>
+            )}
           </div>
+
+          {warnHighConfWeakTier && (
+            <div className="flex items-start gap-2 rounded border border-amber-400/30 bg-amber-400/5 px-3 py-2">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-amber-400 mt-0.5" />
+              <p className="text-[11px] text-amber-300">High confidence on a weak-tier source (T4–T5). Consider lowering confidence or upgrading the source tier.</p>
+            </div>
+          )}
+
+          {dupWarning && (
+            <div className="flex items-start gap-2 rounded border border-amber-400/30 bg-amber-400/5 px-3 py-2">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-amber-400 mt-0.5" />
+              <p className="text-[11px] text-amber-300">Possible duplicate: "<span className="font-medium">{dupWarning.title}</span>" was logged in the past 30 days in this category.</p>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Source notes</label>

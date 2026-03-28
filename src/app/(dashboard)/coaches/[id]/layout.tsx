@@ -1,5 +1,4 @@
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CoachTabNav } from './_components/coach-tab-nav'
@@ -11,37 +10,13 @@ import { computeCompleteness, computeCoachCompleteness } from './_lib/coach-comp
 import { getCoachCoverageAction } from './actions'
 import { getEvidenceCountForCoach } from '@/lib/db/fit'
 import { computeIntelligenceConfidence } from '@/lib/intelligence-confidence'
+import { computeCoachIntelSignals, type CoachIntelSignals } from '@/lib/intelligence/coach-intel-signals'
 import { getActivityForEntity } from '@/lib/db/activity'
 import { Timeline } from '@/components/ui/timeline'
 import { listCoachAgentsForCoach } from '@/lib/db/agentLinks'
 import { getAgentsForUser } from '@/lib/db/agents'
 import { CoachAgentsSection } from './_components/coach-agents-section'
-import { getStageLabel } from '@/lib/constants/mandateStages'
-
-// ── Pipeline stage badge colour ───────────────────────────────────────────
-function layoutStageBadgeClass(stage: string | null): string {
-  switch (stage) {
-    case 'identified': return 'bg-zinc-500/15 text-zinc-500'
-    case 'board_approved': return 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
-    case 'shortlisting': return 'bg-purple-500/15 text-purple-600 dark:text-purple-400'
-    case 'interviews': return 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-    case 'final_2': return 'bg-orange-500/15 text-orange-600 dark:text-orange-400'
-    case 'offer': return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-    case 'closed': return 'bg-muted text-muted-foreground'
-    default: return 'bg-muted text-muted-foreground'
-  }
-}
-
-type MandatePresenceEntry = {
-  id: string
-  candidate_stage: string
-  mandates: {
-    id: string
-    custom_club_name: string | null
-    pipeline_stage: string | null
-    clubs: { name: string | null } | null
-  } | null
-}
+import { CoachAgentInteractions } from './_components/coach-agent-interactions'
 
 export default async function CoachDetailLayout({
   children,
@@ -64,18 +39,32 @@ export default async function CoachDetailLayout({
     supabase.from('coach_stints').select('id', { count: 'exact', head: true }).eq('coach_id', params.id),
     computeIntelligenceConfidence(user.id, params.id),
     (async () => {
-      // @ts-ignore - watchlist_coaches table not yet in DB schema
       const { data } = await supabase.from('watchlist_coaches').select('coach_id').eq('coach_id', params.id).eq('user_id', user.id).maybeSingle()
       return { onWatchlist: !!data }
     })(),
     getActivityForEntity('coach', params.id),
-    // @ts-ignore - coach_derived_metrics table not yet in DB schema
     supabase.from('coach_derived_metrics').select('repeat_signings_count, repeat_agents_count, loan_reliance_score, network_density_score').eq('coach_id', params.id).maybeSingle(),
     supabase.from('intelligence_items').select('occurred_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
   ])
   const lastIntelligenceAt = (lastIntelRes?.data as { occurred_at?: string | null } | null)?.occurred_at ?? null
-  const { data: intelSourceRows } = await supabase.from('intelligence_items').select('source_name').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id)
+  const [{ data: intelSourceRows }, { data: intelSignalRows }] = await Promise.all([
+    supabase.from('intelligence_items').select('source_name').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id),
+    supabase.from('intelligence_items').select('id, direction, confidence, source_tier, category, title, sensitivity, occurred_at, created_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).eq('is_deleted', false),
+  ])
   const sourcesCount = new Set((intelSourceRows ?? []).map((r) => r.source_name).filter(Boolean)).size
+  const intelSignals: CoachIntelSignals = computeCoachIntelSignals(
+    (intelSignalRows ?? []).map((r) => ({
+      id: r.id,
+      direction: r.direction,
+      confidence: r.confidence,
+      source_tier: r.source_tier,
+      category: r.category,
+      title: r.title,
+      sensitivity: r.sensitivity ?? 'Standard',
+      occurred_at: r.occurred_at,
+      created_at: r.created_at,
+    }))
+  )
   const dm = derivedRow?.data as { repeat_signings_count?: number | null; repeat_agents_count?: number | null; loan_reliance_score?: number | null; network_density_score?: number | null } | null
   const hasRecruitmentDensity = Boolean(
     dm &&
@@ -93,32 +82,29 @@ export default async function CoachDetailLayout({
     created_at: row.created_at,
   }))
 
-  const [staffNetworkRes, mandatePresenceRes] = await Promise.all([
-    supabase.from('coach_staff_history').select('id', { count: 'exact', head: true }).eq('coach_id', params.id),
-    supabase
-      .from('mandate_shortlist')
-      .select(`
-        id, candidate_stage,
-        mandates!inner(
-          id, custom_club_name, pipeline_stage,
-          clubs(name)
-        )
-      `)
-      .eq('coach_id', params.id)
-      .eq('mandates.user_id', user.id),
-  ])
-  const { count: staffNetworkCount } = staffNetworkRes
-  const layoutMandatePresence = (mandatePresenceRes.data ?? []) as unknown as MandatePresenceEntry[]
+  const { count: staffNetworkCount } = await supabase
+    .from('coach_staff_history')
+    .select('id', { count: 'exact', head: true })
+    .eq('coach_id', params.id)
 
   let coachAgentsLinks: Array<{ id: string; agent_id: string; relationship_type: string; relationship_strength: number | null; confidence: number | null; notes: string | null; agents?: { id: string; full_name: string | null; agency_name: string | null } | null }> = []
   let agentsOptions: Array<{ id: string; full_name: string | null; agency_name: string | null }> = []
+  let recentAgentInteractions: Array<{ id: string; occurred_at: string | null; summary: string | null; interaction_type: string | null; agents?: { full_name: string | null; agency_name: string | null } | null }> = []
   try {
-    const [linksRes, agentsRes] = await Promise.all([
+    const [linksRes, agentsRes, interactionsRes] = await Promise.all([
       listCoachAgentsForCoach(user.id, params.id),
       getAgentsForUser(user.id),
+      supabase
+        .from('agent_interactions')
+        .select('id, occurred_at, summary, interaction_type, agents(full_name, agency_name)')
+        .eq('coach_id', params.id)
+        .eq('user_id', user.id)
+        .order('occurred_at', { ascending: false })
+        .limit(5),
     ])
     coachAgentsLinks = ((linksRes.data ?? []) as unknown) as typeof coachAgentsLinks
     agentsOptions = ((agentsRes.data ?? []) as Array<{ id: string; full_name: string | null; agency_name: string | null }>).map((a) => ({ id: a.id, full_name: a.full_name ?? null, agency_name: a.agency_name ?? null }))
+    recentAgentInteractions = ((interactionsRes.data ?? []) as unknown) as typeof recentAgentInteractions
   } catch {
     // coach_agents table may not exist before migration
   }
@@ -151,6 +137,7 @@ export default async function CoachDetailLayout({
             coach={coachRecord}
             completenessPercent={coachCompleteness}
             intelligenceWeightedConfidence={intelligenceConfidence.weightedConfidence}
+            intelSignals={intelSignals}
           />
           <CoachTabNav coachId={params.id} />
           <ExecutiveSummaryCard
@@ -162,51 +149,8 @@ export default async function CoachDetailLayout({
             intelligenceItemCount={intelligenceConfidence.itemCount}
             hasRecruitmentDensity={hasRecruitmentDensity}
           />
-          {/* ── Mandate Presence compact card ──────────────────────────── */}
-          <div className="mt-3 rounded-lg border border-border bg-card px-4 py-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Mandate presence</p>
-              <Link href="/mandates" className="text-[11px] text-muted-foreground hover:text-foreground transition-colors">
-                + Add →
-              </Link>
-            </div>
-            {layoutMandatePresence.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                Not in any mandate ·{' '}
-                <Link href="/mandates" className="underline underline-offset-2 hover:text-foreground">
-                  Add →
-                </Link>
-              </p>
-            ) : (
-              <div className="space-y-1.5">
-                {layoutMandatePresence.slice(0, 3).map((entry) => {
-                  const m = entry.mandates
-                  if (!m) return null
-                  const clubName = m.custom_club_name ?? m.clubs?.name ?? 'Unknown'
-                  return (
-                    <Link
-                      key={entry.id}
-                      href={`/mandates/${m.id}/workspace`}
-                      className="flex items-center justify-between gap-2 text-xs hover:text-foreground group"
-                    >
-                      <span className="text-foreground group-hover:underline truncate">{clubName}</span>
-                      <span
-                        className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium shrink-0 ${layoutStageBadgeClass(m.pipeline_stage)}`}
-                      >
-                        {getStageLabel(m.pipeline_stage ?? '')}
-                      </span>
-                    </Link>
-                  )
-                })}
-                {layoutMandatePresence.length > 3 && (
-                  <Link href={`/coaches/${params.id}/career`} className="text-[11px] text-muted-foreground hover:text-foreground">
-                    +{layoutMandatePresence.length - 3} more →
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>
           <CoachAgentsSection coachId={params.id} links={coachAgentsLinks} agentsOptions={agentsOptions} />
+          <CoachAgentInteractions interactions={recentAgentInteractions} />
           {children}
           <section className="mt-6 rounded-lg border border-border bg-card p-6">
             <h2 className="text-lg font-medium text-foreground mb-3">Activity Timeline</h2>

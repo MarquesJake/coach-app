@@ -102,6 +102,7 @@ export function CombinedFeed({ items, coaches, agents, clubs, mandates }: Props)
   const [categoryFilter, setCategoryFilter] = useState<string>('')
   const [directionFilter, setDirectionFilter] = useState<string>('')
   const [coachFilter, setCoachFilter] = useState<string>('')
+  const [quickFilter, setQuickFilter] = useState<'high_signal' | 'risk_flags' | 'recent_agent' | null>(null)
   const [addMode, setAddMode] = useState<'intel' | 'interaction' | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -124,6 +125,17 @@ export function CombinedFeed({ items, coaches, agents, clubs, mandates }: Props)
     }
   }, [highlightedId])
 
+  // High-signal = T1-2 + confidence ≥70 + Negative (or just T1-2 + conf ≥70)
+  function isHighImpact(item: IntelFeedItem): boolean {
+    if (item.kind !== 'intel') return false
+    const tier = item.source_tier ? parseInt(item.source_tier, 10) : null
+    const conf = item.confidence ?? 0
+    return tier !== null && tier <= 2 && conf >= 70 && item.direction === 'Negative'
+  }
+
+  const now = new Date()
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
   let filtered = items
   if (kindFilter !== 'all') filtered = filtered.filter((i) => i.kind === kindFilter)
   if (categoryFilter) filtered = filtered.filter((i) => i.category === categoryFilter || i.topic === categoryFilter)
@@ -132,6 +144,17 @@ export function CombinedFeed({ items, coaches, agents, clubs, mandates }: Props)
     if (i.kind === 'intel') return i.entity_type === 'coach' && i.entity_id === coachFilter
     return i.coach_id === coachFilter
   })
+  if (quickFilter === 'high_signal') filtered = filtered.filter((i) => {
+    if (i.kind !== 'intel') return false
+    const tier = i.source_tier ? parseInt(i.source_tier, 10) : null
+    return tier !== null && tier <= 2 && (i.confidence ?? 0) >= 70
+  })
+  if (quickFilter === 'risk_flags') filtered = filtered.filter((i) =>
+    i.direction === 'Negative' || i.sentiment === 'Negative' || i.sensitivity === 'High'
+  )
+  if (quickFilter === 'recent_agent') filtered = filtered.filter((i) =>
+    i.kind === 'interaction' && new Date(i.occurred_at) >= sevenDaysAgo
+  )
 
   const categories = ['Media', 'Tactical', 'Legal', 'Staff', 'Performance', 'Reputation', 'Contract', 'Background', 'Mandate', 'Availability', 'Compensation', 'Other']
 
@@ -199,6 +222,38 @@ export function CombinedFeed({ items, coaches, agents, clubs, mandates }: Props)
 
   return (
     <div className="space-y-4">
+      {/* Quick filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        {(
+          [
+            { key: 'high_signal', label: 'High signal', color: 'text-sky-400 border-sky-400/20 bg-sky-400/5 hover:bg-sky-400/10' },
+            { key: 'risk_flags', label: 'Risk flags', color: 'text-red-400 border-red-400/20 bg-red-400/5 hover:bg-red-400/10' },
+            { key: 'recent_agent', label: 'Recent agent activity', color: 'text-amber-400 border-amber-400/20 bg-amber-400/5 hover:bg-amber-400/10' },
+          ] as const
+        ).map(({ key, label, color }) => (
+          <button
+            key={key}
+            onClick={() => setQuickFilter(quickFilter === key ? null : key)}
+            className={cn(
+              'px-3 py-1 rounded border text-xs font-medium transition-colors',
+              quickFilter === key
+                ? color.replace('bg-', 'bg-').replace('/5', '/20')
+                : color
+            )}
+          >
+            {label}
+          </button>
+        ))}
+        {quickFilter && (
+          <button
+            onClick={() => setQuickFilter(null)}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -297,6 +352,7 @@ export function CombinedFeed({ items, coaches, agents, clubs, mandates }: Props)
               const bodyText = isIntel ? item.detail : item.detail
               const dirVal = isIntel ? item.direction : item.sentiment
               const dateStr = formatDate(item.occurred_at)
+              const highImpact = isHighImpact(item)
 
               return (
                 <div
@@ -305,7 +361,8 @@ export function CombinedFeed({ items, coaches, agents, clubs, mandates }: Props)
                   ref={isHighlighted ? highlightRef : undefined}
                   className={cn(
                     'px-6 py-4 hover:bg-muted/20 transition-colors',
-                    isHighlighted && 'bg-primary/5 ring-1 ring-inset ring-primary/20'
+                    isHighlighted && 'bg-primary/5 ring-1 ring-inset ring-primary/20',
+                    highImpact && !isHighlighted && 'bg-red-950/20 border-l-2 border-red-400/40'
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -318,6 +375,11 @@ export function CombinedFeed({ items, coaches, agents, clubs, mandates }: Props)
                     <div className="flex-1 min-w-0">
                       {/* Badges */}
                       <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                        {highImpact && (
+                          <span className="inline-flex items-center rounded border border-red-400/30 bg-red-400/10 px-1.5 py-0.5 text-[10px] font-bold text-red-400 uppercase tracking-widest">
+                            High signal
+                          </span>
+                        )}
                         <span className="text-[10px] text-muted-foreground">{dateStr}</span>
                         <span className={cn(
                           'inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium',

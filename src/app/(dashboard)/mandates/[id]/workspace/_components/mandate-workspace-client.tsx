@@ -1,17 +1,11 @@
 'use client'
 
-import { useState, useTransition, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useTransition } from 'react'
 import { cn } from '@/lib/utils'
-import { updateShortlistWorkspaceAction, addCandidateToWorkspaceAction } from '../../../actions'
-import { addCandidateFromLonglistAction } from '../../../actions-longlist'
+import { updateShortlistWorkspaceAction } from '../../../actions'
 import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
-import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Plus, Search } from 'lucide-react'
-import { MandateSearchPanel } from './mandate-search-panel'
-import { MandateFitDetail } from './mandate-fit-detail'
-import type { LonglistEntryData } from '../../../actions-longlist'
-import type { ParsedFit } from './mandate-search-panel'
+import { computeCoachIntelSignals, type IntelItem, type CoachIntelSignals } from '@/lib/intelligence/coach-intel-signals'
+import { ShieldAlert, TrendingUp, Info, Loader2 } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -73,14 +67,6 @@ type Candidate = {
   coaches: { name: string | null; club_current: string | null; nationality: string | null } | null
 }
 
-type CoachSearchResult = {
-  id: string
-  name: string | null
-  club_current: string | null
-  nationality: string | null
-  available_status: string | null
-}
-
 type SeasonResult = {
   season: string
   league_position: number | null
@@ -106,8 +92,6 @@ const CANDIDATE_STAGES = ['Tracked', 'Longlist', 'Shortlist', 'Interview', 'Fina
 const FIT_SIGNALS = ['Strong', 'Moderate', 'Weak', 'Unknown'] as const
 const NETWORK_SOURCES = ['Data search', 'Direct recommendation', 'Network suggestion', 'Proactive approach'] as const
 const NETWORK_RELATIONSHIPS = ['Direct', 'Indirect', 'Cold'] as const
-
-const AVAILABLE_STATUS_FILTERS = ['All', 'Available', 'Open to offers', 'Under contract'] as const
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -138,13 +122,6 @@ function provenanceDots(rel: string | null) {
   if (rel === 'Direct') return '●●●'
   if (rel === 'Indirect') return '●●○'
   return '●○○'
-}
-
-function availabilityDotClass(status: string | null) {
-  if (status === 'Available') return 'bg-emerald-400'
-  if (status === 'Open to offers') return 'bg-amber-400'
-  if (status === 'Under contract') return 'bg-blue-400'
-  return 'bg-muted-foreground/30'
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -396,6 +373,143 @@ function ClubBrief({
   )
 }
 
+// ── Intelligence Summary ──────────────────────────────────────────────────────
+
+function IntelligenceSummary({ coachId }: { coachId: string }) {
+  const [signals, setSignals] = useState<CoachIntelSignals | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    setSignals(null)
+    fetch(`/api/coaches/${coachId}/intelligence-items`)
+      .then((r) => r.json())
+      .then((data: { items: IntelItem[] }) => {
+        setSignals(computeCoachIntelSignals(data.items ?? []))
+      })
+      .catch(() => setSignals(computeCoachIntelSignals([])))
+      .finally(() => setLoading(false))
+  }, [coachId])
+
+  if (loading) {
+    return (
+      <section className="space-y-2">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Intelligence</h3>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Loading signals…
+        </div>
+      </section>
+    )
+  }
+
+  if (!signals || signals.count === 0) {
+    return (
+      <section className="space-y-2">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Intelligence</h3>
+        <p className="text-xs text-muted-foreground italic">No intelligence entries for this coach.</p>
+      </section>
+    )
+  }
+
+  const reliabilityColor =
+    signals.profileReliability === 'High' ? 'text-emerald-400' :
+    signals.profileReliability === 'Medium' ? 'text-amber-400' :
+    'text-muted-foreground'
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Intelligence</h3>
+        <div className="flex items-center gap-2">
+          {signals.hasSensitive && (
+            <span className="flex items-center gap-1 text-[10px] text-red-400">
+              <ShieldAlert className="w-3 h-3" />
+              Sensitive
+            </span>
+          )}
+          {signals.volatile && (
+            <span className="text-[10px] text-amber-400">Volatile</span>
+          )}
+          <span className={cn('text-[10px] font-medium', reliabilityColor)}>
+            {signals.profileReliability} reliability
+          </span>
+          <span className="text-[10px] text-muted-foreground">{signals.count} entries</span>
+        </div>
+      </div>
+
+      {/* Score row */}
+      {(signals.overallScore !== null || signals.riskIndex !== null) && (
+        <div className="flex gap-3">
+          {signals.overallScore !== null && (
+            <div className="flex-1 rounded bg-surface border border-border px-3 py-2">
+              <div className="text-[10px] text-muted-foreground mb-0.5">Overall signal</div>
+              <div className={cn(
+                'text-lg font-bold',
+                signals.overallScore >= 70 ? 'text-emerald-400' :
+                signals.overallScore >= 45 ? 'text-amber-400' : 'text-red-400'
+              )}>{signals.overallScore}</div>
+            </div>
+          )}
+          {signals.riskIndex !== null && (
+            <div className="flex-1 rounded bg-surface border border-border px-3 py-2">
+              <div className="text-[10px] text-muted-foreground mb-0.5">Risk index</div>
+              <div className={cn(
+                'text-lg font-bold',
+                signals.riskIndex <= 20 ? 'text-emerald-400' :
+                signals.riskIndex <= 50 ? 'text-amber-400' : 'text-red-400'
+              )}>{signals.riskIndex}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Top positive signals */}
+      {signals.topPositive.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-emerald-400 uppercase tracking-widest">
+            <TrendingUp className="w-3 h-3" />
+            Key positives
+          </div>
+          {signals.topPositive.map((item) => (
+            <div key={item.id} className="rounded bg-emerald-400/5 border border-emerald-400/15 px-2.5 py-1.5">
+              <p className="text-xs text-foreground leading-snug">{item.title}</p>
+              {item.category && (
+                <p className="text-[10px] text-muted-foreground mt-0.5">{item.category}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Top negative signals */}
+      {signals.topNegative.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1 text-[10px] font-semibold text-red-400 uppercase tracking-widest">
+            <ShieldAlert className="w-3 h-3" />
+            Key risks
+          </div>
+          {signals.topNegative.map((item) => (
+            <div key={item.id} className="rounded bg-red-400/5 border border-red-400/15 px-2.5 py-1.5">
+              <p className="text-xs text-foreground leading-snug">{item.title}</p>
+              {item.category && (
+                <p className="text-[10px] text-muted-foreground mt-0.5">{item.category}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {signals.topPositive.length === 0 && signals.topNegative.length === 0 && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Info className="w-3.5 h-3.5 flex-shrink-0" />
+          {signals.count} entries present but no directional signals recorded.
+        </div>
+      )}
+    </section>
+  )
+}
+
 // ── Center Panel: Fit Assessment ──────────────────────────────────────────────
 
 function FitAssessment({
@@ -551,170 +665,9 @@ function FitAssessment({
           {isPending ? 'Saving…' : saved ? '✓ Saved' : 'Save assessment'}
         </button>
       </form>
-    </div>
-  )
-}
 
-// ── Add Candidate Search Panel ────────────────────────────────────────────────
-
-function AddCandidatePanel({
-  mandateId,
-  existingCoachIds,
-  onBack,
-  onAdded,
-}: {
-  mandateId: string
-  existingCoachIds: Set<string>
-  onBack: () => void
-  onAdded: () => void
-}) {
-  const [query, setQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('All')
-  const [results, setResults] = useState<CoachSearchResult[]>([])
-  const [searching, setSearching] = useState(false)
-  const [addingId, setAddingId] = useState<string | null>(null)
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
-  const router = useRouter()
-
-  const search = useCallback(async () => {
-    setSearching(true)
-    const supabase = createClient()
-    let q = supabase
-      .from('coaches')
-      .select('id, name, club_current, nationality, available_status')
-      .order('name', { ascending: true })
-      .limit(30)
-
-    if (query.trim()) {
-      q = q.or(
-        `name.ilike.%${query.trim()}%,club_current.ilike.%${query.trim()}%,nationality.ilike.%${query.trim()}%`
-      )
-    }
-
-    if (statusFilter !== 'All') {
-      q = q.eq('available_status', statusFilter)
-    }
-
-    const { data } = await q
-    setResults((data as CoachSearchResult[]) ?? [])
-    setSearching(false)
-  }, [query, statusFilter])
-
-  useEffect(() => {
-    const timer = setTimeout(search, 300)
-    return () => clearTimeout(timer)
-  }, [search])
-
-  async function handleAdd(coachId: string) {
-    setAddingId(coachId)
-    const result = await addCandidateToWorkspaceAction(mandateId, coachId)
-    setAddingId(null)
-    if (result.error && result.error !== 'Already added') {
-      // silently handle — user can retry
-      return
-    }
-    setAddedIds((prev) => new Set(prev).add(coachId))
-    router.refresh()
-    onAdded()
-  }
-
-  return (
-    <div className="h-full flex flex-col gap-3">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center justify-center w-7 h-7 rounded hover:bg-surface-overlay/30 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Back to pipeline"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Add candidate</h2>
-      </div>
-
-      {/* Search input */}
-      <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Name, club, nationality…"
-          autoFocus
-          className="w-full h-9 rounded bg-surface border border-border pl-8 pr-3 text-xs text-foreground placeholder-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/50"
-        />
-      </div>
-
-      {/* Status filter */}
-      <div className="flex gap-1 flex-wrap">
-        {AVAILABLE_STATUS_FILTERS.map((f) => (
-          <button
-            key={f}
-            type="button"
-            onClick={() => setStatusFilter(f)}
-            className={cn(
-              'px-2 py-0.5 rounded text-[10px] font-medium border transition-colors',
-              statusFilter === f
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'text-muted-foreground border-border hover:text-foreground'
-            )}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {/* Results */}
-      <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5">
-        {searching && (
-          <div className="space-y-1.5">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 rounded-lg bg-surface/50 animate-pulse border border-border" />
-            ))}
-          </div>
-        )}
-
-        {!searching && results.length === 0 && (
-          <p className="text-xs text-muted-foreground text-center py-6">No coaches found.</p>
-        )}
-
-        {!searching && results.map((coach) => {
-          const alreadyOnShortlist = existingCoachIds.has(coach.id) || addedIds.has(coach.id)
-          const isAdding = addingId === coach.id
-          return (
-            <div
-              key={coach.id}
-              className="flex items-center gap-2 rounded-lg border border-border bg-surface/40 px-3 py-2"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className={cn('w-1.5 h-1.5 rounded-full shrink-0', availabilityDotClass(coach.available_status))}
-                  />
-                  <p className="text-xs font-medium text-foreground truncate">{coach.name ?? 'Unknown'}</p>
-                </div>
-                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                  {coach.club_current || 'Free agent'}
-                  {coach.nationality ? ` · ${coach.nationality}` : ''}
-                </p>
-              </div>
-              {alreadyOnShortlist ? (
-                <span className="text-[10px] font-medium text-emerald-400 shrink-0">Added ✓</span>
-              ) : (
-                <button
-                  type="button"
-                  disabled={isAdding}
-                  onClick={() => handleAdd(coach.id)}
-                  className="flex items-center gap-1 px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20 disabled:opacity-50 transition-colors shrink-0"
-                >
-                  <Plus className="w-3 h-3" />
-                  {isAdding ? '…' : 'Add'}
-                </button>
-              )}
-            </div>
-          )
-        })}
+      <div className="border-t border-border pt-5">
+        <IntelligenceSummary coachId={candidate.coach_id} />
       </div>
     </div>
   )
@@ -726,17 +679,11 @@ function CandidatePipeline({
   candidates,
   selectedId,
   onSelect,
-  mandateId,
 }: {
   candidates: Candidate[]
   selectedId: string | null
   onSelect: (id: string) => void
-  mandateId: string
 }) {
-  const [showSearch, setShowSearch] = useState(false)
-
-  const existingCoachIds = new Set(candidates.map((c) => c.coach_id))
-
   const byStage = CANDIDATE_STAGES.map((stage) => ({
     stage,
     items: candidates.filter((c) => c.candidate_stage === stage),
@@ -751,45 +698,17 @@ function CandidatePipeline({
     ...(unstaged.length > 0 ? [{ stage: 'Unassigned', items: unstaged }] : []),
   ]
 
-  if (showSearch) {
-    return (
-      <AddCandidatePanel
-        mandateId={mandateId}
-        existingCoachIds={existingCoachIds}
-        onBack={() => setShowSearch(false)}
-        onAdded={() => setShowSearch(false)}
-      />
-    )
-  }
-
   return (
     <div className="h-full overflow-y-auto space-y-4 pr-1">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Candidates</h2>
-        <button
-          type="button"
-          onClick={() => setShowSearch(true)}
-          className="flex items-center gap-1 px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20 transition-colors"
-        >
-          <Plus className="w-3 h-3" />
-          Add candidate
-        </button>
+        <span className="text-[10px] text-muted-foreground">{candidates.length} total</span>
       </div>
 
       {candidates.length === 0 && (
-        <div className="flex flex-col items-center gap-3 py-8 text-center">
-          <p className="text-xs text-muted-foreground">
-            No candidates yet. Add a coach to get started.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowSearch(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add candidate
-          </button>
-        </div>
+        <p className="text-xs text-muted-foreground py-4 text-center">
+          No candidates added yet. Use the Shortlist tab to add coaches to this mandate.
+        </p>
       )}
 
       {allGroups.map(({ stage, items }) => (
@@ -844,63 +763,15 @@ export function MandateWorkspaceClient({
   seasonResults,
   coachingHistory,
   stabilityMetrics,
-  longlistEntries,
 }: {
   mandate: Mandate
   shortlist: Candidate[]
   seasonResults: SeasonResult[]
   coachingHistory: CoachingRecord[]
   stabilityMetrics: StabilityMetrics
-  longlistEntries: LonglistEntryData[]
 }) {
-  const router = useRouter()
-
-  // Pipeline candidate selection (center = FitAssessment)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-
-  // Recommendation selection (center = MandateFitDetail)
-  const [recEntry, setRecEntry] = useState<LonglistEntryData | null>(null)
-  const [recFit, setRecFit] = useState<ParsedFit | null>(null)
-
-  // Right panel tab
-  const [rightTab, setRightTab] = useState<'recommendations' | 'pipeline'>('recommendations')
-
-  // Adding from fit-detail panel
-  const [addingFromDetail, setAddingFromDetail] = useState(false)
-
-  const existingCoachIds = new Set(shortlist.map((c) => c.coach_id))
-  const existingStages = new Map(shortlist.map((c) => [c.coach_id, c.candidate_stage]))
-
+  const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
-
-  function handleSelectRec(entry: LonglistEntryData, fit: ParsedFit) {
-    setRecEntry(entry)
-    setRecFit(fit)
-    setSelectedId(null) // clear pipeline selection
-  }
-
-  function handleSelectPipeline(id: string) {
-    setSelectedId(id)
-    setRecEntry(null)
-    setRecFit(null)
-  }
-
-  function handleBackFromDetail() {
-    setRecEntry(null)
-    setRecFit(null)
-  }
-
-  async function handleAddFromDetail(coachId: string) {
-    setAddingFromDetail(true)
-    const result = await addCandidateFromLonglistAction(mandate.id, coachId)
-    setAddingFromDetail(false)
-    if (!result.error || result.error === 'Already added') {
-      router.refresh()
-    }
-  }
-
-  // Center panel: show fit-detail if a recommendation is selected, else pipeline assessment
-  const showFitDetail = recEntry !== null && recFit !== null
 
   return (
     <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-12rem)]">
@@ -914,73 +785,18 @@ export function MandateWorkspaceClient({
         />
       </div>
 
-      {/* Center: Fit Detail or Fit Assessment */}
+      {/* Center: Fit Assessment */}
       <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
-        {showFitDetail ? (
-          <MandateFitDetail
-            entry={recEntry}
-            fit={recFit}
-            isInPipeline={existingCoachIds.has(recEntry.coach_id)}
-            pipelineStage={existingStages.get(recEntry.coach_id)}
-            isAdding={addingFromDetail}
-            onAdd={handleAddFromDetail}
-            onBack={handleBackFromDetail}
-          />
-        ) : (
-          <FitAssessment candidate={selectedCandidate} mandateId={mandate.id} />
-        )}
+        <FitAssessment candidate={selectedCandidate} mandateId={mandate.id} />
       </div>
 
-      {/* Right: Tab switcher + panel */}
-      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden flex flex-col gap-3">
-        {/* Tab switcher */}
-        <div className="flex gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => setRightTab('recommendations')}
-            className={cn(
-              'flex-1 h-7 rounded text-[10px] font-semibold uppercase tracking-wider transition-colors',
-              rightTab === 'recommendations'
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            Ranked
-          </button>
-          <button
-            type="button"
-            onClick={() => setRightTab('pipeline')}
-            className={cn(
-              'flex-1 h-7 rounded text-[10px] font-semibold uppercase tracking-wider transition-colors',
-              rightTab === 'pipeline'
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            Pipeline {shortlist.length > 0 && `(${shortlist.length})`}
-          </button>
-        </div>
-
-        {/* Panel content */}
-        <div className="flex-1 overflow-hidden">
-          {rightTab === 'recommendations' ? (
-            <MandateSearchPanel
-              mandateId={mandate.id}
-              initialEntries={longlistEntries}
-              existingCoachIds={existingCoachIds}
-              existingStages={existingStages}
-              onSelectEntry={handleSelectRec}
-              selectedCoachId={recEntry?.coach_id ?? null}
-            />
-          ) : (
-            <CandidatePipeline
-              candidates={shortlist}
-              selectedId={selectedId}
-              onSelect={handleSelectPipeline}
-              mandateId={mandate.id}
-            />
-          )}
-        </div>
+      {/* Right: Candidate Pipeline */}
+      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
+        <CandidatePipeline
+          candidates={shortlist}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
       </div>
     </div>
   )
