@@ -14,6 +14,7 @@ const TABS: { label: string; segment: string | null }[] = [
   { label: 'Similar', segment: 'similar' },
   { label: 'Data', segment: 'data' },
   { label: 'Risk & Intelligence', segment: 'risk' },
+  { label: 'Intelligence', segment: 'intelligence' },
   { label: 'Scoring', segment: 'scoring' },
   { label: 'Fit', segment: 'fit' },
 ]

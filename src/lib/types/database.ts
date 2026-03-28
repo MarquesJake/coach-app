@@ -1792,6 +1792,10 @@ export type Database = {
           verified: boolean | null
           verified_at: string | null
           verified_by: string | null
+          direction: string | null
+          sensitivity: string
+          mandate_id: string | null
+          is_deleted: boolean
         }
         Insert: {
           category?: string | null
@@ -1812,6 +1816,10 @@ export type Database = {
           verified?: boolean | null
           verified_at?: string | null
           verified_by?: string | null
+          direction?: string | null
+          sensitivity?: string
+          mandate_id?: string | null
+          is_deleted?: boolean
         }
         Update: {
           category?: string | null
@@ -1832,6 +1840,10 @@ export type Database = {
           verified?: boolean | null
           verified_at?: string | null
           verified_by?: string | null
+          direction?: string | null
+          sensitivity?: string
+          mandate_id?: string | null
+          is_deleted?: boolean
         }
         Relationships: []
       }
@@ -2301,6 +2313,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      watchlist_coaches: {
+        Row: { coach_id: string; user_id: string; added_at: string }
+        Insert: { coach_id: string; user_id: string; added_at?: string }
+        Update: { coach_id?: string; user_id?: string; added_at?: string }
+        Relationships: []
+      }
+      alerts: {
+        Row: { id: string; user_id: string; entity_type: string; entity_id: string; alert_type: string; title: string; detail: string | null; created_at: string; seen: boolean }
+        Insert: { id?: string; user_id: string; entity_type: string; entity_id: string; alert_type: string; title?: string; detail?: string | null; created_at?: string; seen?: boolean }
+        Update: { id?: string; user_id?: string; entity_type?: string; entity_id?: string; alert_type?: string; title?: string; detail?: string | null; created_at?: string; seen?: boolean }
+        Relationships: []
+      }
+      agents: {
+        Row: { id: string; user_id: string; full_name: string; agency_name: string | null; base_location: string | null; markets: string[]; languages: string[]; phone: string | null; email: string | null; whatsapp: string | null; preferred_contact_channel: string | null; notes: string | null; reliability_score: number | null; influence_score: number | null; responsiveness_score: number | null; risk_flag: boolean; risk_notes: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; full_name: string; agency_name?: string | null; base_location?: string | null; markets?: string[]; languages?: string[]; phone?: string | null; email?: string | null; whatsapp?: string | null; preferred_contact_channel?: string | null; notes?: string | null; reliability_score?: number | null; influence_score?: number | null; responsiveness_score?: number | null; risk_flag?: boolean; risk_notes?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; full_name?: string; agency_name?: string | null; base_location?: string | null; markets?: string[]; languages?: string[]; phone?: string | null; email?: string | null; whatsapp?: string | null; preferred_contact_channel?: string | null; notes?: string | null; reliability_score?: number | null; influence_score?: number | null; responsiveness_score?: number | null; risk_flag?: boolean; risk_notes?: string | null; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      coach_agents: {
+        Row: { id: string; user_id: string; coach_id: string; agent_id: string; relationship_type: string; started_on: string | null; ended_on: string | null; relationship_strength: number | null; confidence: number | null; notes: string | null; created_at: string }
+        Insert: { id?: string; user_id: string; coach_id: string; agent_id: string; relationship_type?: string; started_on?: string | null; ended_on?: string | null; relationship_strength?: number | null; confidence?: number | null; notes?: string | null; created_at?: string }
+        Update: { id?: string; user_id?: string; coach_id?: string; agent_id?: string; relationship_type?: string; started_on?: string | null; ended_on?: string | null; relationship_strength?: number | null; confidence?: number | null; notes?: string | null; created_at?: string }
+        Relationships: []
+      }
+      agent_club_relationships: {
+        Row: { id: string; user_id: string; agent_id: string; club_id: string; relationship_type: string; relationship_strength: number | null; last_active_on: string | null; notes: string | null; created_at: string }
+        Insert: { id?: string; user_id: string; agent_id: string; club_id: string; relationship_type?: string; relationship_strength?: number | null; last_active_on?: string | null; notes?: string | null; created_at?: string }
+        Update: { id?: string; user_id?: string; agent_id?: string; club_id?: string; relationship_type?: string; relationship_strength?: number | null; last_active_on?: string | null; notes?: string | null; created_at?: string }
+        Relationships: []
+      }
+      agent_interactions: {
+        Row: { id: string; user_id: string; agent_id: string; occurred_at: string; channel: string | null; direction: string | null; topic: string | null; summary: string; detail: string | null; sentiment: string | null; confidence: number | null; created_at: string; interaction_type: string | null; reliability_score: number | null; influence_score: number | null; follow_up_date: string | null; coach_id: string | null; club_id: string | null }
+        Insert: { id?: string; user_id: string; agent_id: string; occurred_at?: string; channel?: string | null; direction?: string | null; topic?: string | null; summary: string; detail?: string | null; sentiment?: string | null; confidence?: number | null; created_at?: string; interaction_type?: string | null; reliability_score?: number | null; influence_score?: number | null; follow_up_date?: string | null; coach_id?: string | null; club_id?: string | null }
+        Update: { id?: string; user_id?: string; agent_id?: string; occurred_at?: string; channel?: string | null; direction?: string | null; topic?: string | null; summary?: string; detail?: string | null; sentiment?: string | null; confidence?: number | null; created_at?: string; interaction_type?: string | null; reliability_score?: number | null; influence_score?: number | null; follow_up_date?: string | null; coach_id?: string | null; club_id?: string | null }
+        Relationships: []
+      }
+      agent_deals: {
+        Row: { id: string; user_id: string; agent_id: string; coach_id: string | null; club_id: string | null; deal_type: string; season: string | null; value_band: string | null; notes: string | null; occurred_on: string | null; created_at: string }
+        Insert: { id?: string; user_id: string; agent_id: string; coach_id?: string | null; club_id?: string | null; deal_type: string; season?: string | null; value_band?: string | null; notes?: string | null; occurred_on?: string | null; created_at?: string }
+        Update: { id?: string; user_id?: string; agent_id?: string; coach_id?: string | null; club_id?: string | null; deal_type?: string; season?: string | null; value_band?: string | null; notes?: string | null; occurred_on?: string | null; created_at?: string }
+        Relationships: []
+      }
+      coach_similarity: {
+        Row: { coach_a_id: string; coach_b_id: string; similarity_score: number; breakdown: unknown; computed_at: string }
+        Insert: { coach_a_id: string; coach_b_id: string; similarity_score: number; breakdown?: unknown; computed_at?: string }
+        Update: { coach_a_id?: string; coach_b_id?: string; similarity_score?: number; breakdown?: unknown; computed_at?: string }
+        Relationships: []
+      }
+      scoring_models: {
+        Row: { id: string; name: string; version: string; weights: unknown; created_at: string }
+        Insert: { id?: string; name: string; version: string; weights?: unknown; created_at?: string }
+        Update: { id?: string; name?: string; version?: string; weights?: unknown; created_at?: string }
+        Relationships: []
+      }
+      coach_scores: {
+        Row: { id: string; coach_id: string; scoring_model_id: string; overall_score: number | null; tactical_score: number | null; leadership_score: number | null; recruitment_score: number | null; risk_score: number | null; media_score: number | null; confidence_score: number | null; inputs_snapshot: unknown; explanation: unknown; computed_at: string }
+        Insert: { id?: string; coach_id: string; scoring_model_id: string; overall_score?: number | null; tactical_score?: number | null; leadership_score?: number | null; recruitment_score?: number | null; risk_score?: number | null; media_score?: number | null; confidence_score?: number | null; inputs_snapshot?: unknown; explanation?: unknown; computed_at?: string }
+        Update: { id?: string; coach_id?: string; scoring_model_id?: string; overall_score?: number | null; tactical_score?: number | null; leadership_score?: number | null; recruitment_score?: number | null; risk_score?: number | null; media_score?: number | null; confidence_score?: number | null; inputs_snapshot?: unknown; explanation?: unknown; computed_at?: string }
+        Relationships: []
+      }
+      activity_log: {
+        Row: {
+          id: string
+          user_id: string
+          entity_type: string
+          entity_id: string
+          action_type: string
+          description: string
+          metadata: Json | null
+          created_at: string
+          before_data: Json | null
+          after_data: Json | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          entity_type: string
+          entity_id: string
+          action_type: string
+          description: string
+          metadata?: Json | null
+          created_at?: string
+          before_data?: Json | null
+          after_data?: Json | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          entity_type?: string
+          entity_id?: string
+          action_type?: string
+          description?: string
+          metadata?: Json | null
+          created_at?: string
+          before_data?: Json | null
+          after_data?: Json | null
+        }
+        Relationships: []
+      }
+      demo_seeds: {
+        Row: { id: string; user_id: string; created_at: string; updated_at: string; version: number }
+        Insert: { id?: string; user_id: string; created_at?: string; updated_at?: string; version?: number }
+        Update: { id?: string; user_id?: string; created_at?: string; updated_at?: string; version?: number }
+        Relationships: []
       }
     }
     Views: {

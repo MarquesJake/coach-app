@@ -18,6 +18,17 @@ export async function listInteractionsForAgent(userId: string, agentId: string, 
   return { data: (data ?? []) as InteractionRow[], error }
 }
 
+export async function listInteractionsGlobal(userId: string, limit = 100) {
+  const supabase = db()
+  const { data, error } = await supabase
+    .from('agent_interactions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('occurred_at', { ascending: false })
+    .limit(limit)
+  return { data: (data ?? []) as InteractionRow[], error }
+}
+
 export async function createInteraction(userId: string, input: Omit<InteractionInsert, 'user_id' | 'id'>) {
   const supabase = db()
   return supabase
