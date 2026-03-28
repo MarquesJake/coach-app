@@ -28,6 +28,9 @@ export async function createIntelligenceItemAction(input: {
   occurred_at?: string | null
   verified?: boolean
   verified_by?: string | null
+  direction?: string | null
+  sensitivity?: string | null
+  mandate_id?: string | null
 }) {
   const { supabase, user } = await requireUser()
   const allowed = ['coach', 'staff', 'club', 'mandate']
@@ -55,6 +58,9 @@ export async function createIntelligenceItemAction(input: {
       verified,
       verified_at,
       verified_by: input.verified_by?.trim() || null,
+      direction: input.direction?.trim() || null,
+      sensitivity: input.sensitivity?.trim() || 'Standard',
+      mandate_id: input.mandate_id?.trim() || null,
     })
     .select('id')
     .single()

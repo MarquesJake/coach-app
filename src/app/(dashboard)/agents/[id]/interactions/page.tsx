@@ -13,7 +13,21 @@ export default async function AgentInteractionsPage({ params }: { params: Promis
   const { data: agent } = await getAgentById(user.id, id)
   if (!agent) return null
 
-  const { data: interactions } = await listInteractionsForAgent(user.id, id)
+  const [interactionsRes, coachesRes, clubsRes] = await Promise.all([
+    listInteractionsForAgent(user.id, id),
+    supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name'),
+    supabase.from('clubs').select('id, name').eq('user_id', user.id).order('name'),
+  ])
 
-  return <AgentInteractionsClient agentId={id} interactions={interactions ?? []} />
+  const coaches = (coachesRes.data ?? []).map((c) => ({ id: c.id, name: (c as { name: string }).name }))
+  const clubs = (clubsRes.data ?? []).map((c) => ({ id: c.id, name: (c as { name: string }).name }))
+
+  return (
+    <AgentInteractionsClient
+      agentId={id}
+      interactions={interactionsRes.data ?? []}
+      coaches={coaches}
+      clubs={clubs}
+    />
+  )
 }

@@ -232,6 +232,12 @@ export async function createAgentInteractionAction(payload: {
   detail?: string | null
   sentiment?: string | null
   confidence?: number | null
+  interaction_type?: string | null
+  reliability_score?: number | null
+  influence_score?: number | null
+  follow_up_date?: string | null
+  coach_id?: string | null
+  club_id?: string | null
 }): Promise<Result> {
   try {
     const { user } = await requireUser()
@@ -245,10 +251,17 @@ export async function createAgentInteractionAction(payload: {
       detail: payload.detail?.trim() ?? null,
       sentiment: payload.sentiment ?? null,
       confidence: payload.confidence ?? null,
+      interaction_type: payload.interaction_type ?? null,
+      reliability_score: payload.reliability_score ?? null,
+      influence_score: payload.influence_score ?? null,
+      follow_up_date: payload.follow_up_date ?? null,
+      coach_id: payload.coach_id ?? null,
+      club_id: payload.club_id ?? null,
     })
     if (error) return { ok: false, error: error.message ?? 'Failed to add interaction' }
     revalidatePath(`/agents/${payload.agent_id}`)
     revalidatePath(`/agents/${payload.agent_id}/interactions`)
+    revalidatePath('/intelligence')
     return { ok: true }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
