@@ -25,6 +25,7 @@ const workspaceNav = [
 const intelligenceNav = [
   { label: 'Coaches', href: '/coaches', icon: Users },
   { label: 'Clubs', href: '/clubs', icon: Building2 },
+  { label: 'Intelligence', href: '/intelligence', icon: Radio },
 ]
 
 const networkNav = [
@@ -33,7 +34,6 @@ const networkNav = [
 ]
 
 const adminNav = [
-  { label: 'Signals', href: '/intelligence', icon: Radio },
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Data tools', href: '/admin/data-tools', icon: Database },
 ]
