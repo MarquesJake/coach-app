@@ -13,6 +13,9 @@ import {
   type IntelligenceAdjustment,
 } from '@/lib/intelligence/coach-intel-signals'
 import { ShieldAlert, TrendingUp, Info, Loader2, AlertTriangle } from 'lucide-react'
+import { MandateSearchPanel, type ParsedFit } from './mandate-search-panel'
+import { MandateFitDetail } from './mandate-fit-detail'
+import { addCandidateFromLonglistAction, type LonglistEntryData } from '../../../actions-longlist'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -885,15 +888,66 @@ export function MandateWorkspaceClient({
   seasonResults,
   coachingHistory,
   stabilityMetrics,
+  longlistEntries,
 }: {
   mandate: Mandate
   shortlist: Candidate[]
   seasonResults: SeasonResult[]
   coachingHistory: CoachingRecord[]
   stabilityMetrics: StabilityMetrics
+  longlistEntries: LonglistEntryData[]
 }) {
+  // ── Pipeline state ─────────────────────────────────────────────────────────
   const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
+
+  // ── Recommendations state ──────────────────────────────────────────────────
+  const [rightTab, setRightTab] = useState<'pipeline' | 'recommendations'>(
+    shortlist.length === 0 && longlistEntries.length > 0 ? 'recommendations' : 'pipeline'
+  )
+  const [selectedRecoEntry, setSelectedRecoEntry] = useState<LonglistEntryData | null>(null)
+  const [selectedRecoFit, setSelectedRecoFit] = useState<ParsedFit | null>(null)
+  const [addingId, setAddingId] = useState<string | null>(null)
+  const [addedThisSession, setAddedThisSession] = useState<Set<string>>(new Set())
+
+  // Sets for MandateSearchPanel to know pipeline membership
+  const existingCoachIds = new Set(shortlist.map((c) => c.coach_id))
+  const existingStages = new Map(shortlist.map((c) => [c.coach_id, c.candidate_stage]))
+
+  // Merge session additions into the sets
+  addedThisSession.forEach((id) => existingCoachIds.add(id))
+
+  async function handleAddFromReco(coachId: string) {
+    setAddingId(coachId)
+    const result = await addCandidateFromLonglistAction(mandate.id, coachId)
+    setAddingId(null)
+    if (!result.error || result.error === 'Already added') {
+      setAddedThisSession((prev) => new Set(prev).add(coachId))
+    }
+  }
+
+  function handleSelectReco(entry: LonglistEntryData, fit: ParsedFit) {
+    setSelectedRecoEntry(entry)
+    setSelectedRecoFit(fit)
+  }
+
+  // ── Center panel content ───────────────────────────────────────────────────
+  function renderCenter() {
+    if (rightTab === 'recommendations' && selectedRecoEntry && selectedRecoFit) {
+      return (
+        <MandateFitDetail
+          entry={selectedRecoEntry}
+          fit={selectedRecoFit}
+          isInPipeline={existingCoachIds.has(selectedRecoEntry.coach_id)}
+          pipelineStage={existingStages.get(selectedRecoEntry.coach_id)}
+          isAdding={addingId === selectedRecoEntry.coach_id}
+          onAdd={handleAddFromReco}
+          onBack={() => { setSelectedRecoEntry(null); setSelectedRecoFit(null) }}
+        />
+      )
+    }
+    return <FitAssessment candidate={selectedCandidate} mandateId={mandate.id} />
+  }
 
   return (
     <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-12rem)]">
@@ -907,18 +961,70 @@ export function MandateWorkspaceClient({
         />
       </div>
 
-      {/* Center: Fit Assessment */}
+      {/* Center: Fit Assessment or Fit Detail */}
       <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
-        <FitAssessment candidate={selectedCandidate} mandateId={mandate.id} />
+        {renderCenter()}
       </div>
 
-      {/* Right: Candidate Pipeline */}
-      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
-        <CandidatePipeline
-          candidates={shortlist}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-        />
+      {/* Right: Pipeline / Recommendations tabs */}
+      <div className="rounded-lg border border-border bg-card overflow-hidden flex flex-col">
+        {/* Tab bar */}
+        <div className="flex border-b border-border shrink-0">
+          <button
+            type="button"
+            onClick={() => setRightTab('pipeline')}
+            className={cn(
+              'flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors',
+              rightTab === 'pipeline'
+                ? 'text-foreground border-b-2 border-primary -mb-px'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Pipeline
+            {shortlist.length > 0 && (
+              <span className="ml-1 tabular-nums text-muted-foreground">({shortlist.length})</span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setRightTab('recommendations'); setSelectedId(null) }}
+            className={cn(
+              'flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors',
+              rightTab === 'recommendations'
+                ? 'text-foreground border-b-2 border-primary -mb-px'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Scored
+            {longlistEntries.length > 0 && (
+              <span className="ml-1 tabular-nums text-muted-foreground">({longlistEntries.length})</span>
+            )}
+          </button>
+        </div>
+
+        {/* Tab content */}
+        <div className="flex-1 overflow-hidden p-4">
+          {rightTab === 'pipeline' ? (
+            <CandidatePipeline
+              candidates={shortlist}
+              selectedId={selectedId}
+              onSelect={(id) => {
+                setSelectedId(id)
+                setSelectedRecoEntry(null)
+                setSelectedRecoFit(null)
+              }}
+            />
+          ) : (
+            <MandateSearchPanel
+              mandateId={mandate.id}
+              initialEntries={longlistEntries}
+              existingCoachIds={existingCoachIds}
+              existingStages={existingStages}
+              onSelectEntry={handleSelectReco}
+              selectedCoachId={selectedRecoEntry?.coach_id ?? null}
+            />
+          )}
+        </div>
       </div>
     </div>
   )
