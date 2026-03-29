@@ -15,6 +15,92 @@ type SeasonRow = {
   data_source?: string
 }
 
+// ── Performance trend chart ──────────────────────────────────────────────────
+// Pure CSS/SVG bars — no chart library needed.
+// Position is inverted: 1st = tallest bar. Chart height = 64px.
+
+const CHART_H = 64
+const BAR_W = 28
+const BAR_GAP = 10
+
+function positionBarColor(pos: number, maxPos: number): string {
+  const pct = 1 - (pos - 1) / Math.max(maxPos - 1, 1) // 1.0 = 1st, 0.0 = last
+  if (pct >= 0.8) return 'fill-emerald-400'
+  if (pct >= 0.5) return 'fill-amber-400'
+  return 'fill-red-400'
+}
+
+function PerformanceTrendChart({ rows }: { rows: SeasonRow[] }) {
+  const withPos = [...rows]
+    .filter(r => r.league_position != null)
+    .sort((a, b) => a.season.localeCompare(b.season))
+    .slice(-5)
+
+  if (withPos.length < 2) return null
+
+  const maxPos = Math.max(...withPos.map(r => r.league_position!))
+
+  const svgW = withPos.length * (BAR_W + BAR_GAP) - BAR_GAP + 2
+
+  return (
+    <div className="px-6 py-4 border-b border-border">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">League position trend</p>
+      <div className="flex items-end gap-0 overflow-x-auto">
+        <svg
+          width={svgW}
+          height={CHART_H + 22}
+          className="shrink-0"
+          aria-label="League position trend chart"
+        >
+          {withPos.map((row, i) => {
+            const pos = row.league_position!
+            // invert: pos=1 → full height, pos=maxPos → ~15% height
+            const barH = Math.max(10, Math.round(CHART_H * (1 - (pos - 1) / Math.max(maxPos, 1)) * 0.88 + CHART_H * 0.12))
+            const x = i * (BAR_W + BAR_GAP)
+            const y = CHART_H - barH
+            const seasonShort = row.season.replace('/20', '/').replace(/^20/, "'")
+            return (
+              <g key={row.id}>
+                <rect
+                  x={x}
+                  y={y}
+                  width={BAR_W}
+                  height={barH}
+                  rx={3}
+                  className={positionBarColor(pos, maxPos)}
+                  opacity={0.85}
+                />
+                {/* Position label inside bar */}
+                <text
+                  x={x + BAR_W / 2}
+                  y={y + 14}
+                  textAnchor="middle"
+                  className="fill-background text-[10px] font-bold"
+                  fontSize={10}
+                  fontWeight={700}
+                >
+                  {pos}
+                </text>
+                {/* Season label below */}
+                <text
+                  x={x + BAR_W / 2}
+                  y={CHART_H + 14}
+                  textAnchor="middle"
+                  className="fill-muted-foreground"
+                  fontSize={9}
+                >
+                  {seasonShort}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+      <p className="text-[10px] text-muted-foreground mt-2">Lower position = taller bar · Last {withPos.length} seasons with data</p>
+    </div>
+  )
+}
+
 function PositionTrend({ rows }: { rows: SeasonRow[] }) {
   if (rows.length < 2) return null
   const sorted = [...rows].sort((a, b) => a.season.localeCompare(b.season))
@@ -185,6 +271,8 @@ export function ClubSeasonResultsSection({ clubId }: { clubId: string }) {
           </div>
         </form>
       )}
+
+      {!loading && rows.length >= 2 && <PerformanceTrendChart rows={rows} />}
 
       {loading ? (
         <div className="px-6 py-4">

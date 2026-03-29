@@ -14,753 +14,398 @@ export type Database = {
   }
   public: {
     Tables: {
-      activity_log: {
+      clubs: {
         Row: {
-          action_type: string
-          created_at: string | null
+          country: string
+          created_at: string
+          updated_at: string
+          id: string
+          league: string
+          name: string
+          notes: string | null
+          ownership_model: string
+          tier: string | null
+          user_id: string
+          tactical_model: string | null
+          pressing_model: string | null
+          build_model: string | null
+          board_risk_tolerance: string | null
+          ownership_style: string | null
+          sporting_structure: string | null
+          strategic_priority: string | null
+          budget_ceiling: string | null
+          governance_complexity: string | null
+          instability_risk: string | null
+          external_id: string | null
+          external_source: string | null
+          badge_url: string | null
           description: string | null
-          entity_id: string
-          entity_type: string
-          id: string
-          metadata: Json | null
-          user_id: string | null
+          stadium: string | null
+          founded_year: string | null
+          id_league: string | null
+          current_manager: string | null
+          website: string | null
+          stadium_location: string | null
+          stadium_capacity: string | null
+          last_synced_at: string | null
+          wikidata_id: string | null
+          wikidata_synced_at: string | null
+          market_reputation: string | null
+          media_pressure: string | null
+          environment_assessment: string | null
+          development_vs_win_now: string | null
         }
         Insert: {
-          action_type: string
-          created_at?: string | null
+          country: string
+          created_at?: string
+          updated_at?: string
+          id?: string
+          league: string
+          name: string
+          notes?: string | null
+          ownership_model?: string
+          tier?: string | null
+          user_id: string
+          tactical_model?: string | null
+          pressing_model?: string | null
+          build_model?: string | null
+          board_risk_tolerance?: string | null
+          ownership_style?: string | null
+          sporting_structure?: string | null
+          strategic_priority?: string | null
+          budget_ceiling?: string | null
+          governance_complexity?: string | null
+          instability_risk?: string | null
+          external_id?: string | null
+          external_source?: string | null
+          badge_url?: string | null
           description?: string | null
-          entity_id: string
-          entity_type: string
-          id?: string
-          metadata?: Json | null
-          user_id?: string | null
+          stadium?: string | null
+          founded_year?: string | null
+          id_league?: string | null
+          current_manager?: string | null
+          website?: string | null
+          stadium_location?: string | null
+          stadium_capacity?: string | null
+          last_synced_at?: string | null
+          wikidata_id?: string | null
+          wikidata_synced_at?: string | null
+          market_reputation?: string | null
+          media_pressure?: string | null
+          environment_assessment?: string | null
+          development_vs_win_now?: string | null
         }
         Update: {
-          action_type?: string
-          created_at?: string | null
+          country?: string
+          created_at?: string
+          updated_at?: string
+          id?: string
+          league?: string
+          name?: string
+          notes?: string | null
+          ownership_model?: string
+          tier?: string | null
+          user_id?: string
+          tactical_model?: string | null
+          pressing_model?: string | null
+          build_model?: string | null
+          board_risk_tolerance?: string | null
+          ownership_style?: string | null
+          sporting_structure?: string | null
+          strategic_priority?: string | null
+          budget_ceiling?: string | null
+          governance_complexity?: string | null
+          instability_risk?: string | null
+          external_id?: string | null
+          external_source?: string | null
+          badge_url?: string | null
           description?: string | null
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          metadata?: Json | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      agent_club_relationships: {
-        Row: {
-          agent_id: string
-          club_id: string
-          created_at: string | null
-          ended_on: string | null
-          id: string
-          influence_level: number | null
-          notes: string | null
-          relationship_type: string | null
-          started_on: string | null
-          user_id: string
-        }
-        Insert: {
-          agent_id: string
-          club_id: string
-          created_at?: string | null
-          ended_on?: string | null
-          id?: string
-          influence_level?: number | null
-          notes?: string | null
-          relationship_type?: string | null
-          started_on?: string | null
-          user_id: string
-        }
-        Update: {
-          agent_id?: string
-          club_id?: string
-          created_at?: string | null
-          ended_on?: string | null
-          id?: string
-          influence_level?: number | null
-          notes?: string | null
-          relationship_type?: string | null
-          started_on?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agent_club_relationships_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agent_club_relationships_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agent_deals: {
-        Row: {
-          agent_id: string
-          club_id: string | null
-          coach_id: string | null
-          created_at: string
-          deal_type: string
-          id: string
-          notes: string | null
-          occurred_on: string | null
-          season: string | null
-          user_id: string
-          value_band: string | null
-        }
-        Insert: {
-          agent_id: string
-          club_id?: string | null
-          coach_id?: string | null
-          created_at?: string
-          deal_type: string
-          id?: string
-          notes?: string | null
-          occurred_on?: string | null
-          season?: string | null
-          user_id: string
-          value_band?: string | null
-        }
-        Update: {
-          agent_id?: string
-          club_id?: string | null
-          coach_id?: string | null
-          created_at?: string
-          deal_type?: string
-          id?: string
-          notes?: string | null
-          occurred_on?: string | null
-          season?: string | null
-          user_id?: string
-          value_band?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agent_deals_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agent_deals_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agent_deals_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agent_interactions: {
-        Row: {
-          agent_id: string
-          channel: string | null
-          confidence: number | null
-          created_at: string
-          detail: string | null
-          direction: string | null
-          id: string
-          occurred_at: string
-          sentiment: string | null
-          summary: string
-          topic: string | null
-          user_id: string
-        }
-        Insert: {
-          agent_id: string
-          channel?: string | null
-          confidence?: number | null
-          created_at?: string
-          detail?: string | null
-          direction?: string | null
-          id?: string
-          occurred_at?: string
-          sentiment?: string | null
-          summary: string
-          topic?: string | null
-          user_id: string
-        }
-        Update: {
-          agent_id?: string
-          channel?: string | null
-          confidence?: number | null
-          created_at?: string
-          detail?: string | null
-          direction?: string | null
-          id?: string
-          occurred_at?: string
-          sentiment?: string | null
-          summary?: string
-          topic?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agent_interactions_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agents: {
-        Row: {
-          agency_name: string | null
-          base_location: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string
-          id: string
-          influence_score: number | null
-          languages: string[] | null
-          markets: string[] | null
-          notes: string | null
-          phone: string | null
-          preferred_contact_channel: string | null
-          reliability_score: number | null
-          responsiveness_score: number | null
-          risk_flag: boolean | null
-          risk_notes: string | null
-          updated_at: string | null
-          user_id: string
-          whatsapp: string | null
-        }
-        Insert: {
-          agency_name?: string | null
-          base_location?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name: string
-          id?: string
-          influence_score?: number | null
-          languages?: string[] | null
-          markets?: string[] | null
-          notes?: string | null
-          phone?: string | null
-          preferred_contact_channel?: string | null
-          reliability_score?: number | null
-          responsiveness_score?: number | null
-          risk_flag?: boolean | null
-          risk_notes?: string | null
-          updated_at?: string | null
-          user_id: string
-          whatsapp?: string | null
-        }
-        Update: {
-          agency_name?: string | null
-          base_location?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string
-          id?: string
-          influence_score?: number | null
-          languages?: string[] | null
-          markets?: string[] | null
-          notes?: string | null
-          phone?: string | null
-          preferred_contact_channel?: string | null
-          reliability_score?: number | null
-          responsiveness_score?: number | null
-          risk_flag?: boolean | null
-          risk_notes?: string | null
-          updated_at?: string | null
-          user_id?: string
-          whatsapp?: string | null
-        }
-        Relationships: []
-      }
-      alerts: {
-        Row: {
-          alert_type: string
-          created_at: string
-          detail: string | null
-          entity_id: string
-          entity_type: string
-          id: string
-          is_seen: boolean
-          org_id: string | null
-          seen_at: string | null
-          title: string
-          user_id: string
-        }
-        Insert: {
-          alert_type: string
-          created_at?: string
-          detail?: string | null
-          entity_id: string
-          entity_type: string
-          id?: string
-          is_seen?: boolean
-          org_id?: string | null
-          seen_at?: string | null
-          title?: string
-          user_id: string
-        }
-        Update: {
-          alert_type?: string
-          created_at?: string
-          detail?: string | null
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          is_seen?: boolean
-          org_id?: string | null
-          seen_at?: string | null
-          title?: string
-          user_id?: string
+          stadium?: string | null
+          founded_year?: string | null
+          id_league?: string | null
+          current_manager?: string | null
+          website?: string | null
+          stadium_location?: string | null
+          stadium_capacity?: string | null
+          last_synced_at?: string | null
+          wikidata_id?: string | null
+          wikidata_synced_at?: string | null
+          market_reputation?: string | null
+          media_pressure?: string | null
+          environment_assessment?: string | null
+          development_vs_win_now?: string | null
         }
         Relationships: []
       }
       club_coaching_history: {
         Row: {
+          id: string
+          user_id: string
           club_id: string
           coach_name: string
+          start_date: string | null
+          end_date: string | null
+          reason_for_exit: string | null
+          style_tags: string[]
           created_at: string
           data_source: string
-          end_date: string | null
-          end_date_approx: boolean
-          id: string
-          reason_for_exit: string | null
-          start_date: string | null
-          start_date_approx: boolean
-          style_tags: string[]
-          user_id: string
           wikidata_id: string | null
+          start_date_approx: boolean
+          end_date_approx: boolean
         }
         Insert: {
+          id?: string
+          user_id: string
           club_id: string
           coach_name: string
+          start_date?: string | null
+          end_date?: string | null
+          reason_for_exit?: string | null
+          style_tags?: string[]
           created_at?: string
           data_source?: string
-          end_date?: string | null
-          end_date_approx?: boolean
-          id?: string
-          reason_for_exit?: string | null
-          start_date?: string | null
-          start_date_approx?: boolean
-          style_tags?: string[]
-          user_id: string
           wikidata_id?: string | null
+          start_date_approx?: boolean
+          end_date_approx?: boolean
         }
         Update: {
+          id?: string
+          user_id?: string
           club_id?: string
           coach_name?: string
+          start_date?: string | null
+          end_date?: string | null
+          reason_for_exit?: string | null
+          style_tags?: string[]
           created_at?: string
           data_source?: string
-          end_date?: string | null
-          end_date_approx?: boolean
-          id?: string
-          reason_for_exit?: string | null
-          start_date?: string | null
-          start_date_approx?: boolean
-          style_tags?: string[]
-          user_id?: string
           wikidata_id?: string | null
+          start_date_approx?: boolean
+          end_date_approx?: boolean
         }
-        Relationships: [
-          {
-            foreignKeyName: "club_coaching_history_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: [{ foreignKeyName: "club_coaching_history_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
+      }
+      club_pathway_data: {
+        Row: {
+          id: string
+          user_id: string
+          club_id: string
+          season: string
+          academy_debuts: number | null
+          u21_minutes_percentage: number | null
+          internal_promotions: number | null
+          notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          club_id: string
+          season: string
+          academy_debuts?: number | null
+          u21_minutes_percentage?: number | null
+          internal_promotions?: number | null
+          notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          club_id?: string
+          season?: string
+          academy_debuts?: number | null
+          u21_minutes_percentage?: number | null
+          internal_promotions?: number | null
+          notes?: string | null
+          created_at?: string
+        }
+        Relationships: [{ foreignKeyName: "club_pathway_data_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
+      }
+      club_transfers: {
+        Row: {
+          id: string
+          user_id: string
+          club_id: string
+          player_name: string
+          direction: string
+          fee_band: string | null
+          fee_amount: number | null
+          fee_currency: string | null
+          age_at_transfer: number | null
+          nationality: string | null
+          position: string | null
+          other_club: string | null
+          transfer_type: string | null
+          transfer_date: string | null
+          season: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          club_id: string
+          player_name: string
+          direction: string
+          fee_band?: string | null
+          fee_amount?: number | null
+          fee_currency?: string | null
+          age_at_transfer?: number | null
+          nationality?: string | null
+          position?: string | null
+          other_club?: string | null
+          transfer_type?: string | null
+          transfer_date?: string | null
+          season?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          club_id?: string
+          player_name?: string
+          direction?: string
+          fee_band?: string | null
+          fee_amount?: number | null
+          fee_currency?: string | null
+          age_at_transfer?: number | null
+          nationality?: string | null
+          position?: string | null
+          other_club?: string | null
+          transfer_type?: string | null
+          transfer_date?: string | null
+          season?: string | null
+          created_at?: string
+        }
+        Relationships: [{ foreignKeyName: "club_transfers_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
       }
       club_data_sync_log: {
         Row: {
-          club_id: string
-          error: string | null
           id: string
-          result: Json | null
-          sync_at: string
-          sync_type: string
+          club_id: string
           user_id: string
+          sync_type: string
+          sync_at: string
+          result: Json | null
+          error: string | null
         }
         Insert: {
-          club_id: string
-          error?: string | null
           id?: string
-          result?: Json | null
-          sync_at?: string
-          sync_type: string
+          club_id: string
           user_id: string
+          sync_type: string
+          sync_at?: string
+          result?: Json | null
+          error?: string | null
         }
         Update: {
-          club_id?: string
-          error?: string | null
           id?: string
-          result?: Json | null
-          sync_at?: string
-          sync_type?: string
+          club_id?: string
           user_id?: string
+          sync_type?: string
+          sync_at?: string
+          result?: Json | null
+          error?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "club_data_sync_log_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
+          { foreignKeyName: "club_data_sync_log_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] },
+          { foreignKeyName: "club_data_sync_log_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }
         ]
       }
       club_season_results: {
         Row: {
-          club_id: string
-          created_at: string
-          data_source: string
-          goals_against: number | null
-          goals_for: number | null
           id: string
+          user_id: string
+          club_id: string
+          season: string
           league_label: string | null
           league_position: number | null
           points: number | null
-          season: string
-          user_id: string
-        }
-        Insert: {
-          club_id: string
-          created_at?: string
-          data_source?: string
-          goals_against?: number | null
-          goals_for?: number | null
-          id?: string
-          league_label?: string | null
-          league_position?: number | null
-          points?: number | null
-          season: string
-          user_id: string
-        }
-        Update: {
-          club_id?: string
-          created_at?: string
-          data_source?: string
-          goals_against?: number | null
-          goals_for?: number | null
-          id?: string
-          league_label?: string | null
-          league_position?: number | null
-          points?: number | null
-          season?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "club_season_results_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      club_squad: {
-        Row: {
-          age: number | null
-          club_id: string
-          id: string
-          name: string
-          number: number | null
-          photo_url: string | null
-          player_id: number
-          position: string | null
-          season: string
-          synced_at: string
-          user_id: string
-        }
-        Insert: {
-          age?: number | null
-          club_id: string
-          id?: string
-          name: string
-          number?: number | null
-          photo_url?: string | null
-          player_id: number
-          position?: string | null
-          season?: string
-          synced_at?: string
-          user_id: string
-        }
-        Update: {
-          age?: number | null
-          club_id?: string
-          id?: string
-          name?: string
-          number?: number | null
-          photo_url?: string | null
-          player_id?: number
-          position?: string | null
-          season?: string
-          synced_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "club_squad_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      club_transfers: {
-        Row: {
-          club_id: string
-          direction: string
-          fee_amount: number | null
-          fee_currency: string | null
-          id: string
-          other_club: string | null
-          player_id: number | null
-          player_name: string
-          season: string | null
-          synced_at: string
-          transfer_date: string | null
-          transfer_type: string | null
-          user_id: string
-        }
-        Insert: {
-          club_id: string
-          direction: string
-          fee_amount?: number | null
-          fee_currency?: string | null
-          id?: string
-          other_club?: string | null
-          player_id?: number | null
-          player_name: string
-          season?: string | null
-          synced_at?: string
-          transfer_date?: string | null
-          transfer_type?: string | null
-          user_id: string
-        }
-        Update: {
-          club_id?: string
-          direction?: string
-          fee_amount?: number | null
-          fee_currency?: string | null
-          id?: string
-          other_club?: string | null
-          player_id?: number | null
-          player_name?: string
-          season?: string | null
-          synced_at?: string
-          transfer_date?: string | null
-          transfer_type?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "club_transfers_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      clubs: {
-        Row: {
-          badge_url: string | null
-          board_risk_tolerance: string | null
-          budget_ceiling: string | null
-          build_model: string | null
-          coaches_synced_at: string | null
-          country: string
+          goals_for: number | null
+          goals_against: number | null
           created_at: string
-          current_manager: string | null
-          description: string | null
-          development_vs_win_now: string | null
-          environment_assessment: string | null
-          external_id: string | null
-          external_source: string | null
-          founded_year: string | null
-          governance_complexity: string | null
-          id: string
-          id_league: string | null
-          instability_risk: string | null
-          last_synced_at: string | null
-          league: string
-          market_reputation: string | null
-          media_pressure: string | null
-          name: string
-          notes: string | null
-          ownership_model: string
-          ownership_style: string | null
-          pressing_model: string | null
-          sporting_structure: string | null
-          squad_synced_at: string | null
-          stadium: string | null
-          stadium_capacity: string | null
-          stadium_location: string | null
-          strategic_priority: string | null
-          tactical_model: string | null
-          tier: string | null
-          transfers_synced_at: string | null
-          updated_at: string
-          user_id: string
-          website: string | null
-          wikidata_id: string | null
-          wikidata_synced_at: string | null
+          data_source: string
         }
         Insert: {
-          badge_url?: string | null
-          board_risk_tolerance?: string | null
-          budget_ceiling?: string | null
-          build_model?: string | null
-          coaches_synced_at?: string | null
-          country: string
-          created_at?: string
-          current_manager?: string | null
-          description?: string | null
-          development_vs_win_now?: string | null
-          environment_assessment?: string | null
-          external_id?: string | null
-          external_source?: string | null
-          founded_year?: string | null
-          governance_complexity?: string | null
           id?: string
-          id_league?: string | null
-          instability_risk?: string | null
-          last_synced_at?: string | null
-          league: string
-          market_reputation?: string | null
-          media_pressure?: string | null
-          name: string
-          notes?: string | null
-          ownership_model?: string
-          ownership_style?: string | null
-          pressing_model?: string | null
-          sporting_structure?: string | null
-          squad_synced_at?: string | null
-          stadium?: string | null
-          stadium_capacity?: string | null
-          stadium_location?: string | null
-          strategic_priority?: string | null
-          tactical_model?: string | null
-          tier?: string | null
-          transfers_synced_at?: string | null
-          updated_at?: string
           user_id: string
-          website?: string | null
-          wikidata_id?: string | null
-          wikidata_synced_at?: string | null
+          club_id: string
+          season: string
+          league_label?: string | null
+          league_position?: number | null
+          points?: number | null
+          goals_for?: number | null
+          goals_against?: number | null
+          created_at?: string
+          data_source?: string
         }
         Update: {
-          badge_url?: string | null
-          board_risk_tolerance?: string | null
-          budget_ceiling?: string | null
-          build_model?: string | null
-          coaches_synced_at?: string | null
-          country?: string
-          created_at?: string
-          current_manager?: string | null
-          description?: string | null
-          development_vs_win_now?: string | null
-          environment_assessment?: string | null
-          external_id?: string | null
-          external_source?: string | null
-          founded_year?: string | null
-          governance_complexity?: string | null
           id?: string
-          id_league?: string | null
-          instability_risk?: string | null
-          last_synced_at?: string | null
-          league?: string
-          market_reputation?: string | null
-          media_pressure?: string | null
-          name?: string
-          notes?: string | null
-          ownership_model?: string
-          ownership_style?: string | null
-          pressing_model?: string | null
-          sporting_structure?: string | null
-          squad_synced_at?: string | null
-          stadium?: string | null
-          stadium_capacity?: string | null
-          stadium_location?: string | null
-          strategic_priority?: string | null
-          tactical_model?: string | null
-          tier?: string | null
-          transfers_synced_at?: string | null
-          updated_at?: string
           user_id?: string
-          website?: string | null
-          wikidata_id?: string | null
-          wikidata_synced_at?: string | null
+          club_id?: string
+          season?: string
+          league_label?: string | null
+          league_position?: number | null
+          points?: number | null
+          goals_for?: number | null
+          goals_against?: number | null
+          created_at?: string
+          data_source?: string
         }
+        Relationships: [{ foreignKeyName: "club_season_results_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
+      }
+      config_pipeline_stages: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
         Relationships: []
       }
-      coach_agents: {
-        Row: {
-          agent_id: string
-          coach_id: string
-          created_at: string | null
-          ended_on: string | null
-          id: string
-          notes: string | null
-          relationship_strength: number | null
-          relationship_type: string | null
-          started_on: string | null
-          user_id: string
-        }
-        Insert: {
-          agent_id: string
-          coach_id: string
-          created_at?: string | null
-          ended_on?: string | null
-          id?: string
-          notes?: string | null
-          relationship_strength?: number | null
-          relationship_type?: string | null
-          started_on?: string | null
-          user_id: string
-        }
-        Update: {
-          agent_id?: string
-          coach_id?: string
-          created_at?: string | null
-          ended_on?: string | null
-          id?: string
-          notes?: string | null
-          relationship_strength?: number | null
-          relationship_type?: string | null
-          started_on?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coach_agents_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coach_agents_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-        ]
+      config_reputation_tiers: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      config_availability_statuses: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      config_preferred_styles: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      config_pressing_intensity: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      config_build_preferences: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      config_mandate_preference_categories: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      config_formation_presets: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; formation: string | null; notes: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; formation?: string | null; notes?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; formation?: string | null; notes?: string | null; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      config_scoring_weights: {
+        Row: { id: string; user_id: string; name: string; sort_order: number; is_active: boolean; key: string; weight: number; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; name: string; sort_order?: number; is_active?: boolean; key: string; weight: number; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; name?: string; sort_order?: number; is_active?: boolean; key?: string; weight?: number; created_at?: string; updated_at?: string }
+        Relationships: []
       }
       coach_background_checks: {
         Row: {
@@ -775,7 +420,6 @@ export type Database = {
           media_reputation: string | null
           misconduct_notes: string | null
           overall_risk_rating: number | null
-          updated_at: string
           verified_by: string | null
         }
         Insert: {
@@ -790,7 +434,6 @@ export type Database = {
           media_reputation?: string | null
           misconduct_notes?: string | null
           overall_risk_rating?: number | null
-          updated_at?: string
           verified_by?: string | null
         }
         Update: {
@@ -805,7 +448,6 @@ export type Database = {
           media_reputation?: string | null
           misconduct_notes?: string | null
           overall_risk_rating?: number | null
-          updated_at?: string
           verified_by?: string | null
         }
         Relationships: [
@@ -829,7 +471,6 @@ export type Database = {
           reference_name: string
           reference_role: string | null
           summary: string | null
-          updated_at: string
         }
         Insert: {
           coach_id: string
@@ -841,7 +482,6 @@ export type Database = {
           reference_name: string
           reference_role?: string | null
           summary?: string | null
-          updated_at?: string
         }
         Update: {
           coach_id?: string
@@ -853,254 +493,10 @@ export type Database = {
           reference_name?: string
           reference_role?: string | null
           summary?: string | null
-          updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "coach_references_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coach_staff_group_members: {
-        Row: {
-          created_at: string
-          group_id: string
-          id: string
-          role_in_group: string | null
-          staff_id: string
-        }
-        Insert: {
-          created_at?: string
-          group_id: string
-          id?: string
-          role_in_group?: string | null
-          staff_id: string
-        }
-        Update: {
-          created_at?: string
-          group_id?: string
-          id?: string
-          role_in_group?: string | null
-          staff_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coach_staff_group_members_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "coach_staff_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coach_staff_group_members_staff_id_fkey"
-            columns: ["staff_id"]
-            isOneToOne: false
-            referencedRelation: "staff"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coach_staff_groups: {
-        Row: {
-          coach_id: string
-          created_at: string
-          description: string | null
-          group_name: string
-          id: string
-        }
-        Insert: {
-          coach_id: string
-          created_at?: string
-          description?: string | null
-          group_name: string
-          id?: string
-        }
-        Update: {
-          coach_id?: string
-          created_at?: string
-          description?: string | null
-          group_name?: string
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coach_staff_groups_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coach_staff_history: {
-        Row: {
-          before_after_observation: string | null
-          club_id: string | null
-          club_name: string
-          coach_id: string
-          confidence: number | null
-          created_at: string
-          ended_on: string | null
-          followed_from_previous: boolean | null
-          id: string
-          impact_summary: string | null
-          relationship_strength: number | null
-          role_title: string
-          source_link: string | null
-          source_name: string | null
-          source_notes: string | null
-          source_type: string | null
-          staff_id: string
-          started_on: string | null
-          times_worked_together: number | null
-          verified: boolean | null
-          verified_at: string | null
-          verified_by: string | null
-        }
-        Insert: {
-          before_after_observation?: string | null
-          club_id?: string | null
-          club_name: string
-          coach_id: string
-          confidence?: number | null
-          created_at?: string
-          ended_on?: string | null
-          followed_from_previous?: boolean | null
-          id?: string
-          impact_summary?: string | null
-          relationship_strength?: number | null
-          role_title: string
-          source_link?: string | null
-          source_name?: string | null
-          source_notes?: string | null
-          source_type?: string | null
-          staff_id: string
-          started_on?: string | null
-          times_worked_together?: number | null
-          verified?: boolean | null
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Update: {
-          before_after_observation?: string | null
-          club_id?: string | null
-          club_name?: string
-          coach_id?: string
-          confidence?: number | null
-          created_at?: string
-          ended_on?: string | null
-          followed_from_previous?: boolean | null
-          id?: string
-          impact_summary?: string | null
-          relationship_strength?: number | null
-          role_title?: string
-          source_link?: string | null
-          source_name?: string | null
-          source_notes?: string | null
-          source_type?: string | null
-          staff_id?: string
-          started_on?: string | null
-          times_worked_together?: number | null
-          verified?: boolean | null
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coach_staff_history_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coach_staff_history_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coach_staff_history_staff_id_fkey"
-            columns: ["staff_id"]
-            isOneToOne: false
-            referencedRelation: "staff"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      coach_stints: {
-        Row: {
-          appointment_context: string | null
-          club_id: string | null
-          club_name: string
-          coach_id: string
-          country: string | null
-          created_at: string
-          ended_on: string | null
-          exit_context: string | null
-          id: string
-          league: string | null
-          notable_outcomes: string | null
-          performance_summary: string | null
-          points_per_game: number | null
-          role_title: string
-          started_on: string | null
-          style_summary: string | null
-          win_rate: number | null
-        }
-        Insert: {
-          appointment_context?: string | null
-          club_id?: string | null
-          club_name: string
-          coach_id: string
-          country?: string | null
-          created_at?: string
-          ended_on?: string | null
-          exit_context?: string | null
-          id?: string
-          league?: string | null
-          notable_outcomes?: string | null
-          performance_summary?: string | null
-          points_per_game?: number | null
-          role_title: string
-          started_on?: string | null
-          style_summary?: string | null
-          win_rate?: number | null
-        }
-        Update: {
-          appointment_context?: string | null
-          club_id?: string | null
-          club_name?: string
-          coach_id?: string
-          country?: string | null
-          created_at?: string
-          ended_on?: string | null
-          exit_context?: string | null
-          id?: string
-          league?: string | null
-          notable_outcomes?: string | null
-          performance_summary?: string | null
-          points_per_game?: number | null
-          role_title?: string
-          started_on?: string | null
-          style_summary?: string | null
-          win_rate?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "coach_stints_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "coach_stints_coach_id_fkey"
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
@@ -1123,7 +519,6 @@ export type Database = {
           overall_tactical_score: number | null
           pressing_height: string | null
           transitions: string | null
-          updated_at: string
         }
         Insert: {
           build_up_pattern?: string | null
@@ -1139,7 +534,6 @@ export type Database = {
           overall_tactical_score?: number | null
           pressing_height?: string | null
           transitions?: string | null
-          updated_at?: string
         }
         Update: {
           build_up_pattern?: string | null
@@ -1155,7 +549,6 @@ export type Database = {
           overall_tactical_score?: number | null
           pressing_height?: string | null
           transitions?: string | null
-          updated_at?: string
         }
         Relationships: [
           {
@@ -1171,41 +564,32 @@ export type Database = {
         Row: {
           coach_id: string | null
           confidence: string | null
-          created_at: string
           id: string
           occurred_at: string | null
           source_note: string | null
           source_tier: string | null
           update_note: string
           update_type: string | null
-          updated_at: string
-          user_id: string | null
         }
         Insert: {
           coach_id?: string | null
           confidence?: string | null
-          created_at?: string
           id?: string
           occurred_at?: string | null
           source_note?: string | null
           source_tier?: string | null
           update_note: string
           update_type?: string | null
-          updated_at?: string
-          user_id?: string | null
         }
         Update: {
           coach_id?: string | null
           confidence?: string | null
-          created_at?: string
           id?: string
           occurred_at?: string | null
           source_note?: string | null
           source_tier?: string | null
           update_note?: string
           update_type?: string | null
-          updated_at?: string
-          user_id?: string | null
         }
         Relationships: [
           {
@@ -1219,577 +603,710 @@ export type Database = {
       }
       coaches: {
         Row: {
-          academy_integration: string | null
-          adaptability_score: number | null
           age: number | null
-          agent_contact: string | null
-          agent_name: string | null
           agent_relationship: number | null
-          availability_status: string | null
           available_status: string
-          base_location: string | null
           board_compatibility: number | null
-          board_compatibility_score: number | null
           build_preference: string
           club_current: string | null
-          comms_profile: string | null
-          compensation_expectation: string | null
-          compliance_notes: string | null
-          conflict_history: string | null
-          created_at: string
-          cultural_alignment_score: number | null
           cultural_risk: number | null
-          date_of_birth: string | null
-          development_score: number | null
-          dressing_room_risk_score: number | null
-          due_diligence_summary: string | null
-          family_context: string | null
           financial_feasibility: number | null
-          financial_risk_score: number | null
           id: string
-          integrity_risk_flag: boolean | null
-          intelligence_confidence: number | null
-          languages: string[] | null
           last_updated: string
-          leadership_score: number | null
           leadership_style: string
           league_experience: string[] | null
-          legal_risk_flag: boolean | null
-          market_status: string | null
           media_risk: number | null
-          media_risk_score: number | null
-          media_style: string | null
           name: string
           nationality: string | null
           overall_fit: number | null
-          overall_manual_score: number | null
           ownership_fit: number | null
           placement_score: number | null
-          player_development_model: string | null
-          preferred_name: string | null
           preferred_style: string
-          preferred_systems: string[] | null
           pressing_intensity: string
-          recruitment_collaboration: string | null
-          recruitment_fit_score: number | null
-          relocation_flexibility: string | null
           reputation_tier: string
-          rest_defence_model: string | null
           role_current: string
-          safeguarding_risk_flag: boolean | null
-          set_piece_approach: string | null
           staff_cost_estimate: string
-          staff_management_style: string | null
           tactical_fit: number | null
-          tactical_fit_score: number | null
-          tactical_identity: string | null
-          training_methodology: string | null
-          transition_model: string | null
-          updated_at: string
           user_id: string
           wage_expectation: string
+          preferred_name: string | null
+          date_of_birth: string | null
+          languages: string[]
+          base_location: string | null
+          relocation_flexibility: string | null
+          family_context: string | null
+          agent_name: string | null
+          agent_contact: string | null
+          compensation_expectation: string | null
+          availability_status: string | null
+          market_status: string | null
+          tactical_identity: string | null
+          preferred_systems: string[]
+          transition_model: string | null
+          rest_defence_model: string | null
+          set_piece_approach: string | null
+          training_methodology: string | null
+          recruitment_collaboration: string | null
+          staff_management_style: string | null
+          player_development_model: string | null
+          academy_integration: string | null
+          comms_profile: string | null
+          media_style: string | null
+          conflict_history: string | null
+          due_diligence_summary: string | null
+          legal_risk_flag: boolean
+          integrity_risk_flag: boolean
+          safeguarding_risk_flag: boolean
+          compliance_notes: string | null
+          tactical_fit_score: number | null
+          leadership_score: number | null
+          development_score: number | null
+          recruitment_fit_score: number | null
+          media_risk_score: number | null
+          cultural_alignment_score: number | null
+          adaptability_score: number | null
+          overall_manual_score: number | null
+          intelligence_confidence: number | null
         }
         Insert: {
-          academy_integration?: string | null
-          adaptability_score?: number | null
           age?: number | null
-          agent_contact?: string | null
-          agent_name?: string | null
           agent_relationship?: number | null
-          availability_status?: string | null
           available_status?: string
-          base_location?: string | null
           board_compatibility?: number | null
-          board_compatibility_score?: number | null
           build_preference: string
           club_current?: string | null
-          comms_profile?: string | null
-          compensation_expectation?: string | null
-          compliance_notes?: string | null
-          conflict_history?: string | null
-          created_at?: string
-          cultural_alignment_score?: number | null
           cultural_risk?: number | null
-          date_of_birth?: string | null
-          development_score?: number | null
-          dressing_room_risk_score?: number | null
-          due_diligence_summary?: string | null
-          family_context?: string | null
           financial_feasibility?: number | null
-          financial_risk_score?: number | null
           id?: string
-          integrity_risk_flag?: boolean | null
-          intelligence_confidence?: number | null
-          languages?: string[] | null
           last_updated?: string
-          leadership_score?: number | null
           leadership_style: string
           league_experience?: string[] | null
-          legal_risk_flag?: boolean | null
-          market_status?: string | null
           media_risk?: number | null
-          media_risk_score?: number | null
-          media_style?: string | null
           name: string
           nationality?: string | null
           overall_fit?: number | null
-          overall_manual_score?: number | null
           ownership_fit?: number | null
           placement_score?: number | null
-          player_development_model?: string | null
-          preferred_name?: string | null
           preferred_style: string
-          preferred_systems?: string[] | null
           pressing_intensity: string
-          recruitment_collaboration?: string | null
-          recruitment_fit_score?: number | null
-          relocation_flexibility?: string | null
           reputation_tier?: string
-          rest_defence_model?: string | null
           role_current?: string
-          safeguarding_risk_flag?: boolean | null
-          set_piece_approach?: string | null
           staff_cost_estimate: string
-          staff_management_style?: string | null
           tactical_fit?: number | null
-          tactical_fit_score?: number | null
-          tactical_identity?: string | null
-          training_methodology?: string | null
-          transition_model?: string | null
-          updated_at?: string
           user_id?: string
           wage_expectation: string
+          preferred_name?: string | null
+          date_of_birth?: string | null
+          languages?: string[]
+          base_location?: string | null
+          relocation_flexibility?: string | null
+          family_context?: string | null
+          agent_name?: string | null
+          agent_contact?: string | null
+          compensation_expectation?: string | null
+          availability_status?: string | null
+          market_status?: string | null
+          tactical_identity?: string | null
+          preferred_systems?: string[]
+          transition_model?: string | null
+          rest_defence_model?: string | null
+          set_piece_approach?: string | null
+          training_methodology?: string | null
+          recruitment_collaboration?: string | null
+          staff_management_style?: string | null
+          player_development_model?: string | null
+          academy_integration?: string | null
+          comms_profile?: string | null
+          media_style?: string | null
+          conflict_history?: string | null
+          due_diligence_summary?: string | null
+          legal_risk_flag?: boolean
+          integrity_risk_flag?: boolean
+          safeguarding_risk_flag?: boolean
+          compliance_notes?: string | null
+          tactical_fit_score?: number | null
+          leadership_score?: number | null
+          development_score?: number | null
+          recruitment_fit_score?: number | null
+          media_risk_score?: number | null
+          cultural_alignment_score?: number | null
+          adaptability_score?: number | null
+          overall_manual_score?: number | null
+          intelligence_confidence?: number | null
         }
         Update: {
-          academy_integration?: string | null
-          adaptability_score?: number | null
           age?: number | null
-          agent_contact?: string | null
-          agent_name?: string | null
           agent_relationship?: number | null
-          availability_status?: string | null
           available_status?: string
-          base_location?: string | null
           board_compatibility?: number | null
-          board_compatibility_score?: number | null
           build_preference?: string
           club_current?: string | null
-          comms_profile?: string | null
-          compensation_expectation?: string | null
-          compliance_notes?: string | null
-          conflict_history?: string | null
-          created_at?: string
-          cultural_alignment_score?: number | null
           cultural_risk?: number | null
-          date_of_birth?: string | null
-          development_score?: number | null
-          dressing_room_risk_score?: number | null
-          due_diligence_summary?: string | null
-          family_context?: string | null
           financial_feasibility?: number | null
-          financial_risk_score?: number | null
           id?: string
-          integrity_risk_flag?: boolean | null
-          intelligence_confidence?: number | null
-          languages?: string[] | null
           last_updated?: string
-          leadership_score?: number | null
           leadership_style?: string
           league_experience?: string[] | null
-          legal_risk_flag?: boolean | null
-          market_status?: string | null
           media_risk?: number | null
-          media_risk_score?: number | null
-          media_style?: string | null
           name?: string
           nationality?: string | null
           overall_fit?: number | null
-          overall_manual_score?: number | null
           ownership_fit?: number | null
           placement_score?: number | null
-          player_development_model?: string | null
-          preferred_name?: string | null
           preferred_style?: string
-          preferred_systems?: string[] | null
           pressing_intensity?: string
-          recruitment_collaboration?: string | null
-          recruitment_fit_score?: number | null
-          relocation_flexibility?: string | null
           reputation_tier?: string
-          rest_defence_model?: string | null
           role_current?: string
-          safeguarding_risk_flag?: boolean | null
-          set_piece_approach?: string | null
           staff_cost_estimate?: string
-          staff_management_style?: string | null
           tactical_fit?: number | null
-          tactical_fit_score?: number | null
-          tactical_identity?: string | null
-          training_methodology?: string | null
-          transition_model?: string | null
-          updated_at?: string
           user_id?: string
           wage_expectation?: string
+          preferred_name?: string | null
+          date_of_birth?: string | null
+          languages?: string[]
+          base_location?: string | null
+          relocation_flexibility?: string | null
+          family_context?: string | null
+          agent_name?: string | null
+          agent_contact?: string | null
+          compensation_expectation?: string | null
+          availability_status?: string | null
+          market_status?: string | null
+          tactical_identity?: string | null
+          preferred_systems?: string[]
+          transition_model?: string | null
+          rest_defence_model?: string | null
+          set_piece_approach?: string | null
+          training_methodology?: string | null
+          recruitment_collaboration?: string | null
+          staff_management_style?: string | null
+          player_development_model?: string | null
+          academy_integration?: string | null
+          comms_profile?: string | null
+          media_style?: string | null
+          conflict_history?: string | null
+          due_diligence_summary?: string | null
+          legal_risk_flag?: boolean
+          integrity_risk_flag?: boolean
+          safeguarding_risk_flag?: boolean
+          compliance_notes?: string | null
+          tactical_fit_score?: number | null
+          leadership_score?: number | null
+          development_score?: number | null
+          recruitment_fit_score?: number | null
+          media_risk_score?: number | null
+          cultural_alignment_score?: number | null
+          adaptability_score?: number | null
+          overall_manual_score?: number | null
+          intelligence_confidence?: number | null
         }
         Relationships: []
       }
-      config_availability_statuses: {
+      coach_derived_metrics: {
         Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          name: string
-          sort_order: number
-          updated_at: string
-          user_id: string
+          coach_id: string
+          avg_squad_age: number | null
+          pct_minutes_u23: number | null
+          pct_minutes_30plus: number | null
+          rotation_index: number | null
+          avg_signing_age: number | null
+          repeat_signings_count: number | null
+          repeat_agents_count: number | null
+          loan_reliance_score: number | null
+          network_density_score: number | null
+          computed_at: string | null
+          raw: unknown
         }
         Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name: string
-          sort_order?: number
-          updated_at?: string
-          user_id: string
+          coach_id: string
+          avg_squad_age?: number | null
+          pct_minutes_u23?: number | null
+          pct_minutes_30plus?: number | null
+          rotation_index?: number | null
+          avg_signing_age?: number | null
+          repeat_signings_count?: number | null
+          repeat_agents_count?: number | null
+          loan_reliance_score?: number | null
+          network_density_score?: number | null
+          computed_at?: string | null
+          raw?: unknown
         }
         Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
+          coach_id?: string
+          avg_squad_age?: number | null
+          pct_minutes_u23?: number | null
+          pct_minutes_30plus?: number | null
+          rotation_index?: number | null
+          avg_signing_age?: number | null
+          repeat_signings_count?: number | null
+          repeat_agents_count?: number | null
+          loan_reliance_score?: number | null
+          network_density_score?: number | null
+          computed_at?: string | null
+          raw?: unknown
         }
-        Relationships: []
+        Relationships: [{ foreignKeyName: 'coach_derived_metrics_coach_id_fkey'; columns: ['coach_id']; isOneToOne: true; referencedRelation: 'coaches'; referencedColumns: ['id'] }]
       }
-      config_build_preferences: {
+      coach_stints: {
         Row: {
-          created_at: string
           id: string
-          is_active: boolean
-          name: string
-          sort_order: number
-          updated_at: string
-          user_id: string
+          coach_id: string
+          club_name: string
+          club_id: string | null
+          country: string | null
+          league: string | null
+          role_title: string
+          started_on: string | null
+          ended_on: string | null
+          appointment_context: string | null
+          exit_context: string | null
+          points_per_game: number | null
+          win_rate: number | null
+          performance_summary: string | null
+          style_summary: string | null
+          notable_outcomes: string | null
+          created_at: string
+          source_type: string | null
+          source_name: string | null
+          source_link: string | null
+          source_notes: string | null
+          confidence: number | null
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name: string
-          sort_order?: number
-          updated_at?: string
-          user_id: string
+          coach_id: string
+          club_name: string
+          club_id?: string | null
+          country?: string | null
+          league?: string | null
+          role_title: string
+          started_on?: string | null
+          ended_on?: string | null
+          appointment_context?: string | null
+          exit_context?: string | null
+          points_per_game?: number | null
+          win_rate?: number | null
+          performance_summary?: string | null
+          style_summary?: string | null
+          notable_outcomes?: string | null
+          created_at?: string
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name?: string
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
+          coach_id?: string
+          club_name?: string
+          club_id?: string | null
+          country?: string | null
+          league?: string | null
+          role_title?: string
+          started_on?: string | null
+          ended_on?: string | null
+          appointment_context?: string | null
+          exit_context?: string | null
+          points_per_game?: number | null
+          win_rate?: number | null
+          performance_summary?: string | null
+          style_summary?: string | null
+          notable_outcomes?: string | null
+          created_at?: string
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'coach_stints_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] },
+          { foreignKeyName: 'coach_stints_club_id_fkey'; columns: ['club_id']; isOneToOne: false; referencedRelation: 'clubs'; referencedColumns: ['id'] },
+        ]
       }
-      config_formation_presets: {
+      staff: {
         Row: {
-          created_at: string
-          formation: string | null
           id: string
-          is_active: boolean
-          name: string
+          user_id: string | null
+          full_name: string
+          primary_role: string | null
+          specialties: string[]
           notes: string | null
-          sort_order: number
-          updated_at: string
-          user_id: string
+          created_at: string
         }
         Insert: {
-          created_at?: string
-          formation?: string | null
           id?: string
-          is_active?: boolean
-          name: string
+          user_id?: string | null
+          full_name: string
+          primary_role?: string | null
+          specialties?: string[]
           notes?: string | null
-          sort_order?: number
-          updated_at?: string
-          user_id: string
+          created_at?: string
         }
         Update: {
-          created_at?: string
-          formation?: string | null
           id?: string
-          is_active?: boolean
-          name?: string
+          user_id?: string | null
+          full_name?: string
+          primary_role?: string | null
+          specialties?: string[]
           notes?: string | null
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
+          created_at?: string
         }
         Relationships: []
       }
-      config_lists: {
+      coach_staff_history: {
         Row: {
-          created_at: string
           id: string
-          is_active: boolean
-          label: string
-          list_key: string
-          notes: string | null
-          sort_order: number
-          user_id: string
+          coach_id: string
+          staff_id: string
+          club_name: string
+          club_id: string | null
+          role_title: string
+          started_on: string | null
+          ended_on: string | null
+          followed_from_previous: boolean
+          times_worked_together: number
+          relationship_strength: number | null
+          impact_summary: string | null
+          before_after_observation: string | null
+          created_at: string
+          source_type: string | null
+          source_name: string | null
+          source_link: string | null
+          source_notes: string | null
+          confidence: number | null
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          label: string
-          list_key: string
-          notes?: string | null
-          sort_order?: number
-          user_id: string
+          coach_id: string
+          staff_id: string
+          club_name: string
+          club_id?: string | null
+          role_title: string
+          started_on?: string | null
+          ended_on?: string | null
+          followed_from_previous?: boolean
+          times_worked_together?: number
+          relationship_strength?: number | null
+          impact_summary?: string | null
+          before_after_observation?: string | null
+          created_at?: string
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          label?: string
-          list_key?: string
-          notes?: string | null
-          sort_order?: number
-          user_id?: string
+          coach_id?: string
+          staff_id?: string
+          club_name?: string
+          club_id?: string | null
+          role_title?: string
+          started_on?: string | null
+          ended_on?: string | null
+          followed_from_previous?: boolean
+          times_worked_together?: number
+          relationship_strength?: number | null
+          impact_summary?: string | null
+          before_after_observation?: string | null
+          created_at?: string
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'coach_staff_history_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] },
+          { foreignKeyName: 'coach_staff_history_staff_id_fkey'; columns: ['staff_id']; isOneToOne: false; referencedRelation: 'staff'; referencedColumns: ['id'] },
+          { foreignKeyName: 'coach_staff_history_club_id_fkey'; columns: ['club_id']; isOneToOne: false; referencedRelation: 'clubs'; referencedColumns: ['id'] },
+        ]
       }
-      config_mandate_preference_categories: {
+      coach_staff_groups: {
         Row: {
-          created_at: string
           id: string
-          is_active: boolean
-          name: string
-          sort_order: number
-          updated_at: string
-          user_id: string
+          coach_id: string
+          group_name: string
+          description: string | null
+          created_at: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name: string
-          sort_order?: number
-          updated_at?: string
-          user_id: string
+          coach_id: string
+          group_name: string
+          description?: string | null
+          created_at?: string
         }
         Update: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name?: string
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
+          coach_id?: string
+          group_name?: string
+          description?: string | null
+          created_at?: string
         }
-        Relationships: []
+        Relationships: [{ foreignKeyName: 'coach_staff_groups_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] }]
       }
-      config_pipeline_stages: {
+      coach_staff_group_members: {
         Row: {
-          created_at: string
           id: string
-          is_active: boolean
-          name: string
-          sort_order: number
-          updated_at: string
-          user_id: string
+          group_id: string
+          staff_id: string
+          role_in_group: string | null
+          created_at: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name: string
-          sort_order?: number
-          updated_at?: string
-          user_id: string
+          group_id: string
+          staff_id: string
+          role_in_group?: string | null
+          created_at?: string
         }
         Update: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name?: string
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
+          group_id?: string
+          staff_id?: string
+          role_in_group?: string | null
+          created_at?: string
         }
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'coach_staff_group_members_group_id_fkey'; columns: ['group_id']; isOneToOne: false; referencedRelation: 'coach_staff_groups'; referencedColumns: ['id'] },
+          { foreignKeyName: 'coach_staff_group_members_staff_id_fkey'; columns: ['staff_id']; isOneToOne: false; referencedRelation: 'staff'; referencedColumns: ['id'] },
+        ]
       }
-      config_preferred_styles: {
+      coach_data_profiles: {
         Row: {
-          created_at: string
           id: string
-          is_active: boolean
-          name: string
-          sort_order: number
-          updated_at: string
-          user_id: string
+          coach_id: string
+          avg_squad_age: number | null
+          avg_starting_xi_age: number | null
+          minutes_u21: number | null
+          minutes_21_24: number | null
+          minutes_25_28: number | null
+          minutes_29_plus: number | null
+          recruitment_avg_age: number | null
+          recruitment_repeat_player_count: number | null
+          recruitment_repeat_agent_count: number | null
+          media_pressure_score: number | null
+          media_accountability_score: number | null
+          media_confrontation_score: number | null
+          social_presence_level: string | null
+          narrative_risk_summary: string | null
+          confidence_score: number | null
+          created_at: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name: string
-          sort_order?: number
-          updated_at?: string
-          user_id: string
+          coach_id: string
+          avg_squad_age?: number | null
+          avg_starting_xi_age?: number | null
+          minutes_u21?: number | null
+          minutes_21_24?: number | null
+          minutes_25_28?: number | null
+          minutes_29_plus?: number | null
+          recruitment_avg_age?: number | null
+          recruitment_repeat_player_count?: number | null
+          recruitment_repeat_agent_count?: number | null
+          media_pressure_score?: number | null
+          media_accountability_score?: number | null
+          media_confrontation_score?: number | null
+          social_presence_level?: string | null
+          narrative_risk_summary?: string | null
+          confidence_score?: number | null
+          created_at?: string
         }
         Update: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name?: string
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
+          coach_id?: string
+          avg_squad_age?: number | null
+          avg_starting_xi_age?: number | null
+          minutes_u21?: number | null
+          minutes_21_24?: number | null
+          minutes_25_28?: number | null
+          minutes_29_plus?: number | null
+          recruitment_avg_age?: number | null
+          recruitment_repeat_player_count?: number | null
+          recruitment_repeat_agent_count?: number | null
+          media_pressure_score?: number | null
+          media_accountability_score?: number | null
+          media_confrontation_score?: number | null
+          social_presence_level?: string | null
+          narrative_risk_summary?: string | null
+          confidence_score?: number | null
+          created_at?: string
         }
-        Relationships: []
+        Relationships: [{ foreignKeyName: 'coach_data_profiles_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] }]
       }
-      config_pressing_intensity: {
+      coach_recruitment_history: {
         Row: {
-          created_at: string
           id: string
-          is_active: boolean
-          name: string
-          sort_order: number
-          updated_at: string
-          user_id: string
+          coach_id: string
+          player_name: string | null
+          player_id: string | null
+          club_name: string | null
+          club_id: string | null
+          transfer_window: string | null
+          transfer_fee_band: string | null
+          player_age_at_signing: number | null
+          repeated_signing: boolean
+          agent_name: string | null
+          impact_summary: string | null
+          created_at: string
+          source_type: string | null
+          source_name: string | null
+          source_link: string | null
+          source_notes: string | null
+          confidence: number | null
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name: string
-          sort_order?: number
-          updated_at?: string
-          user_id: string
+          coach_id: string
+          player_name?: string | null
+          player_id?: string | null
+          club_name?: string | null
+          club_id?: string | null
+          transfer_window?: string | null
+          transfer_fee_band?: string | null
+          player_age_at_signing?: number | null
+          repeated_signing?: boolean
+          agent_name?: string | null
+          impact_summary?: string | null
+          created_at?: string
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name?: string
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
+          coach_id?: string
+          player_name?: string | null
+          player_id?: string | null
+          club_name?: string | null
+          club_id?: string | null
+          transfer_window?: string | null
+          transfer_fee_band?: string | null
+          player_age_at_signing?: number | null
+          repeated_signing?: boolean
+          agent_name?: string | null
+          impact_summary?: string | null
+          created_at?: string
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
-        Relationships: []
+        Relationships: [{ foreignKeyName: 'coach_recruitment_history_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] }]
       }
-      config_reputation_tiers: {
+      coach_media_events: {
         Row: {
-          created_at: string
           id: string
-          is_active: boolean
-          name: string
-          sort_order: number
-          updated_at: string
-          user_id: string
+          coach_id: string
+          category: string | null
+          headline: string | null
+          summary: string | null
+          severity_score: number | null
+          occurred_at: string | null
+          source: string | null
+          confidence: number | null
+          created_at: string
+          source_type: string | null
+          source_name: string | null
+          source_link: string | null
+          source_notes: string | null
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name: string
-          sort_order?: number
-          updated_at?: string
-          user_id: string
+          coach_id: string
+          category?: string | null
+          headline?: string | null
+          summary?: string | null
+          severity_score?: number | null
+          occurred_at?: string | null
+          source?: string | null
+          confidence?: number | null
+          created_at?: string
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          is_active?: boolean
-          name?: string
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      config_scoring_weights: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          key: string
-          name: string
-          sort_order: number
-          updated_at: string
-          user_id: string
-          weight: number
-        }
-        Insert: {
+          coach_id?: string
+          category?: string | null
+          headline?: string | null
+          summary?: string | null
+          severity_score?: number | null
+          occurred_at?: string | null
+          source?: string | null
+          confidence?: number | null
           created_at?: string
-          id?: string
-          is_active?: boolean
-          key: string
-          name: string
-          sort_order?: number
-          updated_at?: string
-          user_id: string
-          weight: number
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
         }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          key?: string
-          name?: string
-          sort_order?: number
-          updated_at?: string
-          user_id?: string
-          weight?: number
-        }
-        Relationships: []
-      }
-      demo_seeds: {
-        Row: {
-          created_at: string
-          id: string
-          updated_at: string
-          user_id: string
-          version: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id: string
-          version?: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          updated_at?: string
-          user_id?: string
-          version?: number
-        }
-        Relationships: []
+        Relationships: [{ foreignKeyName: 'coach_media_events_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] }]
       }
       intelligence_items: {
         Row: {
-          category: string | null
-          confidence: number | null
-          created_at: string
-          detail: string | null
-          entity_id: string
-          entity_type: string
           id: string
-          occurred_at: string | null
-          source_link: string | null
-          source_name: string | null
-          source_notes: string | null
-          source_tier: string | null
-          source_type: string | null
-          title: string
           user_id: string
-          verified: boolean | null
+          entity_type: string
+          entity_id: string
+          category: string | null
+          title: string
+          detail: string | null
+          source_type: string | null
+          source_name: string | null
+          source_link: string | null
+          source_tier: string | null
+          source_notes: string | null
+          confidence: number | null
+          occurred_at: string | null
+          created_at: string
+          verified: boolean
           verified_at: string | null
           verified_by: string | null
           direction: string | null
@@ -1798,22 +1315,22 @@ export type Database = {
           is_deleted: boolean
         }
         Insert: {
-          category?: string | null
-          confidence?: number | null
-          created_at?: string
-          detail?: string | null
-          entity_id: string
-          entity_type: string
           id?: string
-          occurred_at?: string | null
-          source_link?: string | null
-          source_name?: string | null
-          source_notes?: string | null
-          source_tier?: string | null
-          source_type?: string | null
-          title: string
           user_id: string
-          verified?: boolean | null
+          entity_type: string
+          entity_id: string
+          category?: string | null
+          title: string
+          detail?: string | null
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_tier?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          occurred_at?: string | null
+          created_at?: string
+          verified?: boolean
           verified_at?: string | null
           verified_by?: string | null
           direction?: string | null
@@ -1822,22 +1339,22 @@ export type Database = {
           is_deleted?: boolean
         }
         Update: {
-          category?: string | null
-          confidence?: number | null
-          created_at?: string
-          detail?: string | null
-          entity_id?: string
-          entity_type?: string
           id?: string
-          occurred_at?: string | null
-          source_link?: string | null
-          source_name?: string | null
-          source_notes?: string | null
-          source_tier?: string | null
-          source_type?: string | null
-          title?: string
           user_id?: string
-          verified?: boolean | null
+          entity_type?: string
+          entity_id?: string
+          category?: string | null
+          title?: string
+          detail?: string | null
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_tier?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          occurred_at?: string | null
+          created_at?: string
+          verified?: boolean
           verified_at?: string | null
           verified_by?: string | null
           direction?: string | null
@@ -1846,6 +1363,144 @@ export type Database = {
           is_deleted?: boolean
         }
         Relationships: []
+      }
+      coach_due_diligence_items: {
+        Row: {
+          id: string
+          coach_id: string
+          title: string
+          detail: string | null
+          source_type: string | null
+          source_name: string | null
+          source_link: string | null
+          source_notes: string | null
+          confidence: number | null
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          coach_id: string
+          title: string
+          detail?: string | null
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          coach_id?: string
+          title?: string
+          detail?: string | null
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          created_at?: string
+        }
+        Relationships: [{ foreignKeyName: 'coach_due_diligence_items_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] }]
+      }
+      evidence_items: {
+        Row: {
+          id: string
+          user_id: string
+          entity_type: string
+          entity_id: string
+          category: string | null
+          title: string
+          detail: string | null
+          occurred_at: string | null
+          source_type: string | null
+          source_name: string | null
+          source_link: string | null
+          source_notes: string | null
+          confidence: number | null
+          verified: boolean
+          verified_at: string | null
+          verified_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          entity_type: string
+          entity_id: string
+          category?: string | null
+          title: string
+          detail?: string | null
+          occurred_at?: string | null
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          entity_type?: string
+          entity_id?: string
+          category?: string | null
+          title?: string
+          detail?: string | null
+          occurred_at?: string | null
+          source_type?: string | null
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          confidence?: number | null
+          verified?: boolean
+          verified_at?: string | null
+          verified_by?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      mandate_longlist: {
+        Row: {
+          id: string
+          mandate_id: string
+          coach_id: string
+          ranking_score: number | null
+          fit_explanation: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          mandate_id: string
+          coach_id: string
+          ranking_score?: number | null
+          fit_explanation?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mandate_id?: string
+          coach_id?: string
+          ranking_score?: number | null
+          fit_explanation?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: 'mandate_longlist_mandate_id_fkey'; columns: ['mandate_id']; isOneToOne: false; referencedRelation: 'mandates'; referencedColumns: ['id'] },
+          { foreignKeyName: 'mandate_longlist_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] },
+        ]
       }
       mandate_deliverables: {
         Row: {
@@ -1855,7 +1510,6 @@ export type Database = {
           item: string
           mandate_id: string
           status: string
-          updated_at: string
         }
         Insert: {
           created_at?: string
@@ -1864,7 +1518,6 @@ export type Database = {
           item: string
           mandate_id: string
           status: string
-          updated_at?: string
         }
         Update: {
           created_at?: string
@@ -1873,7 +1526,6 @@ export type Database = {
           item?: string
           mandate_id?: string
           status?: string
-          updated_at?: string
         }
         Relationships: [
           {
@@ -1885,111 +1537,66 @@ export type Database = {
           },
         ]
       }
-      mandate_longlist: {
-        Row: {
-          coach_id: string
-          created_at: string
-          fit_explanation: string | null
-          id: string
-          mandate_id: string
-          ranking_score: number | null
-        }
-        Insert: {
-          coach_id: string
-          created_at?: string
-          fit_explanation?: string | null
-          id?: string
-          mandate_id: string
-          ranking_score?: number | null
-        }
-        Update: {
-          coach_id?: string
-          created_at?: string
-          fit_explanation?: string | null
-          id?: string
-          mandate_id?: string
-          ranking_score?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mandate_longlist_coach_id_fkey"
-            columns: ["coach_id"]
-            isOneToOne: false
-            referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mandate_longlist_mandate_id_fkey"
-            columns: ["mandate_id"]
-            isOneToOne: false
-            referencedRelation: "mandates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       mandate_shortlist: {
         Row: {
-          candidate_stage: string
           coach_id: string
           created_at: string
-          fit_communication: string | null
-          fit_cultural: string | null
-          fit_level: string | null
-          fit_network: string | null
-          fit_notes: string | null
-          fit_tactical: string | null
           id: string
           mandate_id: string
-          network_recommender: string | null
-          network_relationship: string | null
-          network_source: string | null
           notes: string | null
           placement_probability: number
           risk_rating: string
           status: string
-          updated_at: string
+          candidate_stage: string
+          network_source: string | null
+          network_recommender: string | null
+          network_relationship: string | null
+          fit_tactical: string | null
+          fit_cultural: string | null
+          fit_level: string | null
+          fit_communication: string | null
+          fit_network: string | null
+          fit_notes: string | null
         }
         Insert: {
-          candidate_stage?: string
           coach_id: string
           created_at?: string
-          fit_communication?: string | null
-          fit_cultural?: string | null
-          fit_level?: string | null
-          fit_network?: string | null
-          fit_notes?: string | null
-          fit_tactical?: string | null
           id?: string
           mandate_id: string
-          network_recommender?: string | null
-          network_relationship?: string | null
-          network_source?: string | null
           notes?: string | null
           placement_probability: number
           risk_rating: string
           status: string
-          updated_at?: string
-        }
-        Update: {
           candidate_stage?: string
-          coach_id?: string
-          created_at?: string
-          fit_communication?: string | null
-          fit_cultural?: string | null
-          fit_level?: string | null
-          fit_network?: string | null
-          fit_notes?: string | null
-          fit_tactical?: string | null
-          id?: string
-          mandate_id?: string
+          network_source?: string | null
           network_recommender?: string | null
           network_relationship?: string | null
-          network_source?: string | null
+          fit_tactical?: string | null
+          fit_cultural?: string | null
+          fit_level?: string | null
+          fit_communication?: string | null
+          fit_network?: string | null
+          fit_notes?: string | null
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          mandate_id?: string
           notes?: string | null
           placement_probability?: number
           risk_rating?: string
           status?: string
-          updated_at?: string
+          candidate_stage?: string
+          network_source?: string | null
+          network_recommender?: string | null
+          network_relationship?: string | null
+          fit_tactical?: string | null
+          fit_cultural?: string | null
+          fit_level?: string | null
+          fit_communication?: string | null
+          fit_network?: string | null
+          fit_notes?: string | null
         }
         Relationships: [
           {
@@ -2010,88 +1617,82 @@ export type Database = {
       }
       mandates: {
         Row: {
-          board_risk_appetite: string | null
-          budget_band: string | null
-          build_preference_required: string | null
+          board_risk_appetite: string
+          budget_band: string
           club_id: string | null
-          club_text: string | null
-          confidentiality_level: string | null
-          created_at: string
           custom_club_name: string | null
+          confidentiality_level: string
+          created_at: string
           engagement_date: string
           id: string
           key_stakeholders: string[]
-          language_requirements: string[] | null
-          leadership_profile_required: string | null
-          ownership_structure: string | null
-          pipeline_stage: string | null
-          pressing_intensity_required: string | null
+          ownership_structure: string
+          pipeline_stage: string
           priority: string
-          relocation_required: boolean | null
-          risk_tolerance: string | null
           status: string
-          strategic_objective: string | null
-          succession_timeline: string | null
-          tactical_model_required: string | null
+          strategic_objective: string
+          succession_timeline: string
           target_completion_date: string
-          updated_at: string
           user_id: string
+          tactical_model_required: string | null
+          pressing_intensity_required: string | null
+          build_preference_required: string | null
+          leadership_profile_required: string | null
+          risk_tolerance: string | null
+          language_requirements: string[]
+          relocation_required: boolean
         }
         Insert: {
-          board_risk_appetite?: string | null
-          budget_band?: string | null
-          build_preference_required?: string | null
+          board_risk_appetite: string
+          budget_band: string
           club_id?: string | null
-          club_text?: string | null
-          confidentiality_level?: string | null
-          created_at?: string
           custom_club_name?: string | null
+          confidentiality_level?: string
+          created_at?: string
           engagement_date: string
           id?: string
           key_stakeholders?: string[]
-          language_requirements?: string[] | null
-          leadership_profile_required?: string | null
-          ownership_structure?: string | null
-          pipeline_stage?: string | null
-          pressing_intensity_required?: string | null
+          ownership_structure: string
+          pipeline_stage?: string
           priority: string
-          relocation_required?: boolean | null
-          risk_tolerance?: string | null
           status: string
-          strategic_objective?: string | null
-          succession_timeline?: string | null
-          tactical_model_required?: string | null
+          strategic_objective: string
+          succession_timeline: string
           target_completion_date: string
-          updated_at?: string
           user_id: string
+          tactical_model_required?: string | null
+          pressing_intensity_required?: string | null
+          build_preference_required?: string | null
+          leadership_profile_required?: string | null
+          risk_tolerance?: string | null
+          language_requirements?: string[]
+          relocation_required?: boolean
         }
         Update: {
-          board_risk_appetite?: string | null
-          budget_band?: string | null
-          build_preference_required?: string | null
+          board_risk_appetite?: string
+          budget_band?: string
           club_id?: string | null
-          club_text?: string | null
-          confidentiality_level?: string | null
-          created_at?: string
           custom_club_name?: string | null
+          confidentiality_level?: string
+          created_at?: string
           engagement_date?: string
           id?: string
           key_stakeholders?: string[]
-          language_requirements?: string[] | null
-          leadership_profile_required?: string | null
-          ownership_structure?: string | null
-          pipeline_stage?: string | null
-          pressing_intensity_required?: string | null
+          ownership_structure?: string
+          pipeline_stage?: string
           priority?: string
-          relocation_required?: boolean | null
-          risk_tolerance?: string | null
           status?: string
-          strategic_objective?: string | null
-          succession_timeline?: string | null
-          tactical_model_required?: string | null
+          strategic_objective?: string
+          succession_timeline?: string
           target_completion_date?: string
-          updated_at?: string
           user_id?: string
+          tactical_model_required?: string | null
+          pressing_intensity_required?: string | null
+          build_preference_required?: string | null
+          leadership_profile_required?: string | null
+          risk_tolerance?: string | null
+          language_requirements?: string[]
+          relocation_required?: boolean
         }
         Relationships: [
           {
@@ -2107,80 +1708,51 @@ export type Database = {
         Row: {
           availability_score: number | null
           board_compatibility_score: number | null
-          club_id: string | null
-          club_text: string | null
           coach_id: string
           confidence_score: number | null
           created_at: string | null
           cultural_fit_score: number | null
           financial_fit_score: number | null
           id: string
-          mandate_id: string | null
           overall_score: number | null
           risk_score: number | null
           tactical_fit_score: number | null
-          updated_at: string
-          user_id: string | null
           vacancy_id: string
         }
         Insert: {
           availability_score?: number | null
           board_compatibility_score?: number | null
-          club_id?: string | null
-          club_text?: string | null
           coach_id: string
           confidence_score?: number | null
           created_at?: string | null
           cultural_fit_score?: number | null
           financial_fit_score?: number | null
           id?: string
-          mandate_id?: string | null
           overall_score?: number | null
           risk_score?: number | null
           tactical_fit_score?: number | null
-          updated_at?: string
-          user_id?: string | null
           vacancy_id: string
         }
         Update: {
           availability_score?: number | null
           board_compatibility_score?: number | null
-          club_id?: string | null
-          club_text?: string | null
           coach_id?: string
           confidence_score?: number | null
           created_at?: string | null
           cultural_fit_score?: number | null
           financial_fit_score?: number | null
           id?: string
-          mandate_id?: string | null
           overall_score?: number | null
           risk_score?: number | null
           tactical_fit_score?: number | null
-          updated_at?: string
-          user_id?: string | null
           vacancy_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "matches_club_id_fkey"
-            columns: ["club_id"]
-            isOneToOne: false
-            referencedRelation: "clubs"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "matches_coach_id_fkey"
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_mandate_id_fkey"
-            columns: ["mandate_id"]
-            isOneToOne: false
-            referencedRelation: "mandates"
             referencedColumns: ["id"]
           },
           {
@@ -2191,63 +1763,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      scoring_weights: {
-        Row: {
-          created_at: string
-          id: string
-          notes: string | null
-          user_id: string
-          weight_key: string
-          weight_value: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          user_id: string
-          weight_key: string
-          weight_value?: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          notes?: string | null
-          user_id?: string
-          weight_key?: string
-          weight_value?: number
-        }
-        Relationships: []
-      }
-      staff: {
-        Row: {
-          created_at: string
-          full_name: string
-          id: string
-          notes: string | null
-          primary_role: string | null
-          specialties: string[] | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          full_name: string
-          id?: string
-          notes?: string | null
-          primary_role?: string | null
-          specialties?: string[] | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          full_name?: string
-          id?: string
-          notes?: string | null
-          primary_role?: string | null
-          specialties?: string[] | null
-          user_id?: string | null
-        }
-        Relationships: []
       }
       vacancies: {
         Row: {
@@ -2265,8 +1780,6 @@ export type Database = {
           status: string
           style_of_play: string
           timeline: string
-          updated_at: string
-          user_id: string | null
         }
         Insert: {
           budget_range: string
@@ -2283,8 +1796,6 @@ export type Database = {
           status?: string
           style_of_play: string
           timeline: string
-          updated_at?: string
-          user_id?: string | null
         }
         Update: {
           budget_range?: string
@@ -2301,8 +1812,6 @@ export type Database = {
           status?: string
           style_of_play?: string
           timeline?: string
-          updated_at?: string
-          user_id?: string | null
         }
         Relationships: [
           {
@@ -2424,8 +1933,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      claim_unowned_rows: { Args: never; Returns: Json }
-      get_unowned_counts: { Args: never; Returns: Json }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
