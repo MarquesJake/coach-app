@@ -185,6 +185,99 @@ export type Database = {
         }
         Relationships: [{ foreignKeyName: "club_coaching_history_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
       }
+      club_pathway_data: {
+        Row: {
+          id: string
+          user_id: string
+          club_id: string
+          season: string
+          academy_debuts: number | null
+          u21_minutes_percentage: number | null
+          internal_promotions: number | null
+          notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          club_id: string
+          season: string
+          academy_debuts?: number | null
+          u21_minutes_percentage?: number | null
+          internal_promotions?: number | null
+          notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          club_id?: string
+          season?: string
+          academy_debuts?: number | null
+          u21_minutes_percentage?: number | null
+          internal_promotions?: number | null
+          notes?: string | null
+          created_at?: string
+        }
+        Relationships: [{ foreignKeyName: "club_pathway_data_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
+      }
+      club_transfers: {
+        Row: {
+          id: string
+          user_id: string
+          club_id: string
+          player_name: string
+          direction: string
+          fee_band: string | null
+          fee_amount: number | null
+          fee_currency: string | null
+          age_at_transfer: number | null
+          nationality: string | null
+          position: string | null
+          other_club: string | null
+          transfer_type: string | null
+          transfer_date: string | null
+          season: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          club_id: string
+          player_name: string
+          direction: string
+          fee_band?: string | null
+          fee_amount?: number | null
+          fee_currency?: string | null
+          age_at_transfer?: number | null
+          nationality?: string | null
+          position?: string | null
+          other_club?: string | null
+          transfer_type?: string | null
+          transfer_date?: string | null
+          season?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          club_id?: string
+          player_name?: string
+          direction?: string
+          fee_band?: string | null
+          fee_amount?: number | null
+          fee_currency?: string | null
+          age_at_transfer?: number | null
+          nationality?: string | null
+          position?: string | null
+          other_club?: string | null
+          transfer_type?: string | null
+          transfer_date?: string | null
+          season?: string | null
+          created_at?: string
+        }
+        Relationships: [{ foreignKeyName: "club_transfers_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
+      }
       club_data_sync_log: {
         Row: {
           id: string
@@ -224,6 +317,7 @@ export type Database = {
           user_id: string
           club_id: string
           season: string
+          league_label: string | null
           league_position: number | null
           points: number | null
           goals_for: number | null
@@ -236,6 +330,7 @@ export type Database = {
           user_id: string
           club_id: string
           season: string
+          league_label?: string | null
           league_position?: number | null
           points?: number | null
           goals_for?: number | null
@@ -248,6 +343,7 @@ export type Database = {
           user_id?: string
           club_id?: string
           season?: string
+          league_label?: string | null
           league_position?: number | null
           points?: number | null
           goals_for?: number | null

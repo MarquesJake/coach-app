@@ -32,6 +32,8 @@ export function ClubBrowserPanel() {
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [tierFilter, setTierFilter] = useState<string | null>(null)
+  const [leagueFilter, setLeagueFilter] = useState<string>('')
+  const [countryFilter, setCountryFilter] = useState<string>('')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {
@@ -58,9 +60,23 @@ export function ClubBrowserPanel() {
     return ENGLISH_TIERS.filter(t => tiers.has(t.tier))
   }, [clubs])
 
+  // Unique leagues + countries for dropdowns
+  const leagues = useMemo(() =>
+    Array.from(new Set(clubs.map(c => c.league).filter(Boolean))).sort(),
+    [clubs]
+  )
+  const countries = useMemo(() =>
+    Array.from(new Set(clubs.map(c => c.country).filter(Boolean))).sort(),
+    [clubs]
+  )
+
+  const hasDropdownFilters = leagues.length > 1 || countries.length > 1
+
   const filtered = useMemo(() => {
     let result = clubs
     if (tierFilter) result = result.filter(c => c.tier === tierFilter)
+    if (leagueFilter) result = result.filter(c => c.league === leagueFilter)
+    if (countryFilter) result = result.filter(c => c.country === countryFilter)
     const q = query.trim().toLowerCase()
     if (q) result = result.filter(c =>
       c.name.toLowerCase().includes(q) ||
@@ -68,7 +84,7 @@ export function ClubBrowserPanel() {
       (c.country ?? '').toLowerCase().includes(q)
     )
     return result
-  }, [clubs, query, tierFilter])
+  }, [clubs, query, tierFilter, leagueFilter, countryFilter])
 
   const visible = filtered.slice(0, visibleCount)
 
@@ -103,6 +119,42 @@ export function ClubBrowserPanel() {
             className="w-full h-8 pl-8 pr-3 rounded bg-surface border border-border text-xs text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-primary/50 transition-colors"
           />
         </div>
+
+        {/* League + country dropdowns — shown when multiple distinct values exist */}
+        {hasDropdownFilters && (
+          <div className="flex gap-1.5">
+            {leagues.length > 1 && (
+              <select
+                value={leagueFilter}
+                onChange={e => { setLeagueFilter(e.target.value); setVisibleCount(PAGE_SIZE) }}
+                className="flex-1 h-7 rounded border border-border bg-surface text-[10px] px-2 text-foreground min-w-0"
+              >
+                <option value="">League…</option>
+                {leagues.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            )}
+            {countries.length > 1 && (
+              <select
+                value={countryFilter}
+                onChange={e => { setCountryFilter(e.target.value); setVisibleCount(PAGE_SIZE) }}
+                className="flex-1 h-7 rounded border border-border bg-surface text-[10px] px-2 text-foreground min-w-0"
+              >
+                <option value="">Country…</option>
+                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            )}
+            {(leagueFilter || countryFilter) && (
+              <button
+                type="button"
+                onClick={() => { setLeagueFilter(''); setCountryFilter(''); setVisibleCount(PAGE_SIZE) }}
+                className="h-7 px-2 text-[10px] text-muted-foreground hover:text-foreground border border-border rounded transition-colors shrink-0"
+                title="Clear filters"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
 
         {/* League tier filter chips — only shown when English pyramid clubs exist */}
         {presentTiers.length > 0 && (
@@ -157,7 +209,7 @@ export function ClubBrowserPanel() {
             <p className="text-xs text-muted-foreground">
               {query || tierFilter ? `No clubs matching filters` : 'No clubs yet'}
             </p>
-            {!query && !tierFilter && (
+            {!query && !tierFilter && !leagueFilter && !countryFilter && (
               <Link href="/clubs/new" className="text-xs text-primary hover:underline">
                 Add your first club →
               </Link>
@@ -241,7 +293,7 @@ export function ClubBrowserPanel() {
       {/* Footer count */}
       <div className="px-4 py-2 border-t border-border shrink-0">
         <p className="text-[10px] text-muted-foreground/60">
-          {loading ? '…' : `${filtered.length} club${filtered.length !== 1 ? 's' : ''}${query || tierFilter ? ` found` : ''}`}
+          {loading ? '…' : `${filtered.length} club${filtered.length !== 1 ? 's' : ''}${query || tierFilter || leagueFilter || countryFilter ? ` found` : ''}`}
         </p>
       </div>
     </div>
