@@ -4,8 +4,15 @@ import { useState, useEffect, useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import { updateShortlistWorkspaceAction } from '../../../actions'
 import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
-import { computeCoachIntelSignals, type IntelItem, type CoachIntelSignals } from '@/lib/intelligence/coach-intel-signals'
-import { ShieldAlert, TrendingUp, Info, Loader2 } from 'lucide-react'
+import {
+  computeCoachIntelSignals,
+  computeIntelligenceAdjustment,
+  computeDecisionTension,
+  type IntelItem,
+  type CoachIntelSignals,
+  type IntelligenceAdjustment,
+} from '@/lib/intelligence/coach-intel-signals'
+import { ShieldAlert, TrendingUp, Info, Loader2, AlertTriangle } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -122,6 +129,14 @@ function provenanceDots(rel: string | null) {
   if (rel === 'Direct') return '●●●'
   if (rel === 'Indirect') return '●●○'
   return '●○○'
+}
+
+/** Map a manual fit signal to a numeric proxy score for tension/confidence computation. */
+function signalToScore(s: string | null): number | null {
+  if (s === 'Strong') return 85
+  if (s === 'Moderate') return 60
+  if (s === 'Weak') return 30
+  return null // Unknown → IE
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -374,23 +389,17 @@ function ClubBrief({
 }
 
 // ── Intelligence Summary ──────────────────────────────────────────────────────
+// Receives pre-computed signals from FitAssessment (no own fetch).
 
-function IntelligenceSummary({ coachId }: { coachId: string }) {
-  const [signals, setSignals] = useState<CoachIntelSignals | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    setLoading(true)
-    setSignals(null)
-    fetch(`/api/coaches/${coachId}/intelligence-items`)
-      .then((r) => r.json())
-      .then((data: { items: IntelItem[] }) => {
-        setSignals(computeCoachIntelSignals(data.items ?? []))
-      })
-      .catch(() => setSignals(computeCoachIntelSignals([])))
-      .finally(() => setLoading(false))
-  }, [coachId])
-
+function IntelligenceSummary({
+  signals,
+  loading,
+  intelAdj,
+}: {
+  signals: CoachIntelSignals | null
+  loading: boolean
+  intelAdj: IntelligenceAdjustment | null
+}) {
   if (loading) {
     return (
       <section className="space-y-2">
@@ -437,6 +446,37 @@ function IntelligenceSummary({ coachId }: { coachId: string }) {
           <span className="text-[10px] text-muted-foreground">{signals.count} entries</span>
         </div>
       </div>
+
+      {/* Adjustment summary — label + reason + score delta */}
+      {intelAdj && (
+        <div className={cn(
+          'rounded border px-3 py-2 space-y-0.5',
+          intelAdj.scoreAdj >= 2 ? 'border-emerald-400/20 bg-emerald-400/5' :
+          intelAdj.scoreAdj <= -2 ? 'border-red-400/20 bg-red-400/5' :
+          'border-border bg-surface',
+        )}>
+          <div className="flex items-center justify-between gap-2">
+            <p className={cn(
+              'text-[10px] font-semibold',
+              intelAdj.scoreAdj >= 2 ? 'text-emerald-400' :
+              intelAdj.scoreAdj <= -2 ? 'text-red-400' : 'text-muted-foreground'
+            )}>
+              {intelAdj.summaryLabel}
+            </p>
+            {intelAdj.scoreAdj !== 0 && (
+              <span className={cn(
+                'text-[10px] font-bold tabular-nums shrink-0',
+                intelAdj.scoreAdj > 0 ? 'text-emerald-400' : 'text-red-400'
+              )}>
+                {intelAdj.scoreAdj > 0 ? '+' : ''}{intelAdj.scoreAdj}
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            {intelAdj.adjustmentReason}
+          </p>
+        </div>
+      )}
 
       {/* Score row */}
       {(signals.overallScore !== null || signals.riskIndex !== null) && (
@@ -522,6 +562,23 @@ function FitAssessment({
   const [isPending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
 
+  // ── Intel state (owned here so derived values can inform header + tension) ──
+  const [intelSignals, setIntelSignals] = useState<CoachIntelSignals | null>(null)
+  const [intelLoading, setIntelLoading] = useState(false)
+
+  useEffect(() => {
+    if (!candidate) return
+    setIntelLoading(true)
+    setIntelSignals(null)
+    fetch(`/api/coaches/${candidate.coach_id}/intelligence-items`)
+      .then((r) => r.json())
+      .then((data: { items: IntelItem[] }) => {
+        setIntelSignals(computeCoachIntelSignals(data.items ?? []))
+      })
+      .catch(() => setIntelSignals(computeCoachIntelSignals([])))
+      .finally(() => setIntelLoading(false))
+  }, [candidate?.coach_id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!candidate) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center px-8 gap-3">
@@ -536,6 +593,43 @@ function FitAssessment({
 
   const coachName = candidate.coaches?.name ?? 'Unknown coach'
   const overall = overallFit(candidate)
+
+  // ── Derived intelligence values ────────────────────────────────────────────
+
+  // IE count: manual fit signals that are Unknown or unset (used for confidence)
+  const ieCount = [candidate.fit_tactical, candidate.fit_level, candidate.fit_cultural]
+    .filter((s) => !s || s === 'Unknown').length
+
+  const intelAdj = intelSignals
+    ? computeIntelligenceAdjustment(intelSignals, ieCount)
+    : null
+
+  const decisionConfidence = intelAdj?.decisionConfidence ?? null
+
+  // Decision Tension: proxy football-fit dimensions from manual signals
+  const tacticalScore = signalToScore(candidate.fit_tactical)
+  const levelScore = signalToScore(candidate.fit_level)
+  const leadershipScore = signalToScore(candidate.fit_cultural)
+  const scoreArr = [tacticalScore, levelScore, leadershipScore].filter((s) => s !== null) as number[]
+  const footballFit = scoreArr.length > 0
+    ? Math.round(scoreArr.reduce((a, b) => a + b, 0) / scoreArr.length)
+    : 50
+
+  const decisionTension = intelSignals
+    ? computeDecisionTension({
+        tacticalScore,
+        levelScore,
+        leadershipScore,
+        budgetScore: null,
+        availabilityScore: null,
+        riskScore: intelSignals.riskIndex,
+        footballFit,
+        appointability: 50, // not tracked in workspace
+        intelAdj,
+        volatile: intelSignals.volatile,
+        hasSensitive: intelSignals.hasSensitive,
+      })
+    : null
 
   async function handleSubmit(formData: FormData) {
     startTransition(async () => {
@@ -556,15 +650,28 @@ function FitAssessment({
             {candidate.coaches?.nationality ? ` · ${candidate.coaches.nationality}` : ''}
           </p>
         </div>
-        <span className={cn(
-          'text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded border',
-          overall === 'strong' && 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
-          overall === 'moderate' && 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-          overall === 'weak' && 'text-red-400 bg-red-400/10 border-red-400/20',
-          overall === 'unknown' && 'text-muted-foreground bg-surface border-border',
-        )}>
-          {overall === 'unknown' ? 'Unscored' : overall}
-        </span>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className={cn(
+            'text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded border',
+            overall === 'strong' && 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+            overall === 'moderate' && 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+            overall === 'weak' && 'text-red-400 bg-red-400/10 border-red-400/20',
+            overall === 'unknown' && 'text-muted-foreground bg-surface border-border',
+          )}>
+            {overall === 'unknown' ? 'Unscored' : overall}
+          </span>
+          {/* Decision Confidence badge — only when intel is loaded */}
+          {!intelLoading && decisionConfidence && (
+            <span className={cn(
+              'text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border',
+              decisionConfidence === 'High' && 'text-emerald-400 border-emerald-400/30 bg-emerald-400/5',
+              decisionConfidence === 'Medium' && 'text-amber-400 border-amber-400/30 bg-amber-400/5',
+              decisionConfidence === 'Low' && 'text-red-400 border-red-400/30 bg-red-400/5',
+            )}>
+              {decisionConfidence} confidence
+            </span>
+          )}
+        </div>
       </div>
 
       <form action={handleSubmit} className="space-y-5">
@@ -666,8 +773,23 @@ function FitAssessment({
         </button>
       </form>
 
+      {/* Decision Tension block — shown when a meaningful trade-off is detected */}
+      {!intelLoading && decisionTension && (
+        <div className="rounded border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Decision tension</p>
+          </div>
+          <p className="text-xs text-foreground leading-relaxed">{decisionTension}</p>
+        </div>
+      )}
+
       <div className="border-t border-border pt-5">
-        <IntelligenceSummary coachId={candidate.coach_id} />
+        <IntelligenceSummary
+          signals={intelSignals}
+          loading={intelLoading}
+          intelAdj={intelAdj}
+        />
       </div>
     </div>
   )

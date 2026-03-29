@@ -16,8 +16,11 @@ type Item = {
   category: string | null
   title: string
   detail: string | null
+  direction: string | null
+  sensitivity: string | null
   source_type: string | null
   source_name: string | null
+  source_tier: string | null
   confidence: number | null
   occurred_at: string | null
   created_at: string
@@ -63,8 +66,9 @@ export function IntelligenceItemsFeed() {
       const [itemsRes, coachesRes] = await Promise.all([
         supabase
           .from('intelligence_items')
-          .select('id, entity_type, entity_id, category, title, detail, source_type, source_name, confidence, occurred_at, created_at')
+          .select('id, entity_type, entity_id, category, title, detail, direction, sensitivity, source_type, source_name, source_tier, confidence, occurred_at, created_at')
           .eq('user_id', user.id)
+          .eq('is_deleted', false)
           .order('occurred_at', { ascending: false, nullsFirst: false })
           .limit(100),
         supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name'),
@@ -101,12 +105,20 @@ export function IntelligenceItemsFeed() {
   else if (confidenceFilter === 'Medium (34–66)') filtered = filtered.filter((i) => i.confidence != null && i.confidence >= 34 && i.confidence <= 66)
   else if (confidenceFilter === 'Low (0–33)') filtered = filtered.filter((i) => i.confidence != null && i.confidence <= 33)
 
+  // Deep-link: coach entries go directly to the intelligence tab with the entry highlighted.
+  // Other entities link to their profile root (or intel tab if available).
   const entityHref = (e: Item) => {
-    if (e.entity_type === 'coach') return `/coaches/${e.entity_id}`
+    if (e.entity_type === 'coach') return `/coaches/${e.entity_id}/intelligence?entry=${e.id}`
     if (e.entity_type === 'staff') return `/staff/${e.entity_id}`
     if (e.entity_type === 'club') return `/clubs/${e.entity_id}`
-    if (e.entity_type === 'mandate') return `/mandates/${e.entity_id}`
+    if (e.entity_type === 'mandate') return `/mandates/${e.entity_id}/workspace`
     return '#'
+  }
+
+  const entityTabLabel = (e: Item) => {
+    if (e.entity_type === 'coach') return 'Open in Intel tab →'
+    if (e.entity_type === 'mandate') return 'Open workspace →'
+    return `View ${e.entity_type} →`
   }
 
   async function handleAdd() {
@@ -139,8 +151,11 @@ export function IntelligenceItemsFeed() {
       category: null,
       title: form.title.trim(),
       detail: form.detail.trim() || null,
+      direction: null,
+      sensitivity: null,
       source_type: null,
       source_name: form.source_name.trim() || null,
+      source_tier: null,
       confidence: form.confidence ? parseInt(form.confidence, 10) : null,
       occurred_at: null,
       created_at: new Date().toISOString(),
@@ -214,40 +229,63 @@ export function IntelligenceItemsFeed() {
         <div className="py-12 text-center text-sm text-muted-foreground">No data available.</div>
       ) : (
         <div className="divide-y divide-border">
-          {filtered.map((item) => (
-            <div key={item.id} className="px-6 py-4 hover:bg-muted/20 transition-colors">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    {item.confidence != null && (
-                      <span className="text-[10px] font-medium text-muted-foreground tabular-nums">
-                        {item.confidence}% confidence
+          {filtered.map((item) => {
+            const dirClass =
+              item.direction === 'Positive' ? 'bg-emerald-900/30 text-emerald-400 border-emerald-800/40' :
+              item.direction === 'Negative' ? 'bg-red-900/30 text-red-400 border-red-800/40' :
+              'bg-slate-800/40 text-slate-400 border-slate-700/40'
+            return (
+              <div key={item.id} className="px-6 py-4 hover:bg-muted/20 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    {/* Badge row */}
+                    <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                      {item.direction && (
+                        <span className={cn('inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium', dirClass)}>
+                          {item.direction}
+                        </span>
+                      )}
+                      {item.category && (
+                        <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                          {item.category}
+                        </span>
+                      )}
+                      {item.sensitivity === 'High' && (
+                        <span className="inline-flex items-center rounded bg-red-900/20 text-red-400 border border-red-800/30 px-1.5 py-0.5 text-[10px] font-medium">
+                          Sensitive
+                        </span>
+                      )}
+                      {item.source_tier && (
+                        <span className="inline-flex items-center rounded bg-muted/60 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                          T{item.source_tier}
+                        </span>
+                      )}
+                      {item.confidence != null && (
+                        <span className="text-[10px] text-muted-foreground tabular-nums">
+                          {item.confidence}% conf.
+                        </span>
+                      )}
+                      <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">
+                        {formatItemDate(item.occurred_at, item.created_at)}
                       </span>
+                    </div>
+
+                    {/* Entity label + title */}
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.entity_type}</span>
+                    <h3 className="font-medium text-foreground mt-0.5 leading-snug">{item.title}</h3>
+                    {item.detail && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.detail}</p>
                     )}
-                    {(item.source_type || item.source_name) && (
-                      <span className="text-[10px] text-muted-foreground">
-                        {item.source_type ?? item.source_name}
-                      </span>
-                    )}
-                    <span className="text-[10px] text-muted-foreground">
-                      {formatItemDate(item.occurred_at, item.created_at)}
-                    </span>
-                    {(item.category ?? '') && (
-                      <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                        {item.category}
-                      </span>
-                    )}
+
+                    {/* Deep link */}
+                    <Link href={entityHref(item)} className="text-xs text-primary hover:underline mt-1.5 inline-block">
+                      {entityTabLabel(item)}
+                    </Link>
                   </div>
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{item.entity_type}</span>
-                  <h3 className="font-medium text-foreground mt-0.5">{item.title}</h3>
-                  {item.detail && <p className="text-sm text-muted-foreground mt-1">{item.detail}</p>}
-                  <Link href={entityHref(item)} className="text-xs text-primary hover:underline mt-2 inline-block">
-                    View {item.entity_type}
-                  </Link>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

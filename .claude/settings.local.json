@@ -70,7 +70,18 @@
       "Bash(head -80 echo --- cat '/Users/jake/Desktop/Coach App/src/app/\\(dashboard\\)/clubs/_components/club-browser-panel.tsx')",
       "Bash(tail -5 echo \"---\" cat \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/clubs/[id]/recruitment/page.tsx\")",
       "Bash(wc -l echo \"---\" cat \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/clubs/[id]/pathway/page.tsx\")",
-      "Bash(wc -l echo \"---\" cat \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/clubs/_components/club-browser-panel.tsx\")"
+      "Bash(wc -l echo \"---\" cat \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/clubs/_components/club-browser-panel.tsx\")",
+      "Bash(find \"/Users/jake/Desktop/Coach App/src/app/\\(dashboard\\)/mandates\" -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\))",
+      "Bash(find \"/Users/jake/Desktop/Coach App/src/app/\\(dashboard\\)/mandates/[id]\" -type d)",
+      "Bash(wc -l \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/lib/scoring/\"*.ts)",
+      "Bash(wc -l \"/Users/jake/Desktop/Coach App/src/lib/scoring/\"*.ts)",
+      "Bash(cp \"/Users/jake/Desktop/Coach App/src/lib/scoring/engine.ts\" \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/lib/scoring/engine.ts\")",
+      "Bash(cp \"/Users/jake/Desktop/Coach App/src/lib/scoring/explanation.ts\" \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/lib/scoring/explanation.ts\")",
+      "Bash(cp \"/Users/jake/Desktop/Coach App/src/lib/scoring/mandate-adapter.ts\" \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/lib/scoring/mandate-adapter.ts\")",
+      "Bash(cat \"/Users/jake/Desktop/Coach App/src/app/\\(dashboard\\)/mandates/[id]/workspace/page.tsx\")",
+      "Bash(head -50 \"/Users/jake/Desktop/Coach App/src/lib/scoring/explanation.ts\" echo \"---\" grep -n \"MandateDimScores\\\\|computeSubScores\\\\|generateExplanation\\\\|buildComparisonNote\\\\|intelligenceLabel\\\\|decisionConfidence\\\\|tension\" \"/Users/jake/Desktop/Coach App/src/lib/scoring/explanation.ts\")",
+      "Bash(find \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/agents\" -type f)",
+      "Bash(find \"/Users/jake/Desktop/Coach App/.claude/worktrees/elastic-hypatia/src/app/\\(dashboard\\)/intelligence\" -type f)"
     ]
   }
 }
