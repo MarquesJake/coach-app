@@ -195,15 +195,23 @@ export function MandateBuilderForm({
   const [activePreset, setActivePreset] = useState<PresetKey | null>(null)
   const [touched, setTouched] = useState(false)
 
+  // Only pre-fill values that match the standardised option sets — non-standard
+  // free-text values from the old flow show as empty, accurately reflecting that
+  // the field needs to be re-specified using the new structured options.
+  function normalise(val: string | undefined, options: string[]): string {
+    if (!val) return ''
+    return options.includes(val) ? val : ''
+  }
+
   const [fields, setFields] = useState<ScoringFields>({
-    strategic_objective: initialValues.strategic_objective ?? '',
-    tactical_model_required: initialValues.tactical_model_required ?? '',
-    pressing_intensity_required: initialValues.pressing_intensity_required ?? '',
-    build_preference_required: initialValues.build_preference_required ?? '',
-    leadership_profile_required: initialValues.leadership_profile_required ?? '',
-    budget_band: initialValues.budget_band ?? '',
-    succession_timeline: initialValues.succession_timeline ?? '',
-    board_risk_appetite: initialValues.board_risk_appetite ?? '',
+    strategic_objective: normalise(initialValues.strategic_objective, STRATEGIC_OBJECTIVES),
+    tactical_model_required: normalise(initialValues.tactical_model_required, TACTICAL_MODELS),
+    pressing_intensity_required: normalise(initialValues.pressing_intensity_required, PRESSING_INTENSITIES),
+    build_preference_required: normalise(initialValues.build_preference_required, BUILD_PREFERENCES),
+    leadership_profile_required: normalise(initialValues.leadership_profile_required, LEADERSHIP_PROFILES),
+    budget_band: normalise(initialValues.budget_band, BUDGET_BANDS),
+    succession_timeline: normalise(initialValues.succession_timeline, SUCCESSION_TIMELINES),
+    board_risk_appetite: normalise(initialValues.board_risk_appetite, BOARD_RISK_APPETITES),
   })
   const [languageRequirements, setLanguageRequirements] = useState(initialValues.language_requirements ?? '')
   const [relocationRequired, setRelocationRequired] = useState(initialValues.relocation_required ?? false)
@@ -339,7 +347,7 @@ export function MandateBuilderForm({
 
           {mode === 'create' && (
             <label className="space-y-1 block">
-              <FieldLabel>Club <span className="text-red-400">*</span></FieldLabel>
+              <FieldLabel required>Club</FieldLabel>
               <FlexibleSelect
                 options={clubOptions ?? []}
                 name="club_id_or_name"
