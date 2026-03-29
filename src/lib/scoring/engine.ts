@@ -8,6 +8,7 @@ import type { MandateContext, UrgencyLevel, LeadershipArchetype } from './mandat
 import { WEIGHTS } from './mandate-adapter'
 import { getDimLabel, computeSubScores } from './explanation'
 import type { DimScore, MandateDimScores, ExclusionReason } from './explanation'
+import { computeIntelligenceAdjustment, type CoachIntelSignals, type IntelligenceAdjustment } from '@/lib/intelligence/coach-intel-signals'
 
 type Vacancy = Database['public']['Tables']['vacancies']['Row']
 type Coach = Database['public']['Tables']['coaches']['Row']
@@ -359,6 +360,8 @@ export interface MandateFitResult {
   recentLeague: string | null
   recentWinRate: number | null
   recentPpg: number | null
+  /** Intelligence adjustment applied to this result (null if no intel data was provided). */
+  intelAdj: IntelligenceAdjustment | null
 }
 
 // ——————————————————————————————————————————————————
@@ -794,7 +797,9 @@ function computeCombinedScore(dims: MandateDimScores, ctx: MandateContext): numb
 export function computeMandateFit(
   ctx: MandateContext,
   coach: Coach,
-  stints: CoachStint[]
+  stints: CoachStint[],
+  /** Optional intelligence signals — when provided, adjusts combined + appointability. */
+  intelSignals?: CoachIntelSignals,
 ): MandateFitResult {
   // Phase 1: Flag-based hard filters — no scoring needed
   const flagFilter = checkFlagHardFilters(ctx, coach)
@@ -809,6 +814,7 @@ export function computeMandateFit(
       recentLeague: null,
       recentWinRate: null,
       recentPpg: null,
+      intelAdj: null,
     }
   }
 
@@ -859,6 +865,7 @@ export function computeMandateFit(
       recentLeague: levelResult.recentLeague,
       recentWinRate: levelResult.recentWinRate,
       recentPpg: levelResult.recentPpg,
+      intelAdj: null,
     }
   }
 
@@ -873,7 +880,18 @@ export function computeMandateFit(
   combined = Math.min(100, combined)
 
   // Football Fit & Appointability
-  const { footballFit, appointability } = computeSubScores(dims)
+  const { footballFit } = computeSubScores(dims)
+  let { appointability } = computeSubScores(dims)
+
+  // Phase 5: Intelligence adjustment (optional, controlled modifier)
+  // Max ±10 on combined, max -10 on appointability.
+  // Intelligence must not override hard filters or dominate football fit.
+  let intelAdj: IntelligenceAdjustment | null = null
+  if (intelSignals) {
+    intelAdj = computeIntelligenceAdjustment(intelSignals, ieCount)
+    combined = Math.max(0, Math.min(100, combined + intelAdj.scoreAdj))
+    appointability = Math.max(0, Math.min(100, appointability + intelAdj.appointabilityAdj))
+  }
 
   return {
     combined,
@@ -884,5 +902,6 @@ export function computeMandateFit(
     recentLeague: levelResult.recentLeague,
     recentWinRate: levelResult.recentWinRate,
     recentPpg: levelResult.recentPpg,
+    intelAdj,
   }
 }

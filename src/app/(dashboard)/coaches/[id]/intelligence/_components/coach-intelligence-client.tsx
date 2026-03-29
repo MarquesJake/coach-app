@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, TrendingUp } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, TrendingUp, List, GitBranch, Link as LinkIcon } from 'lucide-react'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
@@ -74,6 +74,7 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
   const [categoryFilter, setCategoryFilter] = useState<string>('')
   const [directionFilter, setDirectionFilter] = useState<string>('')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list')
   const highlightedId = searchParams.get('entry')
   const highlightRef = useRef<HTMLDivElement>(null)
 
@@ -130,6 +131,33 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
   const patterns = Object.entries(categoryGroups)
     .filter(([, v]) => v.count >= 3)
     .sort((a, b) => b[1].count - a[1].count)
+
+  // Mandate label lookup for inline context display
+  const mandateMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const m of mandates) map[m.id] = m.label
+    return map
+  }, [mandates])
+
+  // Timeline groups: filtered items grouped by year–month (newest first)
+  const timelineGroups = useMemo(() => {
+    type Group = { yearLabel: string; monthLabel: string; sortKey: string; items: IntelRow[] }
+    const map: Record<string, Group> = {}
+    for (const item of filtered) {
+      const d = new Date(item.occurred_at ?? item.created_at)
+      const sortKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      if (!map[sortKey]) {
+        map[sortKey] = {
+          yearLabel: d.getFullYear().toString(),
+          monthLabel: d.toLocaleString('en-GB', { month: 'long' }),
+          sortKey,
+          items: [],
+        }
+      }
+      map[sortKey].items.push(item)
+    }
+    return Object.values(map).sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+  }, [filtered])
 
   // Form quality warnings
   const dupWarning = useMemo(() => {
@@ -208,7 +236,7 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
 
   return (
     <div className="space-y-4">
-      {/* Filters + Add */}
+      {/* Filters + View toggle + Add */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <select
@@ -227,6 +255,33 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
             <option value="">All directions</option>
             {DIRECTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
+          {/* View mode toggle */}
+          <div className="flex items-center gap-0.5 rounded border border-border bg-surface p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              title="List view"
+              className={cn(
+                'flex items-center gap-1 h-6 px-2 rounded text-[10px] transition-colors',
+                viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <List className="w-3 h-3" />
+              List
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('timeline')}
+              title="Timeline view"
+              className={cn(
+                'flex items-center gap-1 h-6 px-2 rounded text-[10px] transition-colors',
+                viewMode === 'timeline' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <GitBranch className="w-3 h-3" />
+              Timeline
+            </button>
+          </div>
         </div>
         <Button variant="outline" className="text-xs" onClick={() => setDrawerOpen(true)}>
           <Plus className="w-4 h-4 mr-1" />
@@ -274,20 +329,22 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
         </div>
       )}
 
-      {/* List */}
-      <div className="rounded-lg border border-border bg-card divide-y divide-border">
-        {filtered.length === 0 ? (
-          <div className="py-12 text-center text-sm text-muted-foreground">
-            No intelligence entries. Add one above.
-          </div>
-        ) : (
-          filtered.map((item) => {
+      {/* ── List / Timeline rendering ── */}
+      {filtered.length === 0 ? (
+        <div className="rounded-lg border border-border bg-card py-12 text-center text-sm text-muted-foreground">
+          No intelligence entries. Add one above.
+        </div>
+      ) : viewMode === 'list' ? (
+        /* ── List view ── */
+        <div className="rounded-lg border border-border bg-card divide-y divide-border">
+          {filtered.map((item) => {
             const isHighlighted = item.id === highlightedId
             const isExpanded = expandedId === item.id
             const ws = weightedScore(item)
             const itemTier = item.source_tier ? parseInt(item.source_tier, 10) : null
             const isLowSignal = itemTier !== null && itemTier >= 4 && (item.confidence ?? 100) <= 33
             const isPattern = item.category !== null && (categoryGroups[item.category]?.count ?? 0) >= 3
+            const mandateLabel = item.mandate_id ? mandateMap[item.mandate_id] : null
             return (
               <div
                 key={item.id}
@@ -358,10 +415,18 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
                       </>
                     )}
 
-                    {/* Footer: source + weighted score */}
-                    <div className="mt-2 flex items-center gap-3">
+                    {/* Footer: source + mandate context + weighted score */}
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
                       {item.source_name && (
-                        <span className="text-[10px] text-muted-foreground">Source: {item.source_name}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {item.source_type ? `${item.source_type}: ` : 'Source: '}{item.source_name}
+                        </span>
+                      )}
+                      {mandateLabel && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-primary/70">
+                          <LinkIcon className="w-2.5 h-2.5" />
+                          {mandateLabel}
+                        </span>
                       )}
                       {item.verified && (
                         <span className="text-[10px] text-emerald-400">✓ Verified</span>
@@ -384,9 +449,162 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
                 </div>
               </div>
             )
-          })
-        )}
-      </div>
+          })}
+        </div>
+      ) : (
+        /* ── Timeline view ── */
+        <div className="space-y-6">
+          {timelineGroups.map((group, gi) => {
+            return (
+              <div key={group.sortKey}>
+                {/* Year separator */}
+                {(gi === 0 || timelineGroups[gi - 1]?.yearLabel !== group.yearLabel) && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-xs font-bold text-foreground tabular-nums">{group.yearLabel}</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                )}
+
+                {/* Month label */}
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2 ml-7">
+                  {group.monthLabel}
+                </p>
+
+                {/* Entries with timeline spine */}
+                <div className="relative">
+                  {/* Vertical spine */}
+                  <div className="absolute left-2.5 top-2 bottom-2 w-px bg-border" />
+
+                  <div className="space-y-3">
+                    {group.items.map((item) => {
+                      const isHighlighted = item.id === highlightedId
+                      const isExpanded = expandedId === item.id
+                      const ws = weightedScore(item)
+                      const itemTier = item.source_tier ? parseInt(item.source_tier, 10) : null
+                      const isLowSignal = itemTier !== null && itemTier >= 4 && (item.confidence ?? 100) <= 33
+                      const isPattern = item.category !== null && (categoryGroups[item.category]?.count ?? 0) >= 3
+                      const mandateLabel = item.mandate_id ? mandateMap[item.mandate_id] : null
+                      const dotColor =
+                        item.direction === 'Positive' ? 'bg-emerald-400' :
+                        item.direction === 'Negative' ? 'bg-red-400' :
+                        'bg-muted-foreground/40'
+
+                      return (
+                        <div
+                          key={item.id}
+                          ref={isHighlighted ? highlightRef : undefined}
+                          className={cn(
+                            'flex items-start gap-3',
+                            isLowSignal && 'opacity-50'
+                          )}
+                        >
+                          {/* Timeline dot */}
+                          <div className={cn('w-5 h-5 rounded-full border-2 border-background shrink-0 mt-1 z-10', dotColor)} />
+
+                          {/* Entry card */}
+                          <div className={cn(
+                            'flex-1 rounded-lg border bg-card px-4 py-3 transition-colors',
+                            isHighlighted ? 'border-primary/40 bg-primary/5' : 'border-border hover:bg-muted/20',
+                          )}>
+                            {/* Badges + date */}
+                            <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                              {item.direction && (
+                                <span className={cn('inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium', DIRECTION_CLASSES[item.direction] ?? 'bg-muted text-muted-foreground')}>
+                                  {item.direction}
+                                </span>
+                              )}
+                              {item.category && (
+                                <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                  {item.category}
+                                </span>
+                              )}
+                              {isPattern && (
+                                <span className="inline-flex items-center gap-0.5 rounded border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[10px] text-amber-400">
+                                  <TrendingUp className="w-2.5 h-2.5" />
+                                  Pattern
+                                </span>
+                              )}
+                              {item.sensitivity === 'High' && (
+                                <span className="inline-flex items-center rounded bg-red-900/20 text-red-400 border border-red-800/30 px-1.5 py-0.5 text-[10px] font-medium">
+                                  Sensitive
+                                </span>
+                              )}
+                              {item.confidence != null && (
+                                <span className={cn('inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium', confidenceClasses(item.confidence))}>
+                                  {confidenceLabel(item.confidence)} · {item.confidence}%
+                                </span>
+                              )}
+                              {item.source_tier && (
+                                <span className="inline-flex items-center rounded bg-muted/60 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                  {SOURCE_TIER_LABELS[parseInt(item.source_tier, 10)] ?? `T${item.source_tier}`}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-muted-foreground tabular-nums ml-auto">
+                                {formatDate(item.occurred_at ?? item.created_at)}
+                              </span>
+                            </div>
+
+                            {/* Title */}
+                            <p className="font-medium text-foreground text-sm">{item.title}</p>
+
+                            {/* Detail (collapsible) */}
+                            {item.detail && (
+                              <>
+                                {isExpanded && (
+                                  <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{item.detail}</p>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                                  className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
+                                >
+                                  {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                  {isExpanded ? 'Less' : 'More'}
+                                </button>
+                              </>
+                            )}
+
+                            {/* Footer: source + mandate context + weight */}
+                            <div className="mt-2 flex flex-wrap items-center gap-3">
+                              {item.source_name && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  {item.source_type ? `${item.source_type}: ` : 'Source: '}{item.source_name}
+                                </span>
+                              )}
+                              {mandateLabel && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-primary/70">
+                                  <LinkIcon className="w-2.5 h-2.5" />
+                                  {mandateLabel}
+                                </span>
+                              )}
+                              {item.verified && (
+                                <span className="text-[10px] text-emerald-400">✓ Verified</span>
+                              )}
+                              <div className="ml-auto flex items-center gap-2">
+                                <span className="text-[10px] text-muted-foreground tabular-nums">
+                                  Weight: {ws}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(item.id)}
+                                  className="text-muted-foreground hover:text-red-400 transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Add drawer */}
       <Drawer
