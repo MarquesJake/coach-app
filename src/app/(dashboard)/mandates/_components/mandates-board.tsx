@@ -23,10 +23,36 @@ export type MandateForBoard = {
   priority: string
   pipeline_stage: string | null
   budget_band: string
+  strategic_objective?: string | null
+  tactical_model_required?: string | null
+  pressing_intensity_required?: string | null
+  build_preference_required?: string | null
+  leadership_profile_required?: string | null
+  succession_timeline?: string | null
   target_completion_date?: string | null
   custom_club_name?: string | null
   clubs: { name: string | null } | null
   mandate_shortlist?: { id: string }[] | null
+}
+
+const SCORING_FIELDS = [
+  'strategic_objective',
+  'tactical_model_required',
+  'pressing_intensity_required',
+  'build_preference_required',
+  'leadership_profile_required',
+  'budget_band',
+  'succession_timeline',
+] as const
+
+type ScoringField = typeof SCORING_FIELDS[number]
+
+function mandateCompleteness(m: MandateForBoard): number {
+  const filled = SCORING_FIELDS.filter((k: ScoringField) => {
+    const v = m[k]
+    return typeof v === 'string' && v.trim().length > 0
+  }).length
+  return Math.round((filled / SCORING_FIELDS.length) * 100)
 }
 
 function shortlistCount(m: MandateForBoard): number {
@@ -410,6 +436,13 @@ function MandateCard({
   const currentIndex = getStageIndex(stageKey)
   const hasNextStage = currentIndex < STAGES.length - 1
   const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
+  const completeness = mandateCompleteness(mandate)
+  const completenessBadgeClass =
+    completeness >= 86
+      ? 'bg-green-500/15 text-green-400 border-green-500/30'
+      : completeness >= 50
+        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+        : 'bg-red-500/15 text-red-400 border-red-500/30'
 
   const priorityStripClass =
     mandate.priority === 'High'
@@ -490,6 +523,17 @@ function MandateCard({
             <Badge variant="secondary" className="text-[9px] shrink-0">
               {mandate.status}
             </Badge>
+            <Link
+              href={`/mandates/${mandate.id}/edit`}
+              onClick={(e) => e.stopPropagation()}
+              title={`Mandate spec ${completeness}% complete — click to fill in missing fields`}
+              className={cn(
+                'inline-flex items-center px-1.5 py-0.5 rounded border text-[9px] font-medium shrink-0 leading-none',
+                completenessBadgeClass
+              )}
+            >
+              {completeness}%
+            </Link>
           </div>
           <p className="text-[11px] text-muted-foreground mb-1">Match depth: {count} coaches</p>
           <div className="flex items-center gap-2 text-2xs text-muted-foreground flex-wrap">

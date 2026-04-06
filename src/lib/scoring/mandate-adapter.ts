@@ -38,6 +38,11 @@ export interface MandateContext {
 // ——————————————————————————————————————————————————
 // Budget → staff budget lookup
 // ——————————————————————————————————————————————————
+// Builder uses '£100m+' as a shorthand — normalise to engine canonical value
+const BUDGET_BAND_NORMALISE: Record<string, string> = {
+  '£100m+': '£100m - £200m',
+}
+
 const BUDGET_TO_STAFF: Record<string, string> = {
   'Under £1m': 'Under £500k',
   '£1m - £5m': '£500k - £1m',
@@ -222,21 +227,50 @@ export interface MandateInput {
   language_requirements?: string[] | null
 }
 
+// ——————————————————————————————————————————————————
+// Builder label → engine value normalisation
+// The mandate builder uses human-readable labels; the engine uses its own
+// internal style/build keys that are shared with legacy coach profile data.
+// ——————————————————————————————————————————————————
+
+const TACTICAL_LABEL_MAP: Record<string, string> = {
+  'High press / dominant': 'High press',
+  'Possession / build-out': 'Possession-based',
+  'Counter-attack / compact': 'Counter-attacking',
+  'Hybrid / flexible': 'Balanced',
+}
+
+const BUILD_LABEL_MAP: Record<string, string> = {
+  'Short build': 'Build from back',
+  'Long ball / direct': 'Long ball',
+  // 'Mixed' already matches engine value — no mapping needed
+}
+
+function normaliseStyle(val: string | null | undefined): string | null {
+  if (!val) return null
+  return TACTICAL_LABEL_MAP[val] ?? val
+}
+
+function normaliseBuild(val: string | null | undefined): string | null {
+  if (!val) return null
+  return BUILD_LABEL_MAP[val] ?? val
+}
+
 export function mandateToContext(mandate: MandateInput): MandateContext {
   const urgency = parseUrgency(mandate.succession_timeline)
   const { primary, secondary, blend } = resolveArchetypes(mandate.strategic_objective ?? null)
   const weightSet = selectWeightSet(urgency, primary)
 
   return {
-    styleRequired: mandate.tactical_model_required ?? null,
+    styleRequired: normaliseStyle(mandate.tactical_model_required),
     pressingRequired: mandate.pressing_intensity_required ?? null,
-    buildRequired: mandate.build_preference_required ?? null,
+    buildRequired: normaliseBuild(mandate.build_preference_required),
     primaryArchetype: primary,
     secondaryArchetype: secondary,
     archetypeBlend: blend,
     leadershipOverride: mandate.leadership_profile_required ?? null,
-    budgetBand: mandate.budget_band ?? null,
-    staffBudget: deriveStaffBudget(mandate.budget_band ?? null),
+    budgetBand: BUDGET_BAND_NORMALISE[mandate.budget_band ?? ''] ?? mandate.budget_band ?? null,
+    staffBudget: deriveStaffBudget(BUDGET_BAND_NORMALISE[mandate.budget_band ?? ''] ?? mandate.budget_band ?? null),
     urgency,
     boardRisk: mandate.board_risk_appetite ?? null,
     relocationRequired: mandate.relocation_required ?? false,

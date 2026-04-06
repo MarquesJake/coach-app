@@ -43,6 +43,12 @@ export async function getMandatesForUser(userId: string) {
       engagement_date,
       target_completion_date,
       budget_band,
+      strategic_objective,
+      tactical_model_required,
+      pressing_intensity_required,
+      build_preference_required,
+      leadership_profile_required,
+      succession_timeline,
       created_at,
       custom_club_name,
       clubs (
@@ -63,10 +69,9 @@ export async function getMandateFitFields(userId: string, mandateId: string) {
   const { data, error } = await supabase
     .from('mandates')
     .select(
-      `id, custom_club_name,
-       tactical_model_required, pressing_intensity_required, build_preference_required,
-       leadership_profile_required, risk_tolerance,
-       budget_band, strategic_objective, board_risk_appetite, succession_timeline,
+      `id, custom_club_name, tactical_model_required, pressing_intensity_required,
+       build_preference_required, leadership_profile_required, budget_band,
+       strategic_objective, board_risk_appetite, succession_timeline,
        language_requirements, relocation_required`
     )
     .eq('id', mandateId)
