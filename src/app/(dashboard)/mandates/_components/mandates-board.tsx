@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { STAGES, getStageLabel, getStageIndex, isValidPipelineStage, normaliseStage } from '@/lib/constants/mandateStages'
 import { updateMandateStageAction } from '../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
+import type { BoardSignal } from '@/lib/db/mandate'
 
 /** Mandate health: visual only. Green = strong longlist depth, Amber = thin shortlist, Red = low match confidence. */
 function mandateHealth(shortlistCount: number): 'green' | 'amber' | 'red' {
@@ -32,7 +33,8 @@ export type MandateForBoard = {
   target_completion_date?: string | null
   custom_club_name?: string | null
   clubs: { name: string | null } | null
-  mandate_shortlist?: { id: string }[] | null
+  mandate_shortlist?: { id: string; candidate_stage: string }[] | null
+  signal?: BoardSignal | null
 }
 
 const SCORING_FIELDS = [
@@ -47,17 +49,23 @@ const SCORING_FIELDS = [
 
 type ScoringField = typeof SCORING_FIELDS[number]
 
-function mandateCompleteness(m: MandateForBoard): number {
+function mandateCompleteness(m: MandateForBoard): { pct: number; missing: number } {
   const filled = SCORING_FIELDS.filter((k: ScoringField) => {
     const v = m[k]
     return typeof v === 'string' && v.trim().length > 0
   }).length
-  return Math.round((filled / SCORING_FIELDS.length) * 100)
+  return { pct: Math.round((filled / SCORING_FIELDS.length) * 100), missing: SCORING_FIELDS.length - filled }
 }
 
 function shortlistCount(m: MandateForBoard): number {
   const list = m.mandate_shortlist
   return Array.isArray(list) ? list.length : 0
+}
+
+function shortlistedCount(m: MandateForBoard): number {
+  const list = m.mandate_shortlist
+  if (!Array.isArray(list)) return 0
+  return list.filter((e) => ['Shortlist', 'Interview', 'Final'].includes(e.candidate_stage)).length
 }
 
 function formatTargetDate(value: string | null | undefined): string {
@@ -67,6 +75,22 @@ function formatTargetDate(value: string | null | undefined): string {
   } catch {
     return '—'
   }
+}
+
+function availDot(status: string | null) {
+  if (status === 'Available') return 'bg-emerald-400'
+  if (status === 'Open to offers' || status === 'Under contract - interested') return 'bg-amber-400'
+  if (status === 'Under contract') return 'bg-blue-400'
+  return 'bg-muted-foreground/30'
+}
+
+function decisionClarity(rank1: number, rank2: number | null): { label: string; cls: string } | null {
+  if (rank2 === null) return null
+  const delta = rank1 - rank2
+  if (delta < 3) return { label: 'Too close to call', cls: 'text-muted-foreground bg-muted/40 border-border' }
+  if (delta < 9) return { label: 'Marginal decision', cls: 'text-amber-400 bg-amber-400/10 border-amber-400/20' }
+  if (delta < 15) return { label: 'Preferred option', cls: 'text-orange-400 bg-orange-400/10 border-orange-400/20' }
+  return { label: 'Clear leader', cls: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' }
 }
 
 const STATUS_OPTIONS = ['All', 'Active', 'In Progress', 'Completed', 'On Hold'] as const
@@ -90,17 +114,7 @@ function filterMandates(mandates: MandateForBoard[], filters: FilterState): Mand
 }
 
 // ---------------------------------------------------------------------------
-// Stage rules groundwork: canMoveToStage(mandate, toStage)
-// Currently always returns true. Structured for future rules per stage.
-// TODO: board_approved — require board_risk_appetite and confidentiality_level set
-// TODO: shortlisting — require longlist generated (mandate_longlist has rows) or allow with warning
-// TODO: interviews — require at least one shortlist entry
-// TODO: final_2 — require interview outcomes / notes
-// TODO: offer — require final 2 decided
-// TODO: closed — require outcome recorded
-// ---------------------------------------------------------------------------
 function canMoveToStage(mandate: MandateForBoard, toStageKey: string): { allowed: boolean; reason?: string } {
-  // Params reserved for future stage rules (see TODOs above)
   if (process.env.NODE_ENV === 'development' && false) {
     console.info('canMoveToStage', mandate.id, toStageKey)
   }
@@ -111,7 +125,7 @@ type Props = {
   initialMandates: MandateForBoard[]
 }
 
-const COLUMN_WIDTH = 260
+const COLUMN_WIDTH = 272
 
 export function MandatesBoard({ initialMandates }: Props) {
   const [mandates, setMandates] = useState(initialMandates)
@@ -432,11 +446,13 @@ function MandateCard({
   const router = useRouter()
   const stageKey = mandate.pipeline_stage ?? STAGES[0].key
   const count = shortlistCount(mandate)
+  const shortlisted = shortlistedCount(mandate)
   const health = mandateHealth(count)
   const currentIndex = getStageIndex(stageKey)
   const hasNextStage = currentIndex < STAGES.length - 1
   const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
-  const completeness = mandateCompleteness(mandate)
+  const { pct: completeness, missing } = mandateCompleteness(mandate)
+  const completenessLabel = missing === 0 ? 'Complete' : missing <= 3 ? 'Partial' : 'Needs update'
   const completenessBadgeClass =
     completeness >= 86
       ? 'bg-green-500/15 text-green-400 border-green-500/30'
@@ -478,6 +494,13 @@ function MandateCard({
   const healthDotClass =
     health === 'green' ? 'bg-green-500' : health === 'amber' ? 'bg-amber-500' : 'bg-red-500/80'
 
+  // Signal layer
+  const sig = mandate.signal ?? null
+  const topCoach = sig?.topCoach ?? null
+  const clarity = topCoach ? decisionClarity(topCoach.score, sig?.secondScore ?? null) : null
+  const hasIeFlags = (topCoach?.ieFlags?.length ?? 0) > 0
+  const hasRiskConcern = topCoach?.hasRiskConcern ?? false
+
   return (
     <div
       ref={cardRef}
@@ -487,7 +510,7 @@ function MandateCard({
       onKeyDown={handleKeyDown}
       className={cn(
         'card-surface rounded-lg border border-border p-0 hover:border-primary/30 transition-all flex cursor-pointer',
-        compact ? 'min-h-0' : 'min-h-[120px]',
+        compact ? 'min-h-0' : 'min-h-[148px]',
         isDragging && 'opacity-90 scale-105 shadow-lg ring-2 ring-primary/40'
       )}
     >
@@ -506,7 +529,8 @@ function MandateCard({
           </span>
         )}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+          {/* Row 1: health dot + name + priority + status + completeness */}
+          <div className="flex items-center gap-1.5 flex-wrap mb-1">
             {showHealth && (
               <span
                 className={cn('w-2 h-2 rounded-full shrink-0', healthDotClass)}
@@ -526,19 +550,76 @@ function MandateCard({
             <Link
               href={`/mandates/${mandate.id}/edit`}
               onClick={(e) => e.stopPropagation()}
-              title={`Mandate spec ${completeness}% complete — click to fill in missing fields`}
+              title={missing === 0 ? 'Mandate spec complete' : `${missing} field${missing > 1 ? 's' : ''} missing — click to fill in`}
               className={cn(
-                'inline-flex items-center px-1.5 py-0.5 rounded border text-[9px] font-medium shrink-0 leading-none',
+                'inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-medium shrink-0 leading-none',
                 completenessBadgeClass
               )}
             >
-              {completeness}%
+              {completenessLabel}
+              {missing > 0 && <span className="opacity-70">({missing})</span>}
             </Link>
           </div>
-          <p className="text-[11px] text-muted-foreground mb-1">Match depth: {count} coaches</p>
-          <div className="flex items-center gap-2 text-2xs text-muted-foreground flex-wrap">
+
+          {/* Row 2: top candidate (if scored) */}
+          {topCoach ? (
+            <div className="flex items-center gap-1.5 mb-1 min-w-0">
+              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', availDot(topCoach.availStatus))} />
+              <span className="text-[11px] font-medium text-foreground truncate flex-1">
+                {topCoach.name ?? 'Unknown'}
+              </span>
+              <span className={cn(
+                'text-[11px] font-bold tabular-nums shrink-0',
+                topCoach.score >= 70 ? 'text-emerald-400' : topCoach.score >= 50 ? 'text-amber-400' : 'text-red-400'
+              )}>
+                {topCoach.score}
+              </span>
+              {clarity && (
+                <span className={cn('text-[9px] font-medium px-1 py-0.5 rounded border shrink-0', clarity.cls)}>
+                  {clarity.label}
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="text-[10px] text-muted-foreground/50 mb-1 italic">Not scored yet</p>
+          )}
+
+          {/* Row 3: fit label (dimmed) */}
+          {topCoach?.fitLabel && (
+            <p className="text-[10px] text-muted-foreground leading-snug mb-1 truncate">
+              {topCoach.fitLabel}
+            </p>
+          )}
+
+          {/* Row 4: pipeline summary + target date */}
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground flex-wrap">
+            <span>
+              <span className="font-medium text-foreground">{count}</span> in pipeline
+              {shortlisted > 0 && (
+                <> · <span className="font-medium text-foreground">{shortlisted}</span> shortlisted</>
+              )}
+            </span>
+            <span className="text-muted-foreground/30">·</span>
             <span>Target: {formatTargetDate(mandate.target_completion_date)}</span>
           </div>
+
+          {/* Row 5: intel/risk badges */}
+          {(hasIeFlags || hasRiskConcern) && (
+            <div className="flex gap-1 mt-1 flex-wrap">
+              {hasRiskConcern && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded border border-red-500/20 bg-red-500/10 text-red-400 font-medium">
+                  Risk flagged
+                </span>
+              )}
+              {hasIeFlags && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded border border-muted bg-muted/20 text-muted-foreground font-medium">
+                  Low intel coverage
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Bottom bar: stage label + menu */}
           <div className="flex items-center justify-between gap-1 mt-2 shrink-0">
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
               {getStageLabel(stageKey)}
