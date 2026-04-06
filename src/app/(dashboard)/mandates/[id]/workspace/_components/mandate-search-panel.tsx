@@ -324,15 +324,18 @@ export function MandateSearchPanel({
                         {pipelineStage ?? 'In pipeline'} ✓
                       </span>
                     ) : (
-                      <button
-                        type="button"
-                        disabled={isAdding}
-                        onClick={(e) => { e.stopPropagation(); handleAdd(entry.coach_id) }}
-                        className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-medium hover:bg-primary/20 disabled:opacity-50 transition-colors shrink-0"
+                      <span
+                        role="button"
+                        aria-disabled={isAdding}
+                        onClick={(e) => { e.stopPropagation(); if (!isAdding) handleAdd(entry.coach_id) }}
+                        className={cn(
+                          'flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-medium hover:bg-primary/20 transition-colors shrink-0 cursor-pointer',
+                          isAdding && 'opacity-50 cursor-not-allowed'
+                        )}
                       >
                         <Plus className="w-2.5 h-2.5" />
                         {isAdding ? '…' : 'Longlist'}
-                      </button>
+                      </span>
                     )}
                   </div>
                 </button>
