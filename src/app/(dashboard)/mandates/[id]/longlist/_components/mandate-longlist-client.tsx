@@ -21,18 +21,22 @@ type CoachRow = {
   wage_expectation?: string | null
 }
 
-function matchRationaleLines(coach: CoachRow): string[] {
-  const lines: string[] = []
-  const tactical = coach.tactical_fit_score != null ? Number(coach.tactical_fit_score) : null
-  const leadership = coach.leadership_score != null ? Number(coach.leadership_score) : null
-  const mediaRisk = coach.media_risk_score != null ? Number(coach.media_risk_score) : null
-  const ic = coach.intelligence_confidence != null ? Number(coach.intelligence_confidence) : null
-  if (tactical != null && tactical > 70) lines.push('Strong tactical alignment')
-  if (leadership != null && leadership > 60) lines.push('Leadership profile aligned')
-  if (mediaRisk != null && mediaRisk <= 40) lines.push('Risk profile acceptable')
-  if (ic != null && ic < 40) lines.push('Limited evidence depth')
-  if (lines.length === 0) lines.push('Review fit explanation and profile for rationale.')
-  return lines.slice(0, 3)
+function parseFitSummary(raw: string | null): { summary: string; combined: number | null; ff: number | null; ap: number | null } | null {
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    return {
+      summary: parsed.summary ?? '',
+      combined: parsed.combined ?? null,
+      ff: parsed.footballFit ?? null,
+      ap: parsed.appointability ?? null,
+    }
+  } catch {
+    // Legacy pipe-delimited format: "SUMMARY: ... | STRENGTH: ..."
+    const match = raw.match(/SUMMARY:\s*([^|]+)/)
+    if (match) return { summary: match[1].trim(), combined: null, ff: null, ap: null }
+    return null
+  }
 }
 
 type LonglistRow = {
@@ -91,11 +95,9 @@ export function MandateLonglistClient({
       </div>
 
       <div className="card-surface rounded-lg overflow-hidden">
-        <div className="grid grid-cols-[1fr_80px_1fr_80px] px-5 py-2.5 border-b border-border bg-surface/50 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-          <span>Coach</span>
-          <span>Score</span>
-          <span>Fit explanation</span>
-          <span />
+        <div className="flex gap-4 px-5 py-2.5 border-b border-border bg-surface/50 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+          <span className="w-5 shrink-0">#</span>
+          <span className="flex-1">Coach · Score · Summary</span>
         </div>
         <div className="divide-y divide-border/50">
           {longlist.length === 0 ? (
@@ -103,27 +105,33 @@ export function MandateLonglistClient({
               No longlist yet. Click Generate longlist to rank coaches for this mandate.
             </div>
           ) : (
-            longlist.map((row) => {
+            longlist.map((row, i) => {
               const coach = coaches.find((c) => c.id === row.coach_id)
-              const rationale = coach ? matchRationaleLines(coach) : []
+              const fit = parseFitSummary(row.fit_explanation ?? null)
+              const score = row.ranking_score ?? 0
+              const scoreColor = score >= 70 ? 'text-emerald-400' : score >= 50 ? 'text-amber-400' : 'text-red-400'
               return (
-                <div key={row.id} className="px-5 py-3">
-                  <div className="grid grid-cols-[1fr_80px_1fr_80px] items-center gap-2">
-                    <Link href={`/coaches/${row.coach_id}`} className="text-sm font-medium text-primary hover:underline">
-                      {coach?.name ?? 'Unknown coach'}
-                    </Link>
-                    <span className="tabular-nums text-sm">{row.ranking_score ?? '—'}</span>
-                    <span className="text-2xs text-muted-foreground truncate">{row.fit_explanation ?? '—'}</span>
-                    <Link href={`/mandates/${mandateId}/shortlist`} className="text-2xs text-primary">To shortlist</Link>
+                <div key={row.id} className="px-5 py-3.5 flex items-start gap-4">
+                  <span className="text-[11px] font-mono text-muted-foreground/50 w-5 shrink-0 mt-0.5">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <Link href={`/coaches/${row.coach_id}`} className="text-sm font-medium text-primary hover:underline truncate">
+                        {coach?.name ?? 'Unknown coach'}
+                      </Link>
+                      <span className={`tabular-nums text-sm font-bold shrink-0 ${scoreColor}`}>{score}</span>
+                      {fit?.ff != null && (
+                        <span className="text-[10px] text-muted-foreground shrink-0">
+                          FF:{fit.ff} · Ap:{fit.ap}
+                        </span>
+                      )}
+                    </div>
+                    {fit?.summary && (
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{fit.summary}</p>
+                    )}
                   </div>
-                  <div className="mt-2 pl-0 rounded border border-border/50 bg-muted/20 px-3 py-2">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Match Rationale</p>
-                    <ul className="list-disc list-inside text-2xs text-muted-foreground space-y-0.5">
-                      {rationale.map((line, i) => (
-                        <li key={i}>{line}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  <Link href={`/mandates/${mandateId}/workspace`} className="text-[10px] text-primary shrink-0 mt-0.5">
+                    Open →
+                  </Link>
                 </div>
               )
             })
