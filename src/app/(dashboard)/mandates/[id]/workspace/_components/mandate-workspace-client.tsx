@@ -574,7 +574,7 @@ function FitAssessment({
     setIntelLoading(true)
     setIntelSignals(null)
     fetch(`/api/coaches/${candidate.coach_id}/intelligence-items`)
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((data: { items: IntelItem[] }) => {
         setIntelSignals(computeCoachIntelSignals(data.items ?? []))
       })

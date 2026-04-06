@@ -18,7 +18,10 @@ export async function GET(
     .eq('is_deleted', false)
     .order('occurred_at', { ascending: false })
 
-  if (error) return NextResponse.json({ items: [] }, { status: 500 })
+  if (error) {
+    console.error('[intelligence-items] query error:', error.message)
+    return NextResponse.json({ items: [], error: error.message }, { status: 200 })
+  }
 
   return NextResponse.json({ items: data ?? [] })
 }
