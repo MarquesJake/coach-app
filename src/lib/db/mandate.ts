@@ -55,12 +55,102 @@ export async function getMandatesForUser(userId: string) {
         name
       ),
       mandate_shortlist (
-        id
+        id,
+        candidate_stage
       )
     `
     )
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
+}
+
+export type BoardSignal = {
+  mandateId: string
+  topCoach: {
+    name: string | null
+    score: number
+    fitLabel: string
+    availStatus: string | null
+    ieFlags: string[]
+    hasRiskConcern: boolean
+  } | null
+  secondScore: number | null
+  isScored: boolean
+}
+
+/** Fetch top-2 longlist entries for all mandates in one query. Group in JS. */
+export async function getMandateBoardSignals(
+  userId: string,
+  mandateIds: string[]
+): Promise<BoardSignal[]> {
+  if (mandateIds.length === 0) return []
+  const supabase = db()
+
+  const { data } = await supabase
+    .from('mandate_longlist')
+    .select(`
+      mandate_id,
+      coach_id,
+      ranking_score,
+      fit_explanation,
+      coaches (
+        name,
+        available_status
+      )
+    `)
+    .in('mandate_id', mandateIds)
+    .order('ranking_score', { ascending: false }) as { data: Array<{
+      mandate_id: string
+      coach_id: string
+      ranking_score: number | null
+      fit_explanation: string | null
+      coaches: { name: string | null; available_status: string | null } | null
+    }> | null }
+
+  if (!data) return mandateIds.map((id) => ({ mandateId: id, topCoach: null, secondScore: null, isScored: false }))
+
+  // Group by mandate_id, keep top 2
+  const grouped = new Map<string, typeof data>()
+  for (const row of data) {
+    const list = grouped.get(row.mandate_id) ?? []
+    if (list.length < 2) {
+      list.push(row)
+      grouped.set(row.mandate_id, list)
+    }
+  }
+
+  return mandateIds.map((id) => {
+    const entries = grouped.get(id) ?? []
+    if (entries.length === 0) return { mandateId: id, topCoach: null, secondScore: null, isScored: false }
+
+    const top = entries[0]
+    const second = entries[1]
+    let fitLabel = ''
+    let ieFlags: string[] = []
+    let hasRiskConcern = false
+    try {
+      const fit = JSON.parse(top.fit_explanation ?? '{}')
+      fitLabel = fit.fitLabel ?? ''
+      ieFlags = fit.ieFlags ?? []
+      hasRiskConcern = Array.isArray(fit.concerns) && fit.concerns.some((c: string) =>
+        /risk|flag|safeguard|legal|integrity/i.test(c)
+      )
+    } catch { /* ignore */ }
+
+    return {
+      mandateId: id,
+      isScored: true,
+      topCoach: {
+        name: top.coaches?.name ?? null,
+        score: top.ranking_score ?? 0,
+        fitLabel,
+        availStatus: top.coaches?.available_status ?? null,
+        ieFlags,
+        hasRiskConcern,
+      },
+      secondScore: second?.ranking_score ?? null,
+    }
+  })
 }
 
 /** Fetch mandate row with all fields required by mandateToContext() and the scoring engine. */

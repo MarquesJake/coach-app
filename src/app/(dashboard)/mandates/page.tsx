@@ -6,7 +6,8 @@ import { MandatesBoard } from './_components/mandates-board'
 import type { MandateForBoard } from './_components/mandates-board'
 import { MandateToasts } from './_components/mandate-toasts'
 import { RealtimeMandatesListSubscriber } from './_components/realtime-mandates-list-subscriber'
-import { getMandatesForUser } from '@/lib/db/mandate'
+import { getMandatesForUser, getMandateBoardSignals } from '@/lib/db/mandate'
+import type { BoardSignal } from '@/lib/db/mandate'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createDemoMandateAction } from './actions'
 
@@ -26,7 +27,14 @@ export default async function MandatesPage() {
     throw new Error(`Failed to load mandates: ${error.message}`)
   }
 
-  const forBoard: MandateForBoard[] = (mandates ?? []).map((m: Record<string, unknown>) => ({
+  const rawMandates = mandates ?? []
+  const mandateIds = rawMandates.map((m: Record<string, unknown>) => m.id as string)
+
+  // Fetch board signals in parallel with mandate data already loaded
+  const signals: BoardSignal[] = await getMandateBoardSignals(user.id, mandateIds)
+  const signalMap = new Map(signals.map((s) => [s.mandateId, s]))
+
+  const forBoard: MandateForBoard[] = rawMandates.map((m: Record<string, unknown>) => ({
     id: m.id as string,
     status: m.status as string,
     priority: m.priority as string,
@@ -41,7 +49,8 @@ export default async function MandatesPage() {
     target_completion_date: (m.target_completion_date as string | null) ?? null,
     custom_club_name: (m.custom_club_name as string | null) ?? null,
     clubs: m.clubs as { name: string | null } | null,
-    mandate_shortlist: (m.mandate_shortlist as { id: string }[] | null) ?? null,
+    mandate_shortlist: (m.mandate_shortlist as { id: string; candidate_stage: string }[] | null) ?? null,
+    signal: signalMap.get(m.id as string) ?? null,
   }))
 
   return (

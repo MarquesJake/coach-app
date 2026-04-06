@@ -227,6 +227,7 @@ export async function generateLonglistAction(mandateId: string): Promise<{
   }
 
   // ── 7. Upsert ─────────────────────────────────────────────────────────────
+  const scoredAt = new Date().toISOString()
   if (rows.length > 0) {
     await supabase
       .from('mandate_longlist')
@@ -236,7 +237,8 @@ export async function generateLonglistAction(mandateId: string): Promise<{
           coach_id: r.coach_id,
           ranking_score: r.ranking_score,
           fit_explanation: r.fit_explanation,
-        })),
+          scored_at: scoredAt,
+        } as Record<string, unknown>)),
         { onConflict: 'mandate_id,coach_id', ignoreDuplicates: false }
       )
   }
