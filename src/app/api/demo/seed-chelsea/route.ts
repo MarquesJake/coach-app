@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 const CHELSEA_ID = '2a2359e1-7211-47ae-9e3a-7b47295fdb57'
 
-export async function GET() {
+export async function POST() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

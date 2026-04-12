@@ -193,7 +193,7 @@ export async function upsertAgentClubRelationshipAction(payload: {
       agent_id: payload.agent_id,
       club_id: payload.club_id,
       relationship_type: payload.relationship_type ?? 'Intermediary',
-      influence_level: payload.relationship_strength ?? null,
+      relationship_strength: payload.relationship_strength ?? null,
       notes: payload.notes ?? null,
     })
     if (error) return { ok: false, error: error.message ?? 'Failed to save relationship' }

@@ -237,8 +237,8 @@ export async function generateLonglistAction(mandateId: string): Promise<{
           coach_id: r.coach_id,
           ranking_score: r.ranking_score,
           fit_explanation: r.fit_explanation,
-          scored_at: scoredAt,
-        } as Record<string, unknown>)),
+          created_at: scoredAt,
+        })),
         { onConflict: 'mandate_id,coach_id', ignoreDuplicates: false }
       )
   }

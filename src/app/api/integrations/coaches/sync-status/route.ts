@@ -8,7 +8,6 @@ const WIKIPEDIA_TITLES: Record<string, string> = {
   'Thomas Tuchel': 'Thomas_Tuchel',
   'Mauricio Pochettino': 'Mauricio_Pochettino',
   'Enzo Maresca': 'Enzo_Maresca',
-  'Graham Potter': 'Graham_Potter',
   'Kieran McKenna': 'Kieran_McKenna_(footballer)',
   'Oliver Glasner': 'Oliver_Glasner',
   'Roberto De Zerbi': 'Roberto_De_Zerbi',

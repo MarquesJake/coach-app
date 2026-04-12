@@ -1,6 +1,12 @@
 import { notFound, redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { MandateWorkspaceClient } from './_components/mandate-workspace-client'
+import {
+  MandateWorkspaceClient,
+  type Mandate,
+  type Candidate,
+  type SeasonResult,
+  type CoachingRecord,
+} from './_components/mandate-workspace-client'
 import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { computeCoachingStability } from '@/lib/analysis/coaching-stability'
 
@@ -108,10 +114,10 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
     <div>
       <MandateTabNav mandateId={params.id} />
       <MandateWorkspaceClient
-        mandate={mandate as Parameters<typeof MandateWorkspaceClient>[0]['mandate']}
-        shortlist={(shortlist ?? []) as Parameters<typeof MandateWorkspaceClient>[0]['shortlist']}
-        seasonResults={(seasonResults ?? []) as Parameters<typeof MandateWorkspaceClient>[0]['seasonResults']}
-        coachingHistory={(coachingHistory ?? []) as Parameters<typeof MandateWorkspaceClient>[0]['coachingHistory']}
+        mandate={mandate as Mandate}
+        shortlist={(shortlist ?? []) as Candidate[]}
+        seasonResults={(seasonResults ?? []) as SeasonResult[]}
+        coachingHistory={(coachingHistory ?? []) as CoachingRecord[]}
         stabilityMetrics={stabilityMetrics}
         longlistEntries={longlistEntries}
       />
