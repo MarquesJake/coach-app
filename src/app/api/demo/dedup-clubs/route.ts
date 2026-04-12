@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
-export async function GET() {
+export async function POST() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -23,10 +23,10 @@ export async function GET() {
   }
 
   const toDelete: string[] = []
-  for (const [, group] of byName) {
+  for (const [, group] of Array.from(byName.entries())) {
     if (group.length <= 1) continue
     // Keep the one with the most data (badge > description > synced)
-    group.sort((a, b) => {
+    group.sort((a: typeof group[0], b: typeof group[0]) => {
       const scoreA = (a.badge_url ? 4 : 0) + (a.description ? 2 : 0) + (a.last_synced_at ? 1 : 0)
       const scoreB = (b.badge_url ? 4 : 0) + (b.description ? 2 : 0) + (b.last_synced_at ? 1 : 0)
       return scoreB - scoreA

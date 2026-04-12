@@ -106,7 +106,7 @@ const ENGLISH_CLUBS = [
   { name: 'Port Vale',             tier: '4', league: 'League Two',     external_id: '133665' },
 ]
 
-export async function GET() {
+export async function POST() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

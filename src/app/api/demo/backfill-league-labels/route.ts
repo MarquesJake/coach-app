@@ -8,7 +8,7 @@ const TIER_TO_LABEL: Record<string, string> = {
   '4': 'League Two',
 }
 
-export async function GET() {
+export async function POST() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -25,7 +25,7 @@ export async function GET() {
   }
 
   // Fetch all clubs to build a tier map
-  const clubIds = [...new Set(rows.map(r => r.club_id))]
+  const clubIds = Array.from(new Set(rows.map(r => r.club_id)))
   const { data: clubs } = await supabase
     .from('clubs')
     .select('id, tier')

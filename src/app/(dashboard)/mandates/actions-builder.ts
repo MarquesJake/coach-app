@@ -9,6 +9,15 @@ function toText(value: FormDataEntryValue | null): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function toList(value: FormDataEntryValue | null): string[] {
+  return typeof value === 'string'
+    ? value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : []
+}
+
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
 }
@@ -34,7 +43,7 @@ export async function createMandateBuilderAction(formData: FormData) {
   const budgetBand = toText(formData.get('budget_band'))
   const successionTimeline = toText(formData.get('succession_timeline'))
   const boardRiskAppetite = toText(formData.get('board_risk_appetite'))
-  const languageRequirements = toText(formData.get('language_requirements'))
+  const languageRequirements = toList(formData.get('language_requirements'))
   const relocationRequired = formData.get('relocation_required') === 'true'
 
   if (!clubIdOrName || !strategicObjective || !tacticalModel || !pressingIntensity ||
@@ -85,8 +94,8 @@ export async function createMandateBuilderAction(formData: FormData) {
       leadership_profile_required: leadershipProfile,
       budget_band: budgetBand,
       succession_timeline: successionTimeline,
-      board_risk_appetite: boardRiskAppetite || null,
-      language_requirements: languageRequirements || null,
+      board_risk_appetite: boardRiskAppetite || 'Moderate',
+      language_requirements: languageRequirements,
       relocation_required: relocationRequired,
     })
     .select('id').single()
@@ -127,7 +136,7 @@ export async function updateMandateBuilderAction(formData: FormData) {
   const budgetBand = toText(formData.get('budget_band'))
   const successionTimeline = toText(formData.get('succession_timeline'))
   const boardRiskAppetite = toText(formData.get('board_risk_appetite'))
-  const languageRequirements = toText(formData.get('language_requirements'))
+  const languageRequirements = toList(formData.get('language_requirements'))
   const relocationRequired = formData.get('relocation_required') === 'true'
 
   const { error } = await supabase
@@ -140,8 +149,8 @@ export async function updateMandateBuilderAction(formData: FormData) {
       leadership_profile_required: leadershipProfile || undefined,
       budget_band: budgetBand || undefined,
       succession_timeline: successionTimeline || undefined,
-      board_risk_appetite: boardRiskAppetite || null,
-      language_requirements: languageRequirements || null,
+      board_risk_appetite: boardRiskAppetite || undefined,
+      language_requirements: languageRequirements.length > 0 ? languageRequirements : undefined,
       relocation_required: relocationRequired,
     })
     .eq('id', mandateId)

@@ -19,6 +19,9 @@ export type Database = {
           country: string
           created_at: string
           updated_at: string
+          squad_synced_at: string | null
+          coaches_synced_at: string | null
+          transfers_synced_at: string | null
           id: string
           league: string
           name: string
@@ -59,6 +62,9 @@ export type Database = {
           country: string
           created_at?: string
           updated_at?: string
+          squad_synced_at?: string | null
+          coaches_synced_at?: string | null
+          transfers_synced_at?: string | null
           id?: string
           league: string
           name: string
@@ -99,6 +105,9 @@ export type Database = {
           country?: string
           created_at?: string
           updated_at?: string
+          squad_synced_at?: string | null
+          coaches_synced_at?: string | null
+          transfers_synced_at?: string | null
           id?: string
           league?: string
           name?: string
@@ -220,6 +229,48 @@ export type Database = {
           created_at?: string
         }
         Relationships: [{ foreignKeyName: "club_pathway_data_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
+      }
+      club_squad: {
+        Row: {
+          id: string
+          user_id: string
+          club_id: string
+          player_id: number
+          name: string
+          age: number | null
+          position: string | null
+          number: number | null
+          photo_url: string | null
+          season: string
+          synced_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          club_id: string
+          player_id: number
+          name: string
+          age?: number | null
+          position?: string | null
+          number?: number | null
+          photo_url?: string | null
+          season?: string
+          synced_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          club_id?: string
+          player_id?: number
+          name?: string
+          age?: number | null
+          position?: string | null
+          number?: number | null
+          photo_url?: string | null
+          season?: string
+          synced_at?: string
+        }
+        Relationships: [{ foreignKeyName: "club_squad_club_id_fkey"; columns: ["club_id"]; referencedRelation: "clubs"; referencedColumns: ["id"] }]
       }
       club_transfers: {
         Row: {
@@ -1830,9 +1881,9 @@ export type Database = {
         Relationships: []
       }
       alerts: {
-        Row: { id: string; user_id: string; entity_type: string; entity_id: string; alert_type: string; title: string; detail: string | null; created_at: string; seen: boolean }
-        Insert: { id?: string; user_id: string; entity_type: string; entity_id: string; alert_type: string; title?: string; detail?: string | null; created_at?: string; seen?: boolean }
-        Update: { id?: string; user_id?: string; entity_type?: string; entity_id?: string; alert_type?: string; title?: string; detail?: string | null; created_at?: string; seen?: boolean }
+        Row: { id: string; user_id: string; entity_type: string; entity_id: string; alert_type: string; title: string; detail: string | null; created_at: string; is_seen: boolean }
+        Insert: { id?: string; user_id: string; entity_type: string; entity_id: string; alert_type: string; title?: string; detail?: string | null; created_at?: string; is_seen?: boolean }
+        Update: { id?: string; user_id?: string; entity_type?: string; entity_id?: string; alert_type?: string; title?: string; detail?: string | null; created_at?: string; is_seen?: boolean }
         Relationships: []
       }
       agents: {

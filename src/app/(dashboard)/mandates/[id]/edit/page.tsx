@@ -42,7 +42,7 @@ export default async function MandateEditPage({ params }: { params: { id: string
           budget_band: mandate.budget_band ?? undefined,
           succession_timeline: mandate.succession_timeline ?? undefined,
           board_risk_appetite: mandate.board_risk_appetite ?? undefined,
-          language_requirements: mandate.language_requirements ?? undefined,
+          language_requirements: mandate.language_requirements?.join(', ') ?? undefined,
           relocation_required: mandate.relocation_required ?? undefined,
         }}
       />

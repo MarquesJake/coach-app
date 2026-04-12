@@ -153,7 +153,7 @@ export async function getMandateBoardSignals(
   })
 }
 
-/** Fetch mandate row with fit-relevant fields for coach vs mandate comparison. */
+/** Fetch mandate row with all fields required by mandateToContext() and the scoring engine. */
 export async function getMandateFitFields(userId: string, mandateId: string) {
   const supabase = db()
   const { data, error } = await supabase
@@ -162,7 +162,7 @@ export async function getMandateFitFields(userId: string, mandateId: string) {
       `id, custom_club_name, tactical_model_required, pressing_intensity_required,
        build_preference_required, leadership_profile_required, budget_band,
        strategic_objective, board_risk_appetite, succession_timeline,
-       language_requirements, relocation_required`
+       language_requirements, relocation_required, risk_tolerance`
     )
     .eq('id', mandateId)
     .eq('user_id', userId)
