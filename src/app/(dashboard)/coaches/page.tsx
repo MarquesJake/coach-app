@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageState } from '@/components/ui/page-state'
-import { Search, Users, ChevronRight, Filter, GitCompare, Plus, X } from 'lucide-react'
+import { Search, Users, ChevronRight, Filter, GitCompare, Plus, X, RefreshCw } from 'lucide-react'
+import { toastError, toastSuccess } from '@/lib/ui/toast'
 
 import { setStoredCompareIds, MAX_COMPARE } from '@/lib/compare'
 import { computeCoachCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-completeness'
@@ -52,6 +53,32 @@ const STATUS_OPTIONS = [
   { value: 'Under contract', label: 'Under Contract' },
 ]
 
+type SyncStatus = 'idle' | 'running' | 'paused' | 'rate_limited' | 'completed'
+
+const BASE_FILTERS = {
+  pressing_intensity: '',
+  build_preference: '',
+  preferred_systems: '' as string,
+  leadership_style: '',
+  media_style: '',
+  risk_band: '',
+  availability: '',
+  reputation_tier: '',
+  wage_band: '',
+  youth_trust_min: '',
+  youth_trust_max: '',
+  rotation_min: '',
+  rotation_max: '',
+  overall_min: '',
+  overall_max: '',
+  nationality: '',
+  league_experience: '',
+  employed_only: '',
+  age_min: '',
+  age_max: '',
+  club_current_query: '',
+}
+
 export default function CoachesPage() {
   const router = useRouter()
   const [coaches, setCoaches] = useState<Coach[]>([])
@@ -62,23 +89,11 @@ export default function CoachesPage() {
   const [sortBy, setSortBy] = useState<string>('name')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [filters, setFilters] = useState({
-    pressing_intensity: '',
-    build_preference: '',
-    preferred_systems: '' as string,
-    leadership_style: '',
-    media_style: '',
-    risk_band: '',
-    availability: '',
-    reputation_tier: '',
-    wage_band: '',
-    youth_trust_min: '',
-    youth_trust_max: '',
-    rotation_min: '',
-    rotation_max: '',
-    overall_min: '',
-    overall_max: '',
-  })
+  const [syncingEngland, setSyncingEngland] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle')
+  const [syncProgress, setSyncProgress] = useState<{ cursor: number; total: number; remaining: number; pct?: number }>({ cursor: 0, total: 0, remaining: 0 })
+  const [syncMessage, setSyncMessage] = useState<string | null>(null)
+  const [filters, setFilters] = useState(BASE_FILTERS)
   const supabase = createClient()
 
   useEffect(() => {
@@ -105,6 +120,43 @@ export default function CoachesPage() {
     loadCoaches()
   }, [supabase])
 
+  useEffect(() => {
+    let cancelled = false
+    async function loadSyncStatus() {
+      try {
+        const res = await fetch('/api/integrations/coaches/sync-english/status', { cache: 'no-store' })
+        const body = await res.json()
+        if (cancelled || !res.ok) return
+        setSyncStatus((body?.status ?? 'idle') as SyncStatus)
+        setSyncProgress(body?.progress ?? { cursor: 0, total: 0, remaining: 0 })
+        setSyncMessage(body?.error ?? null)
+      } catch {
+        // noop
+      }
+    }
+    loadSyncStatus()
+    const interval = setInterval(loadSyncStatus, 4000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [])
+
+  async function refreshCoaches() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const [coachRes, countData] = await Promise.all([
+      supabase
+        .from('coaches')
+        .select('id, user_id, name, age, nationality, role_current, club_current, preferred_style, pressing_intensity, build_preference, leadership_style, wage_expectation, staff_cost_estimate, available_status, reputation_tier, league_experience, last_updated, placement_score, board_compatibility, ownership_fit, cultural_risk, agent_relationship, media_risk, overall_fit, tactical_fit, financial_feasibility, overall_manual_score, intelligence_confidence, media_style, preferred_systems')
+        .eq('user_id', user.id)
+        .order('name'),
+      getCoachStintAndIntelCountsAction(),
+    ])
+    setCoaches((coachRes.data || []) as Coach[])
+    setCounts(countData)
+  }
+
   const filtered = coaches
     .filter((c) => {
       const searchLower = search.trim().toLowerCase()
@@ -124,6 +176,19 @@ export default function CoachesPage() {
       if (filters.availability && (c.available_status || '') !== filters.availability) return false
       if (filters.reputation_tier && (c.reputation_tier || '') !== filters.reputation_tier) return false
       if (filters.wage_band && (c.wage_expectation || '') !== filters.wage_band) return false
+      if (filters.nationality && (c.nationality || '') !== filters.nationality) return false
+      if (filters.league_experience) {
+        const leagues = Array.isArray(c.league_experience) ? c.league_experience : []
+        if (!leagues.includes(filters.league_experience)) return false
+      }
+      if (filters.employed_only === 'employed' && !(c.club_current && c.club_current.trim())) return false
+      if (filters.employed_only === 'available' && c.club_current && c.club_current.trim()) return false
+      if (filters.age_min && ((c.age ?? 0) < Number(filters.age_min))) return false
+      if (filters.age_max && ((c.age ?? 999) > Number(filters.age_max))) return false
+      if (filters.club_current_query) {
+        const q = filters.club_current_query.toLowerCase().trim()
+        if (!(c.club_current ?? '').toLowerCase().includes(q)) return false
+      }
       const overall = (c.overall_manual_score as number | null) ?? 0
       if (filters.overall_min && overall < Number(filters.overall_min)) return false
       if (filters.overall_max && overall > Number(filters.overall_max)) return false
@@ -184,6 +249,34 @@ export default function CoachesPage() {
   }
 
   const canCompare = selectedIds.size >= MIN_COMPARE && selectedIds.size <= MAX_COMPARE
+  const activeFilterCount = Object.values(filters).filter(Boolean).length + (statusFilter !== 'all' ? 1 : 0)
+
+  const applyFilterPreset = (preset: 'recruiting-now' | 'efl-available' | 'high-readiness-low-risk') => {
+    if (preset === 'recruiting-now') {
+      setFilters({
+        ...BASE_FILTERS,
+        employed_only: 'available',
+        availability: 'Open to offers',
+      })
+      setSortBy('recently_updated')
+      return
+    }
+    if (preset === 'efl-available') {
+      setFilters({
+        ...BASE_FILTERS,
+        league_experience: 'Championship',
+        employed_only: 'available',
+      })
+      setSortBy('overall_score')
+      return
+    }
+    setFilters({
+      ...BASE_FILTERS,
+      risk_band: 'low',
+      overall_min: '70',
+    })
+    setSortBy('overall_score')
+  }
 
   if (loading) {
     return <PageState state="loading" minHeight="sm" />
@@ -202,8 +295,8 @@ export default function CoachesPage() {
         </div>
         <div className="rounded-lg border border-border bg-card p-6">
           <EmptyState
-            title="No data available."
-            description="Add a coach to start building your database."
+            title="No coach intelligence profiles yet"
+            description="Add the first coach profile to start building availability, fit and risk evidence for future searches."
             actionLabel="Add coach"
             actionHref="/coaches/new"
           />
@@ -215,6 +308,79 @@ export default function CoachesPage() {
   return (
     <div>
       <h1 className="text-lg font-medium text-foreground mb-4">Coach Inventory</h1>
+      <details className="mb-4 rounded-lg border border-border/70 bg-card/70">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest">Internal data sync</p>
+            <p className="mt-0.5 text-xs">
+              England coach import: <span className="font-medium capitalize text-foreground">{syncStatus.replace('_', ' ')}</span>
+              {syncProgress.total > 0 ? ` · ${syncProgress.cursor}/${syncProgress.total} teams` : ''}
+            </p>
+          </div>
+          <span className="rounded border border-amber-400/20 bg-amber-400/10 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-amber-300">
+            Admin only
+          </span>
+        </summary>
+        <div className="border-t border-border px-3 py-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <p className="text-xs text-muted-foreground">
+                Use this only when refreshing demo data from API-Football. It can update existing coach records.
+              </p>
+              {syncMessage ? <p className="text-xs text-amber-600 mt-1">{syncMessage}</p> : null}
+            </div>
+            {syncProgress.total > 0 ? (
+              <div className="w-full sm:w-56">
+                <div className="h-2 rounded bg-muted">
+                  <div
+                    className="h-2 rounded bg-primary transition-all"
+                    style={{ width: `${Math.min(syncProgress.pct ?? Math.round((syncProgress.cursor / Math.max(syncProgress.total, 1)) * 100), 100)}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
+            <Button
+              variant="outline"
+              onClick={async () => {
+                setSyncingEngland(true)
+                try {
+                  const res = await fetch(`/api/integrations/coaches/sync-english?t=${Date.now()}`, {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ confirmReset: syncStatus === 'completed' }),
+                  })
+                  const body = await res.json()
+                  if (!res.ok || !body?.ok) {
+                    const detail = body?.error || (Array.isArray(body?.errors) ? body.errors.slice(0, 2).join(' | ') : null)
+                    toastError(detail ?? 'Coach sync failed')
+                    return
+                  }
+                  setSyncStatus((body?.status ?? 'paused') as SyncStatus)
+                  setSyncProgress(body?.progress ?? { cursor: 0, total: 0, remaining: 0 })
+                  setSyncMessage(body?.errors?.[0] ?? null)
+                  if (body?.partial && Array.isArray(body?.errors) && body.errors.length > 0) {
+                    toastError(`Partial coach sync: ${body.errors.slice(0, 2).join(' | ')}`)
+                  } else {
+                    const verb = body?.status === 'completed' ? 'complete' : 'progressed'
+                    toastSuccess(`Coach sync ${verb}: ${body.added ?? 0} added, ${body.updated ?? 0} updated`)
+                  }
+                  await refreshCoaches()
+                } catch {
+                  toastError('Coach sync failed')
+                } finally {
+                  setSyncingEngland(false)
+                }
+              }}
+              className="gap-1.5 text-xs py-1.5 px-3"
+              disabled={syncingEngland}
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', syncingEngland && 'animate-spin')} />
+              {syncingEngland ? 'Syncing…' : syncStatus === 'completed' ? 'Re-sync England Coaches' : 'Continue England Coach Sync'}
+            </Button>
+          </div>
+        </div>
+      </details>
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-sm text-muted-foreground">
@@ -245,6 +411,12 @@ export default function CoachesPage() {
 
       {/* Search & Filters */}
       <div className="rounded-lg border border-border bg-card p-3 mb-4">
+        <div className="mb-3 flex items-center gap-2 flex-wrap">
+          <span className="text-2xs uppercase tracking-wide text-muted-foreground">Presets</span>
+          <button onClick={() => applyFilterPreset('recruiting-now')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">Recruiting now</button>
+          <button onClick={() => applyFilterPreset('efl-available')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">EFL available</button>
+          <button onClick={() => applyFilterPreset('high-readiness-low-risk')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">High readiness, low risk</button>
+        </div>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex-1 min-w-[200px] relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -274,7 +446,7 @@ export default function CoachesPage() {
             )}
           >
             <Filter className="w-3.5 h-3.5" />
-            Filters
+            Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ''}
           </button>
           <div className="flex items-center gap-1 border-l border-border pl-3">
             {STATUS_OPTIONS.map((opt) => (
@@ -367,6 +539,28 @@ export default function CoachesPage() {
                       <option key={v} value={v}>{v}</option>
                     ))}
                   </select>
+                  <label className="block text-xs text-foreground">Nationality</label>
+                  <select value={filters.nationality} onChange={(e) => setFilters((f) => ({ ...f, nationality: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm">
+                    <option value="">Any</option>
+                    {Array.from(new Set(coaches.map((c) => c.nationality).filter(Boolean))).map((v) => (
+                      <option key={v} value={v!}>{v}</option>
+                    ))}
+                  </select>
+                  <label className="block text-xs text-foreground">League experience</label>
+                  <select value={filters.league_experience} onChange={(e) => setFilters((f) => ({ ...f, league_experience: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm">
+                    <option value="">Any</option>
+                    {Array.from(new Set(coaches.flatMap((c) => (Array.isArray(c.league_experience) ? c.league_experience : [])).filter(Boolean))).map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                  <label className="block text-xs text-foreground">Employment status</label>
+                  <select value={filters.employed_only} onChange={(e) => setFilters((f) => ({ ...f, employed_only: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm">
+                    <option value="">Any</option>
+                    <option value="employed">Currently employed</option>
+                    <option value="available">No current club</option>
+                  </select>
+                  <label className="block text-xs text-foreground">Current club contains</label>
+                  <input type="text" value={filters.club_current_query} onChange={(e) => setFilters((f) => ({ ...f, club_current_query: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm" placeholder="e.g. United" />
                 </div>
               </section>
               <section>
@@ -377,9 +571,14 @@ export default function CoachesPage() {
                     <input type="number" min={0} max={100} placeholder="Min" value={filters.overall_min} onChange={(e) => setFilters((f) => ({ ...f, overall_min: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm" />
                     <input type="number" min={0} max={100} placeholder="Max" value={filters.overall_max} onChange={(e) => setFilters((f) => ({ ...f, overall_max: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm" />
                   </div>
+                  <label className="block text-xs text-foreground">Age range</label>
+                  <div className="flex gap-2">
+                    <input type="number" min={18} max={90} placeholder="Min age" value={filters.age_min} onChange={(e) => setFilters((f) => ({ ...f, age_min: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm" />
+                    <input type="number" min={18} max={90} placeholder="Max age" value={filters.age_max} onChange={(e) => setFilters((f) => ({ ...f, age_max: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm" />
+                  </div>
                 </div>
               </section>
-              <Button variant="outline" className="w-full" onClick={() => setFilters({ pressing_intensity: '', build_preference: '', preferred_systems: '', leadership_style: '', media_style: '', risk_band: '', availability: '', reputation_tier: '', wage_band: '', youth_trust_min: '', youth_trust_max: '', rotation_min: '', rotation_max: '', overall_min: '', overall_max: '' })}>
+              <Button variant="outline" className="w-full" onClick={() => setFilters(BASE_FILTERS)}>
                 Clear filters
               </Button>
             </div>
@@ -504,7 +703,7 @@ export default function CoachesPage() {
 
       {filtered.length === 0 && (
         <div className="py-16">
-          <EmptyState title="No data available." description="No coaches match the current filters." />
+          <EmptyState title="No coaches match this view" description="Adjust search or filters to bring coach profiles back into the market view." />
           <div className="text-center mt-3">
             <button
               onClick={() => { setSearch(''); setStatusFilter('all') }}

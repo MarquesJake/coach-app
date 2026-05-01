@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { RefreshCw, Plus, X, ChevronRight } from 'lucide-react'
@@ -87,7 +87,7 @@ function ExcludedModal({
         </div>
 
         <p className="text-[10px] text-muted-foreground leading-relaxed border-l-2 border-border pl-3">
-          Exclusions reflect the mandate's urgency, board risk appetite, and relocation requirements — not a quality judgement.
+          Exclusions reflect the mandate&apos;s urgency, board risk appetite, and relocation requirements — not a quality judgement.
         </p>
 
         <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
@@ -214,7 +214,7 @@ export function MandateSearchPanel({
           </div>
           <p className="text-xs font-medium text-foreground">No recommendations yet</p>
           <p className="text-[10px] text-muted-foreground leading-relaxed">
-            Score and rank all coaches against this mandate's requirements.
+            Score and rank all coaches against this mandate&apos;s requirements.
           </p>
           <button
             type="button"

@@ -36,7 +36,6 @@ export async function GET(
   const c = coach as Record<string, unknown>
   const name = escapeHtml((c.preferred_name ?? c.name) as string) || 'Coach'
 
-  // @ts-ignore - coach_derived_metrics table not yet in DB schema
   const derivedMetricsQuery = supabase.from('coach_derived_metrics').select('*').eq('coach_id', params.id).maybeSingle()
   const [{ data: stints }, { data: derivedRow }, { data: evidence }] = await Promise.all([
     supabase.from('coach_stints').select('club_name, role_title, started_on, ended_on').eq('coach_id', params.id).order('started_on', { ascending: false }).limit(20),

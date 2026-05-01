@@ -6,7 +6,7 @@ import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { Button } from '@/components/ui/button'
 
 const CONFIRM_MESSAGE =
-  'Generate demo data will create or update coaches, clubs, mandates, stints, staff network, intelligence, scores, and similar profiles so every coach tab shows believable content. Safe to run multiple times (idempotent). Continue?'
+  'Generate demo data will create or update current demo clubs, coaches, mandates, deliverables, alerts, staff network, intelligence, scores, and similar profiles so every key page has believable content. Safe to run multiple times (idempotent). Continue?'
 
 export function GenerateDemoDataButton() {
   const [loading, setLoading] = useState(false)
@@ -27,6 +27,8 @@ export function GenerateDemoDataButton() {
         `${c.staff_created} staff`,
         `${c.staff_links_created} staff links`,
         `${c.mandates} mandates`,
+        `${c.mandate_deliverables} deliverables`,
+        `${c.alerts ?? 0} alerts`,
         `${c.intelligence_items} intel`,
       ]
       toastSuccess(`Demo data ready: ${parts.join(', ')}`)

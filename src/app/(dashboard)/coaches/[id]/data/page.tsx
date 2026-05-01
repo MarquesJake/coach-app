@@ -14,6 +14,7 @@ export default async function CoachDataPage({ params }: { params: { id: string }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any
   const { data: profile } = await sb.from('coach_data_profiles').select('*').eq('coach_id', params.id).maybeSingle()
+  const { data: externalProfile } = await sb.from('coach_external_profiles').select('*').eq('coach_id', params.id).maybeSingle()
   const { data: recruitment } = await sb.from('coach_recruitment_history').select('*').eq('coach_id', params.id).order('created_at', { ascending: false })
   const { data: mediaEvents } = await sb.from('coach_media_events').select('*').eq('coach_id', params.id).order('severity_score', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false, nullsFirst: true })
 
@@ -22,6 +23,8 @@ export default async function CoachDataPage({ params }: { params: { id: string }
       coachId={params.id}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       profile={(profile ?? null) as any}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      externalProfile={(externalProfile ?? null) as any}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recruitment={(recruitment ?? []) as any}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type Agent = {
+export type AgentInventoryAgent = {
   id: string
   full_name: string | null
   agency_name: string | null
@@ -50,7 +50,7 @@ export function AgentsInventoryClient({
   allMarkets,
   allChannels,
 }: {
-  agents: Agent[]
+  agents: AgentInventoryAgent[]
   coachesCountByAgent: Record<string, number>
   clubsCountByAgent: Record<string, number>
   lastInteractionByAgent: Record<string, string>

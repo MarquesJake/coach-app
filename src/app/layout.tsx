@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Coach Matchmaker",
+  title: "Coach First",
   description:
-    "The football intelligence platform for finding your perfect managerial fit.",
+    "The football intelligence OS for manager search, mandate delivery, and relationship intelligence.",
 };
 
 export default function RootLayout({

@@ -44,11 +44,13 @@ export type SeedDemoResult = {
     mandates: number
     mandate_longlist: number
     mandate_shortlist: number
+    mandate_deliverables: number
     coach_tactical_reports: number
     coach_data_profiles: number
     coach_due_diligence_items: number
     coach_background_checks: number
     coach_recruitment_history: number
+    alerts?: number
     agents?: number
     coach_agents?: number
     agent_club_relationships?: number
@@ -171,6 +173,8 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
   const clubIds = (clubsData ?? []).map((r) => r.id)
   const { data: mandatesData } = await supabase.from('mandates').select('id').eq('user_id', uid)
   const mandateIds = (mandatesData ?? []).map((r) => r.id)
+  const { data: agentsData } = await supabase.from('agents').select('id').eq('user_id', uid)
+  const agentIds = (agentsData ?? []).map((r) => r.id)
 
   // Mandate children
   await deleteWhere('mandate_shortlist', 'mandate_id', mandateIds)
@@ -185,7 +189,13 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
     await deleteWhere('vacancies', 'club_id', clubIds)
   }
 
-  // Agent-related (all user-scoped)
+  // Agent-related (user-scoped + id-based fallback to catch legacy rows)
+  await deleteWhere('agent_deals', 'agent_id', agentIds)
+  await deleteWhere('agent_interactions', 'agent_id', agentIds)
+  await deleteWhere('agent_club_relationships', 'agent_id', agentIds)
+  await deleteWhere('coach_agents', 'agent_id', agentIds)
+  await deleteWhere('agent_club_relationships', 'club_id', clubIds)
+  await deleteWhere('coach_agents', 'coach_id', coachIds)
   await deleteByUserId('agent_deals')
   await deleteByUserId('agent_interactions')
   await deleteByUserId('agent_club_relationships')
@@ -215,7 +225,6 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
     // Similarity (either coach in pair) – one delete with or()
     try {
       const orClause = `coach_a_id.in.(${coachIds.join(',')}),coach_b_id.in.(${coachIds.join(',')})`
-      // @ts-ignore - coach_similarity table not yet in DB schema
       const { data, error } = await supabase.from('coach_similarity').delete().or(orClause).select('coach_a_id')
       if (error) {
         if (isMissingTable(error)) skippedTables.push('coach_similarity')
@@ -258,9 +267,12 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
 
   await deleteByUserId('demo_seeds')
 
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/overview')
   revalidatePath('/coaches')
   revalidatePath('/mandates')
   revalidatePath('/intelligence')
+  revalidatePath('/alerts')
   revalidatePath('/staff')
   revalidatePath('/clubs')
   revalidatePath('/agents')

@@ -13,7 +13,10 @@ import {
 import type { ComparisonResult, MandateDimScores } from '@/lib/scoring/explanation'
 import type { Database } from '@/lib/types/db'
 
-type Coach = Database['public']['Tables']['coaches']['Row']
+type CoachStintRow = Pick<
+  Database['public']['Tables']['coach_stints']['Row'],
+  'coach_id' | 'role_title' | 'club_name' | 'started_on' | 'ended_on' | 'league' | 'win_rate' | 'points_per_game' | 'country'
+>
 
 // ── Shared types exported for client components ─────────────────────────────
 
@@ -51,6 +54,19 @@ function combinedGapType(gap: number | null): 'TIED' | 'MARGINAL' | 'NEAR_TIE' |
   return 'CLEAR'
 }
 
+function toCoachStint(stint: CoachStintRow): CoachStint {
+  return {
+    role_title: stint.role_title,
+    club_name: stint.club_name,
+    started_on: stint.started_on,
+    ended_on: stint.ended_on,
+    league: stint.league,
+    win_rate: stint.win_rate,
+    points_per_game: stint.points_per_game,
+    country: stint.country,
+  }
+}
+
 // ── generateLonglistAction ──────────────────────────────────────────────────
 
 export async function generateLonglistAction(mandateId: string): Promise<{
@@ -80,16 +96,7 @@ export async function generateLonglistAction(mandateId: string): Promise<{
   // ── 2. Coaches ────────────────────────────────────────────────────────────
   const { data: coaches } = await supabase
     .from('coaches')
-    .select(
-      `id, name,
-       preferred_style, pressing_intensity, build_preference,
-       reputation_tier, leadership_style, available_status,
-       wage_expectation, staff_cost_estimate,
-       safeguarding_risk_flag, legal_risk_flag, integrity_risk_flag, media_risk_score,
-       relocation_flexibility, intelligence_confidence,
-       player_development_model, training_methodology, academy_integration,
-       tactical_fit_score`
-    )
+    .select('*')
     .eq('user_id', user.id)
 
   if (!coaches?.length) return { data: [], excluded: [], error: null }
@@ -106,7 +113,7 @@ export async function generateLonglistAction(mandateId: string): Promise<{
   const stintsByCoach = new Map<string, CoachStint[]>()
   for (const s of allStints ?? []) {
     const existing = stintsByCoach.get(s.coach_id) ?? []
-    existing.push(s as CoachStint)
+    existing.push(toCoachStint(s))
     stintsByCoach.set(s.coach_id, existing)
   }
 
@@ -126,7 +133,7 @@ export async function generateLonglistAction(mandateId: string): Promise<{
 
   for (const coach of coaches) {
     const stints = stintsByCoach.get(coach.id) ?? []
-    const result = computeMandateFit(ctx, coach as unknown as Coach, stints)
+    const result = computeMandateFit(ctx, coach, stints)
 
     if (result.hardFilter) {
       excluded.push({
@@ -183,15 +190,15 @@ export async function generateLonglistAction(mandateId: string): Promise<{
       leadership_style: coach.leadership_style,
       wage_expectation: coach.wage_expectation,
       available_status: coach.available_status,
-      media_risk_score: (coach as { media_risk_score?: number | null }).media_risk_score,
+      media_risk_score: coach.media_risk_score,
       recentLeague: entry.recentLeague,
       recentWinRate: entry.recentWinRate,
       recentPpg: entry.recentPpg,
     }
 
     const flags = {
-      legal: !!(coach as { legal_risk_flag?: boolean | null }).legal_risk_flag,
-      integrity: !!(coach as { integrity_risk_flag?: boolean | null }).integrity_risk_flag,
+      legal: !!coach.legal_risk_flag,
+      integrity: !!coach.integrity_risk_flag,
       safeguarding: !!coach.safeguarding_risk_flag,
     }
 

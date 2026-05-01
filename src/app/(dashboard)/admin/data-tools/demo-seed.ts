@@ -17,9 +17,9 @@ export function demoUuid(userId: string, prefix: string, index: number): string 
 }
 
 export const DEMO_COACH_NAMES = [
-  'Marcus Reid', 'Elena Vasquez', 'James Okonkwo', 'Sophie Bergström', 'David Chen',
-  'Isabella Rossi', 'Thomas Müller', 'Yuki Tanaka', 'Olivia Nkosi', 'Lucas Silva',
-  'Emma Kowalski', 'Ahmed Hassan',
+  'Adrian Vale', 'Lucia Serrano', 'Kofi Mensah', 'Freja Lindholm', 'Daniel Cho',
+  'Matteo Conti', 'Jonas Keller', 'Ren Ito', 'Nadia Mokoena', 'Rafael Teixeira',
+  'Marta Nowak', 'Omar Farouk',
 ]
 
 export const DEMO_NATIONALITIES = [
@@ -28,7 +28,7 @@ export const DEMO_NATIONALITIES = [
 ]
 
 export const DEMO_BASE_LOCATIONS = [
-  'London', 'Madrid', 'Lagos', 'Stockholm', 'Shanghai', 'Milan', 'Munich',
+  'London', 'Madrid', 'Lisbon', 'Stockholm', 'Seoul', 'Milan', 'Munich',
   'Tokyo', 'Johannesburg', 'São Paulo', 'Warsaw', 'Cairo',
 ]
 
@@ -75,26 +75,26 @@ export const STAFF_SPECIALTIES_POOL = [
 
 /** Short profile notes for demo staff. */
 export const STAFF_NOTES_POOL = [
-  'Long-serving assistant with strong tactical input.',
-  'Data-driven analyst; set piece and opposition focus.',
-  'Former player; goalkeeper specialist and distribution.',
-  'Set piece specialist; improved goals from dead balls.',
-  'Aligned on recruitment and squad building.',
-  'Trusted with in-game adjustments and bench communication.',
-  'Collaborative on training design and periodisation.',
-  'Led performance analysis and video review.',
-  'Strong academy links and youth development.',
-  'Board-level experience; strategic oversight.',
-  'Hands-on first team coach; session delivery.',
-  'Recruitment and scouting network.',
-  'Match day operations and prep.',
-  'Sports science and load management.',
-  'Multi-club experience; adaptable.',
-  'Language skills; international experience.',
-  'Promotion and relegation battle experience.',
-  'Cup run and knockout experience.',
-  'Stable long-term partnerships with head coaches.',
-  'Versatile across analysis and coaching.',
+  'Long-serving assistant with strong tactical periodisation input.',
+  'Data-led analyst focused on opposition detail and rest-defence triggers.',
+  'Former professional goalkeeper coach with strong distribution work.',
+  'Set-piece specialist with repeat improvement in attacking dead-ball return.',
+  'Recruitment liaison with credible links across UK and Iberia markets.',
+  'Trusted match-day lieutenant responsible for in-game adaptation.',
+  'Collaborative trainer with strong detail on recovery and load management.',
+  'Leads video review workflows and post-match debrief process.',
+  'Strong academy connector with pathway integration track record.',
+  'Executive football operations experience and board-facing communication.',
+  'Hands-on first-team coach known for session quality and detail.',
+  'Scouting and market intelligence profile; efficient shortlisting process.',
+  'Organised match operations profile with calm high-pressure delivery.',
+  'High-standard sports science partner focused on availability.',
+  'Multi-league background with proven adaptability in transition phases.',
+  'Bilingual coach profile with strong dressing-room communication.',
+  'Experienced in promotion and survival environments.',
+  'Cup competition specialist with strong knockout prep routines.',
+  'Stable long-term technical partnership history with head coaches.',
+  'Versatile staff profile spanning analysis, coaching, and recruitment.',
 ] as const
 
 /** Legacy list for any other use; prefer STAFF_NETWORK_ROLES for demo staff. */
@@ -112,15 +112,57 @@ export const IMPACT_SUMMARIES = [
 ]
 
 export const STAFF_NAMES = [
-  'Paul Wright', 'Maria Santos', 'John Smith', 'Anna Lindqvist', 'Carlos Mendez',
-  'Lisa Weber', 'Michael Brown', 'Eva Novak', 'Daniel Kim', 'Rachel Green',
-  'Andrew Taylor', 'Sarah Connor', 'Chris Evans', 'Nina Patel', 'Mark Johnson',
-  'Julia Roberts', 'Steve Wilson', 'Laura Davis', 'Kevin Lee', 'Emma Thompson',
+  'Paul Wright', 'Maria Santos', 'John Holden', 'Anna Lindqvist', 'Carlos Mendez',
+  'Lisa Weber', 'Michael Browne', 'Eva Novak', 'Daniel Kim', 'Rachel Hargreaves',
+  'Andrew Taylor', 'Sarah Malik', 'Chris ONeill', 'Nina Patel', 'Mark Johnston',
+  'Julia Romano', 'Steve Wilson', 'Laura Davies', 'Kevin Lee', 'Emma Thompson',
 ]
 
-export const CLUB_NAMES = ['Northgate FC', 'Riverside Athletic', 'Metro United']
-export const CLUB_LEAGUES = ['Championship', 'League One', 'Premier League']
-export const CLUB_COUNTRIES = ['United Kingdom', 'United Kingdom', 'United Kingdom']
+export const CLUB_NAMES = ['Chelsea', 'Tottenham Hotspur', 'West Ham United']
+export const CLUB_LEAGUES = ['Premier League', 'Premier League', 'Premier League']
+export const CLUB_COUNTRIES = ['England', 'England', 'England']
+
+export const CLUB_DEMO_BRIEFS = [
+  {
+    ownership_model: 'Private equity ownership',
+    tactical_model: 'Possession dominant with high pressing and aggressive rest defence',
+    pressing_model: 'High press with counter press triggers after central losses',
+    build_model: 'Build from back through goalkeeper and inverted full back rotations',
+    board_risk_tolerance: 'Moderate. Board wants upside but needs early proof of control',
+    strategic_priority: 'Restore Champions League qualification while protecting the young squad pathway',
+    market_reputation: 'Elite resources, high scrutiny, impatient media cycle',
+    media_pressure: 'Very high',
+    development_vs_win_now: 'Win now with a protected development lane',
+    environment_assessment: 'High ceiling environment with intense scrutiny, large squad complexity and strong expectations around style. The next appointment needs authority, clarity and a staff model that can stabilise quickly.',
+    instability_risk: 'Board patience is the central risk. Contract structure and sporting director alignment should be agreed before appointment.',
+  },
+  {
+    ownership_model: 'Long tenure private ownership',
+    tactical_model: 'Front foot attacking football with structured press',
+    pressing_model: 'High to medium high press depending on opponent build shape',
+    build_model: 'Progressive build through thirds with vertical runners',
+    board_risk_tolerance: 'Moderate to low. Cultural fit and supporter trust matter',
+    strategic_priority: 'Return to consistent European qualification and rebuild a durable identity',
+    market_reputation: 'Top six platform with strong commercial profile',
+    media_pressure: 'High',
+    development_vs_win_now: 'Balanced. Immediate table improvement with squad progression',
+    environment_assessment: 'Ambitious mandate with strong public emotion around playing style. The board needs a coach who can communicate clearly and handle pressure without destabilising recruitment.',
+    instability_risk: 'Supporter narrative can turn quickly if identity is unclear in the first quarter of the season.',
+  },
+  {
+    ownership_model: 'Owner led board',
+    tactical_model: 'Compact, transition capable side with improved possession control',
+    pressing_model: 'Mid block with selective high press triggers',
+    build_model: 'Mixed build with direct options and wide progression',
+    board_risk_tolerance: 'Low to moderate. Premier League security remains non negotiable',
+    strategic_priority: 'Modernise playing style without losing physical edge and league resilience',
+    market_reputation: 'Established Premier League club with strong London pull',
+    media_pressure: 'Medium high',
+    development_vs_win_now: 'Stability first, then style evolution',
+    environment_assessment: 'Pragmatic mandate. The right coach needs to raise technical ceiling while respecting the club appetite for resilience, set pieces and transition threat.',
+    instability_risk: 'Style change must be staged. An abrupt tactical reset would create early table risk.',
+  },
+]
 
 /** Demo agent full names (8). */
 export const DEMO_AGENT_FULL_NAMES = [

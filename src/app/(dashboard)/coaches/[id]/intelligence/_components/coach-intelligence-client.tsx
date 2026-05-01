@@ -705,7 +705,7 @@ export function CoachIntelligenceClient({ coachId, initialItems, mandates }: Pro
           {dupWarning && (
             <div className="flex items-start gap-2 rounded border border-amber-400/30 bg-amber-400/5 px-3 py-2">
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-amber-400 mt-0.5" />
-              <p className="text-[11px] text-amber-300">Possible duplicate: "<span className="font-medium">{dupWarning.title}</span>" was logged in the past 30 days in this category.</p>
+              <p className="text-[11px] text-amber-300">Possible duplicate: &ldquo;<span className="font-medium">{dupWarning.title}</span>&rdquo; was logged in the past 30 days in this category.</p>
             </div>
           )}
 

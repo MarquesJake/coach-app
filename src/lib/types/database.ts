@@ -1208,6 +1208,75 @@ export type Database = {
         }
         Relationships: [{ foreignKeyName: 'coach_data_profiles_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] }]
       }
+      coach_external_profiles: {
+        Row: {
+          id: string
+          coach_id: string
+          api_coach_id: string | null
+          full_name: string | null
+          first_name: string | null
+          last_name: string | null
+          nationality: string | null
+          birth_date: string | null
+          birth_place: string | null
+          birth_country: string | null
+          height: string | null
+          weight: string | null
+          photo_url: string | null
+          current_team_name: string | null
+          profile_payload: Json | null
+          source_name: string
+          source_link: string | null
+          confidence: number | null
+          synced_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          coach_id: string
+          api_coach_id?: string | null
+          full_name?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          nationality?: string | null
+          birth_date?: string | null
+          birth_place?: string | null
+          birth_country?: string | null
+          height?: string | null
+          weight?: string | null
+          photo_url?: string | null
+          current_team_name?: string | null
+          profile_payload?: Json | null
+          source_name?: string
+          source_link?: string | null
+          confidence?: number | null
+          synced_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          coach_id?: string
+          api_coach_id?: string | null
+          full_name?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          nationality?: string | null
+          birth_date?: string | null
+          birth_place?: string | null
+          birth_country?: string | null
+          height?: string | null
+          weight?: string | null
+          photo_url?: string | null
+          current_team_name?: string | null
+          profile_payload?: Json | null
+          source_name?: string
+          source_link?: string | null
+          confidence?: number | null
+          synced_at?: string
+          updated_at?: string
+        }
+        Relationships: [{ foreignKeyName: 'coach_external_profiles_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] }]
+      }
       coach_recruitment_history: {
         Row: {
           id: string
@@ -1977,6 +2046,48 @@ export type Database = {
         Row: { id: string; user_id: string; created_at: string; updated_at: string; version: number }
         Insert: { id?: string; user_id: string; created_at?: string; updated_at?: string; version?: number }
         Update: { id?: string; user_id?: string; created_at?: string; updated_at?: string; version?: number }
+        Relationships: []
+      }
+      integration_sync_state: {
+        Row: {
+          id: string
+          user_id: string
+          sync_key: string
+          status: string
+          cursor: number
+          total: number
+          result: Json | null
+          error: string | null
+          started_at: string | null
+          updated_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sync_key: string
+          status?: string
+          cursor?: number
+          total?: number
+          result?: Json | null
+          error?: string | null
+          started_at?: string | null
+          updated_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          sync_key?: string
+          status?: string
+          cursor?: number
+          total?: number
+          result?: Json | null
+          error?: string | null
+          started_at?: string | null
+          updated_at?: string
+          completed_at?: string | null
+        }
         Relationships: []
       }
     }

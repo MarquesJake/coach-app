@@ -248,7 +248,7 @@ export default async function MandateDetailPage({
 
             {shortlist.length === 0 ? (
               <div className="rounded border border-border bg-surface/60 px-3 py-4 text-sm text-muted-foreground">
-                No data available.
+                No coaches shortlisted yet. Add candidates when the market scan produces credible options for board review.
               </div>
             ) : (
               <div className="space-y-3">
@@ -366,7 +366,7 @@ export default async function MandateDetailPage({
 
             {deliverables.length === 0 ? (
               <div className="rounded border border-border bg-surface/60 px-3 py-4 text-sm text-muted-foreground">
-                No deliverables added yet
+                No deliverables added yet. Use this for board packs, interview windows and decision deadlines.
               </div>
             ) : (
               <div className="space-y-2">
@@ -416,7 +416,7 @@ export default async function MandateDetailPage({
               <History className="w-4 h-4 text-muted-foreground" />
               <h2 className="text-[11px] font-bold text-foreground uppercase tracking-widest">Activity</h2>
             </div>
-            <Timeline items={activity} emptyMessage="No data available." />
+            <Timeline items={activity} emptyMessage="No mandate activity recorded yet." />
           </div>
 
           <div className="card-surface rounded p-4">

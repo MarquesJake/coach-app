@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 type InteractionRow = {
   id: string
   occurred_at: string | null

@@ -342,7 +342,7 @@ export function findPotentialDuplicate(
   const words = newTitle.toLowerCase().split(/\s+/).filter((w) => w.length > 4)
   if (words.length === 0) return null
 
-  const cutoff = new Date()
+  const cutoff = new Date(newDate ?? Date.now())
   cutoff.setDate(cutoff.getDate() - 30)
 
   for (const item of items) {

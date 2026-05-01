@@ -33,9 +33,14 @@ export default async function ConfigPage() {
   return (
     <div className="max-w-[1400px] mx-auto space-y-5">
       <div>
-        <h1 className="text-lg font-semibold text-foreground tracking-tight">Config</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">Config</h1>
+          <span className="rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300">
+            Internal
+          </span>
+        </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          System data that drives dropdowns and scoring. Edit pipeline stages, reputation tiers, scoring weights and more.
+          Admin only system data that drives dropdowns and scoring. Keep this out of stakeholder demos unless configuration is the topic.
         </p>
       </div>
 

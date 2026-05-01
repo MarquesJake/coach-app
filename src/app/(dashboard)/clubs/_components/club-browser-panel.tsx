@@ -4,8 +4,9 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toastError, toastSuccess } from '@/lib/ui/toast'
 
 type ClubRow = {
   id: string
@@ -35,6 +36,7 @@ export function ClubBrowserPanel() {
   const [leagueFilter, setLeagueFilter] = useState<string>('')
   const [countryFilter, setCountryFilter] = useState<string>('')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [syncingEngland, setSyncingEngland] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -99,14 +101,81 @@ export function ClubBrowserPanel() {
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Club database
           </span>
-          <Link
-            href="/clubs/new"
-            title="Add club"
-            className="text-muted-foreground hover:text-primary transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/clubs/new"
+              title="Add club"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
+
+        <details className="rounded-md border border-border/70 bg-surface/50">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
+            Internal sync
+            <span className="rounded border border-amber-400/20 bg-amber-400/10 px-1.5 py-0.5 text-[8px] text-amber-300">Admin only</span>
+          </summary>
+          <div className="border-t border-border px-2.5 py-2 space-y-2">
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              Refresh English clubs from API-Football. Use only when preparing or repairing demo data.
+            </p>
+            <button
+              type="button"
+              title="Sync England clubs from API-Football"
+              disabled={syncingEngland}
+              onClick={async () => {
+                setSyncingEngland(true)
+                try {
+                  const res = await fetch(`/api/integrations/clubs/sync-english?t=${Date.now()}`, {
+                    method: 'POST',
+                    cache: 'no-store',
+                  })
+                  const body = await res.json()
+                  const hasRows = Number(body?.added ?? 0) + Number(body?.updated ?? 0) > 0
+                  if (!res.ok || (!body?.ok && !hasRows)) {
+                    const detail =
+                      body?.error ||
+                      (Array.isArray(body?.errors) && body.errors.length > 0 ? body.errors.slice(0, 2).join(' | ') : null)
+                    toastError(detail ?? 'Club sync failed')
+                    return
+                  }
+                  if (body?.partial && Array.isArray(body?.errors) && body.errors.length > 0) {
+                    toastError(`Partial sync: ${body.errors.slice(0, 2).join(' | ')}`)
+                  } else {
+                    toastSuccess(
+                      `England sync complete: ${body.added ?? 0} added, ${body.updated ?? 0} updated${
+                        body.removed_stale_season ? `, ${body.removed_stale_season} removed` : ''
+                      }`
+                    )
+                  }
+                  const supabase = createClient()
+                  const { data: { user } } = await supabase.auth.getUser()
+                  if (user) {
+                    const { data } = await supabase
+                      .from('clubs')
+                      .select('id, name, league, country, tier, badge_url')
+                      .eq('user_id', user.id)
+                      .order('tier', { ascending: true, nullsFirst: false })
+                      .order('name', { ascending: true })
+                      .limit(500)
+                    setClubs((data as ClubRow[]) ?? [])
+                    setVisibleCount(PAGE_SIZE)
+                  }
+                } catch {
+                  toastError('Club sync failed')
+                } finally {
+                  setSyncingEngland(false)
+                }
+              }}
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', syncingEngland && 'animate-spin')} />
+              {syncingEngland ? 'Syncing…' : 'Sync England'}
+            </button>
+          </div>
+        </details>
 
         {/* Search */}
         <div className="relative">
@@ -206,8 +275,13 @@ export function ClubBrowserPanel() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="px-4 py-8 text-center space-y-2">
-            <p className="text-xs text-muted-foreground">
-              {query || tierFilter ? `No clubs matching filters` : 'No clubs yet'}
+            <p className="text-xs font-medium text-foreground">
+              {query || tierFilter || leagueFilter || countryFilter ? 'No clubs match this view' : 'No clubs in the workspace yet'}
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {query || tierFilter || leagueFilter || countryFilter
+                ? 'Clear a filter to return to the full club landscape.'
+                : 'Add a club to anchor mandates, coach fit and market intelligence.'}
             </p>
             {!query && !tierFilter && !leagueFilter && !countryFilter && (
               <Link href="/clubs/new" className="text-xs text-primary hover:underline">

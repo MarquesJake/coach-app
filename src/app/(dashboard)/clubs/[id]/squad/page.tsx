@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, RefreshCw, User } from 'lucide-react'
@@ -38,7 +38,7 @@ export default function ClubSquadPage() {
   const [syncing, setSyncing] = useState(false)
   const [lastSynced, setLastSynced] = useState<string | null>(null)
 
-  async function loadSquad() {
+  const loadSquad = useCallback(async () => {
     const supabase = createClient()
     const [{ data: squad }, { data: club }] = await Promise.all([
       supabase.from('club_squad').select('*').eq('club_id', id).order('number'),
@@ -47,9 +47,9 @@ export default function ClubSquadPage() {
     setPlayers((squad as Player[]) ?? [])
     setLastSynced(club?.squad_synced_at ?? null)
     setLoading(false)
-  }
+  }, [id])
 
-  useEffect(() => { loadSquad() }, [id])
+  useEffect(() => { loadSquad() }, [loadSquad])
 
   async function handleSync() {
     setSyncing(true)

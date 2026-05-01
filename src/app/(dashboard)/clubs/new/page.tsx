@@ -194,7 +194,7 @@ export default function NewClubPage() {
         {imported && (
           <div className="flex items-center gap-2 text-xs text-emerald-400">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-            Imported from TheSportsDB — edit any fields below
+            Imported from {imported.external_source === 'api-football' ? 'API-Football' : imported.external_source} — edit any fields below
             <button
               type="button"
               onClick={() => setImported(null)}

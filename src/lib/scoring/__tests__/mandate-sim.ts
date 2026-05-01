@@ -11,7 +11,7 @@ const { mandateToContext } = require('../mandate-adapter')
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { computeMandateFit } = require('../engine')
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { generateExplanation, serializeExplanation, getComparisonResult, buildComparisonNote } = require('../explanation')
+const { generateExplanation, getComparisonResult, buildComparisonNote } = require('../explanation')
 
 // ─────────────────────────────────────────────────────────────
 // Mock coaches (realistic profiles)
@@ -288,13 +288,7 @@ function pad(s: string, n: number) {
   return s.slice(0, n).padEnd(n)
 }
 
-function bar(score: number | null) {
-  if (score === null) return '  [IE]  '
-  const filled = Math.round((score / 100) * 8)
-  return '[' + '█'.repeat(filled) + '░'.repeat(8 - filled) + ']'
-}
-
-for (const { id, label, mandate } of MANDATES) {
+for (const { label, mandate } of MANDATES) {
   const ctx = mandateToContext(mandate)
   console.log('\n' + '═'.repeat(80))
   console.log(`  ${label}`)

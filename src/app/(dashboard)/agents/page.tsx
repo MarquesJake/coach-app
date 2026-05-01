@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { AgentsInventoryClient } from './_components/agents-inventory-client'
+import type { AgentInventoryAgent } from './_components/agents-inventory-client'
 import { EmptyState } from '@/components/ui/empty-state'
 
 export default async function AgentsPage({
@@ -44,7 +45,8 @@ export default async function AgentsPage({
     )
   }
 
-  const agentIds = agents.map((a) => a.id)
+  const agentList: AgentInventoryAgent[] = agents
+  const agentIds = agentList.map((a) => a.id)
   const [caCounts, acrCounts, lastInt] = await Promise.all([
     supabase.from('coach_agents').select('agent_id').eq('user_id', user.id).in('agent_id', agentIds),
     supabase.from('agent_club_relationships').select('agent_id').eq('user_id', user.id).in('agent_id', agentIds),
@@ -59,19 +61,19 @@ export default async function AgentsPage({
     clubsCountByAgent[id] = 0
   }
   for (const r of caCounts.data ?? []) {
-    const aid = (r as { agent_id: string }).agent_id
+    const aid = r.agent_id
     if (aid) coachesCountByAgent[aid] = (coachesCountByAgent[aid] ?? 0) + 1
   }
   for (const r of acrCounts.data ?? []) {
-    const aid = (r as { agent_id: string }).agent_id
+    const aid = r.agent_id
     if (aid) clubsCountByAgent[aid] = (clubsCountByAgent[aid] ?? 0) + 1
   }
   for (const r of lastInt.data ?? []) {
-    const aid = (r as { agent_id: string; occurred_at: string }).agent_id
-    if (aid && !lastInteractionByAgent[aid]) lastInteractionByAgent[aid] = (r as { occurred_at: string }).occurred_at
+    const aid = r.agent_id
+    if (aid && !lastInteractionByAgent[aid]) lastInteractionByAgent[aid] = r.occurred_at
   }
 
-  let filtered = agents
+  let filtered = agentList
   if (q) filtered = filtered.filter((a) => (a.full_name?.toLowerCase().includes(q) || (a.agency_name ?? '').toLowerCase().includes(q)))
   if (market) filtered = filtered.filter((a) => (a.markets ?? []).includes(market))
   if (risk === 'yes') filtered = filtered.filter((a) => a.risk_flag === true)
@@ -87,8 +89,7 @@ export default async function AgentsPage({
 
   return (
     <AgentsInventoryClient
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      agents={filtered as any}
+      agents={filtered}
       coachesCountByAgent={coachesCountByAgent}
       clubsCountByAgent={clubsCountByAgent}
       lastInteractionByAgent={lastInteractionByAgent}
@@ -98,8 +99,8 @@ export default async function AgentsPage({
       initialMinInfluence={params.min_influence}
       initialChannel={params.channel}
       initialSort={params.sort ?? 'name'}
-      allMarkets={Array.from(new Set(agents.flatMap((a) => a.markets ?? []))).sort()}
-      allChannels={Array.from(new Set(agents.map((a) => a.preferred_contact_channel).filter(Boolean))) as string[]}
+      allMarkets={Array.from(new Set(agentList.flatMap((a) => a.markets ?? []))).sort()}
+      allChannels={Array.from(new Set(agentList.map((a) => a.preferred_contact_channel).filter((channel): channel is string => Boolean(channel))))}
     />
   )
 }

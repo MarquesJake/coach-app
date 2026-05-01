@@ -21,7 +21,7 @@ type StandingEntry = {
   all: { played: number; win: number; draw: number; lose: number; goals: { for: number; against: number } }
 }
 
-export async function GET() {
+export async function POST() {
   if (!API_FOOTBALL_KEY) return NextResponse.json({ error: 'API_FOOTBALL_KEY not configured' }, { status: 500 })
 
   const supabase = createServerSupabaseClient()

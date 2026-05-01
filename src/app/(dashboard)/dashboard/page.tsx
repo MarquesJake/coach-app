@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getStageLabel } from '@/lib/constants/mandateStages'
 import { cn } from '@/lib/utils'
-import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, ChevronRight, Activity } from 'lucide-react'
+import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, ChevronRight, Activity, Bell, Plus, Radio } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -36,6 +36,31 @@ type ActivityRow = {
   description: string
   created_at: string
   metadata: Record<string, unknown> | null
+}
+
+type AlertRow = {
+  id: string
+  title: string
+  detail: string | null
+  alert_type: string
+  created_at: string
+}
+
+type CoachUpdateRow = {
+  id: string
+  update_note: string
+  update_type: string | null
+  confidence: string | null
+  occurred_at: string | null
+  coaches: { id: string; name: string | null; club_current: string | null } | null
+}
+
+type NextAction = {
+  id: string
+  title: string
+  detail: string
+  href: string
+  tone: 'danger' | 'warning' | 'info'
 }
 
 // ── Risk flag logic ────────────────────────────────────────────────────────────
@@ -104,9 +129,24 @@ function formatRelative(iso: string) {
   return formatDate(iso)
 }
 
+function actionToneClass(tone: NextAction['tone']) {
+  if (tone === 'danger') return 'border-red-400/20 bg-red-400/[0.06] text-red-300'
+  if (tone === 'warning') return 'border-amber-400/20 bg-amber-400/[0.06] text-amber-300'
+  return 'border-sky-400/20 bg-sky-400/[0.06] text-sky-300'
+}
+
 function clubName(m: { custom_club_name: string | null; clubs: { name: string | null } | null } | null) {
   if (!m) return 'Unknown'
   return m.custom_club_name ?? m.clubs?.name ?? 'Unknown club'
+}
+
+function getMandateNextStep(mandate: MandateRow, flags: RiskFlag[]) {
+  if (flags.includes('overdue')) return 'Reset target date or close the search'
+  if (flags.includes('no_shortlist')) return 'Build an initial shortlist'
+  if (flags.includes('no_depth')) return 'Add shortlist depth before board review'
+  if (flags.includes('stale')) return 'Record the next search action'
+  if ((mandate.mandate_shortlist?.length ?? 0) >= 3) return 'Prepare decision recommendation'
+  return 'Advance candidate evidence'
 }
 
 function riskIcon(flag: RiskFlag) {
@@ -129,7 +169,7 @@ export default async function DashboardPage() {
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString()
 
   // All fetches in parallel
-  const [mandatesRes, deliverablesRes, activityRes] = await Promise.all([
+  const [mandatesRes, deliverablesRes, activityRes, alertsRes, coachUpdatesRes] = await Promise.all([
     supabase
       .from('mandates')
       .select(`
@@ -161,11 +201,32 @@ export default async function DashboardPage() {
       .eq('entity_type', 'mandate')
       .order('created_at', { ascending: false })
       .limit(20),
+
+    supabase
+      .from('alerts')
+      .select('id, title, detail, alert_type, created_at')
+      .eq('user_id', user.id)
+      .eq('is_seen', false)
+      .order('created_at', { ascending: false })
+      .limit(4),
+
+    supabase
+      .from('coach_updates')
+      .select(`
+        id, update_note, update_type, confidence, occurred_at,
+        coaches!inner ( id, name, club_current )
+      `)
+      .eq('coaches.user_id', user.id)
+      .eq('confidence', 'High')
+      .order('occurred_at', { ascending: false, nullsFirst: false })
+      .limit(4),
   ])
 
   const mandates = (mandatesRes.data ?? []) as MandateRow[]
   const deliverables = (deliverablesRes.data ?? []) as DeliverableRow[]
   const activityLog = (activityRes.data ?? []) as ActivityRow[]
+  const alerts = (alertsRes.data ?? []) as AlertRow[]
+  const coachUpdates = (coachUpdatesRes.data ?? []) as CoachUpdateRow[]
 
   // Build last-activity-per-mandate map
   const lastActivityMap = new Map<string, string>()
@@ -213,29 +274,110 @@ export default async function DashboardPage() {
   })
 
   const totalRiskCount = activeMandatesWithFlags.filter(m => m.flags.length > 0).length
-  const recentActivity = activityLog.slice(0, 8)
+  const shortlistMovement = activityLog
+    .filter((a) => /shortlist|candidate|stage|moved|pipeline/i.test(`${a.action_type} ${a.description}`))
+    .slice(0, 6)
+  const nextActions: NextAction[] = [
+    ...activeMandatesWithFlags
+      .filter(m => m.flags.length > 0)
+      .slice(0, 3)
+      .map(m => ({
+        id: `mandate-${m.id}`,
+        title: clubName(m),
+        detail: m.flags.map(flag => riskIcon(flag).label).join(' + '),
+        href: `/mandates/${m.id}/workspace`,
+        tone: m.flags.some(flag => flag === 'overdue' || flag === 'no_shortlist') ? 'danger' as const : 'warning' as const,
+      })),
+    ...deliverables.slice(0, 2).map(d => ({
+      id: `deliverable-${d.id}`,
+      title: d.item,
+      detail: `${clubName(d.mandates)} due ${formatDate(d.due_date)}`,
+      href: `/mandates/${d.mandate_id}`,
+      tone: new Date(d.due_date) < today ? 'danger' as const : 'info' as const,
+    })),
+    ...alerts.slice(0, 2).map(a => ({
+      id: `alert-${a.id}`,
+      title: a.title,
+      detail: a.detail ?? a.alert_type,
+      href: '/alerts',
+      tone: 'warning' as const,
+    })),
+  ].slice(0, 6)
 
   return (
     <div className="space-y-6 max-w-[1400px]">
 
       {/* ── Header ── */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Mandate Control Centre</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
+      <div className="overflow-hidden rounded-xl border border-border bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(59,130,246,0.05)_42%,rgba(19,21,30,1)_100%)]">
+        <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1fr_360px] lg:items-start">
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <Activity className="h-3 w-3 text-primary" />
+              Operating brief
+            </div>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground">Mandate Control Centre</h1>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+              <Link
+                href="/mandates/new"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New mandate
+              </Link>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { label: 'Live', value: activeMandates.length },
+                { label: 'Need attention', value: totalRiskCount },
+                { label: 'Open alerts', value: alerts.length },
+                { label: 'High confidence intel', value: coachUpdates.length },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-lg border border-white/10 bg-black/10 px-3 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
+                  <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-black/15">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Next best actions</h2>
+              <Bell className="h-3.5 w-3.5 text-primary" />
+            </div>
+            {nextActions.length === 0 ? (
+              <div className="px-4 py-6 text-center">
+                <p className="text-xs font-medium text-foreground">Search desk is clear</p>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  No live mandates are blocked by dates, shortlist depth, or unread alerts.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/10">
+                {nextActions.map(action => (
+                  <Link key={action.id} href={action.href} className="group flex items-start justify-between gap-3 px-4 py-3 transition-colors hover:bg-white/[0.03]">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium text-foreground">{action.title}</p>
+                      <p className="mt-1 truncate text-[10px] text-muted-foreground">{action.detail}</p>
+                    </div>
+                    <span className={cn('mt-0.5 shrink-0 rounded-md border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider', actionToneClass(action.tone))}>
+                      {action.tone}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <Link
-          href="/mandates/new"
-          className="inline-flex items-center gap-2 px-3 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors"
-        >
-          + New mandate
-        </Link>
       </div>
 
       {/* ── Top stats ── */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {[
           { label: 'Active', value: activeMandates.length, icon: TrendingUp, colour: 'text-primary', href: '/mandates' },
           { label: 'Tracked', value: trackedCount, icon: Users, colour: 'text-blue-400', href: '/mandates' },
@@ -243,10 +385,10 @@ export default async function DashboardPage() {
           { label: 'Final stage', value: finalStageCount, icon: CheckCircle2, colour: 'text-purple-400', href: '/mandates' },
           { label: 'Closed this month', value: closedThisMonth, icon: CheckCircle2, colour: 'text-emerald-400', href: '/mandates' },
         ].map(({ label, value, icon: Icon, colour, href }) => (
-          <Link key={label} href={href} className="card-surface rounded-lg p-4 flex flex-col gap-2 hover:bg-surface-overlay/10 transition-colors">
+          <Link key={label} href={href} className="card-surface group rounded-lg p-4 flex flex-col gap-2 hover:bg-surface-overlay/10 transition-colors">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</span>
-              <Icon className={cn('w-3.5 h-3.5', colour)} />
+              <Icon className={cn('w-3.5 h-3.5 transition-transform group-hover:scale-110', colour)} />
             </div>
             <span className={cn('text-2xl font-bold', colour)}>{value}</span>
           </Link>
@@ -269,21 +411,25 @@ export default async function DashboardPage() {
       {/* ── Active mandates table ── */}
       <div className="card-surface rounded-lg overflow-hidden">
         <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Active mandates</h2>
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Active mandates</h2>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">Live searches ranked by decision risk and urgency</p>
+          </div>
           <span className="text-[10px] text-muted-foreground">{activeMandatesWithFlags.length} live</span>
         </div>
 
         {activeMandatesWithFlags.length === 0 ? (
           <div className="px-5 py-8 text-center">
-            <p className="text-sm text-muted-foreground">No active mandates.</p>
-            <Link href="/mandates/new" className="text-xs text-primary hover:underline mt-1 inline-block">Start one →</Link>
+            <p className="text-sm font-medium text-foreground">No live searches on the desk</p>
+            <p className="mt-1 text-xs text-muted-foreground">Create a mandate when a club brief is ready to track through shortlist and board decision.</p>
+            <Link href="/mandates/new" className="text-xs text-primary hover:underline mt-2 inline-block">Start a mandate →</Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border">
-                  {['Club', 'Stage', 'Shortlist', 'Target date', 'Last activity', 'Risk'].map(h => (
+                  {['Club', 'Stage', 'Shortlist', 'Target date', 'Last activity', 'Risk', 'Next action'].map(h => (
                     <th key={h} className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
                       {h}
                     </th>
@@ -370,6 +516,10 @@ export default async function DashboardPage() {
                       </div>
                     </td>
 
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {getMandateNextStep(m, m.flags)}
+                    </td>
+
                     {/* Action */}
                     <td className="px-4 py-3">
                       <Link
@@ -388,7 +538,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Secondary row ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-4">
 
         {/* Upcoming actions */}
         <div className="card-surface rounded-lg overflow-hidden">
@@ -396,7 +546,10 @@ export default async function DashboardPage() {
             <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Upcoming actions</h2>
           </div>
           {deliverables.length === 0 ? (
-            <p className="px-4 py-6 text-xs text-muted-foreground text-center">No upcoming actions</p>
+            <div className="px-4 py-6 text-center">
+              <p className="text-xs font-medium text-foreground">No dated deliverables</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Add board packs, interview windows, or outreach deadlines inside a mandate.</p>
+            </div>
           ) : (
             <div className="divide-y divide-border/50">
               {deliverables.map(d => (
@@ -426,7 +579,10 @@ export default async function DashboardPage() {
             <p className="text-[10px] text-muted-foreground mt-0.5">Pre-vacancy mandates</p>
           </div>
           {warmPipeline.length === 0 ? (
-            <p className="px-4 py-6 text-xs text-muted-foreground text-center">No tracked mandates</p>
+            <div className="px-4 py-6 text-center">
+              <p className="text-xs font-medium text-foreground">No succession watchlist</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Use identified or board approved mandates to track likely future searches.</p>
+            </div>
           ) : (
             <div className="divide-y divide-border/50">
               {warmPipeline.map(m => (
@@ -448,16 +604,59 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Recent activity */}
+        {/* Intelligence pulse */}
         <div className="card-surface rounded-lg overflow-hidden">
-          <div className="px-4 py-3.5 border-b border-border">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Recent activity</h2>
+          <div className="px-4 py-3.5 border-b border-border flex items-center justify-between">
+            <div>
+              <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Recent intelligence</h2>
+              <p className="text-[10px] text-muted-foreground mt-0.5">High confidence updates</p>
+            </div>
+            <Radio className="h-3.5 w-3.5 text-primary" />
           </div>
-          {recentActivity.length === 0 ? (
-            <p className="px-4 py-6 text-xs text-muted-foreground text-center">No recent activity</p>
+          {coachUpdates.length === 0 ? (
+            <div className="px-4 py-6 text-center">
+              <p className="text-xs font-medium text-foreground">No high confidence coach movement</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Verified intelligence will appear here when a coach profile changes.</p>
+            </div>
           ) : (
             <div className="divide-y divide-border/50">
-              {recentActivity.map(a => (
+              {coachUpdates.map(update => (
+                <Link
+                  key={update.id}
+                  href={update.coaches?.id ? `/coaches/${update.coaches.id}/intelligence` : '/intelligence'}
+                  className="block px-4 py-3 hover:bg-surface-overlay/20 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-xs font-medium text-foreground">
+                      {update.coaches?.name ?? 'Coach update'}
+                    </p>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">
+                      {update.occurred_at ? formatRelative(update.occurred_at) : 'New'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                    {update.update_note}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Shortlist movement */}
+        <div className="card-surface rounded-lg overflow-hidden">
+          <div className="px-4 py-3.5 border-b border-border">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Shortlist movement</h2>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Candidate and pipeline changes</p>
+          </div>
+          {shortlistMovement.length === 0 ? (
+            <div className="px-4 py-6 text-center">
+              <p className="text-xs font-medium text-foreground">No shortlist movement yet</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Candidate additions, stage moves, and shortlist changes will be tracked here.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/50">
+              {shortlistMovement.map(a => (
                 <div key={a.id} className="px-4 py-2.5 flex items-start gap-2.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary/40 mt-1.5 shrink-0" />
                   <div className="min-w-0 flex-1">

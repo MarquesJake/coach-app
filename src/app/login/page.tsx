@@ -41,7 +41,7 @@ export default function LoginPage() {
       if (error) {
         setError(error.message)
       } else {
-        router.push('/dashboard/overview')
+        router.push('/dashboard')
         router.refresh()
       }
     }
@@ -59,8 +59,8 @@ export default function LoginPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white">Coach Matchmaker</h1>
-          <p className="text-gray-400 mt-1">Football Intelligence Platform</p>
+          <h1 className="text-2xl font-bold text-white">Coach First</h1>
+          <p className="text-gray-400 mt-1">Intelligence OS</p>
         </div>
 
         {/* Card */}

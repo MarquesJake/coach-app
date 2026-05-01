@@ -9,9 +9,14 @@ export default async function SettingsPage() {
   return (
     <div className="max-w-[1400px] mx-auto space-y-5">
       <div>
-        <h1 className="text-lg font-semibold text-foreground tracking-tight">Settings</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold text-foreground tracking-tight">Settings</h1>
+          <span className="rounded border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300">
+            Internal
+          </span>
+        </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Personal and workspace settings: default currency, timezone, feature toggles
+          Admin only workspace controls for defaults, timezone and feature toggles.
         </p>
       </div>
 

@@ -419,7 +419,12 @@ function IntelligenceSummary({
     return (
       <section className="space-y-2">
         <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Intelligence</h3>
-        <p className="text-xs text-muted-foreground italic">No intelligence entries for this coach.</p>
+        <div className="rounded border border-dashed border-border bg-surface/40 px-3 py-3">
+          <p className="text-xs font-medium text-foreground">No verified intelligence attached</p>
+          <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+            Add availability, agent, media or performance notes to strengthen the board recommendation.
+          </p>
+        </div>
       </section>
     )
   }
@@ -588,8 +593,10 @@ function FitAssessment({
         <div className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center">
           <span className="text-lg">←</span>
         </div>
-        <p className="text-sm font-medium text-foreground">Select a candidate</p>
-        <p className="text-xs text-muted-foreground">Click any candidate in the pipeline to open their fit assessment here.</p>
+        <p className="text-sm font-medium text-foreground">Select a candidate to assess fit</p>
+        <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+          Open a pipeline candidate or scored recommendation to compare tactical fit, provenance, intelligence confidence and decision risk.
+        </p>
       </div>
     )
   }
@@ -831,9 +838,12 @@ function CandidatePipeline({
       </div>
 
       {candidates.length === 0 && (
-        <p className="text-xs text-muted-foreground py-4 text-center">
-          No candidates added yet. Use the Shortlist tab to add coaches to this mandate.
-        </p>
+        <div className="rounded-lg border border-dashed border-border bg-surface/40 px-3 py-5 text-center">
+          <p className="text-xs font-medium text-foreground">No shortlist decisions yet</p>
+          <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+            Switch to Scored to review ranked coaches, then add credible options into the decision pipeline.
+          </p>
+        </div>
       )}
 
       {allGroups.map(({ stage, items }) => (
@@ -900,6 +910,16 @@ export function MandateWorkspaceClient({
   // ── Pipeline state ─────────────────────────────────────────────────────────
   const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
+  const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
+  const shortlistReady = shortlist.filter((c) => ['Shortlist', 'Interview', 'Final'].includes(c.candidate_stage)).length
+  const recommendationStatus =
+    shortlistReady >= 3
+      ? 'Board pack ready'
+      : shortlist.length > 0
+        ? 'Evidence building'
+        : longlistEntries.length > 0
+          ? 'Market scored'
+          : 'Needs market scan'
 
   // ── Recommendations state ──────────────────────────────────────────────────
   const [rightTab, setRightTab] = useState<'pipeline' | 'recommendations'>(
@@ -950,80 +970,121 @@ export function MandateWorkspaceClient({
   }
 
   return (
-    <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-12rem)]">
-      {/* Left: Club Brief */}
-      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
-        <ClubBrief
-          mandate={mandate}
-          seasonResults={seasonResults}
-          coachingHistory={coachingHistory}
-          stabilityMetrics={stabilityMetrics}
-        />
+    <div className="space-y-3">
+      <div className="rounded-lg border border-border bg-card px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Mandate workspace</p>
+            <h1 className="mt-1 text-lg font-semibold text-foreground">{clubName}</h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Club context, candidate fit, shortlist decision and board recommendation in one view.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-right">
+            <div className="rounded border border-border bg-surface/50 px-3 py-2">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Candidates</p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground">{shortlist.length}</p>
+            </div>
+            <div className="rounded border border-border bg-surface/50 px-3 py-2">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Scored</p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground">{longlistEntries.length}</p>
+            </div>
+            <div className="rounded border border-primary/20 bg-primary/10 px-3 py-2">
+              <p className="text-[9px] uppercase tracking-widest text-primary/80">Decision</p>
+              <p className="mt-0.5 text-sm font-semibold text-primary">{recommendationStatus}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Center: Fit Assessment or Fit Detail */}
-      <div className="rounded-lg border border-border bg-card p-4 overflow-hidden">
-        {renderCenter()}
-      </div>
-
-      {/* Right: Pipeline / Recommendations tabs */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden flex flex-col">
-        {/* Tab bar */}
-        <div className="flex border-b border-border shrink-0">
-          <button
-            type="button"
-            onClick={() => setRightTab('pipeline')}
-            className={cn(
-              'flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors',
-              rightTab === 'pipeline'
-                ? 'text-foreground border-b-2 border-primary -mb-px'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            Pipeline
-            {shortlist.length > 0 && (
-              <span className="ml-1 tabular-nums text-muted-foreground">({shortlist.length})</span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => { setRightTab('recommendations'); setSelectedId(null) }}
-            className={cn(
-              'flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors',
-              rightTab === 'recommendations'
-                ? 'text-foreground border-b-2 border-primary -mb-px'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            Scored
-            {longlistEntries.length > 0 && (
-              <span className="ml-1 tabular-nums text-muted-foreground">({longlistEntries.length})</span>
-            )}
-          </button>
+      <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-17rem)] min-h-[560px]">
+        {/* Left: Club Brief */}
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border px-4 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club context</p>
+          </div>
+          <div className="h-[calc(100%-42px)] p-4 overflow-hidden">
+            <ClubBrief
+              mandate={mandate}
+              seasonResults={seasonResults}
+              coachingHistory={coachingHistory}
+              stabilityMetrics={stabilityMetrics}
+            />
+          </div>
         </div>
 
-        {/* Tab content */}
-        <div className="flex-1 overflow-hidden p-4">
-          {rightTab === 'pipeline' ? (
-            <CandidatePipeline
-              candidates={shortlist}
-              selectedId={selectedId}
-              onSelect={(id) => {
-                setSelectedId(id)
-                setSelectedRecoEntry(null)
-                setSelectedRecoFit(null)
-              }}
-            />
-          ) : (
-            <MandateSearchPanel
-              mandateId={mandate.id}
-              initialEntries={longlistEntries}
-              existingCoachIds={existingCoachIds}
-              existingStages={existingStages}
-              onSelectEntry={handleSelectReco}
-              selectedCoachId={selectedRecoEntry?.coach_id ?? null}
-            />
-          )}
+        {/* Center: Fit Assessment or Fit Detail */}
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border px-4 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Candidate fit assessment</p>
+          </div>
+          <div className="h-[calc(100%-42px)] p-4 overflow-hidden">
+            {renderCenter()}
+          </div>
+        </div>
+
+        {/* Right: Pipeline / Recommendations tabs */}
+        <div className="rounded-lg border border-border bg-card overflow-hidden flex flex-col">
+          <div className="border-b border-border px-4 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Shortlist decision board</p>
+          </div>
+          {/* Tab bar */}
+          <div className="flex border-b border-border shrink-0">
+            <button
+              type="button"
+              onClick={() => setRightTab('pipeline')}
+              className={cn(
+                'flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors',
+                rightTab === 'pipeline'
+                  ? 'text-foreground border-b-2 border-primary -mb-px'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              Pipeline
+              {shortlist.length > 0 && (
+                <span className="ml-1 tabular-nums text-muted-foreground">({shortlist.length})</span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setRightTab('recommendations'); setSelectedId(null) }}
+              className={cn(
+                'flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors',
+                rightTab === 'recommendations'
+                  ? 'text-foreground border-b-2 border-primary -mb-px'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              Scored
+              {longlistEntries.length > 0 && (
+                <span className="ml-1 tabular-nums text-muted-foreground">({longlistEntries.length})</span>
+              )}
+            </button>
+          </div>
+
+          {/* Tab content */}
+          <div className="flex-1 overflow-hidden p-4">
+            {rightTab === 'pipeline' ? (
+              <CandidatePipeline
+                candidates={shortlist}
+                selectedId={selectedId}
+                onSelect={(id) => {
+                  setSelectedId(id)
+                  setSelectedRecoEntry(null)
+                  setSelectedRecoFit(null)
+                }}
+              />
+            ) : (
+              <MandateSearchPanel
+                mandateId={mandate.id}
+                initialEntries={longlistEntries}
+                existingCoachIds={existingCoachIds}
+                existingStages={existingStages}
+                onSelectEntry={handleSelectReco}
+                selectedCoachId={selectedRecoEntry?.coach_id ?? null}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

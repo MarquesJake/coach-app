@@ -14,6 +14,9 @@ import {
   Radio,
   UserCircle,
   LogOut,
+  Bell,
+  GitCompare,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -25,24 +28,22 @@ const workspaceNav = [
 const intelligenceNav = [
   { label: 'Coaches', href: '/coaches', icon: Users },
   { label: 'Clubs', href: '/clubs', icon: Building2 },
+  { label: 'Agents', href: '/agents', icon: UserCircle },
   { label: 'Intelligence', href: '/intelligence', icon: Radio },
 ]
 
-const networkNav = [
+const internalNav = [
+  { label: 'Alerts', href: '/alerts', icon: Bell },
+  { label: 'Matches', href: '/matches', icon: GitCompare },
   { label: 'Staff', href: '/staff', icon: Users },
-  { label: 'Agents', href: '/agents', icon: UserCircle },
-]
-
-const adminNav = [
+  { label: 'Config', href: '/config', icon: SlidersHorizontal },
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Data tools', href: '/admin/data-tools', icon: Database },
 ]
 
 const navSections = [
   { label: 'Workspace', items: workspaceNav },
-  { label: 'Intelligence', items: intelligenceNav },
-  { label: 'Network', items: networkNav },
-  { label: 'Admin', items: adminNav },
+  { label: 'Market intelligence', items: intelligenceNav },
 ]
 
 export function Sidebar() {
@@ -63,11 +64,11 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[220px] bg-card border-r border-border flex flex-col fixed h-full z-30">
+    <aside className="w-[220px] bg-card border-r border-border flex flex-col fixed h-full z-30 shadow-[12px_0_40px_rgba(0,0,0,0.12)]">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-border">
+      <div className="px-5 py-5 border-b border-border bg-gradient-to-b from-surface-raised/70 to-transparent">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_24px_rgba(16,185,129,0.12)]">
             <Zap className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="flex flex-col">
@@ -116,6 +117,36 @@ export function Sidebar() {
             </div>
           </div>
         ))}
+
+        <details className="group rounded-lg border border-border/60 bg-surface/30">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 transition-colors hover:text-foreground">
+            Internal tools
+            <span className="rounded border border-amber-400/20 bg-amber-400/10 px-1.5 py-0.5 text-[8px] text-amber-300">
+              Admin only
+            </span>
+          </summary>
+          <div className="space-y-0.5 border-t border-border/60 p-2">
+            {internalNav.map((item) => {
+              const active = isActive(item.href)
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-2.5 px-3 py-2 rounded-md text-[12px] font-medium transition-colors relative',
+                    active
+                      ? 'text-primary bg-primary/[0.06]'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  )}
+                >
+                  <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        </details>
       </nav>
 
       {/* Footer */}

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ExternalLink, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { ExternalLink, Plus, Trash2, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -62,11 +62,6 @@ const AGE_BANDS = [
 ]
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-
-function formatDate(d: string | null) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
-}
 
 function formatMandateDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })

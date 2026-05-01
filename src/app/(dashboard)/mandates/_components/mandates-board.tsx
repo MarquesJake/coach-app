@@ -77,6 +77,44 @@ function formatTargetDate(value: string | null | undefined): string {
   }
 }
 
+function formatUrgency(value: string | null | undefined): { label: string; cls: string } {
+  if (!value) return { label: 'No target date', cls: 'text-muted-foreground bg-surface border-border' }
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const target = new Date(value)
+  target.setHours(0, 0, 0, 0)
+  const days = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  if (days < 0) return { label: `${Math.abs(days)}d overdue`, cls: 'text-red-400 bg-red-400/10 border-red-400/20' }
+  if (days <= 7) return { label: 'This week', cls: 'text-red-400 bg-red-400/10 border-red-400/20' }
+  if (days <= 21) return { label: `${days}d window`, cls: 'text-amber-400 bg-amber-400/10 border-amber-400/20' }
+  return { label: `${days}d runway`, cls: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' }
+}
+
+function shortlistStrength(count: number, shortlisted: number): { label: string; cls: string } {
+  if (shortlisted >= 3 || count >= 5) return { label: 'Strong shortlist', cls: 'text-emerald-400' }
+  if (shortlisted >= 1 || count >= 2) return { label: 'Needs depth', cls: 'text-amber-400' }
+  return { label: 'No credible depth', cls: 'text-red-400' }
+}
+
+function mainRisk(m: MandateForBoard, count: number, missing: number, hasRiskConcern: boolean): { label: string; cls: string } {
+  const urgency = formatUrgency(m.target_completion_date)
+  if (urgency.label.includes('overdue')) return { label: 'Target date slipped', cls: 'text-red-400' }
+  if (count === 0 && !['identified', 'board_approved'].includes(m.pipeline_stage ?? '')) return { label: 'Shortlist missing', cls: 'text-red-400' }
+  if (hasRiskConcern) return { label: 'Candidate risk flagged', cls: 'text-red-400' }
+  if (missing > 0) return { label: 'Brief incomplete', cls: 'text-amber-400' }
+  if (count < 2) return { label: 'Thin market evidence', cls: 'text-amber-400' }
+  return { label: 'No major blocker', cls: 'text-emerald-400' }
+}
+
+function nextActionLabel(m: MandateForBoard, count: number, shortlisted: number, missing: number, topCoach: BoardSignal['topCoach'] | null) {
+  if (missing > 0) return 'Complete brief'
+  if (!topCoach) return 'Score market'
+  if (count === 0) return 'Add candidates'
+  if (shortlisted < 2) return 'Build shortlist'
+  if (['interviews', 'final_2', 'offer'].includes(m.pipeline_stage ?? '')) return 'Prepare board view'
+  return 'Open workspace'
+}
+
 function availDot(status: string | null) {
   if (status === 'Available') return 'bg-emerald-400'
   if (status === 'Open to offers' || status === 'Under contract - interested') return 'bg-amber-400'
@@ -347,7 +385,7 @@ export function MandatesBoard({ initialMandates }: Props) {
         <div className="flex-1 min-h-0 overflow-y-auto pt-3 space-y-2">
           {filtered.length === 0 ? (
             <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-              No mandates match the current filters.
+              No mandates match this search view. Clear a filter to bring the search desk back into focus.
             </div>
           ) : (
             filtered.map((m) => (
@@ -393,7 +431,8 @@ export function MandatesBoard({ initialMandates }: Props) {
                     className="flex flex-col items-center justify-center min-h-[140px] rounded-lg border border-dashed border-border hover:border-primary/40 hover:bg-primary/5 transition-colors text-center p-4"
                   >
                     <Plus className="w-6 h-6 text-muted-foreground/50 mb-1" />
-                    <span className="text-xs font-medium text-muted-foreground">Add mandate</span>
+                    <span className="text-xs font-medium text-muted-foreground">No searches here</span>
+                    <span className="mt-1 text-[10px] text-muted-foreground/70">Add a mandate when a club brief enters this stage.</span>
                   </Link>
                 ) : (
                   (byStage[stage.key] ?? []).map((m) => (
@@ -500,6 +539,11 @@ function MandateCard({
   const clarity = topCoach ? decisionClarity(topCoach.score, sig?.secondScore ?? null) : null
   const hasIeFlags = (topCoach?.ieFlags?.length ?? 0) > 0
   const hasRiskConcern = topCoach?.hasRiskConcern ?? false
+  const roleLabel = mandate.strategic_objective?.match(/\b(sporting director|technical director|head coach|manager|first team coach)\b/i)?.[0] ?? 'Head coach search'
+  const urgency = formatUrgency(mandate.target_completion_date)
+  const strength = shortlistStrength(count, shortlisted)
+  const primaryRisk = mainRisk(mandate, count, missing, hasRiskConcern)
+  const nextAction = nextActionLabel(mandate, count, shortlisted, missing, topCoach)
 
   return (
     <div
@@ -561,6 +605,10 @@ function MandateCard({
             </Link>
           </div>
 
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            {roleLabel}
+          </p>
+
           {/* Row 2: top candidate (if scored) */}
           {topCoach ? (
             <div className="flex items-center gap-1.5 mb-1 min-w-0">
@@ -591,8 +639,27 @@ function MandateCard({
             </p>
           )}
 
-          {/* Row 4: pipeline summary + target date */}
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground flex-wrap">
+          {/* Row 4: decision summary */}
+          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+            <div className="rounded border border-border bg-surface/60 px-2 py-1.5">
+              <p className="text-muted-foreground">Urgency</p>
+              <p className={cn('mt-0.5 inline-flex rounded border px-1.5 py-0.5 font-semibold', urgency.cls)}>{urgency.label}</p>
+            </div>
+            <div className="rounded border border-border bg-surface/60 px-2 py-1.5">
+              <p className="text-muted-foreground">Shortlist</p>
+              <p className={cn('mt-0.5 font-semibold', strength.cls)}>{strength.label}</p>
+            </div>
+            <div className="rounded border border-border bg-surface/60 px-2 py-1.5">
+              <p className="text-muted-foreground">Main risk</p>
+              <p className={cn('mt-0.5 truncate font-semibold', primaryRisk.cls)}>{primaryRisk.label}</p>
+            </div>
+            <div className="rounded border border-border bg-surface/60 px-2 py-1.5">
+              <p className="text-muted-foreground">Next action</p>
+              <p className="mt-0.5 truncate font-semibold text-foreground">{nextAction}</p>
+            </div>
+          </div>
+
+          <div className="mt-2 flex items-center gap-2 text-[10px] text-muted-foreground flex-wrap">
             <span>
               <span className="font-medium text-foreground">{count}</span> in pipeline
               {shortlisted > 0 && (

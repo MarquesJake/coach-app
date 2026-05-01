@@ -69,8 +69,8 @@ export default async function StaffPage({
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-6">
           <EmptyState
-            title="No data available."
-            description={staff.length === 0 ? 'Add staff to build your network and link them to coaches.' : 'No staff match the current filters.'}
+            title={staff.length === 0 ? 'No staff network mapped yet' : 'No staff match this view'}
+            description={staff.length === 0 ? 'Add assistants, analysts and trusted operators to understand the team around each coach.' : 'Adjust the role or search filter to bring staff relationships back into view.'}
             actionLabel={staff.length === 0 ? 'Add staff' : undefined}
             actionHref={staff.length === 0 ? '/staff/new' : undefined}
           />

@@ -64,6 +64,26 @@ type MediaEvent = {
   verified?: boolean
 }
 
+type ExternalProfile = {
+  id: string
+  api_coach_id: string | null
+  full_name: string | null
+  first_name: string | null
+  last_name: string | null
+  nationality: string | null
+  birth_date: string | null
+  birth_place: string | null
+  birth_country: string | null
+  height: string | null
+  weight: string | null
+  photo_url: string | null
+  current_team_name: string | null
+  source_name: string | null
+  source_link: string | null
+  confidence: number | null
+  synced_at: string | null
+}
+
 function formatNum(v: number | null | undefined): string {
   if (v == null) return '—'
   const n = Number(v)
@@ -89,11 +109,13 @@ function toStr(v: unknown): string {
 export function CoachDataTab({
   coachId,
   profile,
+  externalProfile,
   recruitment,
   mediaEvents,
 }: {
   coachId: string
   profile: Profile | null
+  externalProfile: ExternalProfile | null
   recruitment: RecruitmentRow[]
   mediaEvents: MediaEvent[]
 }) {
@@ -190,6 +212,71 @@ export function CoachDataTab({
 
   return (
     <div className="space-y-6">
+      {/* Section 0 – External Profile */}
+      <section className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-lg font-medium text-foreground mb-4">
+          External profile (API sourced)
+        </h2>
+        {!externalProfile ? (
+          <p className="text-sm text-muted-foreground py-2">No external profile synced yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-4">
+            <div>
+              {externalProfile.photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={externalProfile.photo_url}
+                  alt={externalProfile.full_name ?? 'Coach photo'}
+                  className="w-28 h-28 rounded-lg border border-border object-cover"
+                />
+              ) : (
+                <div className="w-28 h-28 rounded-lg border border-border bg-surface flex items-center justify-center text-xs text-muted-foreground">
+                  No photo
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Full name</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.full_name ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Nationality</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.nationality ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">DOB</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.birth_date ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Birth place</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.birth_place ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Height</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.height ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Weight</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.weight ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Current team</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.current_team_name ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Source confidence</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.confidence ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Last sync</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.synced_at ? new Date(externalProfile.synced_at).toLocaleDateString('en-GB') : '—'}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* Section 1 – Squad Age Profile */}
       <section className="rounded-lg border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-4">

@@ -43,7 +43,12 @@ export default async function AlertsPage({
           </div>
         </div>
         {list.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No data available.</p>
+          <div className="rounded-lg border border-dashed border-border bg-surface/40 px-4 py-8 text-center">
+            <p className="text-sm font-medium text-foreground">No active alerts</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Market changes, mandate risks and intelligence triggers will appear here when they need attention.
+            </p>
+          </div>
         ) : (
           <ul className="divide-y divide-border">
             {list.map((a) => (

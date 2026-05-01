@@ -226,7 +226,12 @@ export function IntelligenceItemsFeed() {
       {loading ? (
         <div className="py-12 text-center text-sm text-muted-foreground">Loading…</div>
       ) : filtered.length === 0 ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">No data available.</div>
+        <div className="py-12 text-center">
+          <p className="text-sm font-medium text-foreground">No intelligence in this view</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Add coach, club or agent signals to build the evidence layer behind each recommendation.
+          </p>
+        </div>
       ) : (
         <div className="divide-y divide-border">
           {filtered.map((item) => {

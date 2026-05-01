@@ -23,6 +23,7 @@ import {
   CLUB_NAMES,
   CLUB_LEAGUES,
   CLUB_COUNTRIES,
+  CLUB_DEMO_BRIEFS,
   DEMO_AGENT_FULL_NAMES,
   DEMO_AGENT_AGENCIES,
   DEMO_AGENT_MARKETS,
@@ -54,6 +55,7 @@ export type SeedCounts = {
   mandates: number
   mandate_longlist: number
   mandate_shortlist: number
+  mandate_deliverables: number
   coach_tactical_reports: number
   coach_data_profiles: number
   coach_due_diligence_items: number
@@ -61,6 +63,7 @@ export type SeedCounts = {
   coach_recruitment_history: number
   activity_log?: number
   coach_updates?: number
+  alerts?: number
   agents?: number
   coach_agents?: number
   agent_club_relationships?: number
@@ -86,6 +89,7 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     mandates: 0,
     mandate_longlist: 0,
     mandate_shortlist: 0,
+    mandate_deliverables: 0,
     coach_tactical_reports: 0,
     coach_data_profiles: 0,
     coach_due_diligence_items: 0,
@@ -93,6 +97,7 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     coach_recruitment_history: 0,
     activity_log: 0,
     coach_updates: 0,
+    alerts: 0,
     agents: 0,
     coach_agents: 0,
     agent_club_relationships: 0,
@@ -112,6 +117,7 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
   for (let i = 0; i < 3; i++) {
     const id = demoUuid(userId, 'club', i)
     clubIds.push(id)
+    const brief = CLUB_DEMO_BRIEFS[i]!
     const { error } = await supabase.from('clubs').upsert(
       {
         id,
@@ -119,8 +125,18 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
         name: CLUB_NAMES[i]!,
         league: CLUB_LEAGUES[i]!,
         country: CLUB_COUNTRIES[i]!,
-        ownership_model: 'Private',
-        notes: `Demo club ${i + 1}.`,
+        ownership_model: brief.ownership_model,
+        tactical_model: brief.tactical_model,
+        pressing_model: brief.pressing_model,
+        build_model: brief.build_model,
+        board_risk_tolerance: brief.board_risk_tolerance,
+        strategic_priority: brief.strategic_priority,
+        market_reputation: brief.market_reputation,
+        media_pressure: brief.media_pressure,
+        development_vs_win_now: brief.development_vs_win_now,
+        environment_assessment: brief.environment_assessment,
+        instability_risk: brief.instability_risk,
+        notes: `${brief.strategic_priority}. ${brief.instability_risk}`,
       },
       { onConflict: 'id' }
     )
@@ -480,14 +496,14 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
   const INTERACTION_TOPICS = ['Mandate', 'Availability', 'Compensation', 'Staff', 'Reputation', 'Other']
   const INTERACTION_CHANNELS = ['Phone', 'WhatsApp', 'Email', 'In person', 'Video call']
   const INTERACTION_SUMMARIES = [
-    'Discussed mandate fit and timeline.',
-    'Availability confirmed; open to conversation.',
-    'Compensation expectations aligned.',
-    'Staff package and backroom discussed.',
-    'Reputation check; positive feedback.',
-    'General catch-up; relationship maintained.',
-    'Follow-up on shortlist; next steps agreed.',
-    'Intro call with club; positive.',
+    'Discussed mandate fit and timeline for final shortlist.',
+    'Availability confirmed for summer process window.',
+    'Compensation expectations aligned to current mandate budget.',
+    'Backroom staffing package and role split discussed in detail.',
+    'Reputation and dressing-room references reviewed; mostly positive.',
+    'Quarterly relationship touchpoint to keep channel warm.',
+    'Follow-up after shortlist review; next contact agreed.',
+    'Initial intro call with club decision makers completed.',
   ]
   for (let a = 0; a < 8; a++) {
     const numInt = 8 + (a % 13)
@@ -505,7 +521,7 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
           direction: i % 2 === 0 ? 'Inbound' : 'Outbound',
           topic: INTERACTION_TOPICS[i % INTERACTION_TOPICS.length],
           summary: INTERACTION_SUMMARIES[i % INTERACTION_SUMMARIES.length]!,
-          detail: 'Demo interaction.',
+          detail: `${CLUB_NAMES[(a + i) % CLUB_NAMES.length]!} context discussed with focus on ${INTERACTION_TOPICS[i % INTERACTION_TOPICS.length]!.toLowerCase()}.`,
           sentiment: ['Positive', 'Neutral', 'Negative'][i % 3]!,
           confidence: 60 + (i % 35),
         },
@@ -544,7 +560,6 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
   for (let v = 0; v < 3; v++) {
     const id = demoUuid(userId, 'scoring-model', v)
     modelIds.push(id)
-    // @ts-ignore - scoring_models table not yet in DB schema
     const { error: modelErr } = await supabase.from('scoring_models').upsert(
       { id, name: 'Default model', version: `v${v + 1}`, weights: {} },
       { onConflict: 'id' }
@@ -561,7 +576,6 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
       const tacticalScore = Math.min(95, base - 3 + tacticalBoost)
       const leadershipScore = base + 2
       const riskScore = Math.max(20, 100 - base + riskPenalty)
-      // @ts-ignore - coach_scores table not yet in DB schema
       const { error } = await supabase.from('coach_scores').upsert(
         {
           coach_id: coachId,
@@ -585,7 +599,6 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
   for (let c = 0; c < 12; c++) {
     const repeatSignings = 1 + (c % 4)
     const repeatAgents = (c % 3) + 1
-    // @ts-ignore - coach_derived_metrics table not yet in DB schema
     const { error } = await supabase.from('coach_derived_metrics').upsert(
       {
         coach_id: coachIds[c]!,
@@ -634,27 +647,94 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
   }
 
   // 11) Mandates (3)
+  const mandateBriefs = [
+    {
+      status: 'Active',
+      priority: 'High',
+      pipeline_stage: 'interviews',
+      targetMonths: 2,
+      budget_band: '£8M to £12M total staff package',
+      strategic_objective: 'Appoint a high authority head coach who can restore Champions League qualification while protecting the young squad pathway.',
+      board_risk_appetite: 'Moderate. The board will accept tactical ambition if the first 100 day plan is credible.',
+      succession_timeline: 'Appointment before the 2026 pre season block',
+      key_stakeholders: ['Ownership group', 'Sporting directors', 'Performance leadership', 'Senior player group'],
+      confidentiality_level: 'Board Only',
+      tactical_model_required: 'Possession dominant with aggressive rest defence',
+      pressing_intensity_required: 'High',
+      build_preference_required: 'Build from back',
+      leadership_profile_required: 'High authority communicator with elite staff standards',
+      risk_tolerance: 'Medium',
+      language_requirements: ['English'],
+      relocation_required: true,
+    },
+    {
+      status: 'Active',
+      priority: 'High',
+      pipeline_stage: 'shortlisting',
+      targetMonths: 3,
+      budget_band: '£4M to £7M annual package',
+      strategic_objective: 'Identify a durable identity coach who can return the club to Europe and reconnect supporter belief with the football model.',
+      board_risk_appetite: 'Low to moderate. Cultural fit and supporter trust carry heavy weight.',
+      succession_timeline: 'Decision window aligned to summer 2026 planning',
+      key_stakeholders: ['Chairman', 'Chief football officer', 'Recruitment lead', 'Supporter advisory group'],
+      confidentiality_level: 'Restricted',
+      tactical_model_required: 'Front foot attacking football with structured press',
+      pressing_intensity_required: 'High',
+      build_preference_required: 'Progressive through thirds',
+      leadership_profile_required: 'Clear identity builder with public communication strength',
+      risk_tolerance: 'Low',
+      language_requirements: ['English'],
+      relocation_required: true,
+    },
+    {
+      status: 'Active',
+      priority: 'High',
+      pipeline_stage: 'board_approved',
+      targetMonths: 4,
+      budget_band: '£2M to £4M annual package',
+      strategic_objective: 'Modernise the playing model without compromising Premier League resilience, set piece edge or transition threat.',
+      board_risk_appetite: 'Low. The club wants measured evolution rather than ideological reset.',
+      succession_timeline: 'Shadow process through the final quarter of 2026',
+      key_stakeholders: ['Owner', 'Vice chair', 'Technical director', 'Academy director'],
+      confidentiality_level: 'Standard',
+      tactical_model_required: 'Compact transition capable side with improved possession control',
+      pressing_intensity_required: 'Medium',
+      build_preference_required: 'Mixed',
+      leadership_profile_required: 'Pragmatic moderniser with strong player relationships',
+      risk_tolerance: 'Low',
+      language_requirements: ['English'],
+      relocation_required: true,
+    },
+  ] as const
   const mandateIds: string[] = []
   for (let m = 0; m < 3; m++) {
     const id = demoUuid(userId, 'mandate', m)
     mandateIds.push(id)
+    const mandate = mandateBriefs[m]!
     const { error } = await supabase.from('mandates').upsert(
       {
         id,
         user_id: userId,
         club_id: clubIds[m]!,
-        status: 'Active',
-        priority: ['High', 'Medium', 'High'][m]!,
-        pipeline_stage: 'shortlist',
-        engagement_date: pastDate(2),
-        target_completion_date: pastDate(-3),
-        ownership_structure: 'Private',
-        budget_band: '£2M to £4M annual package',
-        strategic_objective: 'Secure head coach appointment',
-        board_risk_appetite: 'Moderate',
-        succession_timeline: '90 days',
-        key_stakeholders: ['Chair', 'CEO', 'Sporting Director'],
-        confidentiality_level: 'Standard',
+        status: mandate.status,
+        priority: mandate.priority,
+        pipeline_stage: mandate.pipeline_stage,
+        engagement_date: pastDate(1 + m),
+        target_completion_date: pastDate(-mandate.targetMonths),
+        ownership_structure: CLUB_DEMO_BRIEFS[m]!.ownership_model,
+        budget_band: mandate.budget_band,
+        strategic_objective: mandate.strategic_objective,
+        board_risk_appetite: mandate.board_risk_appetite,
+        succession_timeline: mandate.succession_timeline,
+        key_stakeholders: [...mandate.key_stakeholders],
+        confidentiality_level: mandate.confidentiality_level,
+        tactical_model_required: mandate.tactical_model_required,
+        pressing_intensity_required: mandate.pressing_intensity_required,
+        build_preference_required: mandate.build_preference_required,
+        leadership_profile_required: mandate.leadership_profile_required,
+        risk_tolerance: mandate.risk_tolerance,
+        language_requirements: [...mandate.language_requirements],
+        relocation_required: mandate.relocation_required,
       },
       { onConflict: 'id' }
     )
@@ -706,6 +786,120 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     }
   }
 
+  // 13b) Mandate deliverables – enough operating texture for the command centre and workspace.
+  const deliverableTemplates = [
+    [
+      'Board alignment pack with scoring rationale and risk register',
+      'First round reference calls with former sporting directors',
+      'Compensation and staff package benchmark',
+      'Preferred candidate interview agenda and evaluation rubric',
+    ],
+    [
+      'Supporter narrative and communication risk brief',
+      'Longlist calibration against attacking identity requirement',
+      'Agent contact plan for top five candidates',
+      'Final shortlist readout for football committee',
+    ],
+    [
+      'Premier League survival risk model by candidate profile',
+      'Set piece and transition coaching capability review',
+      'Academy pathway fit assessment',
+      'Board decision memo with appointment trade offs',
+    ],
+  ]
+  const deliverableStatuses = ['In Progress', 'Not Started', 'In Progress', 'Blocked'] as const
+  for (let m = 0; m < 3; m++) {
+    for (let d = 0; d < deliverableTemplates[m]!.length; d++) {
+      const id = demoUuid(userId, `deliverable-${m}`, d)
+      const dueDate = pastDate(-(d + 1 + m))
+      const { error } = await supabase.from('mandate_deliverables').upsert(
+        {
+          id,
+          mandate_id: mandateIds[m]!,
+          item: deliverableTemplates[m]![d]!,
+          due_date: dueDate,
+          status: deliverableStatuses[d % deliverableStatuses.length]!,
+        },
+        { onConflict: 'id' }
+      )
+      if (!error) counts.mandate_deliverables++
+    }
+  }
+
+  // 13c) Mandate activity and alerts – make the dashboard proactive immediately after seeding.
+  const mandateActivities = [
+    'Board mandate opened and decision criteria agreed.',
+    'Longlist refreshed with scoring model output.',
+    'Shortlist reviewed with risk and relationship notes.',
+  ]
+  for (let m = 0; m < 3; m++) {
+    for (let a = 0; a < mandateActivities.length; a++) {
+      const id = demoUuid(userId, `mandate-activity-${m}`, a)
+      const { error } = await supabase.from('activity_log').insert({
+        id,
+        user_id: userId,
+        entity_type: 'mandate',
+        entity_id: mandateIds[m]!,
+        action_type: ['mandate_opened', 'longlist_reviewed', 'shortlist_reviewed'][a]!,
+        description: mandateActivities[a]!,
+        metadata: null,
+        created_at: pastDate(a) + 'T10:00:00.000Z',
+      })
+      if (!error) counts.activity_log = (counts.activity_log ?? 0) + 1
+    }
+  }
+
+  const alertTemplates = [
+    {
+      entity_type: 'mandate',
+      entityIndex: 0,
+      alert_type: 'decision_needed',
+      title: 'Interview decision needed',
+      detail: 'Chelsea mandate has three shortlisted coaches and needs a board decision on interview order.',
+    },
+    {
+      entity_type: 'mandate',
+      entityIndex: 1,
+      alert_type: 'shortlist_gap',
+      title: 'Shortlist needs one safer option',
+      detail: 'Tottenham search has strong upside profiles but lacks a lower risk continuity candidate.',
+    },
+    {
+      entity_type: 'coach',
+      entityIndex: 1,
+      alert_type: 'availability_change',
+      title: 'High fit coach open to conversation',
+      detail: 'Lucia Serrano is now open to the right Premier League project according to a high confidence source.',
+    },
+    {
+      entity_type: 'coach',
+      entityIndex: 6,
+      alert_type: 'relationship_signal',
+      title: 'Agent route is warm',
+      detail: 'Jonas Keller has a strong intermediary connection through an agent already active with the club.',
+    },
+  ] as const
+  for (let i = 0; i < alertTemplates.length; i++) {
+    const alert = alertTemplates[i]!
+    const entityId = alert.entity_type === 'mandate' ? mandateIds[alert.entityIndex]! : coachIds[alert.entityIndex]!
+    const alertHour = String(8 + i).padStart(2, '0')
+    const { error } = await supabase.from('alerts').upsert(
+      {
+        id: demoUuid(userId, 'alert', i),
+        user_id: userId,
+        entity_type: alert.entity_type,
+        entity_id: entityId,
+        alert_type: alert.alert_type,
+        title: alert.title,
+        detail: alert.detail,
+        is_seen: false,
+        created_at: pastDate(0) + `T${alertHour}:15:00.000Z`,
+      },
+      { onConflict: 'id' }
+    )
+    if (!error) counts.alerts = (counts.alerts ?? 0) + 1
+  }
+
   // 14) Coach tactical reports (1 per coach) – aligned to preferred_systems, pressing, build
   for (let c = 0; c < 12; c++) {
     const nar = narratives[c]!
@@ -732,7 +926,6 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
   // 15) Coach data profiles (1 per coach)
   for (let c = 0; c < 12; c++) {
     const id = demoUuid(userId, 'dataprofile', c)
-    // @ts-ignore - coach_data_profiles table not yet in DB schema
     const { error } = await supabase.from('coach_data_profiles').upsert(
       {
         id,
@@ -766,7 +959,6 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
     const numDD = hasRisk ? 2 + (c % 3) : 1 + (c % 2)
     for (let d = 0; d < numDD; d++) {
       const id = demoUuid(userId, `dd-${c}`, d)
-      // @ts-ignore - coach_due_diligence_items table not yet in DB schema
       const { error } = await supabase.from('coach_due_diligence_items').upsert(
         {
           id,
@@ -803,16 +995,21 @@ export async function runDemoSeed(userId: string): Promise<{ counts: SeedCounts;
   for (let c = 0; c < 12; c++) {
     const n = 8 + (c % 8)
     const agentPool = DEMO_AGENT_NAMES.slice(0, 3 + (c % 3))
+    const playerPool = [
+      'Marco Silva', 'Leo Duarte', 'Tariq Bello', 'Ivan Petrovic', 'Mateo Alvarez', 'Noah Jensen',
+      'Ruben Costa', 'Yannis Pappas', 'Milan Kovac', 'Victor Hugo', 'Sami Kader', 'Aiden Price',
+      'Luca Marino', 'Gabriel Soares', 'Tommy Hart', 'Adem Yilmaz', 'Nico Pereira', 'Hugo Mendes',
+      'Ben Kavanagh', 'Yuri Sato', 'Samuel Reed', 'Mikael Lund', 'Karim Benali', 'Jonas Eriksen',
+    ]
     for (let r = 0; r < n; r++) {
       const id = demoUuid(userId, `recruit-${c}`, r)
       const agent = agentPool[r % agentPool.length]!
       const repeatedSigning = r < 2 || (c % 4 === 0 && r === 5)
-      // @ts-ignore - coach_recruitment_history table not yet in DB schema
       const { error } = await supabase.from('coach_recruitment_history').upsert(
         {
           id,
           coach_id: coachIds[c]!,
-          player_name: `Player ${String.fromCharCode(65 + (c + r) % 12)}`,
+          player_name: playerPool[(c * 3 + r) % playerPool.length]!,
           club_name: narratives[c]!.fictionalClubName(r),
           transfer_window: ['Summer', 'Winter'][r % 2]!,
           transfer_fee_band: ['Free', 'Under £1m', '£1m–5m', '£5m+'][r % 4]!,
