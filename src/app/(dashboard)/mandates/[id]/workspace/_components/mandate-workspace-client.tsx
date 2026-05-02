@@ -142,6 +142,229 @@ function signalToScore(s: string | null): number | null {
   return null // Unknown → IE
 }
 
+function parseRecommendationFit(raw: string | null): ParsedFit | null {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as ParsedFit
+  } catch {
+    return null
+  }
+}
+
+type BoardCandidate = {
+  id: string
+  coachId: string
+  name: string
+  club: string | null
+  source: 'shortlist' | 'longlist'
+  score: number | null
+  rankLabel: string
+  why: string[]
+  risk: string
+  comparisonNote: string | null
+}
+
+function fitSignalLabel(label: string, value: string | null): string | null {
+  if (value === 'Strong') return `Strong ${label}`
+  if (value === 'Moderate') return `Workable ${label}`
+  if (value === 'Weak') return null
+  return null
+}
+
+function shortlistDecisionScore(candidate: Candidate): number {
+  const stageWeight: Record<string, number> = {
+    Final: 50,
+    Interview: 42,
+    Shortlist: 34,
+    Longlist: 22,
+    Tracked: 10,
+  }
+  const fitBonus = [candidate.fit_tactical, candidate.fit_level, candidate.fit_cultural, candidate.fit_communication, candidate.fit_network]
+    .reduce((total, signal) => total + (signal === 'Strong' ? 6 : signal === 'Moderate' ? 3 : signal === 'Weak' ? -5 : 0), 0)
+  return (stageWeight[candidate.candidate_stage] ?? 0) + candidate.placement_probability + fitBonus
+}
+
+function buildShortlistBoardCandidate(candidate: Candidate, index: number): BoardCandidate {
+  const why = [
+    fitSignalLabel('tactical fit', candidate.fit_tactical),
+    fitSignalLabel('level experience', candidate.fit_level),
+    fitSignalLabel('cultural fit', candidate.fit_cultural),
+    candidate.placement_probability >= 70 ? `Placement probability at ${candidate.placement_probability}%` : null,
+    candidate.status ? `Pipeline status: ${candidate.status}` : null,
+  ].filter(Boolean).slice(0, 3) as string[]
+
+  const weakSignal = [
+    ['tactical fit', candidate.fit_tactical],
+    ['level experience', candidate.fit_level],
+    ['cultural fit', candidate.fit_cultural],
+    ['communication', candidate.fit_communication],
+    ['network standing', candidate.fit_network],
+  ].find(([, value]) => value === 'Weak')?.[0]
+
+  const risk =
+    candidate.risk_rating && candidate.risk_rating !== 'Low'
+      ? `${candidate.risk_rating} risk rating needs board review`
+      : weakSignal
+        ? `Weak ${weakSignal} signal needs validation`
+        : candidate.fit_notes?.trim()
+          ? candidate.fit_notes.trim()
+          : 'Limited intelligence coverage'
+
+  return {
+    id: candidate.id,
+    coachId: candidate.coach_id,
+    name: candidate.coaches?.name ?? 'Unknown coach',
+    club: candidate.coaches?.club_current ?? null,
+    source: 'shortlist',
+    score: candidate.placement_probability,
+    rankLabel: `Pipeline rank ${index + 1}`,
+    why: why.length > 0 ? why : ['Candidate is already in the active decision pipeline'],
+    risk,
+    comparisonNote: candidate.fit_notes,
+  }
+}
+
+function buildLonglistBoardCandidate(entry: LonglistEntryData, index: number): BoardCandidate {
+  const fit = parseRecommendationFit(entry.fit_explanation)
+  const dimensionStrengths = fit
+    ? Object.entries(fit.dims)
+        .filter(([, dim]) => (dim.score ?? 0) >= 70)
+        .map(([, dim]) => `Strong ${dim.label.toLowerCase()}`)
+    : []
+  const why = [
+    ...(fit?.strengths ?? []),
+    ...dimensionStrengths,
+    entry.coach_available_status ? `Availability: ${entry.coach_available_status}` : null,
+  ].filter(Boolean).slice(0, 3) as string[]
+
+  return {
+    id: entry.id,
+    coachId: entry.coach_id,
+    name: entry.coach_name ?? 'Unknown coach',
+    club: entry.coach_club ?? null,
+    source: 'longlist',
+    score: entry.ranking_score,
+    rankLabel: `Scored rank ${index + 1}`,
+    why: why.length > 0 ? why : ['Highest available score from the mandate scoring model'],
+    risk: fit?.concerns?.[0] ?? 'Limited intelligence coverage',
+    comparisonNote: fit?.comparisonNote ?? null,
+  }
+}
+
+function getBoardCandidates(shortlist: Candidate[], longlistEntries: LonglistEntryData[]): BoardCandidate[] {
+  if (shortlist.length > 0) {
+    return [...shortlist]
+      .sort((a, b) => shortlistDecisionScore(b) - shortlistDecisionScore(a))
+      .map(buildShortlistBoardCandidate)
+  }
+
+  return [...longlistEntries]
+    .sort((a, b) => (b.ranking_score ?? 0) - (a.ranking_score ?? 0))
+    .map(buildLonglistBoardCandidate)
+}
+
+function BoardRecommendation({
+  shortlist,
+  longlistEntries,
+}: {
+  shortlist: Candidate[]
+  longlistEntries: LonglistEntryData[]
+}) {
+  const boardCandidates = getBoardCandidates(shortlist, longlistEntries)
+  const primary = boardCandidates[0] ?? null
+  const secondary = boardCandidates[1] ?? null
+  const isMarginal = Boolean(
+    primary &&
+    secondary &&
+    primary.score != null &&
+    secondary.score != null &&
+    Math.abs(primary.score - secondary.score) <= 3
+  )
+
+  if (!primary) {
+    return (
+      <section className="rounded-lg border border-border bg-card px-4 py-4">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Board recommendation</p>
+        <div className="mt-3 rounded-lg border border-dashed border-border bg-surface/40 px-4 py-5">
+          <p className="text-sm font-semibold text-foreground">No viable candidates yet</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Generate scored recommendations or move credible coaches into the shortlist before presenting a board decision.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="rounded-lg border border-border bg-card px-4 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Board recommendation</p>
+          <h2 className="mt-1 text-base font-semibold text-foreground">Recommended candidate</h2>
+        </div>
+        {isMarginal && (
+          <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-500">
+            Decision remains marginal
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_1fr_0.9fr]">
+        <div className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-3">
+          <p className="text-[10px] uppercase tracking-widest text-primary/80">{primary.rankLabel}</p>
+          <p className="mt-1 text-lg font-semibold text-foreground">{primary.name}</p>
+          <p className="text-xs text-muted-foreground">{primary.club ?? 'Club context pending'}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground">
+              {primary.source === 'shortlist' ? 'Shortlist decision' : 'Scored recommendation'}
+            </span>
+            {primary.score != null && (
+              <span className="rounded-full border border-primary/20 bg-card px-2 py-0.5 text-[10px] text-primary">
+                {primary.source === 'shortlist' ? `${Math.round(primary.score)}% probability` : `Score ${Math.round(primary.score)}`}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Why</p>
+          <ul className="mt-2 space-y-1.5">
+            {primary.why.map((reason) => (
+              <li key={reason} className="flex gap-2 text-xs leading-relaxed text-foreground">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                <span>{reason}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Main risk</p>
+            <p className="mt-2 text-xs leading-relaxed text-foreground">{primary.risk}</p>
+          </div>
+          <div className="border-t border-border pt-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Alternative option</p>
+            {secondary ? (
+              <p className="mt-2 text-xs leading-relaxed text-foreground">
+                <span className="font-semibold">{secondary.name}</span>
+                {secondary.club ? ` from ${secondary.club}` : ''}.{' '}
+                {secondary.comparisonNote ?? (
+                  secondary.score != null && primary.score != null
+                    ? `${Math.round(primary.score - secondary.score)} point gap to the recommendation.`
+                    : 'Useful comparison option if board appetite shifts.'
+                )}
+              </p>
+            ) : (
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">No clear alternative identified</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function FitSignalSelect({ name, label, value }: { name: string; label: string; value: string | null }) {
@@ -997,7 +1220,9 @@ export function MandateWorkspaceClient({
         </div>
       </div>
 
-      <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-17rem)] min-h-[560px]">
+      <BoardRecommendation shortlist={shortlist} longlistEntries={longlistEntries} />
+
+      <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-29rem)] min-h-[560px]">
         {/* Left: Club Brief */}
         <div className="rounded-lg border border-border bg-card overflow-hidden">
           <div className="border-b border-border px-4 py-2.5">
