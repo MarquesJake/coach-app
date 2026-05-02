@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import type { Database } from '@/lib/types/db'
+import type { Database, Json } from '@/lib/types/db'
+import { fetchApiFootball, getApiFootballKey, isApiFootballRateLimit } from '@/lib/integrations/api-football'
 
-const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY!
 export const dynamic = 'force-dynamic'
 const SYNC_KEY = 'coaches-english-api-football'
 const MAX_TEAMS_PER_RUN = 10
@@ -41,6 +41,97 @@ type APITeamResponse = {
   team: { id: number; name: string }
 }
 
+type ExistingCoach = Pick<
+  Database['public']['Tables']['coaches']['Row'],
+  | 'id'
+  | 'name'
+  | 'nationality'
+  | 'league_experience'
+  | 'club_current'
+  | 'role_current'
+  | 'age'
+  | 'date_of_birth'
+  | 'base_location'
+  | 'languages'
+  | 'available_status'
+  | 'availability_status'
+  | 'market_status'
+  | 'due_diligence_summary'
+>
+
+type ExternalProfileLookup = {
+  coach_id: string
+  api_coach_id: string | null
+  current_team_name: string | null
+  api_team_id?: string | null
+}
+
+type CoachMatch = {
+  coach: ExistingCoach
+  strategy: 'api_coach_id' | 'name_current_team' | 'name_nationality'
+  confidence: number
+}
+
+function normaliseKey(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function isEmptyValue(value: unknown): boolean {
+  if (value == null) return true
+  if (typeof value === 'string') return value.trim().length === 0
+  if (Array.isArray(value)) return value.length === 0
+  return false
+}
+
+function setIfEmpty<K extends keyof Database['public']['Tables']['coaches']['Update']>(
+  payload: Database['public']['Tables']['coaches']['Update'],
+  coach: ExistingCoach,
+  key: K,
+  value: Database['public']['Tables']['coaches']['Update'][K]
+) {
+  if (value === null || value === undefined) return
+  if (isEmptyValue(coach[key as keyof ExistingCoach])) payload[key] = value
+}
+
+function matchCoach(params: {
+  apiCoachId: string
+  name: string
+  currentClub: string | null
+  nationality: string | null
+  coachesById: Map<string, ExistingCoach>
+  externalByApiId: Map<string, ExternalProfileLookup>
+  byNameCurrentClub: Map<string, ExistingCoach>
+  byNameNationality: Map<string, ExistingCoach>
+}): CoachMatch | null {
+  const external = params.externalByApiId.get(params.apiCoachId)
+  if (external) {
+    const coach = params.coachesById.get(external.coach_id)
+    if (coach) return { coach, strategy: 'api_coach_id', confidence: 98 }
+  }
+
+  const nameKey = normaliseKey(params.name)
+  const clubKey = normaliseKey(params.currentClub)
+  if (nameKey && clubKey) {
+    const coach = params.byNameCurrentClub.get(`${nameKey}|${clubKey}`)
+    if (coach) return { coach, strategy: 'name_current_team', confidence: 88 }
+  }
+
+  const nationalityKey = normaliseKey(params.nationality)
+  if (nameKey && nationalityKey) {
+    const coach = params.byNameNationality.get(`${nameKey}|${nationalityKey}`)
+    if (coach) return { coach, strategy: 'name_nationality', confidence: 76 }
+  }
+
+  return null
+}
+
+
 function getCurrentFootballSeasonStartYear(): number {
   const now = new Date()
   const year = now.getUTCFullYear()
@@ -54,26 +145,16 @@ function getSeasonCandidates(): number[] {
   return Array.from(new Set(preferred)).filter((y) => y >= 2022)
 }
 
-async function fetchApiFootball(url: string) {
-  const res = await fetch(url, { headers: { 'x-apisports-key': API_FOOTBALL_KEY } })
-  if (!res.ok) return { ok: false as const, error: `API ${res.status}` }
-  const data = await res.json()
-  if (data?.errors && Object.keys(data.errors).length > 0) {
-    return { ok: false as const, error: JSON.stringify(data.errors) }
-  }
-  return { ok: true as const, data }
-}
-
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function fetchWithRetry(url: string, attempts = 3) {
+async function fetchWithRetry<T>(url: string, attempts = 3) {
   let waitMs = 700
   for (let i = 0; i < attempts; i++) {
-    const res = await fetchApiFootball(url)
+    const res = await fetchApiFootball<T>(url)
     if (res.ok) return { ...res, rateLimited: false as const }
-    const isRateLimit = res.error.toLowerCase().includes('rate') || res.error.includes('429')
+    const isRateLimit = isApiFootballRateLimit(res.error)
     if (!isRateLimit || i === attempts - 1) {
       return { ...res, rateLimited: isRateLimit as boolean }
     }
@@ -166,7 +247,7 @@ async function readSyncRequestBody(request: Request): Promise<{ confirmReset?: u
 }
 
 export async function POST(request: Request) {
-  if (!API_FOOTBALL_KEY) {
+  if (!getApiFootballKey()) {
     return NextResponse.json({ error: 'API_FOOTBALL_KEY not configured' }, { status: 500 })
   }
 
@@ -183,13 +264,37 @@ export async function POST(request: Request) {
 
   const { data: existingCoaches } = await supabase
     .from('coaches')
-    .select('id, name, nationality, league_experience')
+    .select('id, name, nationality, league_experience, club_current, role_current, age, date_of_birth, base_location, languages, available_status, availability_status, market_status, due_diligence_summary')
     .eq('user_id', user.id)
 
-  const byNameNationality = new Map<string, { id: string; league_experience: string[] | null }>()
-  for (const c of existingCoaches ?? []) {
-    const key = `${(c.name ?? '').trim().toLowerCase()}|${(c.nationality ?? '').trim().toLowerCase()}`
-    if (key !== '|') byNameNationality.set(key, c)
+  const coachesById = new Map<string, ExistingCoach>()
+  const byNameNationality = new Map<string, ExistingCoach>()
+  const byNameCurrentClub = new Map<string, ExistingCoach>()
+  const externalByApiId = new Map<string, ExternalProfileLookup>()
+
+  for (const c of (existingCoaches ?? []) as ExistingCoach[]) {
+    coachesById.set(c.id, c)
+    const nameKey = normaliseKey(c.name)
+    const nationalityKey = normaliseKey(c.nationality)
+    const clubKey = normaliseKey(c.club_current)
+    if (nameKey && nationalityKey) byNameNationality.set(`${nameKey}|${nationalityKey}`, c)
+    if (nameKey && clubKey) byNameCurrentClub.set(`${nameKey}|${clubKey}`, c)
+  }
+
+  const coachIds = Array.from(coachesById.keys())
+  const { data: existingExternalProfiles } = coachIds.length > 0
+    ? await supabase
+        .from('coach_external_profiles')
+        .select('coach_id, api_coach_id, current_team_name, api_team_id')
+        .in('coach_id', coachIds)
+    : { data: [] }
+
+  for (const profile of (existingExternalProfiles ?? []) as ExternalProfileLookup[]) {
+    if (profile.api_coach_id) externalByApiId.set(String(profile.api_coach_id), profile)
+    const coach = coachesById.get(profile.coach_id)
+    const nameKey = normaliseKey(coach?.name)
+    const teamKey = normaliseKey(profile.current_team_name)
+    if (coach && nameKey && teamKey) byNameCurrentClub.set(`${nameKey}|${teamKey}`, coach)
   }
 
   const seasonCandidates = getSeasonCandidates()
@@ -202,6 +307,9 @@ export async function POST(request: Request) {
   let dataProfilesUpdated = 0
   let mediaEventsInserted = 0
   let recruitmentRowsInserted = 0
+  let matchedCoaches = 0
+  let createdCurrentCoaches = 0
+  let skippedHistoricalCoaches = 0
 
   const teamIdToLeague = new Map<number, string>()
   const teamIdToName = new Map<number, string>()
@@ -213,7 +321,7 @@ export async function POST(request: Request) {
     let lastLeagueError: string | null = null
 
     for (const season of seasonCandidates) {
-      const res = await fetchApiFootball(`https://v3.football.api-sports.io/teams?league=${league.id}&season=${season}`)
+      const res = await fetchApiFootball<APITeamResponse[]>(`/teams?league=${league.id}&season=${season}`)
       if (!res.ok) {
         lastLeagueError = `${league.label}: ${res.error} for ${season}`
         continue
@@ -296,7 +404,7 @@ export async function POST(request: Request) {
   }
 
   // Gather coaches by team, then filter to those with English stints in last 2 years.
-  const coachMap = new Map<string, { coach: APICoach; leagues: Set<string>; currentClub: string | null }>()
+  const coachMap = new Map<string, { coach: APICoach; leagues: Set<string>; currentClub: string | null; isCurrentForSyncedClub: boolean }>()
   const teamErrors: string[] = []
   const startCursor = Math.max(0, Math.min((state?.cursor ?? 0), sortedTeamIds.length))
   const endExclusive = Math.min(startCursor + MAX_TEAMS_PER_RUN, sortedTeamIds.length)
@@ -311,7 +419,7 @@ export async function POST(request: Request) {
     const batch = teamIdList.slice(batchStart, batchStart + BATCH_SIZE)
     for (const teamId of batch) {
       processedTeams++
-      const res = await fetchWithRetry(`https://v3.football.api-sports.io/coachs?team=${teamId}`)
+      const res = await fetchWithRetry<APICoach[]>(`/coachs?team=${teamId}`)
       if (res.rateLimited) {
         rateLimitedCount++
       }
@@ -345,16 +453,18 @@ export async function POST(request: Request) {
         if (leagues.size === 0) continue
 
         const activeStint = relevantCareer.find((s) => !s.end) ?? relevantCareer[0]
+        const isCurrentForSyncedClub = relevantCareer.some((s) => !s.end && !!s.team?.id && teamIds.has(s.team.id))
         const currentClub = activeStint.team?.id
           ? (teamIdToName.get(activeStint.team.id) ?? activeStint.team?.name ?? null)
           : (activeStint.team?.name ?? null)
 
         const existing = coachMap.get(key)
         if (!existing) {
-          coachMap.set(key, { coach, leagues, currentClub })
+          coachMap.set(key, { coach, leagues, currentClub, isCurrentForSyncedClub })
         } else {
           leagues.forEach((l) => existing.leagues.add(l))
           if (!existing.currentClub && currentClub) existing.currentClub = currentClub
+          existing.isCurrentForSyncedClub = existing.isCurrentForSyncedClub || isCurrentForSyncedClub
         }
       }
     }
@@ -372,10 +482,13 @@ export async function POST(request: Request) {
     const coach = value.coach
     const name = coach.name.trim()
     const nationality = (coach.nationality ?? null)?.trim() || null
-    const key = `${name.toLowerCase()}|${(nationality ?? '').toLowerCase()}`
-    const existing = byNameNationality.get(key)
     const leagueExperience: string[] = Array.from(value.leagues)
     const currentClub = value.currentClub ?? (coach.team?.name?.trim() || null)
+    const currentTeamId = firstValue(
+      coach.team?.id != null ? String(coach.team.id) : null,
+      (coach.career ?? []).find((s) => !s.end)?.team?.id != null ? String((coach.career ?? []).find((s) => !s.end)?.team?.id) : null,
+      (coach.career ?? [])[0]?.team?.id != null ? String((coach.career ?? [])[0]?.team?.id) : null
+    )
 
     const birthDate = nonEmptyString(coach.birth?.date ?? null)
     const birthPlace = nonEmptyString(coach.birth?.place ?? null)
@@ -383,35 +496,47 @@ export async function POST(request: Request) {
     const baseLocation = [birthPlace, birthCountry].filter(Boolean).join(', ') || null
     const primaryName = firstValue(nonEmptyString(coach.firstname ?? null), nonEmptyString(name.split(' ')[0] ?? null))
     const dueDiligenceBits = [nonEmptyString(coach.height ?? null), nonEmptyString(coach.weight ?? null)].filter(Boolean)
+    const dueDiligenceSummary = dueDiligenceBits.length > 0 ? `API-Football profile: ${dueDiligenceBits.join(' | ')}` : null
 
-    const commonPayload = {
+    const match = matchCoach({
+      apiCoachId: String(coach.id),
       name,
-      preferred_name: primaryName,
+      currentClub,
       nationality,
-      age: coach.age ?? null,
-      date_of_birth: birthDate,
-      base_location: baseLocation,
-      languages: nationality ? [nationality] : [],
-      role_current: 'Head Coach',
-      club_current: currentClub,
-      available_status: currentClub ? 'Under contract' : 'Open to offers',
-      availability_status: currentClub ? 'Under contract' : 'Open to offers',
-      market_status: currentClub ? 'Not Available' : 'Open to offers',
-      league_experience: leagueExperience,
-      last_updated: new Date().toISOString(),
-      due_diligence_summary: dueDiligenceBits.length > 0 ? `API-Football profile: ${dueDiligenceBits.join(' | ')}` : null,
-    }
+      coachesById,
+      externalByApiId,
+      byNameCurrentClub,
+      byNameNationality,
+    })
+    const existing = match?.coach ?? null
 
     let coachRowId: string | null = existing?.id ?? null
+    const matchStrategy: CoachMatch['strategy'] | 'created' = match?.strategy ?? 'created'
+    const matchConfidence = match?.confidence ?? 72
 
     if (existing) {
+      matchedCoaches++
       const mergedLeagues = Array.from(new Set([...(existing.league_experience ?? []), ...leagueExperience]))
+      const updatePayload: Database['public']['Tables']['coaches']['Update'] = {
+        league_experience: mergedLeagues,
+        last_updated: new Date().toISOString(),
+      }
+      setIfEmpty(updatePayload, existing, 'preferred_name', primaryName)
+      setIfEmpty(updatePayload, existing, 'nationality', nationality)
+      setIfEmpty(updatePayload, existing, 'age', coach.age ?? null)
+      setIfEmpty(updatePayload, existing, 'date_of_birth', birthDate)
+      setIfEmpty(updatePayload, existing, 'base_location', baseLocation)
+      setIfEmpty(updatePayload, existing, 'languages', nationality ? [nationality] : [])
+      setIfEmpty(updatePayload, existing, 'role_current', 'Head Coach')
+      setIfEmpty(updatePayload, existing, 'club_current', currentClub)
+      setIfEmpty(updatePayload, existing, 'available_status', currentClub ? 'Under contract' : 'Open to offers')
+      setIfEmpty(updatePayload, existing, 'availability_status', currentClub ? 'Under contract' : 'Open to offers')
+      setIfEmpty(updatePayload, existing, 'market_status', currentClub ? 'Not Available' : 'Open to offers')
+      setIfEmpty(updatePayload, existing, 'due_diligence_summary', dueDiligenceSummary)
+
       const { error } = await supabase
         .from('coaches')
-        .update({
-          ...commonPayload,
-          league_experience: mergedLeagues,
-        })
+        .update(updatePayload)
         .eq('id', existing.id)
         .eq('user_id', user.id)
       if (error) errors.push(`update ${name}: ${error.message}`)
@@ -419,26 +544,44 @@ export async function POST(request: Request) {
         updated++
         coachRowId = existing.id
       }
+    } else if (!value.isCurrentForSyncedClub) {
+      skippedHistoricalCoaches++
+      log.push(`${name}: skipped historical API-Football coach without an existing coach match`)
     } else {
+      const insertPayload: Database['public']['Tables']['coaches']['Insert'] = {
+        name,
+        preferred_name: primaryName,
+        nationality,
+        age: coach.age ?? null,
+        date_of_birth: birthDate,
+        base_location: baseLocation,
+        languages: nationality ? [nationality] : [],
+        role_current: 'Head Coach',
+        club_current: currentClub,
+        available_status: currentClub ? 'Under contract' : 'Open to offers',
+        availability_status: currentClub ? 'Under contract' : 'Open to offers',
+        market_status: currentClub ? 'Not Available' : 'Open to offers',
+        league_experience: leagueExperience,
+        last_updated: new Date().toISOString(),
+        due_diligence_summary: dueDiligenceSummary,
+        preferred_style: 'Mixed',
+        pressing_intensity: 'Medium',
+        build_preference: 'Mixed',
+        leadership_style: 'Collaborative',
+        wage_expectation: 'TBC',
+        staff_cost_estimate: 'TBC',
+        reputation_tier: 'Established',
+        user_id: user.id,
+      }
       const { data: inserted, error } = await supabase
         .from('coaches')
-        .insert({
-          ...commonPayload,
-          // Required profile placeholders compatible with existing schema
-          preferred_style: 'Mixed',
-          pressing_intensity: 'Medium',
-          build_preference: 'Mixed',
-          leadership_style: 'Collaborative',
-          wage_expectation: 'TBC',
-          staff_cost_estimate: 'TBC',
-          reputation_tier: 'Established',
-          user_id: user.id,
-        })
+        .insert(insertPayload)
         .select('id')
         .single()
       if (error) errors.push(`insert ${name}: ${error.message}`)
       else {
         added++
+        createdCurrentCoaches++
         coachRowId = inserted?.id ?? null
       }
     }
@@ -450,6 +593,7 @@ export async function POST(request: Request) {
       const firstName = nonEmptyString(coach.firstname ?? null)
       const lastName = nonEmptyString(coach.lastname ?? null)
       const sourceLink = coach.id ? `https://www.api-football.com/documentation-v3#tag/Coachs/operation/get-coachs` : null
+      const profilePayload = JSON.parse(JSON.stringify(coach)) as Json
 
       const existingExternal = await supabase
         .from('coach_external_profiles')
@@ -472,7 +616,11 @@ export async function POST(request: Request) {
             weight: nonEmptyString(coach.weight ?? null),
             photo_url: nonEmptyString(coach.photo ?? null),
             current_team_name: currentClub,
-            profile_payload: coach as unknown as Database['public']['Tables']['coach_external_profiles']['Insert']['profile_payload'],
+            api_team_id: currentTeamId,
+            current_team_id: currentTeamId,
+            match_strategy: matchStrategy,
+            match_confidence: matchConfidence,
+            profile_payload: profilePayload,
             source_name: 'API-Football',
             source_link: sourceLink,
             confidence: 82,
@@ -503,7 +651,11 @@ export async function POST(request: Request) {
             weight: nonEmptyString(coach.weight ?? null),
             photo_url: nonEmptyString(coach.photo ?? null),
             current_team_name: currentClub,
-            profile_payload: coach as unknown as Database['public']['Tables']['coach_external_profiles']['Insert']['profile_payload'],
+            api_team_id: currentTeamId,
+            current_team_id: currentTeamId,
+            match_strategy: matchStrategy,
+            match_confidence: matchConfidence,
+            profile_payload: profilePayload,
             source_name: 'API-Football',
             source_link: sourceLink,
             confidence: 82,
@@ -771,6 +923,9 @@ export async function POST(request: Request) {
         data_profiles_updated: dataProfilesUpdated,
         media_events_inserted: mediaEventsInserted,
         recruitment_rows_inserted: recruitmentRowsInserted,
+        matched_coaches: matchedCoaches,
+        created_current_coaches: createdCurrentCoaches,
+        skipped_historical_coaches: skippedHistoricalCoaches,
         total_candidates: coachMap.size,
         processed_in_run: processedTeams,
         rate_limited_hits: rateLimitedCount,
@@ -799,6 +954,9 @@ export async function POST(request: Request) {
     data_profiles_updated: dataProfilesUpdated,
     media_events_inserted: mediaEventsInserted,
     recruitment_rows_inserted: recruitmentRowsInserted,
+    matched_coaches: matchedCoaches,
+    created_current_coaches: createdCurrentCoaches,
+    skipped_historical_coaches: skippedHistoricalCoaches,
     total_candidates: coachMap.size,
     seasons_considered: seasonCandidates,
     teams_considered: teamIds.size,

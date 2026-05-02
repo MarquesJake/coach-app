@@ -1224,6 +1224,10 @@ export type Database = {
           weight: string | null
           photo_url: string | null
           current_team_name: string | null
+          api_team_id: string | null
+          current_team_id: string | null
+          match_strategy: string | null
+          match_confidence: number | null
           profile_payload: Json | null
           source_name: string
           source_link: string | null
@@ -1246,6 +1250,10 @@ export type Database = {
           weight?: string | null
           photo_url?: string | null
           current_team_name?: string | null
+          api_team_id?: string | null
+          current_team_id?: string | null
+          match_strategy?: string | null
+          match_confidence?: number | null
           profile_payload?: Json | null
           source_name?: string
           source_link?: string | null
@@ -1268,6 +1276,10 @@ export type Database = {
           weight?: string | null
           photo_url?: string | null
           current_team_name?: string | null
+          api_team_id?: string | null
+          current_team_id?: string | null
+          match_strategy?: string | null
+          match_confidence?: number | null
           profile_payload?: Json | null
           source_name?: string
           source_link?: string | null

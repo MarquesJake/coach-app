@@ -78,6 +78,9 @@ type ExternalProfile = {
   weight: string | null
   photo_url: string | null
   current_team_name: string | null
+  api_team_id?: string | null
+  match_strategy?: string | null
+  match_confidence?: number | null
   source_name: string | null
   source_link: string | null
   confidence: number | null
@@ -265,8 +268,20 @@ export function CoachDataTab({
                 <p className="text-sm font-medium text-foreground">{externalProfile.current_team_name ?? '—'}</p>
               </div>
               <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">API team ID</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.api_team_id ?? '—'}</p>
+              </div>
+              <div>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Source confidence</p>
                 <p className="text-sm font-medium text-foreground">{externalProfile.confidence ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Match confidence</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.match_confidence ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Match method</p>
+                <p className="text-sm font-medium text-foreground">{externalProfile.match_strategy?.replaceAll('_', ' ') ?? '—'}</p>
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Last sync</p>
