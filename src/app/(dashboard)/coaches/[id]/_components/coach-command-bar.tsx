@@ -33,6 +33,13 @@ const MODIFY_PROFILE_FIELDS: EditCoachField[] = [
 ]
 
 type CoachRecord = Record<string, unknown>
+type ExternalProfileSummary = {
+  photo_url: string | null
+  source_name: string | null
+  synced_at: string | null
+  confidence: number | null
+  match_confidence: number | null
+}
 
 const SCORE_BADGE = {
   high: 'text-green-400 border-green-500/40 bg-green-500/10',
@@ -53,6 +60,13 @@ function formatScore(v: number | null | undefined): string {
   if (v == null) return '—'
   const n = Number(v)
   return Number.isNaN(n) ? '—' : String(Math.round(n))
+}
+
+function formatShortDate(value: string | null | undefined): string | null {
+  if (!value) return null
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function dataGapsLabel(opts: { stintCount: number; intelligenceCount: number; staffNetworkCount: number; completenessPercent: number }): string {
@@ -79,6 +93,7 @@ export function CoachCommandBar({
   lastIntelligenceAt = null,
   intelligenceItemCount = 0,
   dataCoverage,
+  externalProfile = null,
 }: {
   coachId: string
   coach: CoachRecord
@@ -94,6 +109,7 @@ export function CoachCommandBar({
   lastIntelligenceAt?: string | null
   intelligenceItemCount?: number
   dataCoverage?: { signalsCount: number; sourcesCount: number; lastUpdate: string | null }
+  externalProfile?: ExternalProfileSummary | null
 }) {
   const router = useRouter()
   const [modifyOpen, setModifyOpen] = useState(false)
@@ -115,11 +131,17 @@ export function CoachCommandBar({
   }
 
   const name = (coach.name as string) ?? 'Coach'
+  const role = (coach.role_current as string | null) ?? null
+  const currentClub = (coach.club_current as string | null) ?? null
+  const nationality = (coach.nationality as string | null) ?? null
+  const age = coach.age as number | null | undefined
   const availability = (coach.availability_status as string | null) ?? (coach.available_status as string | null) ?? null
   const marketStatus = coach.market_status as string | null | undefined
   const baseLocation = coach.base_location as string | null | undefined
   const overallScore = coach.overall_manual_score as number | null | undefined
   const intelligenceConf = intelligenceWeightedConfidence ?? (coach.intelligence_confidence as number | null | undefined)
+  const profileConfidence = externalProfile?.match_confidence ?? externalProfile?.confidence ?? intelligenceConf ?? null
+  const syncedLabel = formatShortDate(externalProfile?.synced_at)
 
   const modifyInitialValues: Record<string, unknown> = {
     name: coach.name ?? '',
@@ -149,23 +171,58 @@ export function CoachCommandBar({
   return (
     <header className="w-full bg-card/80 border-b border-border px-6 py-4">
       <div className="flex flex-wrap justify-between items-center gap-4">
-        <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">{name}</h1>
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            {availability && (
-              <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs text-muted-foreground">
-                {availability}
-              </span>
-            )}
-            {marketStatus && (
-              <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs text-muted-foreground">
-                {marketStatus}
-              </span>
-            )}
-            {baseLocation && (
-              <span className="text-xs text-muted-foreground">{baseLocation}</span>
+        <div className="flex items-start gap-4 min-w-0">
+          <div
+            className="h-16 w-16 shrink-0 rounded-2xl border border-border bg-muted bg-cover bg-center shadow-sm"
+            style={externalProfile?.photo_url ? { backgroundImage: `url(${externalProfile.photo_url})` } : undefined}
+            aria-label={externalProfile?.photo_url ? `${name} profile photo` : undefined}
+          >
+            {!externalProfile?.photo_url && (
+              <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-muted-foreground">
+                {name.slice(0, 2).toUpperCase()}
+              </div>
             )}
           </div>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold text-foreground tracking-tight">{name}</h1>
+              <span className={cn('rounded-md border px-2.5 py-1 text-[10px] font-medium', scoreBadgeClass(profileConfidence))}>
+                Profile confidence {formatScore(profileConfidence)}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {[role, currentClub].filter(Boolean).join(' at ') || 'Role and club context pending'}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              {availability && (
+                <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs text-muted-foreground">
+                  {availability}
+                </span>
+              )}
+              {marketStatus && (
+                <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs text-muted-foreground">
+                  {marketStatus}
+                </span>
+              )}
+              {nationality && (
+                <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs text-muted-foreground">
+                  {nationality}
+                </span>
+              )}
+              {age != null && (
+                <span className="rounded-md border border-border bg-surface px-3 py-1 text-xs text-muted-foreground">
+                  Age {age}
+                </span>
+              )}
+              {baseLocation && (
+                <span className="text-xs text-muted-foreground">{baseLocation}</span>
+              )}
+              {externalProfile?.source_name && (
+                <span className="rounded-md border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs text-blue-600 dark:text-blue-400">
+                  {externalProfile.source_name}{syncedLabel ? ` synced ${syncedLabel}` : ' source linked'}
+                </span>
+              )}
+            </div>
           {dataCoverage && (dataCoverage.signalsCount > 0 || dataCoverage.sourcesCount > 0) && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground mt-0.5">
               <span className="font-medium text-muted-foreground/90">Data coverage</span>
@@ -181,6 +238,7 @@ export function CoachCommandBar({
               </span>
             </div>
           )}
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-3">
@@ -326,4 +384,3 @@ export function CoachCommandBar({
     </header>
   )
 }
-

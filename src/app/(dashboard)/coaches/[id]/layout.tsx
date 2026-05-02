@@ -33,7 +33,7 @@ export default async function CoachDetailLayout({
   if (error || !coach) notFound()
 
   const coachRecord = coach as Record<string, unknown>
-  const [coverage, evidenceCount, stintCountRes, intelligenceConfidence, watchlistRes, activityResult, derivedRow, lastIntelRes] = await Promise.all([
+  const [coverage, evidenceCount, stintCountRes, intelligenceConfidence, watchlistRes, activityResult, derivedRow, lastIntelRes, externalProfileRes] = await Promise.all([
     getCoachCoverageAction(params.id),
     getEvidenceCountForCoach(user.id, params.id),
     supabase.from('coach_stints').select('id', { count: 'exact', head: true }).eq('coach_id', params.id),
@@ -45,7 +45,9 @@ export default async function CoachDetailLayout({
     getActivityForEntity('coach', params.id),
     supabase.from('coach_derived_metrics').select('repeat_signings_count, repeat_agents_count, loan_reliance_score, network_density_score').eq('coach_id', params.id).maybeSingle(),
     supabase.from('intelligence_items').select('occurred_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('coach_external_profiles').select('photo_url, source_name, synced_at, confidence, match_confidence').eq('coach_id', params.id).order('synced_at', { ascending: false }).limit(1).maybeSingle(),
   ])
+  const externalProfile = externalProfileRes.data
   const lastIntelligenceAt = (lastIntelRes?.data as { occurred_at?: string | null } | null)?.occurred_at ?? null
   const [{ data: intelSourceRows }, { data: intelSignalRows }] = await Promise.all([
     supabase.from('intelligence_items').select('source_name').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id),
@@ -129,7 +131,7 @@ export default async function CoachDetailLayout({
 
   return (
     <div className="animate-fade-in">
-      <CoachCommandBar coachId={params.id} coach={coachRecord} completenessPercent={coachCompleteness} evidenceCoverage={coverage.evidenceCoverage} verifiedCoverage={coverage.verifiedCoverage} profileAuditStatus={auditStatus} intelligenceWeightedConfidence={intelligenceConfidence.weightedConfidence} onWatchlist={onWatchlist} stintCount={stintCount ?? 0} intelligenceCount={evidenceCount} staffNetworkCount={staffNetworkCount ?? 0} lastIntelligenceAt={lastIntelligenceAt} intelligenceItemCount={intelligenceConfidence.itemCount} dataCoverage={{ signalsCount: coverage.evidenceCoverage, sourcesCount, lastUpdate: lastIntelligenceAt }} />
+      <CoachCommandBar coachId={params.id} coach={coachRecord} completenessPercent={coachCompleteness} evidenceCoverage={coverage.evidenceCoverage} verifiedCoverage={coverage.verifiedCoverage} profileAuditStatus={auditStatus} intelligenceWeightedConfidence={intelligenceConfidence.weightedConfidence} onWatchlist={onWatchlist} stintCount={stintCount ?? 0} intelligenceCount={evidenceCount} staffNetworkCount={staffNetworkCount ?? 0} lastIntelligenceAt={lastIntelligenceAt} intelligenceItemCount={intelligenceConfidence.itemCount} dataCoverage={{ signalsCount: coverage.evidenceCoverage, sourcesCount, lastUpdate: lastIntelligenceAt }} externalProfile={externalProfile} />
       <div className="flex gap-6 mt-4">
         <CoachDossierRail coach={coachRecord} />
         <div className="flex-1 min-w-0">
