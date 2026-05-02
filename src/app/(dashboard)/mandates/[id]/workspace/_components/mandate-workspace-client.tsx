@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { updateShortlistWorkspaceAction } from '../../../actions'
 import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
@@ -16,6 +17,11 @@ import { ShieldAlert, TrendingUp, Info, Loader2, AlertTriangle } from 'lucide-re
 import { MandateSearchPanel, type ParsedFit } from './mandate-search-panel'
 import { MandateFitDetail } from './mandate-fit-detail'
 import { addCandidateFromLonglistAction, type LonglistEntryData } from '../../../actions-longlist'
+import {
+  addSuggestionToLonglist,
+  dismissSuggestion,
+  generatePlayerDevelopmentSuggestions,
+} from '../../../actions-suggestions'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -94,7 +100,21 @@ type CoachingRecord = {
   data_source: string | null
 }
 
-export type { Mandate, Candidate, SeasonResult, CoachingRecord, StabilityMetrics }
+type SuggestedLonglistCandidate = {
+  id: string
+  coach_id: string
+  status: string
+  score: number
+  confidence: number
+  source_coverage: number
+  reason_tags: string[]
+  evidence_snippets: string[]
+  risk_notes: string[]
+  generated_at: string
+  coaches: { name: string | null; club_current: string | null } | null
+}
+
+export type { Mandate, Candidate, SeasonResult, CoachingRecord, StabilityMetrics, SuggestedLonglistCandidate }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -361,6 +381,175 @@ function BoardRecommendation({
           </div>
         </div>
       </div>
+    </section>
+  )
+}
+
+function SuggestedLonglistPanel({
+  mandateId,
+  suggestions,
+}: {
+  mandateId: string
+  suggestions: SuggestedLonglistCandidate[]
+}) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const visibleSuggestions = suggestions.filter((suggestion) => suggestion.status === 'suggested')
+
+  function refreshWithMessage(nextMessage: string) {
+    setMessage(nextMessage)
+    router.refresh()
+  }
+
+  function handleGenerate() {
+    startTransition(async () => {
+      setMessage(null)
+      const result = await generatePlayerDevelopmentSuggestions(mandateId)
+      if (result.error) {
+        setMessage(result.error)
+        return
+      }
+      refreshWithMessage(
+        result.count > 0
+          ? `${result.count} evidence backed suggestions found.`
+          : 'No new evidence backed suggestions found.'
+      )
+    })
+  }
+
+  function handleAdd(suggestionId: string) {
+    setPendingId(suggestionId)
+    startTransition(async () => {
+      const result = await addSuggestionToLonglist(suggestionId)
+      setPendingId(null)
+      if (result.error) {
+        setMessage(result.error)
+        return
+      }
+      refreshWithMessage('Suggestion added to the longlist for review.')
+    })
+  }
+
+  function handleDismiss(suggestionId: string) {
+    setPendingId(suggestionId)
+    startTransition(async () => {
+      const result = await dismissSuggestion(suggestionId)
+      setPendingId(null)
+      if (result.error) {
+        setMessage(result.error)
+        return
+      }
+      refreshWithMessage('Suggestion dismissed.')
+    })
+  }
+
+  return (
+    <section className="rounded-lg border border-border bg-card px-4 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Suggested longlist</p>
+          <h2 className="mt-1 text-base font-semibold text-foreground">Player development scan</h2>
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            Evidence backed suggestions for mandates focused on developing young players. Nothing is added to the longlist until you approve it.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={isPending}
+          className="inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isPending && !pendingId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+          Run development scan
+        </button>
+      </div>
+
+      {message && (
+        <div className="mt-3 rounded-md border border-border bg-surface/50 px-3 py-2 text-xs text-muted-foreground">
+          {message}
+        </div>
+      )}
+
+      {visibleSuggestions.length === 0 ? (
+        <div className="mt-4 rounded-lg border border-dashed border-border bg-surface/40 px-4 py-5">
+          <p className="text-sm font-medium text-foreground">No evidence backed suggestions yet.</p>
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            Run a development scan once coach pathway data or player development evidence is available.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {visibleSuggestions.map((suggestion) => {
+            const isRowPending = pendingId === suggestion.id
+            return (
+              <article key={suggestion.id} className="rounded-lg border border-border bg-surface/40 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{suggestion.coaches?.name ?? 'Unknown coach'}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{suggestion.coaches?.club_current ?? 'Current club unknown'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold tabular-nums text-foreground">{Math.round(suggestion.score)}</p>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Score</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                    {Math.round(suggestion.confidence)}% confidence
+                  </span>
+                  <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground">
+                    {Math.round(suggestion.source_coverage)}% source coverage
+                  </span>
+                  {suggestion.reason_tags.map((tag) => (
+                    <span key={tag} className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-3 space-y-2">
+                  {suggestion.evidence_snippets.slice(0, 3).map((snippet) => (
+                    <p key={snippet} className="flex gap-2 text-xs leading-relaxed text-foreground">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                      <span>{snippet}</span>
+                    </p>
+                  ))}
+                </div>
+
+                {suggestion.risk_notes.length > 0 && (
+                  <div className="mt-3 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-500">Data caution</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{suggestion.risk_notes[0]}</p>
+                  </div>
+                )}
+
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleAdd(suggestion.id)}
+                    disabled={isPending || isRowPending}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isRowPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                    Add to longlist
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDismiss(suggestion.id)}
+                    disabled={isPending || isRowPending}
+                    className="rounded-md border border-border bg-card px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }
@@ -1122,6 +1311,7 @@ export function MandateWorkspaceClient({
   coachingHistory,
   stabilityMetrics,
   longlistEntries,
+  suggestions,
 }: {
   mandate: Mandate
   shortlist: Candidate[]
@@ -1129,6 +1319,7 @@ export function MandateWorkspaceClient({
   coachingHistory: CoachingRecord[]
   stabilityMetrics: StabilityMetrics
   longlistEntries: LonglistEntryData[]
+  suggestions: SuggestedLonglistCandidate[]
 }) {
   // ── Pipeline state ─────────────────────────────────────────────────────────
   const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
@@ -1221,8 +1412,9 @@ export function MandateWorkspaceClient({
       </div>
 
       <BoardRecommendation shortlist={shortlist} longlistEntries={longlistEntries} />
+      <SuggestedLonglistPanel mandateId={mandate.id} suggestions={suggestions} />
 
-      <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-29rem)] min-h-[560px]">
+      <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-39rem)] min-h-[560px]">
         {/* Left: Club Brief */}
         <div className="rounded-lg border border-border bg-card overflow-hidden">
           <div className="border-b border-border px-4 py-2.5">

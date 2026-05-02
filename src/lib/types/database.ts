@@ -1604,6 +1604,136 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_development_signals: {
+        Row: {
+          id: string
+          user_id: string
+          coach_id: string
+          coach_stint_id: string | null
+          signal_type: string
+          signal_label: string
+          evidence_summary: string
+          club_id: string | null
+          club_name: string | null
+          season: string | null
+          raw_value: number | null
+          normalized_score: number
+          recency_weight: number
+          confidence: number
+          source_table: string | null
+          source_id: string | null
+          source_name: string
+          source_payload: Json
+          generated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          coach_id: string
+          coach_stint_id?: string | null
+          signal_type: string
+          signal_label: string
+          evidence_summary: string
+          club_id?: string | null
+          club_name?: string | null
+          season?: string | null
+          raw_value?: number | null
+          normalized_score: number
+          recency_weight?: number
+          confidence?: number
+          source_table?: string | null
+          source_id?: string | null
+          source_name?: string
+          source_payload?: Json
+          generated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          coach_id?: string
+          coach_stint_id?: string | null
+          signal_type?: string
+          signal_label?: string
+          evidence_summary?: string
+          club_id?: string | null
+          club_name?: string | null
+          season?: string | null
+          raw_value?: number | null
+          normalized_score?: number
+          recency_weight?: number
+          confidence?: number
+          source_table?: string | null
+          source_id?: string | null
+          source_name?: string
+          source_payload?: Json
+          generated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: 'coach_development_signals_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] },
+          { foreignKeyName: 'coach_development_signals_coach_stint_id_fkey'; columns: ['coach_stint_id']; isOneToOne: false; referencedRelation: 'coach_stints'; referencedColumns: ['id'] },
+          { foreignKeyName: 'coach_development_signals_club_id_fkey'; columns: ['club_id']; isOneToOne: false; referencedRelation: 'clubs'; referencedColumns: ['id'] },
+        ]
+      }
+      mandate_candidate_suggestions: {
+        Row: {
+          id: string
+          user_id: string
+          mandate_id: string
+          coach_id: string
+          suggestion_type: string
+          status: string
+          score: number
+          confidence: number
+          source_coverage: number
+          reason_tags: string[]
+          evidence_snippets: Json
+          risk_notes: string[]
+          scoring_version: string
+          generated_at: string
+          dismissed_at: string | null
+          added_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          mandate_id: string
+          coach_id: string
+          suggestion_type?: string
+          status?: string
+          score: number
+          confidence?: number
+          source_coverage?: number
+          reason_tags?: string[]
+          evidence_snippets?: Json
+          risk_notes?: string[]
+          scoring_version?: string
+          generated_at?: string
+          dismissed_at?: string | null
+          added_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          mandate_id?: string
+          coach_id?: string
+          suggestion_type?: string
+          status?: string
+          score?: number
+          confidence?: number
+          source_coverage?: number
+          reason_tags?: string[]
+          evidence_snippets?: Json
+          risk_notes?: string[]
+          scoring_version?: string
+          generated_at?: string
+          dismissed_at?: string | null
+          added_at?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: 'mandate_candidate_suggestions_mandate_id_fkey'; columns: ['mandate_id']; isOneToOne: false; referencedRelation: 'mandates'; referencedColumns: ['id'] },
+          { foreignKeyName: 'mandate_candidate_suggestions_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] },
+        ]
+      }
       mandate_longlist: {
         Row: {
           id: string

@@ -6,9 +6,15 @@ import {
   type Candidate,
   type SeasonResult,
   type CoachingRecord,
+  type SuggestedLonglistCandidate,
 } from './_components/mandate-workspace-client'
 import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { computeCoachingStability } from '@/lib/analysis/coaching-stability'
+import { getMandateSuggestionsForUser } from '../../actions-suggestions'
+
+function toStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
 
 export default async function MandateWorkspacePage({ params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient()
@@ -110,6 +116,21 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
     }
   }
 
+  const suggestionsRaw = await getMandateSuggestionsForUser(params.id)
+  const suggestions: SuggestedLonglistCandidate[] = suggestionsRaw.map((suggestion) => ({
+    id: suggestion.id,
+    coach_id: suggestion.coach_id,
+    status: suggestion.status,
+    score: suggestion.score,
+    confidence: suggestion.confidence,
+    source_coverage: suggestion.source_coverage,
+    reason_tags: suggestion.reason_tags,
+    evidence_snippets: toStringArray(suggestion.evidence_snippets),
+    risk_notes: suggestion.risk_notes,
+    generated_at: suggestion.generated_at,
+    coaches: suggestion.coaches,
+  }))
+
   return (
     <div>
       <MandateTabNav mandateId={params.id} />
@@ -120,6 +141,7 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
         coachingHistory={(coachingHistory ?? []) as CoachingRecord[]}
         stabilityMetrics={stabilityMetrics}
         longlistEntries={longlistEntries}
+        suggestions={suggestions}
       />
     </div>
   )
