@@ -75,7 +75,7 @@ function average(values: number[]) {
 }
 
 function includesDevelopmentLanguage(value: string | null) {
-  return /academy|youth|young|develop|pathway|u21|u23|promotion|breakthrough/i.test(value ?? '')
+  return /academy|youth|young|develop|development|pathway|u21|u23|promotion|breakthrough|player trading|value creation/i.test(value ?? '')
 }
 
 function scoreYoungMinutes(profile: CoachDataProfileRow | null, derived: CoachDerivedMetricsRow | null) {
@@ -212,17 +212,17 @@ export function scorePlayerDevelopmentSuggestion(evidence: PlayerDevelopmentEvid
   const riskNotes: string[] = []
 
   if (youngMinutes != null) {
-    reasonTags.push('Youth minutes')
-    evidenceSnippets.push('Profile data indicates meaningful U21 or U23 minutes exposure.')
-    addSignal(signals, evidence.coach.id, 'young_player_minutes', 'Youth minutes exposure', 'U21 or U23 minutes profile supports a development mandate.', youngMinutes, confidence, evidence.dataProfile ? 'coach_data_profiles' : 'coach_derived_metrics', {
+    reasonTags.push('Strong U23 usage profile')
+    evidenceSnippets.push('U23 usage profile suggests a willingness to trust young players in competitive senior environments.')
+    addSignal(signals, evidence.coach.id, 'young_player_minutes', 'Strong U23 usage profile', 'U21 or U23 minutes profile supports a development mandate.', youngMinutes, confidence, evidence.dataProfile ? 'coach_data_profiles' : 'coach_derived_metrics', {
       minutes_u21: evidence.dataProfile?.minutes_u21 ?? null,
       pct_minutes_u23: evidence.derivedMetrics?.pct_minutes_u23 ?? null,
     })
   }
 
   if (pathwayText) {
-    reasonTags.push('Academy pathway')
-    evidenceSnippets.push('Coach profile or stint evidence references academy integration or player development.')
+    reasonTags.push('Academy pathway evidence')
+    evidenceSnippets.push('Profile contains evidence of academy pathway integration rather than short term senior recruitment only.')
     addSignal(signals, evidence.coach.id, 'academy_pathway', 'Academy pathway evidence', 'Manual profile or stint notes reference youth development, academy integration or pathway outcomes.', pathwayText.score, confidence, 'coaches', {
       player_development_model: evidence.coach.player_development_model,
       academy_integration: evidence.coach.academy_integration,
@@ -231,42 +231,42 @@ export function scorePlayerDevelopmentSuggestion(evidence: PlayerDevelopmentEvid
   }
 
   if (ageProfile != null) {
-    reasonTags.push('Young squad profile')
-    evidenceSnippets.push('Squad or recruitment age profile leans toward younger player usage.')
-    addSignal(signals, evidence.coach.id, 'young_squad_profile', 'Young squad profile', 'Average squad or recruitment age suggests comfort working with developing players.', ageProfile, confidence, evidence.dataProfile ? 'coach_data_profiles' : 'coach_derived_metrics', {
+    reasonTags.push('Development led squad profile')
+    evidenceSnippets.push('Squad age profile points towards regular work with younger senior groups.')
+    addSignal(signals, evidence.coach.id, 'young_squad_profile', 'Development led squad profile', 'Average squad or recruitment age suggests comfort working with developing players.', ageProfile, confidence, evidence.dataProfile ? 'coach_data_profiles' : 'coach_derived_metrics', {
       avg_squad_age: evidence.dataProfile?.avg_squad_age ?? evidence.derivedMetrics?.avg_squad_age ?? null,
       recruitment_avg_age: evidence.dataProfile?.recruitment_avg_age ?? null,
     })
   }
 
   if (recruitmentAge != null) {
-    reasonTags.push('Young recruitment')
-    evidenceSnippets.push('Recruitment history includes younger signings or development-age profiles.')
-    addSignal(signals, evidence.coach.id, 'young_recruitment', 'Young recruitment profile', 'Recruitment history shows signings in development age bands.', recruitmentAge, confidence, 'coach_recruitment_history', {
+    reasonTags.push('Youth recruitment pattern')
+    evidenceSnippets.push('Recruitment history points to repeated work with players still in development age bands.')
+    addSignal(signals, evidence.coach.id, 'young_recruitment', 'Youth recruitment pattern', 'Recruitment history shows signings in development age bands.', recruitmentAge, confidence, 'coach_recruitment_history', {
       sample_size: evidence.recruitmentHistory.length,
     })
   }
 
   if (repeatability != null) {
-    reasonTags.push('Repeatable pattern')
-    evidenceSnippets.push('Development language appears across more than one stint or club context.')
-    addSignal(signals, evidence.coach.id, 'repeatability', 'Repeatable development pattern', 'Development evidence appears across stint history rather than a single isolated note.', repeatability, confidence, 'coach_stints', {
+    reasonTags.push('Repeatable development signals')
+    evidenceSnippets.push('Development evidence appears across more than one club context, reducing the chance this is a one-club artefact.')
+    addSignal(signals, evidence.coach.id, 'repeatability', 'Repeatable development signals', 'Development evidence appears across stint history rather than a single isolated note.', repeatability, confidence, 'coach_stints', {
       stints: evidence.stints.length,
     })
   }
 
   if (manualDevelopment != null) {
-    reasonTags.push('Manual development score')
-    evidenceSnippets.push(`Manual development score is ${Math.round(manualDevelopment)}.`)
-    addSignal(signals, evidence.coach.id, 'manual_development_score', 'Manual development score', 'Existing scout profile includes a development score.', manualDevelopment, confidence, 'coaches', {
+    reasonTags.push('Recent development evidence')
+    evidenceSnippets.push(`Scout profile carries a development score of ${Math.round(manualDevelopment)}, supporting further analyst review.`)
+    addSignal(signals, evidence.coach.id, 'manual_development_score', 'Recent development evidence', 'Existing scout profile includes a development score.', manualDevelopment, confidence, 'coaches', {
       development_score: manualDevelopment,
     }, manualDevelopment)
   }
 
-  if (sourceCoverage < 40) riskNotes.push('Low source coverage. Treat as directional until more player pathway data is added.')
-  if (!youngMinutes && !recruitmentAge) riskNotes.push('Limited quantitative player development evidence.')
-  if (confidence < 55) riskNotes.push('Confidence is constrained by sparse or low-confidence source data.')
-  if (riskNotes.length === 0) riskNotes.push('Validate player-level evidence before board recommendation.')
+  if (sourceCoverage < 40) riskNotes.push('Evidence is mainly profile level, with limited player level validation at this stage.')
+  if (!youngMinutes && !recruitmentAge) riskNotes.push('Quantitative player development evidence is limited, so analyst validation is still required.')
+  if (confidence < 55) riskNotes.push('Confidence is constrained by sparse source coverage and should be treated as an early signal.')
+  if (riskNotes.length === 0) riskNotes.push('Validate player level progression evidence before this becomes a board recommendation.')
 
   return {
     coachId: evidence.coach.id,

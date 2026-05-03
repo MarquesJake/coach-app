@@ -247,7 +247,7 @@ function buildShortlistBoardCandidate(candidate: Candidate, index: number): Boar
 function buildLonglistBoardCandidate(entry: LonglistEntryData, index: number): BoardCandidate {
   const fit = parseRecommendationFit(entry.fit_explanation)
   const dimensionStrengths = fit
-    ? Object.entries(fit.dims)
+    ? Object.entries(fit.dims ?? {})
         .filter(([, dim]) => (dim.score ?? 0) >= 70)
         .map(([, dim]) => `Strong ${dim.label.toLowerCase()}`)
     : []
@@ -385,11 +385,96 @@ function BoardRecommendation({
   )
 }
 
+function displayReasonTag(tag: string) {
+  const map: Record<string, string> = {
+    'Youth minutes': 'Strong U23 usage profile',
+    'Academy pathway': 'Academy pathway evidence',
+    'Young squad profile': 'Development led squad profile',
+    'Young recruitment': 'Youth recruitment pattern',
+    'Repeatable pattern': 'Repeatable development signals',
+    'Manual development score': 'Recent development evidence',
+  }
+  return map[tag] ?? tag
+}
+
+function displayEvidenceSnippet(snippet: string) {
+  if (/U21|U23|minutes exposure|Youth minutes/i.test(snippet)) {
+    return 'U23 usage profile suggests a willingness to trust young players in competitive senior environments.'
+  }
+  if (/squad.*age|younger player|Young squad/i.test(snippet)) {
+    return 'Squad age profile points towards regular work with younger senior groups.'
+  }
+  if (/academy|pathway|player development/i.test(snippet)) {
+    return 'Profile contains evidence of academy pathway integration rather than short term senior recruitment only.'
+  }
+  if (/recruitment|signings|development-age/i.test(snippet)) {
+    return 'Recruitment history points to repeated work with players still in development age bands.'
+  }
+  if (/stint|club context|Repeatable/i.test(snippet)) {
+    return 'Development evidence appears across more than one club context, reducing the chance this is a one-club artefact.'
+  }
+  if (/Manual development score/i.test(snippet)) {
+    return snippet.replace('Manual development score is', 'Scout profile carries a development score of')
+  }
+  return snippet
+}
+
+function displayRiskNote(note: string) {
+  if (/optional evidence|missing optional|not present|transfer and career progression/i.test(note)) {
+    return 'Player level transfer and career progression evidence is not yet connected, so this should be treated as an early signal rather than a final judgement.'
+  }
+  if (/low source coverage|profile level/i.test(note)) {
+    return 'Evidence is mainly profile level, with limited player level validation at this stage.'
+  }
+  if (/quantitative|limited/i.test(note)) {
+    return 'Quantitative player development evidence is limited, so analyst validation is still required.'
+  }
+  if (/confidence|sparse/i.test(note)) {
+    return 'Confidence is constrained by sparse source coverage and should be treated as an early signal.'
+  }
+  return note
+}
+
+function fitTier(score: number, confidence: number, sourceCoverage: number) {
+  if (score >= 70 && confidence >= 70 && sourceCoverage >= 65) return 'Strong evidence fit'
+  if (score >= 55 && confidence >= 55 && sourceCoverage >= 40) return 'Viable evidence fit'
+  if (score >= 40 && (confidence >= 45 || sourceCoverage >= 40)) return 'Needs validation'
+  return 'Thin evidence'
+}
+
+function confidenceLabel(confidence: number) {
+  if (confidence >= 70) return 'High'
+  if (confidence >= 50) return 'Medium'
+  return 'Low'
+}
+
+function sourceCoverageLabel(sourceCoverage: number) {
+  if (sourceCoverage >= 70) return 'Strong'
+  if (sourceCoverage >= 40) return 'Moderate'
+  return 'Limited'
+}
+
+function contextualSuggestionLine(objective: string | null) {
+  const text = objective?.toLowerCase() ?? ''
+  if (/player trading|trading|future value|value creation|player growth/.test(text)) {
+    return 'Suggested because this mandate needs player growth and future value creation.'
+  }
+  if (/academy|pathway/.test(text)) {
+    return 'Suggested because this mandate prioritises academy pathway integration.'
+  }
+  if (/youth|young players|young player/.test(text)) {
+    return 'Suggested because this mandate prioritises young player development.'
+  }
+  return 'Suggested because this mandate prioritises player development.'
+}
+
 function SuggestedLonglistPanel({
   mandateId,
+  mandateObjective,
   suggestions,
 }: {
   mandateId: string
+  mandateObjective: string | null
   suggestions: SuggestedLonglistCandidate[]
 }) {
   const router = useRouter()
@@ -397,6 +482,7 @@ function SuggestedLonglistPanel({
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const visibleSuggestions = suggestions.filter((suggestion) => suggestion.status === 'suggested')
+  const suggestionLine = contextualSuggestionLine(mandateObjective)
 
   function refreshWithMessage(nextMessage: string) {
     setMessage(nextMessage)
@@ -476,17 +562,32 @@ function SuggestedLonglistPanel({
         <div className="mt-4 rounded-lg border border-dashed border-border bg-surface/40 px-4 py-5">
           <p className="text-sm font-medium text-foreground">No evidence backed suggestions yet.</p>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-            Run a development scan once coach pathway data or player development evidence is available.
+            Run a development scan to surface coaches whose profiles show youth development, academy pathway, or player growth signals.
           </p>
         </div>
       ) : (
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          {visibleSuggestions.map((suggestion) => {
+          {visibleSuggestions.map((suggestion, index) => {
             const isRowPending = pendingId === suggestion.id
+            const rankLabel = index < 3 ? `Rank ${index + 1}` : null
+            const tier = fitTier(suggestion.score, suggestion.confidence, suggestion.source_coverage)
+            const confidence = confidenceLabel(suggestion.confidence)
+            const coverage = sourceCoverageLabel(suggestion.source_coverage)
             return (
-              <article key={suggestion.id} className="rounded-lg border border-border bg-surface/40 p-3">
+              <article
+                key={suggestion.id}
+                className={cn(
+                  'rounded-lg border bg-surface/40 p-3',
+                  index < 3 ? 'border-primary/30 shadow-sm shadow-primary/5' : 'border-border'
+                )}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
+                    {rankLabel && (
+                      <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-primary">
+                        Recommended evidence scan {rankLabel}
+                      </p>
+                    )}
                     <p className="text-sm font-semibold text-foreground">{suggestion.coaches?.name ?? 'Unknown coach'}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">{suggestion.coaches?.club_current ?? 'Current club unknown'}</p>
                   </div>
@@ -496,16 +597,23 @@ function SuggestedLonglistPanel({
                   </div>
                 </div>
 
+                <p className="mt-3 rounded-md border border-border bg-card px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                  {suggestionLine}
+                </p>
+
                 <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                    {tier}
+                  </span>
                   <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
-                    {Math.round(suggestion.confidence)}% confidence
+                    {confidence} confidence
                   </span>
                   <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground">
-                    {Math.round(suggestion.source_coverage)}% source coverage
+                    {coverage} source coverage
                   </span>
                   {suggestion.reason_tags.map((tag) => (
-                    <span key={tag} className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
-                      {tag}
+                    <span key={tag} className="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground">
+                      {displayReasonTag(tag)}
                     </span>
                   ))}
                 </div>
@@ -514,7 +622,7 @@ function SuggestedLonglistPanel({
                   {suggestion.evidence_snippets.slice(0, 3).map((snippet) => (
                     <p key={snippet} className="flex gap-2 text-xs leading-relaxed text-foreground">
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-                      <span>{snippet}</span>
+                      <span>{displayEvidenceSnippet(snippet)}</span>
                     </p>
                   ))}
                 </div>
@@ -522,7 +630,7 @@ function SuggestedLonglistPanel({
                 {suggestion.risk_notes.length > 0 && (
                   <div className="mt-3 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-500">Data caution</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{suggestion.risk_notes[0]}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{displayRiskNote(suggestion.risk_notes[0])}</p>
                   </div>
                 )}
 
@@ -1412,7 +1520,11 @@ export function MandateWorkspaceClient({
       </div>
 
       <BoardRecommendation shortlist={shortlist} longlistEntries={longlistEntries} />
-      <SuggestedLonglistPanel mandateId={mandate.id} suggestions={suggestions} />
+      <SuggestedLonglistPanel
+        mandateId={mandate.id}
+        mandateObjective={mandate.strategic_objective}
+        suggestions={suggestions}
+      />
 
       <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-39rem)] min-h-[560px]">
         {/* Left: Club Brief */}

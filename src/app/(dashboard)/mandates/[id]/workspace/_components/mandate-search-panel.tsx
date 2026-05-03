@@ -54,6 +54,8 @@ function GapBadge({ gap, type }: { gap: number | null; type: ParsedFit['gapType'
     NEAR_TIE: { text: `↑${gap}`, cls: 'text-orange-400 bg-orange-400/10 border-orange-400/20' },
   }[type]
 
+  if (!config) return null
+
   return (
     <span className={cn('text-[9px] font-semibold px-1.5 py-0.5 rounded border shrink-0', config.cls)}>
       {config.text}

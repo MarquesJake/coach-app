@@ -76,9 +76,7 @@ function isMissingOptionalTable(error: { code?: string; message?: string } | nul
 function optionalSourceRiskNotes(missingSources: string[]) {
   if (missingSources.length === 0) return []
   return [
-    `Optional evidence unavailable: ${missingSources.join(', ')} ${
-      missingSources.length === 1 ? 'table is' : 'tables are'
-    } not present in the live schema. Suggestions use remaining coach profile and stint evidence.`,
+    'Player level transfer and career progression evidence is not yet connected, so this should be treated as an early signal rather than a final judgement.',
   ]
 }
 
