@@ -114,10 +114,11 @@ export function ClubBrowserPanel() {
 
         <details className="rounded-md border border-border/70 bg-surface/50">
           <summary className="flex cursor-pointer list-none items-center justify-between px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
-            Internal sync
+            Admin controls
             <span className="rounded border border-amber-400/20 bg-amber-400/10 px-1.5 py-0.5 text-[8px] text-amber-300">Admin only</span>
           </summary>
           <div className="border-t border-border px-2.5 py-2 space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-300">Internal sync</p>
             <p className="text-[10px] leading-relaxed text-muted-foreground">
               Refresh English clubs from API-Football. Use only when preparing or repairing demo data.
             </p>

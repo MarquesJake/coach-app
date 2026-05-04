@@ -59,20 +59,28 @@ export function ClubCommandBar({ club }: { club: Club }) {
           </div>
         </div>
 
-        {/* Right: sync + primary action */}
+        {/* Right: primary action + collapsed internal sync */}
         <div className="flex items-center gap-3 shrink-0">
-          <ClubSyncButton
-            clubId={club.id}
-            hasExternalSource={!!club.external_source}
-            lastSyncedAt={club.last_synced_at}
-            autoSync={!!club.external_source && !club.last_synced_at}
-          />
           <Link
             href={`/mandates/new?club_id=${club.id}&club_name=${encodeURIComponent(club.name)}`}
             className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors shrink-0"
           >
             + Open mandate
           </Link>
+          <details className="group relative">
+            <summary className="flex h-9 cursor-pointer list-none items-center rounded-lg border border-border bg-surface px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground">
+              Admin controls
+            </summary>
+            <div className="absolute right-0 z-20 mt-2 w-64 rounded-lg border border-border bg-card p-3 shadow-xl">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-amber-400">Internal sync</p>
+              <ClubSyncButton
+                clubId={club.id}
+                hasExternalSource={!!club.external_source}
+                lastSyncedAt={club.last_synced_at}
+                autoSync={!!club.external_source && !club.last_synced_at}
+              />
+            </div>
+          </details>
         </div>
 
       </div>

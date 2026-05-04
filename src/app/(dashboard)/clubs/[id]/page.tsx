@@ -390,10 +390,44 @@ export default function ClubOverviewPage() {
         </section>
       )}
 
+      {/* ── Stakeholder view: football context ─────────────────────────────── */}
+      <section className="rounded-lg border border-border bg-card p-5 space-y-4">
+        <div>
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club intelligence profile</h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Board-facing context for mandate work. Internal edit controls are collapsed below.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Strategic priority</p>
+            <p className="mt-1 text-sm text-foreground">{club.strategic_priority || form.notes || 'Priority not yet recorded'}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Board risk tolerance</p>
+            <p className="mt-1 text-sm text-foreground">{club.board_risk_tolerance || 'Not specified'}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Tactical identity</p>
+            <p className="mt-1 text-sm text-foreground">{club.tactical_model || 'Identity profile not yet recorded'}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Operating environment</p>
+            <p className="mt-1 text-sm text-foreground">{club.environment_assessment || 'Environment assessment pending'}</p>
+          </div>
+        </div>
+        {club.instability_risk && (
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-400">Decision risk</p>
+            <p className="mt-1 text-xs leading-relaxed text-amber-100">{club.instability_risk}</p>
+          </div>
+        )}
+      </section>
+
       {/* ── Layer A continued: Club identity form ──────────────────────────── */}
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-sm font-medium text-foreground mb-1">Club details</h2>
-        <p className="text-xs text-muted-foreground mb-4">Basic identity and structural info.</p>
+      <details className="rounded-lg border border-border bg-card p-6">
+        <summary className="cursor-pointer text-sm font-medium text-foreground">Admin controls: club details</summary>
+        <p className="text-xs text-muted-foreground mt-1 mb-4">Raw identity fields and destructive controls. Keep collapsed during stakeholder walkthroughs.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
@@ -516,14 +550,12 @@ export default function ClubOverviewPage() {
             </button>
           </div>
         </form>
-      </section>
+      </details>
 
       {/* ── Layer B: Internal intelligence ─────────────────────────────────── */}
-      <section className="rounded-lg border border-border bg-card p-6">
-        <div className="mb-4">
-          <h2 className="text-sm font-medium text-foreground">Internal intelligence</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Bespoke assessment — never overwritten by external sync.</p>
-        </div>
+      <details className="rounded-lg border border-border bg-card p-6">
+        <summary className="cursor-pointer text-sm font-medium text-foreground">Admin controls: internal intelligence</summary>
+        <p className="text-xs text-muted-foreground mt-1 mb-4">Bespoke assessment fields. Never overwritten by external sync.</p>
         <form onSubmit={handleSaveIntel} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
@@ -649,7 +681,7 @@ export default function ClubOverviewPage() {
             {savingIntel ? 'Saving…' : 'Save intelligence'}
           </button>
         </form>
-      </section>
+      </details>
 
       {/* ── Derived intelligence: Coaching stability ────────────────────────── */}
       <ClubStabilitySection clubId={id} />

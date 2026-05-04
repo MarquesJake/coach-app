@@ -63,6 +63,8 @@ type NextAction = {
   tone: 'danger' | 'warning' | 'info'
 }
 
+const HERO_DEMO_CLUBS = new Set(['Brighton', 'QPR', 'Bolton'])
+
 // ── Risk flag logic ────────────────────────────────────────────────────────────
 
 type RiskFlag = 'overdue' | 'no_depth' | 'stale' | 'no_shortlist'
@@ -274,6 +276,9 @@ export default async function DashboardPage() {
   })
 
   const totalRiskCount = activeMandatesWithFlags.filter(m => m.flags.length > 0).length
+  const attentionCount = totalRiskCount + alerts.length
+  const heroMandates = activeMandatesWithFlags.filter((m) => HERO_DEMO_CLUBS.has(clubName(m)))
+  const otherMandates = activeMandatesWithFlags.filter((m) => !HERO_DEMO_CLUBS.has(clubName(m)))
   const shortlistMovement = activityLog
     .filter((a) => /shortlist|candidate|stage|moved|pipeline/i.test(`${a.action_type} ${a.description}`))
     .slice(0, 6)
@@ -332,8 +337,8 @@ export default async function DashboardPage() {
             </div>
             <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[
-                { label: 'Live', value: activeMandates.length },
-                { label: 'Need attention', value: totalRiskCount },
+                { label: 'Hero mandates', value: heroMandates.length },
+                { label: 'Need attention', value: attentionCount },
                 { label: 'Open alerts', value: alerts.length },
                 { label: 'High confidence intel', value: coachUpdates.length },
               ].map(({ label, value }) => (
@@ -415,10 +420,10 @@ export default async function DashboardPage() {
             <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Active mandates</h2>
             <p className="mt-0.5 text-[10px] text-muted-foreground">Live searches ranked by decision risk and urgency</p>
           </div>
-          <span className="text-[10px] text-muted-foreground">{activeMandatesWithFlags.length} live</span>
+          <span className="text-[10px] text-muted-foreground">{heroMandates.length} demo searches</span>
         </div>
 
-        {activeMandatesWithFlags.length === 0 ? (
+        {heroMandates.length === 0 ? (
           <div className="px-5 py-8 text-center">
             <p className="text-sm font-medium text-foreground">No live searches on the desk</p>
             <p className="mt-1 text-xs text-muted-foreground">Create a mandate when a club brief is ready to track through shortlist and board decision.</p>
@@ -438,12 +443,12 @@ export default async function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {activeMandatesWithFlags.map((m, i) => (
+                {heroMandates.map((m, i) => (
                   <tr
                     key={m.id}
                     className={cn(
                       'border-b border-border/50 hover:bg-surface-overlay/20 transition-colors',
-                      i === activeMandatesWithFlags.length - 1 && 'border-b-0'
+                      i === heroMandates.length - 1 && 'border-b-0'
                     )}
                   >
                     {/* Club */}
@@ -477,7 +482,10 @@ export default async function DashboardPage() {
                       )}>
                         {m.mandate_shortlist.length}
                       </span>
-                      <span className="text-muted-foreground ml-1">candidates</span>
+                      <span className="text-muted-foreground ml-1">
+                        {' '}
+                        {m.mandate_shortlist.length === 1 ? 'candidate' : 'candidates'}
+                      </span>
                     </td>
 
                     {/* Target date */}
@@ -501,7 +509,7 @@ export default async function DashboardPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1.5">
                         {m.flags.length === 0 ? (
-                          <span className="text-[10px] text-muted-foreground/40">—</span>
+                          <span className="text-[10px] font-medium text-emerald-400">On track</span>
                         ) : (
                           m.flags.map(flag => {
                             const { icon: FlagIcon, label, colour } = riskIcon(flag)
@@ -536,6 +544,23 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {otherMandates.length > 0 && (
+        <div className="rounded-lg border border-border bg-card px-4 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Other active work</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {otherMandates.map((m) => (
+              <Link
+                key={m.id}
+                href={`/mandates/${m.id}/workspace`}
+                className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+              >
+                {clubName(m)} · {getStageLabel(m.pipeline_stage ?? 'identified')}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Secondary row ── */}
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-4">

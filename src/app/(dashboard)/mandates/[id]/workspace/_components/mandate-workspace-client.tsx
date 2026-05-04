@@ -279,25 +279,42 @@ function normaliseAnalystReason(reason: string, source: BoardCandidate['source']
     : 'Shortlist evidence supports continued board review'
 }
 
-function boardWhy(candidate: BoardCandidate, mandateObjective: string | null): string[] {
+type MandateContext = 'brighton' | 'qpr' | 'bolton' | 'development' | 'generic'
+
+function mandateContext(mandateObjective: string | null): MandateContext {
   const objective = mandateObjective?.toLowerCase() ?? ''
-  const playerTradingBrief = /brighton|player trading|progressive football|progression/.test(objective)
-  const promotionBrief = /bolton|promotion|stability|efficiency|league one|reliability/.test(objective)
-  const developmentBrief = /develop|development|academy|pathway|youth|young|value creation|player growth/.test(objective)
-  const firstLine = playerTradingBrief
+  if (/qpr/.test(objective)) return 'qpr'
+  if (/brighton/.test(objective)) return 'brighton'
+  if (/bolton/.test(objective)) return 'bolton'
+  if (/player trading|progressive football|progression|identity/.test(objective)) return 'brighton'
+  if (/academy|pathway|youth|young|player value|player growth/.test(objective)) return 'qpr'
+  if (/promotion|stability|efficiency|league one|reliability|efl/.test(objective)) return 'bolton'
+  if (/develop|development|academy|pathway|youth|young|value creation|player growth/.test(objective)) return 'development'
+  return 'generic'
+}
+
+function boardWhy(candidate: BoardCandidate, mandateObjective: string | null): string[] {
+  const context = mandateContext(mandateObjective)
+  const firstLine = context === 'brighton'
     ? 'Clear alignment with an identity-led brief, supported by progressive football and player trading signals'
-    : promotionBrief
+    : context === 'bolton'
       ? 'Clear alignment with a promotion brief, supported by stability and league execution signals'
-      : developmentBrief
+      : context === 'qpr' || context === 'development'
         ? 'Clear alignment with a development-led brief, supported by available profile and pathway signals'
         : 'Clear alignment with mandate requirements, supported by current shortlist or scoring evidence'
 
-  const supportingLine = normaliseAnalystReason(candidate.why[0] ?? '', candidate.source)
-  const contextualLine = playerTradingBrief
+  const supportingLine = context === 'brighton'
+    ? 'Profile fit protects the playing model while keeping recruitment and resale logic central'
+    : context === 'bolton'
+      ? 'Profile points towards EFL execution, dressing room stability and efficient squad usage'
+      : context === 'qpr'
+        ? 'Profile suggests willingness to trust younger players in senior environments'
+        : normaliseAnalystReason(candidate.why[0] ?? '', candidate.source)
+  const contextualLine = context === 'brighton'
     ? 'Recommendation protects the football identity while keeping player progression and resale value central'
-    : promotionBrief
+    : context === 'bolton'
       ? 'Evidence points to a reliable operator for promotion pressure rather than pure stylistic upside'
-      : developmentBrief
+      : context === 'qpr' || context === 'development'
         ? 'Evidence indicates a squad-building profile oriented towards progression rather than short-term experience'
         : candidate.source === 'shortlist'
           ? 'Current pipeline position makes this the clearest appointment route for board discussion'
@@ -331,14 +348,14 @@ function recommendationTradeOff(primary: BoardCandidate, mandateObjective: strin
   const explicitTradeOff = primary.comparisonNote?.match(/Recommendation favours[^.]+\./i)?.[0]
   if (explicitTradeOff) return explicitTradeOff
 
-  const objective = mandateObjective?.toLowerCase() ?? ''
-  if (/brighton|player trading|progressive football|progression/.test(objective)) {
+  const context = mandateContext(mandateObjective)
+  if (context === 'brighton') {
     return 'Recommendation favours identity continuity and player trading upside over low-risk Premier League familiarity.'
   }
-  if (/bolton|promotion|stability|efficiency|league one|reliability/.test(objective)) {
+  if (context === 'bolton') {
     return 'Recommendation favours promotion reliability and efficiency over high-upside tactical experimentation.'
   }
-  if (/develop|development|academy|pathway|youth|young|value creation|player growth/.test(objective)) {
+  if (context === 'qpr' || context === 'development') {
     return 'Recommendation favours long-term development upside over immediate Championship certainty.'
   }
   return 'Recommendation balances football upside against appointment realism and execution risk.'
@@ -354,7 +371,7 @@ function recommendationConfidence(primary: BoardCandidate, secondary: BoardCandi
   return 'Low'
 }
 
-function alternativeOptionLine(primary: BoardCandidate, secondary: BoardCandidate | null): string {
+function alternativeOptionLine(primary: BoardCandidate, secondary: BoardCandidate | null, mandateObjective: string | null): string {
   if (!secondary) return 'No clear alternative identified at this stage'
 
   const gap = primary.score != null && secondary.score != null ? Math.abs(primary.score - secondary.score) : null
@@ -366,6 +383,13 @@ function alternativeOptionLine(primary: BoardCandidate, secondary: BoardCandidat
   }
   if (secondary.source === 'shortlist' && primary.source === 'longlist') {
     return 'Represents a lower-risk but less development-focused option'
+  }
+  const context = mandateContext(mandateObjective)
+  if (context === 'brighton') {
+    return 'Offers a comparable identity fit with a different balance of Premier League certainty and player trading upside'
+  }
+  if (context === 'bolton') {
+    return 'Represents a practical EFL alternative with slightly lower promotion reliability evidence'
   }
   return 'Offers a comparable fit with less clarity in development signals'
 }
@@ -572,10 +596,10 @@ function BoardRecommendation({
             {secondary ? (
               <p className="mt-2 text-xs leading-relaxed text-foreground">
                 <span className="font-semibold">{secondary.name}</span>
-                {secondary.club ? ` from ${secondary.club}` : ''}. {alternativeOptionLine(primary, secondary)}
+                {secondary.club ? ` from ${secondary.club}` : ''}. {alternativeOptionLine(primary, secondary, mandateObjective)}
               </p>
             ) : (
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{alternativeOptionLine(primary, null)}</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{alternativeOptionLine(primary, null, mandateObjective)}</p>
             )}
           </div>
         </div>
@@ -667,6 +691,32 @@ function contextualSuggestionLine(objective: string | null) {
   return 'Suggested because this mandate prioritises player development.'
 }
 
+function scanCopy(objective: string | null) {
+  const context = mandateContext(objective)
+  if (context === 'brighton') {
+    return {
+      title: 'Identity and player trading scan',
+      active: false,
+      description: 'This scan type is not active yet. Curated candidates are shown through expert review.',
+      empty: 'Curated candidates currently carry the Brighton identity and player trading case. Add a dedicated scan later when player value evidence is connected.',
+    }
+  }
+  if (context === 'bolton') {
+    return {
+      title: 'Promotion reliability scan',
+      active: false,
+      description: 'This scan type is not active yet. Curated candidates are shown through expert review.',
+      empty: 'Curated candidates currently carry the Bolton promotion and stability case. Add a dedicated scan later when EFL reliability evidence is connected.',
+    }
+  }
+  return {
+    title: 'Development scan',
+    active: true,
+    description: 'Evidence backed suggestions for mandates focused on developing young players. Nothing is added to the longlist until you approve it.',
+    empty: 'Run a development scan to surface coaches whose profiles show youth development, academy pathway, or player growth signals.',
+  }
+}
+
 function SuggestedLonglistPanel({
   mandateId,
   mandateObjective,
@@ -682,6 +732,7 @@ function SuggestedLonglistPanel({
   const [message, setMessage] = useState<string | null>(null)
   const visibleSuggestions = suggestions.filter((suggestion) => suggestion.status === 'suggested')
   const suggestionLine = contextualSuggestionLine(mandateObjective)
+  const copy = scanCopy(mandateObjective)
 
   function refreshWithMessage(nextMessage: string) {
     setMessage(nextMessage)
@@ -735,20 +786,22 @@ function SuggestedLonglistPanel({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Suggested longlist</p>
-          <h2 className="mt-1 text-base font-semibold text-foreground">Player development scan</h2>
+          <h2 className="mt-1 text-base font-semibold text-foreground">{copy.title}</h2>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-            Evidence backed suggestions for mandates focused on developing young players. Nothing is added to the longlist until you approve it.
+            {copy.description}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleGenerate}
-          disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isPending && !pendingId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-          Run development scan
-        </button>
+        {copy.active && (
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isPending && !pendingId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            Run development scan
+          </button>
+        )}
       </div>
 
       {message && (
@@ -761,7 +814,7 @@ function SuggestedLonglistPanel({
         <div className="mt-4 rounded-lg border border-dashed border-border bg-surface/40 px-4 py-5">
           <p className="text-sm font-medium text-foreground">No evidence backed suggestions yet.</p>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-            Run a development scan to surface coaches whose profiles show youth development, academy pathway, or player growth signals.
+            {copy.empty}
           </p>
         </div>
       ) : (
@@ -904,6 +957,20 @@ function ClubBrief({
 }) {
   const club = mandate.clubs
   const clubName = mandate.custom_club_name ?? club?.name ?? 'Unknown club'
+  const uniqueCoachingHistory = coachingHistory.filter((entry, index, rows) => {
+    const key = [
+      entry.coach_name,
+      entry.start_date ?? '',
+      entry.end_date ?? '',
+      entry.reason_for_exit ?? '',
+    ].join('|')
+    return rows.findIndex((row) => [
+      row.coach_name,
+      row.start_date ?? '',
+      row.end_date ?? '',
+      row.reason_for_exit ?? '',
+    ].join('|') === key) === index
+  })
 
   return (
     <div className="h-full overflow-y-auto space-y-5 pr-1">
@@ -1068,11 +1135,11 @@ function ClubBrief({
       )}
 
       {/* Coaching history */}
-      {coachingHistory.length > 0 && (
+      {uniqueCoachingHistory.length > 0 && (
         <section className="space-y-2">
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Coaching history</h3>
           <div className="space-y-2">
-            {coachingHistory.map((c, i) => (
+            {uniqueCoachingHistory.map((c, i) => (
               <div key={i} className="text-xs">
                 <p className="text-foreground font-medium">{c.coach_name}</p>
                 <p className="text-muted-foreground">
@@ -1633,7 +1700,8 @@ export function MandateWorkspaceClient({
   suggestions: SuggestedLonglistCandidate[]
 }) {
   // ── Pipeline state ─────────────────────────────────────────────────────────
-  const [selectedId, setSelectedId] = useState<string | null>(shortlist[0]?.id ?? null)
+  const initialRecommendedId = getBoardCandidates(shortlist, longlistEntries).find((candidate) => candidate.source === 'shortlist')?.id
+  const [selectedId, setSelectedId] = useState<string | null>(initialRecommendedId ?? shortlist[0]?.id ?? null)
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
   const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
   const shortlistReady = shortlist.filter((c) => ['Shortlist', 'Interview', 'Final'].includes(c.candidate_stage)).length

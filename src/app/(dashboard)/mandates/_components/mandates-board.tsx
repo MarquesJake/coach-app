@@ -98,12 +98,16 @@ function shortlistStrength(count: number, shortlisted: number): { label: string;
 
 function mainRisk(m: MandateForBoard, count: number, missing: number, hasRiskConcern: boolean): { label: string; cls: string } {
   const urgency = formatUrgency(m.target_completion_date)
+  const brief = `${m.custom_club_name ?? m.clubs?.name ?? ''} ${m.strategic_objective ?? ''}`.toLowerCase()
   if (urgency.label.includes('overdue')) return { label: 'Target date slipped', cls: 'text-red-400' }
   if (count === 0 && !['identified', 'board_approved'].includes(m.pipeline_stage ?? '')) return { label: 'Shortlist missing', cls: 'text-red-400' }
   if (hasRiskConcern) return { label: 'Candidate risk flagged', cls: 'text-red-400' }
   if (missing > 0) return { label: 'Brief incomplete', cls: 'text-amber-400' }
   if (count < 2) return { label: 'Thin market evidence', cls: 'text-amber-400' }
-  return { label: 'No major blocker', cls: 'text-emerald-400' }
+  if (/brighton|player trading|identity|progressive/.test(brief)) return { label: 'Availability and timing', cls: 'text-amber-400' }
+  if (/qpr|academy|pathway|development|player value/.test(brief)) return { label: 'Championship validation', cls: 'text-amber-400' }
+  if (/bolton|promotion|stability|league one|efficiency/.test(brief)) return { label: 'Contract realism', cls: 'text-amber-400' }
+  return { label: 'Validation pending', cls: 'text-amber-400' }
 }
 
 function nextActionLabel(m: MandateForBoard, count: number, shortlisted: number, missing: number, topCoach: BoardSignal['topCoach'] | null) {
