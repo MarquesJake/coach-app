@@ -29,6 +29,46 @@ function parseFit(raw: string | null): ParsedFit | null {
   try { return JSON.parse(raw) as ParsedFit } catch { return null }
 }
 
+type CandidateLabel =
+  | 'Primary target'
+  | 'Viable option'
+  | 'Stretch option'
+  | 'Benchmark profile'
+  | 'Development specialist'
+  | 'Championship relevant coach'
+  | 'European development coach'
+
+function candidateTypeLabel(text: string | null | undefined): CandidateLabel | null {
+  const value = text?.toLowerCase() ?? ''
+  if (/primary target/.test(value)) return 'Primary target'
+  if (/viable option/.test(value)) return 'Viable option'
+  if (/stretch option|stretch profile/.test(value)) return 'Stretch option'
+  if (/benchmark profile|benchmark incumbent/.test(value)) return 'Benchmark profile'
+  if (/development specialist/.test(value)) return 'Development specialist'
+  if (/championship[- ]relevant coach|championship relevant option/.test(value)) return 'Championship relevant coach'
+  if (/european development coach/.test(value)) return 'European development coach'
+  return null
+}
+
+function longlistCandidateLabel(entry: LonglistEntryData, fit: ParsedFit | null): CandidateLabel | null {
+  return candidateTypeLabel([
+    entry.coach_name,
+    fit?.fitLabel,
+    fit?.summary,
+    ...(fit?.strengths ?? []),
+    ...(fit?.concerns ?? []),
+  ].filter(Boolean).join(' '))
+}
+
+function CandidateTypeBadge({ label }: { label: CandidateLabel | null }) {
+  if (!label) return null
+  return (
+    <span className="mt-1 inline-flex w-fit items-center rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary">
+      {label}
+    </span>
+  )
+}
+
 // ── Visual helpers ────────────────────────────────────────────────────────────
 
 function availDot(status: string | null) {
@@ -173,7 +213,10 @@ export function MandateSearchPanel({
       {/* Header */}
       <div className="flex items-center justify-between gap-2 shrink-0">
         <div>
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Recommendations</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Curated longlist</h2>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
+            Expert reviewed candidates from scoring, market logic and mandate realism.
+          </p>
           {hasData && (
             <p className="text-[10px] text-muted-foreground mt-0.5">
               {entries.length} ranked
@@ -250,6 +293,7 @@ export function MandateSearchPanel({
             const pipelineStage = existingStages.get(entry.coach_id)
             const clearBreak = isClearBreakAbove(i)
             const rank = i + 1
+            const label = longlistCandidateLabel(entry, fit)
 
             return (
               <div key={entry.id}>
@@ -288,6 +332,10 @@ export function MandateSearchPanel({
                       </span>
                     </div>
                     <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
+                  </div>
+
+                  <div className="pl-5">
+                    <CandidateTypeBadge label={label} />
                   </div>
 
                   {/* Row 2: score bar + FF/Ap */}
