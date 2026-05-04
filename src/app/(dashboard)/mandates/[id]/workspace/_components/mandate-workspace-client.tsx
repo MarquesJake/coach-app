@@ -281,17 +281,27 @@ function normaliseAnalystReason(reason: string, source: BoardCandidate['source']
 
 function boardWhy(candidate: BoardCandidate, mandateObjective: string | null): string[] {
   const objective = mandateObjective?.toLowerCase() ?? ''
-  const developmentBrief = /develop|development|academy|pathway|youth|young|player trading|value creation|player growth/.test(objective)
-  const firstLine = developmentBrief
-    ? 'Clear alignment with a development-led brief, supported by available profile and pathway signals'
-    : 'Clear alignment with mandate requirements, supported by current shortlist or scoring evidence'
+  const playerTradingBrief = /brighton|player trading|progressive football|progression/.test(objective)
+  const promotionBrief = /bolton|promotion|stability|efficiency|league one|reliability/.test(objective)
+  const developmentBrief = /develop|development|academy|pathway|youth|young|value creation|player growth/.test(objective)
+  const firstLine = playerTradingBrief
+    ? 'Clear alignment with an identity-led brief, supported by progressive football and player trading signals'
+    : promotionBrief
+      ? 'Clear alignment with a promotion brief, supported by stability and league execution signals'
+      : developmentBrief
+        ? 'Clear alignment with a development-led brief, supported by available profile and pathway signals'
+        : 'Clear alignment with mandate requirements, supported by current shortlist or scoring evidence'
 
   const supportingLine = normaliseAnalystReason(candidate.why[0] ?? '', candidate.source)
-  const contextualLine = developmentBrief
-    ? 'Evidence indicates a squad-building profile oriented towards progression rather than short-term experience'
-    : candidate.source === 'shortlist'
-      ? 'Current pipeline position makes this the clearest appointment route for board discussion'
-      : 'Scoring profile makes this the strongest current evidence-led option for further diligence'
+  const contextualLine = playerTradingBrief
+    ? 'Recommendation protects the football identity while keeping player progression and resale value central'
+    : promotionBrief
+      ? 'Evidence points to a reliable operator for promotion pressure rather than pure stylistic upside'
+      : developmentBrief
+        ? 'Evidence indicates a squad-building profile oriented towards progression rather than short-term experience'
+        : candidate.source === 'shortlist'
+          ? 'Current pipeline position makes this the clearest appointment route for board discussion'
+          : 'Scoring profile makes this the strongest current evidence-led option for further diligence'
 
   return [firstLine, supportingLine, contextualLine]
 }
@@ -318,11 +328,17 @@ function boardRisk(candidate: BoardCandidate): string {
 }
 
 function recommendationTradeOff(primary: BoardCandidate, mandateObjective: string | null): string {
-  const explicitTradeOff = primary.comparisonNote?.match(/Recommendation favours[^.]+\\./i)?.[0]
+  const explicitTradeOff = primary.comparisonNote?.match(/Recommendation favours[^.]+\./i)?.[0]
   if (explicitTradeOff) return explicitTradeOff
 
   const objective = mandateObjective?.toLowerCase() ?? ''
-  if (/develop|development|academy|pathway|youth|young|player trading|value creation|player growth/.test(objective)) {
+  if (/brighton|player trading|progressive football|progression/.test(objective)) {
+    return 'Recommendation favours identity continuity and player trading upside over low-risk Premier League familiarity.'
+  }
+  if (/bolton|promotion|stability|efficiency|league one|reliability/.test(objective)) {
+    return 'Recommendation favours promotion reliability and efficiency over high-upside tactical experimentation.'
+  }
+  if (/develop|development|academy|pathway|youth|young|value creation|player growth/.test(objective)) {
     return 'Recommendation favours long-term development upside over immediate Championship certainty.'
   }
   return 'Recommendation balances football upside against appointment realism and execution risk.'
