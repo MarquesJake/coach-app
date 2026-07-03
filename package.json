@@ -4,10 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/validate-build-env.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_REF --schema public > src/lib/types/database.ts"
+    "db:types": "supabase gen types typescript --linked --schema public > src/lib/types/database.ts",
+    "db:types:project": "supabase gen types typescript --project-id $SUPABASE_PROJECT_REF --schema public > src/lib/types/database.ts",
+    "db:types:db-url": "supabase gen types typescript --db-url $SUPABASE_DB_URL --schema public > src/lib/types/database.ts",
+    "db:types:local": "supabase gen types typescript --local --schema public > src/lib/types/database.ts"
   },
   "dependencies": {
     "@radix-ui/react-progress": "^1.1.8",

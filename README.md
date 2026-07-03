@@ -12,6 +12,33 @@ npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase db push
 ```
 
+## Supabase types and build env
+
+Generate database types after schema changes:
+
+```bash
+# Linked project
+npm run db:types
+
+# Explicit project ref
+SUPABASE_PROJECT_REF=YOUR_PROJECT_REF npm run db:types:project
+
+# Direct database URL
+SUPABASE_DB_URL="postgresql://..." npm run db:types:db-url
+
+# Local Supabase
+npm run db:types:local
+```
+
+Local and Vercel builds require:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+`npm run build` validates these before starting the Next.js build.
+
 ## Getting Started
 
 First, run the development server:
