@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { ASSESSMENT_CRITERIA, criterionLabel, methodLabel } from '@/lib/assessment/criteria'
+import { ASSESSMENT_CRITERIA, methodLabel } from '@/lib/assessment/criteria'
 import { calculateGbe } from '@/lib/analysis/gbe'
 import { PrintButton } from './print-button'
 
