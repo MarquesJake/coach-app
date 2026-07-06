@@ -14,6 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_evidence: {
+        Row: {
+          coach_id: string
+          confidence: number | null
+          created_at: string
+          criterion: string
+          detail: string | null
+          id: string
+          mandate_id: string
+          method: string
+          source: string | null
+          title: string
+          used_in_recommendation: boolean
+          user_id: string
+          verification_status: string
+        }
+        Insert: {
+          coach_id: string
+          confidence?: number | null
+          created_at?: string
+          criterion: string
+          detail?: string | null
+          id?: string
+          mandate_id: string
+          method: string
+          source?: string | null
+          title: string
+          used_in_recommendation?: boolean
+          user_id: string
+          verification_status?: string
+        }
+        Update: {
+          coach_id?: string
+          confidence?: number | null
+          created_at?: string
+          criterion?: string
+          detail?: string | null
+          id?: string
+          mandate_id?: string
+          method?: string
+          source?: string | null
+          title?: string
+          used_in_recommendation?: boolean
+          user_id?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_evidence_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_evidence_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_assessments: {
+        Row: {
+          coach_id: string
+          created_at: string
+          criterion: string
+          id: string
+          mandate_id: string
+          score: number | null
+          status: string
+          summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          criterion: string
+          id?: string
+          mandate_id: string
+          score?: number | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          criterion?: string
+          id?: string
+          mandate_id?: string
+          score?: number | null
+          status?: string
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_assessments_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_assessments_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_recommendations: {
+        Row: {
+          coach_id: string
+          confidence: number | null
+          created_at: string
+          id: string
+          key_risks: string | null
+          mandate_id: string
+          mitigation: string | null
+          summary: string | null
+          updated_at: string
+          user_id: string
+          verdict: string | null
+        }
+        Insert: {
+          coach_id: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          key_risks?: string | null
+          mandate_id: string
+          mitigation?: string | null
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+          verdict?: string | null
+        }
+        Update: {
+          coach_id?: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          key_risks?: string | null
+          mandate_id?: string
+          mitigation?: string | null
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
+          verdict?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_recommendations_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_recommendations_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clubs: {
         Row: {
           country: string
@@ -660,6 +834,7 @@ export type Database = {
           board_compatibility: number | null
           build_preference: string
           club_current: string | null
+          coaching_licence: string | null
           cultural_risk: number | null
           financial_feasibility: number | null
           id: string
@@ -726,6 +901,7 @@ export type Database = {
           board_compatibility?: number | null
           build_preference: string
           club_current?: string | null
+          coaching_licence?: string | null
           cultural_risk?: number | null
           financial_feasibility?: number | null
           id?: string
@@ -792,6 +968,7 @@ export type Database = {
           board_compatibility?: number | null
           build_preference?: string
           club_current?: string | null
+          coaching_licence?: string | null
           cultural_risk?: number | null
           financial_feasibility?: number | null
           id?: string

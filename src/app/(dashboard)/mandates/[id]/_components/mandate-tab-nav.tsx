@@ -9,6 +9,7 @@ const tabs = (id: string) => [
   { label: 'Overview', href: `/mandates/${id}` },
   { label: 'Longlist', href: `/mandates/${id}/longlist` },
   { label: 'Shortlist', href: `/mandates/${id}/shortlist` },
+  { label: 'Assessment', href: `/mandates/${id}/assessment` },
 ]
 
 export function MandateTabNav({ mandateId }: { mandateId: string }) {
