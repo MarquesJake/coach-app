@@ -30,6 +30,15 @@ export default async function CandidateAssessmentPage({
     .single()
   if (!mandate) notFound()
 
+  // Assessment runs on shortlisted candidates only.
+  const { data: shortlisted } = await supabase
+    .from('mandate_shortlist')
+    .select('coach_id')
+    .eq('mandate_id', mandateId)
+    .eq('coach_id', coachId)
+    .maybeSingle()
+  if (!shortlisted) notFound()
+
   const { data: coach } = await supabase
     .from('coaches')
     .select('id, name, club_current, nationality, coaching_licence, tactical_identity, preferred_style, availability_status')

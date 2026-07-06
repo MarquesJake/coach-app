@@ -9,6 +9,7 @@ import {
   VERIFICATION_STATUSES,
   RECOMMENDATION_VERDICTS,
 } from '@/lib/assessment/criteria'
+import { canAssessCandidate, type AssessmentAccessClient } from '@/lib/assessment/access'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -28,19 +29,17 @@ async function requireUser() {
   return { supabase, user }
 }
 
-// The mandate and coach must both belong to the caller — RLS enforces this too,
-// but checking here returns a clear error instead of an opaque policy failure.
-async function ownsMandateAndCoach(
+// Assessment runs on shortlisted candidates only. RLS enforces ownership too, but
+// checking here returns a clear error instead of an opaque policy failure and keeps
+// the surface consistent with the overview ("runs on shortlisted candidates").
+// The rule itself lives in @/lib/assessment/access so it can be unit-tested.
+function assessGuard(
   supabase: ReturnType<typeof createServerSupabaseClient>,
   userId: string,
   mandateId: string,
   coachId: string
 ): Promise<boolean> {
-  const [mandate, coach] = await Promise.all([
-    supabase.from('mandates').select('id').eq('id', mandateId).eq('user_id', userId).maybeSingle(),
-    supabase.from('coaches').select('id').eq('id', coachId).eq('user_id', userId).maybeSingle(),
-  ])
-  return Boolean(mandate.data && coach.data)
+  return canAssessCandidate(supabase as unknown as AssessmentAccessClient, userId, mandateId, coachId)
 }
 
 export async function saveAssessmentAction(formData: FormData): Promise<ActionResult> {
@@ -58,8 +57,8 @@ export async function saveAssessmentAction(formData: FormData): Promise<ActionRe
   if (!ASSESSMENT_STATUSES.includes(status as (typeof ASSESSMENT_STATUSES)[number])) {
     return { ok: false, error: 'Unknown status' }
   }
-  if (!(await ownsMandateAndCoach(supabase, user.id, mandateId, coachId))) {
-    return { ok: false, error: 'Mandate or coach not found' }
+  if (!(await assessGuard(supabase, user.id, mandateId, coachId))) {
+    return { ok: false, error: 'Candidate is not on this mandate shortlist' }
   }
 
   const { error } = await supabase.from('candidate_assessments').upsert(
@@ -95,8 +94,8 @@ export async function addEvidenceAction(formData: FormData): Promise<ActionResul
   if (!CRITERION_KEYS.includes(criterion)) return { ok: false, error: 'Unknown criterion' }
   if (!METHOD_KEYS.includes(method)) return { ok: false, error: 'Unknown evidence method' }
   if (!title) return { ok: false, error: 'Evidence needs a title' }
-  if (!(await ownsMandateAndCoach(supabase, user.id, mandateId, coachId))) {
-    return { ok: false, error: 'Mandate or coach not found' }
+  if (!(await assessGuard(supabase, user.id, mandateId, coachId))) {
+    return { ok: false, error: 'Candidate is not on this mandate shortlist' }
   }
 
   const { error } = await supabase.from('assessment_evidence').insert({
@@ -159,6 +158,26 @@ export async function deleteEvidenceAction(formData: FormData): Promise<ActionRe
   return { ok: true }
 }
 
+export async function setEvidenceRecommendationUseAction(formData: FormData): Promise<ActionResult> {
+  const { supabase, user } = await requireUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const evidenceId = String(formData.get('evidence_id') ?? '')
+  const mandateId = String(formData.get('mandate_id') ?? '')
+  const coachId = String(formData.get('coach_id') ?? '')
+  const used = formData.get('used_in_recommendation') === 'true'
+
+  const { error } = await supabase
+    .from('assessment_evidence')
+    .update({ used_in_recommendation: used })
+    .eq('id', evidenceId)
+    .eq('user_id', user.id)
+  if (error) return { ok: false, error: 'Failed to update evidence' }
+
+  revalidatePath(`/mandates/${mandateId}/assessment/${coachId}`)
+  return { ok: true }
+}
+
 export async function saveRecommendationAction(formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireUser()
   if (!user) return { ok: false, error: 'Not authenticated' }
@@ -173,8 +192,8 @@ export async function saveRecommendationAction(formData: FormData): Promise<Acti
   const verdict = verdictRaw === '' ? null : verdictRaw
 
   if (!mandateId || !coachId) return { ok: false, error: 'Missing candidate context' }
-  if (!(await ownsMandateAndCoach(supabase, user.id, mandateId, coachId))) {
-    return { ok: false, error: 'Mandate or coach not found' }
+  if (!(await assessGuard(supabase, user.id, mandateId, coachId))) {
+    return { ok: false, error: 'Candidate is not on this mandate shortlist' }
   }
 
   const { error } = await supabase.from('candidate_recommendations').upsert(

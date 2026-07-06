@@ -16,6 +16,7 @@ import {
   saveAssessmentAction,
   addEvidenceAction,
   setEvidenceVerificationAction,
+  setEvidenceRecommendationUseAction,
   deleteEvidenceAction,
   saveRecommendationAction,
 } from '../../actions'
@@ -324,6 +325,24 @@ export function AssessmentWorkspaceClient({
                     {item.detail && <p className="text-2xs text-muted-foreground mt-1">{item.detail}</p>}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
+                    <form action={submit(setEvidenceRecommendationUseAction)}>
+                      <input type="hidden" name="evidence_id" value={item.id} />
+                      <input type="hidden" name="mandate_id" value={mandateId} />
+                      <input type="hidden" name="coach_id" value={coachId} />
+                      <select
+                        name="used_in_recommendation"
+                        defaultValue={item.used_in_recommendation ? 'true' : 'false'}
+                        onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                        title="Whether this evidence feeds the final recommendation"
+                        className={cn(
+                          'text-2xs bg-surface border border-border rounded px-1.5 py-1',
+                          item.used_in_recommendation ? 'text-foreground' : 'text-amber-300'
+                        )}
+                      >
+                        <option value="true">Counts</option>
+                        <option value="false">Background</option>
+                      </select>
+                    </form>
                     <form action={submit(setEvidenceVerificationAction)}>
                       <input type="hidden" name="evidence_id" value={item.id} />
                       <input type="hidden" name="mandate_id" value={mandateId} />

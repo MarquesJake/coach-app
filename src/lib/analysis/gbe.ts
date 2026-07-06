@@ -6,7 +6,8 @@
 //   Band 1: >= 12 cumulative months in the last 5 years
 //   Band 1-2: >= 24 cumulative months
 //   Band 1-5: >= 36 cumulative months
-// Plus: holds (or is enrolled on) a UEFA Pro Licence.
+// Plus: currently holds a UEFA Pro Licence. Being enrolled on or working towards
+// the Pro Licence does NOT satisfy the requirement and does not pass.
 
 export type GbeStatus = 'Pass' | 'Fail' | 'Insufficient data'
 
@@ -30,9 +31,25 @@ export type GbeResult = {
   breakdown: GbeStintBreakdown[]
 }
 
-// Leagues that never count for GBE regardless of name overlap with banded leagues
-// (youth/reserve/women's competitions, cups, friendlies, "Premier League 2" etc.)
-const DISQUALIFIED_LEAGUE = /women|girls|u\d{2}|youth|academy|reserve|premier league 2|development|cup|trophy|friendly|play.?off/i
+// Leagues that never count for GBE regardless of name overlap with banded leagues:
+// women's, youth/reserve, and non-league competitions (cups, playoffs, friendlies).
+// Kept multilingual because football data mixes languages — "Frauen-Bundesliga",
+// "Serie A Femminile", "Primera Femenina", "Primavera" must all be excluded.
+const DISQUALIFIED_LEAGUE = new RegExp(
+  [
+    // women's football
+    'women', 'ladies', 'girls', 'frauen', 'femmin', 'f(é|e)minin', 'femenin', 'dames', 'kvinn',
+    // youth / development / reserve
+    'youth', 'juvenil', 'primavera', 'jugend', 'academy', 'academ(i|í)a', 'reserve', 'reserv',
+    'development', 'u-?\\d{2}', 'under[-\\s]?\\d{2}', 'sub-?\\d{2}',
+    // second-tier developmental leagues that share a top-flight name
+    'premier league 2', 'pl2',
+    // non-league competitions
+    '\\bcup\\b', 'copa', 'coupe', 'coppa', 'pokal', 'trophy', 'troph(é|e)e', 'super ?cup',
+    'shield', 'friendly', 'amistoso', 'play.?off', 'play.?out', 'relegation',
+  ].join('|'),
+  'i'
+)
 
 // League name -> GBE band lookup. Matched case-insensitively on substrings so
 // common data variants ("Premier League", "English Premier League") resolve.
@@ -45,7 +62,7 @@ const LEAGUE_BANDS: Array<{ pattern: RegExp; band: number }> = [
   { pattern: /serie b/i, band: 3 },
   { pattern: /ligue 2/i, band: 3 },
   { pattern: /la ?liga ?2|segunda/i, band: 3 },
-  { pattern: /brasileir(ã|a)o|serie a brazil|brazilian serie a/i, band: 5 },
+  { pattern: /brasileir|serie a brazil|brazilian serie a|serie a \(brazil\)/i, band: 5 },
   { pattern: /scottish prem/i, band: 3 },
   { pattern: /mls|major league soccer/i, band: 3 },
   { pattern: /liga mx/i, band: 3 },
@@ -148,10 +165,17 @@ export function calculateGbe(
 
   // "UEFA Pro" / "Pro Licence" count; negated phrasings ("No Pro Licence",
   // "working towards Pro") must not.
+  // Requires a held Pro Licence. Negation ("No Pro Licence") and in-progress
+  // phrasing ("working towards the Pro Licence") must fail — but an unrelated "no"
+  // elsewhere ("Pro Licence, no restrictions") must NOT count as negation, so the
+  // negator has to sit immediately before the pro/licence token.
   const licenceText = coachingLicence?.trim() || null
-  const hasProLicence = licenceText === null
+  const licenceLower = licenceText?.toLowerCase() ?? null
+  const hasProLicence = licenceLower === null
     ? null
-    : /\bpro\b/i.test(licenceText) && !/\b(no|not|without|lacks|pending|towards|studying|enrolled)\b/i.test(licenceText)
+    : /\bpro\b/.test(licenceLower)
+      && !/\b(no|not|without|lacks?|awaiting|pending|missing)\s+(the\s+)?(uefa\s+)?(pro\b|a[-\s]?licen|licen)/.test(licenceLower)
+      && !/\b(working\s+towards?|towards?|studying|enrolled|in\s+progress|pursuing|candidate\s+for|expected|completing)\b/.test(licenceLower)
 
   let passRoute: string | null = null
   if (monthsBand1 >= 12) passRoute = '≥ 12 months in a Band 1 league in the last 5 years'

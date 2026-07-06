@@ -28,6 +28,15 @@ export default async function BoardPackPage({
     .single()
   if (!mandate) notFound()
 
+  // Board packs are generated for shortlisted candidates only.
+  const { data: shortlisted } = await supabase
+    .from('mandate_shortlist')
+    .select('coach_id')
+    .eq('mandate_id', mandateId)
+    .eq('coach_id', coachId)
+    .maybeSingle()
+  if (!shortlisted) notFound()
+
   const { data: coach } = await supabase
     .from('coaches')
     .select('id, name, club_current, nationality, date_of_birth, languages, coaching_licence, agent_name, wage_expectation, availability_status, tactical_identity, preferred_style, family_context, relocation_flexibility')
@@ -100,7 +109,30 @@ export default async function BoardPackPage({
   const evidenceRows = evidence.data ?? []
 
   return (
-    <div className="max-w-[860px] mx-auto pb-16 print:max-w-none print:pb-0">
+    <div id="board-pack-root" className="max-w-[860px] mx-auto pb-16 print:max-w-none print:pb-0">
+      {/* Print styling: drop app chrome and flip the dark theme to a light,
+          paper-friendly palette so the dossier prints like a board document, not
+          a raw dark app page. Scoped to print + this subtree only. */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+@media print {
+  aside { display: none !important; }
+  .pl-\\[220px\\] { padding-left: 0 !important; }
+  #board-pack-root {
+    --background: #ffffff; --background-subtle: #f8fafc;
+    --surface: #ffffff; --surface-raised: #ffffff; --surface-overlay: #f1f5f9;
+    --card: #ffffff; --card-foreground: #0f172a;
+    --foreground: #0f172a; --foreground-muted: #475569; --muted-foreground: #475569;
+    --border: #e2e8f0; --border-subtle: #eef2f7;
+  }
+  #board-pack-root, #board-pack-root * {
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+  }
+  @page { margin: 13mm; }
+}`,
+        }}
+      />
       {/* Screen-only toolbar */}
       <div className="print:hidden flex items-center justify-between mb-6">
         <Link
