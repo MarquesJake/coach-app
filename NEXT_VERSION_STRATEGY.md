@@ -162,7 +162,7 @@ Scope test for everything: *if it does not strengthen, qualify, evidence, or pac
 | Phase | Scope | Outcome |
 |---|---|---|
 | **1. Assessment backbone** (~4–6 wks) | 9-criteria data model per mandate-candidate; assessment matrix coverage heatmap; dossier workspace auto-filled from existing data; board-pack PDF in the Riera format; GBE work-permit calculator | The killer demo works end-to-end with curated data |
-| **2. Human evidence modules** | Interview kit (question banks, structured capture, per-criterion rating); references tracker (5 stakeholder banks, pattern + contradiction synthesis); AI-drafted sections with provenance & sign-off | The full methodology runs inside the product |
+| **2. Human evidence modules** | Interview kit (question banks, structured capture, per-criterion rating); references tracker (5 stakeholder banks, pattern + contradiction synthesis); AI-drafted sections with provenance & sign-off. Structured child tables (question item, respondent type, answer, rating, contradiction flag) linked to assessment_evidence rows — evidence stays the coverage seam, per the Codex review. Also from review: contract fields (expiry, current salary, release clauses) and key-staff-likely-to-follow on coaches, to complete the board-pack profile grid | The full methodology runs inside the product |
 | **3. Quantitative layer** | xG pre/post, ELO, PPG-vs-budget, formation usage from API-Football + public sources; squad age & development metrics; transfer-asset ledger | Dossier data pages populate automatically |
 | **4. Sell to organisations** | Orgs/seats/roles, shared mandates, audit trail; landing-page proof upgrade; pricing | Convert demo interest into club contracts |
 
