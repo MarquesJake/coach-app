@@ -36,6 +36,7 @@ export type EvidenceRow = {
   source: string | null
   confidence: number | null
   verification_status: string
+  used_in_recommendation: boolean
   created_at: string
 }
 
@@ -43,6 +44,7 @@ export type RecommendationRow = {
   verdict: string | null
   confidence: number | null
   summary: string | null
+  key_strengths: string | null
   key_risks: string | null
   mitigation: string | null
 }
@@ -315,6 +317,9 @@ export function AssessmentWorkspaceClient({
                       {methodLabel(item.method)}
                       {item.confidence !== null && ` · confidence ${item.confidence}`}
                       {item.source && ` · ${item.source}`}
+                      {!item.used_in_recommendation && (
+                        <span className="ml-1.5 text-amber-300/80">· excluded from recommendation</span>
+                      )}
                     </p>
                     {item.detail && <p className="text-2xs text-muted-foreground mt-1">{item.detail}</p>}
                   </div>
@@ -378,6 +383,10 @@ export function AssessmentWorkspaceClient({
               <input name="detail" placeholder="Detail (optional)" className={inputClass} key={`ev-detail-${selected}`} />
               <input name="confidence" type="number" min={0} max={100} placeholder="Conf." className={inputClass} key={`ev-conf-${selected}`} />
             </div>
+            <select name="used_in_recommendation" defaultValue="true" className={inputClass}>
+              <option value="true">Counts toward recommendation</option>
+              <option value="false">Background only — exclude from recommendation</option>
+            </select>
             <button
               type="submit"
               disabled={isPending}
@@ -417,7 +426,11 @@ export function AssessmentWorkspaceClient({
               <input name="summary" defaultValue={recommendation?.summary ?? ''} placeholder="Overall assessment in one or two sentences" className={inputClass} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Key strengths</label>
+              <textarea name="key_strengths" rows={2} defaultValue={recommendation?.key_strengths ?? ''} className={inputClass} />
+            </div>
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Key risks</label>
               <textarea name="key_risks" rows={2} defaultValue={recommendation?.key_risks ?? ''} className={inputClass} />

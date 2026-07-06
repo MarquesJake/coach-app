@@ -138,6 +138,7 @@ export type Database = {
           created_at: string
           id: string
           key_risks: string | null
+          key_strengths: string | null
           mandate_id: string
           mitigation: string | null
           summary: string | null
@@ -151,6 +152,7 @@ export type Database = {
           created_at?: string
           id?: string
           key_risks?: string | null
+          key_strengths?: string | null
           mandate_id: string
           mitigation?: string | null
           summary?: string | null
@@ -164,6 +166,7 @@ export type Database = {
           created_at?: string
           id?: string
           key_risks?: string | null
+          key_strengths?: string | null
           mandate_id?: string
           mitigation?: string | null
           summary?: string | null

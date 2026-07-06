@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { ASSESSMENT_CRITERIA, methodLabel } from '@/lib/assessment/criteria'
 import { calculateGbe } from '@/lib/analysis/gbe'
+import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { PrintButton } from './print-button'
 
 // Board-ready candidate dossier: structured HTML print view.
@@ -29,40 +30,63 @@ export default async function BoardPackPage({
 
   const { data: coach } = await supabase
     .from('coaches')
-    .select('id, name, club_current, nationality, date_of_birth, languages, coaching_licence, agent_name, wage_expectation, availability_status, tactical_identity, preferred_style')
+    .select('id, name, club_current, nationality, date_of_birth, languages, coaching_licence, agent_name, wage_expectation, availability_status, tactical_identity, preferred_style, family_context, relocation_flexibility')
     .eq('id', coachId)
     .eq('user_id', user.id)
     .single()
   if (!coach) notFound()
 
-  const [assessments, evidence, recommendationRes, stints] = await Promise.all([
-    supabase
-      .from('candidate_assessments')
-      .select('criterion, score, summary, status')
-      .eq('mandate_id', mandateId)
-      .eq('coach_id', coachId),
-    supabase
-      .from('assessment_evidence')
-      .select('criterion, method, title, detail, source, confidence, verification_status')
-      .eq('mandate_id', mandateId)
-      .eq('coach_id', coachId)
-      .order('created_at', { ascending: true }),
-    supabase
-      .from('candidate_recommendations')
-      .select('verdict, confidence, summary, key_risks, mitigation')
-      .eq('mandate_id', mandateId)
-      .eq('coach_id', coachId)
-      .maybeSingle(),
-    supabase
-      .from('coach_stints')
-      .select('club_name, league, role_title, started_on, ended_on, points_per_game')
-      .eq('coach_id', coachId)
-      .order('started_on', { ascending: false }),
-  ])
+  const [assessments, evidence, recommendationRes, stints, tacticalReports, backgroundChecks, references] =
+    await Promise.all([
+      supabase
+        .from('candidate_assessments')
+        .select('criterion, score, summary, status')
+        .eq('mandate_id', mandateId)
+        .eq('coach_id', coachId),
+      supabase
+        .from('assessment_evidence')
+        .select('criterion, method, title, detail, source, confidence, verification_status, used_in_recommendation')
+        .eq('mandate_id', mandateId)
+        .eq('coach_id', coachId)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('candidate_recommendations')
+        .select('verdict, confidence, summary, key_strengths, key_risks, mitigation')
+        .eq('mandate_id', mandateId)
+        .eq('coach_id', coachId)
+        .maybeSingle(),
+      supabase
+        .from('coach_stints')
+        .select('club_name, league, role_title, started_on, ended_on, points_per_game')
+        .eq('coach_id', coachId)
+        .order('started_on', { ascending: false }),
+      supabase
+        .from('coach_tactical_reports')
+        .select('id, match_observed, formation_used, overall_tactical_score')
+        .eq('coach_id', coachId),
+      supabase
+        .from('coach_background_checks')
+        .select('id, media_reputation, overall_risk_rating, last_verified_at')
+        .eq('coach_id', coachId),
+      supabase
+        .from('coach_references')
+        .select('id, reference_name, reference_role, reference_club, rating, summary')
+        .eq('coach_id', coachId),
+    ])
 
   const recommendation = recommendationRes.data
   const assessmentByCriterion = new Map((assessments.data ?? []).map((a) => [a.criterion, a]))
   const gbe = calculateGbe(stints.data ?? [], coach.coaching_licence)
+
+  // The dossier must show the same evidence base the workspace coverage counts:
+  // captured evidence marked for the recommendation, plus auto-derived platform evidence.
+  const derived = deriveEvidence({
+    coach,
+    tacticalReports: tacticalReports.data ?? [],
+    backgroundChecks: backgroundChecks.data ?? [],
+    references: references.data ?? [],
+    stints: stints.data ?? [],
+  })
 
   const clubName =
     (mandate as { custom_club_name?: string | null }).custom_club_name ??
@@ -102,10 +126,27 @@ export default async function BoardPackPage({
         </p>
       </div>
 
-      {/* At a glance */}
+      {/* At a glance — Strengths / Risks / Recommendation, per the target deck format */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">At a glance</h2>
         <div className="grid grid-cols-3 gap-5 mt-3">
+          <div className="border-t-2 border-emerald-500 pt-3">
+            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-600 uppercase">Strengths</p>
+            <p className="text-xs text-muted-foreground mt-2 leading-relaxed whitespace-pre-line">
+              {recommendation?.key_strengths ?? '—'}
+            </p>
+          </div>
+          <div className="border-t-2 border-emerald-500 pt-3">
+            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-600 uppercase">Risks</p>
+            <p className="text-xs text-muted-foreground mt-2 leading-relaxed whitespace-pre-line">
+              {recommendation?.key_risks ?? '—'}
+            </p>
+            {recommendation?.mitigation && (
+              <p className="text-2xs text-muted-foreground/80 mt-2 leading-relaxed whitespace-pre-line">
+                Mitigation: {recommendation.mitigation}
+              </p>
+            )}
+          </div>
           <div className="border-t-2 border-emerald-500 pt-3">
             <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-600 uppercase">Recommendation</p>
             <p className="text-lg font-semibold text-foreground mt-1">
@@ -118,18 +159,6 @@ export default async function BoardPackPage({
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{recommendation.summary}</p>
             )}
           </div>
-          <div className="border-t-2 border-emerald-500 pt-3">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-600 uppercase">Key risks</p>
-            <p className="text-xs text-muted-foreground mt-2 leading-relaxed whitespace-pre-line">
-              {recommendation?.key_risks ?? '—'}
-            </p>
-          </div>
-          <div className="border-t-2 border-emerald-500 pt-3">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-600 uppercase">Mitigation</p>
-            <p className="text-xs text-muted-foreground mt-2 leading-relaxed whitespace-pre-line">
-              {recommendation?.mitigation ?? '—'}
-            </p>
-          </div>
         </div>
       </section>
 
@@ -140,14 +169,23 @@ export default async function BoardPackPage({
         </h2>
         <div className="grid grid-cols-4 gap-4 mt-3">
           {[
-            { label: 'Age', value: age !== null ? String(age) : '—' },
+            {
+              label: 'Date of birth / age',
+              value: coach.date_of_birth
+                ? `${new Date(coach.date_of_birth).toLocaleDateString('en-GB')} / ${age}`
+                : '—',
+            },
             { label: 'Nationality', value: coach.nationality ?? '—' },
             { label: 'Current club', value: coach.club_current ?? 'Unattached' },
             { label: 'Licence', value: coach.coaching_licence ?? 'Not recorded' },
             { label: 'Languages', value: coach.languages?.length ? coach.languages.join(', ') : '—' },
             { label: 'Agent', value: coach.agent_name ?? 'None recorded' },
             { label: 'Wage expectation', value: coach.wage_expectation || '—' },
+            { label: 'Availability', value: coach.availability_status ?? '—' },
+            { label: 'Family situation', value: coach.family_context ?? '—' },
+            { label: 'Relocation', value: coach.relocation_flexibility ?? '—' },
             { label: 'GBE status', value: gbe.status },
+            { label: 'GBE months (B1 / B1–2 / B1–5)', value: `${gbe.monthsBand1} / ${gbe.monthsBand1to2} / ${gbe.monthsBand1to5}` },
           ].map((item) => (
             <div key={item.label} className="border-t-2 border-emerald-500/60 pt-2">
               <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
@@ -197,7 +235,13 @@ export default async function BoardPackPage({
         <div className="mt-3 space-y-5">
           {ASSESSMENT_CRITERIA.map((criterion) => {
             const assessment = assessmentByCriterion.get(criterion.key)
-            const criterionEvidence = evidenceRows.filter((e) => e.criterion === criterion.key)
+            const criterionEvidence = evidenceRows.filter(
+              (e) => e.criterion === criterion.key && e.used_in_recommendation
+            )
+            const excludedCount = evidenceRows.filter(
+              (e) => e.criterion === criterion.key && !e.used_in_recommendation
+            ).length
+            const criterionDerived = derived.filter((d) => d.criterion === criterion.key)
             return (
               <div key={criterion.key} className="print:break-inside-avoid border-t border-border pt-3">
                 <div className="flex items-baseline justify-between">
@@ -212,7 +256,7 @@ export default async function BoardPackPage({
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed whitespace-pre-line">
                   {assessment?.summary ?? 'No conclusive findings recorded.'}
                 </p>
-                {criterionEvidence.length > 0 && (
+                {(criterionEvidence.length > 0 || criterionDerived.length > 0) && (
                   <ul className="mt-2 space-y-1">
                     {criterionEvidence.map((item, i) => (
                       <li key={i} className="text-2xs text-muted-foreground/80 pl-3 border-l border-border">
@@ -224,13 +268,52 @@ export default async function BoardPackPage({
                         {item.verification_status === 'verified' ? ' ✓ verified' : item.verification_status === 'disputed' ? ' ⚠ disputed' : ''}
                       </li>
                     ))}
+                    {criterionDerived.map((item, i) => (
+                      <li key={`d-${i}`} className="text-2xs text-muted-foreground/70 pl-3 border-l border-dashed border-border">
+                        <span className="text-foreground/70">{item.title}</span>
+                        {' — '}
+                        {methodLabel(item.method)}, platform data
+                        {item.detail ? ` (${item.detail})` : ''}
+                      </li>
+                    ))}
                   </ul>
+                )}
+                {excludedCount > 0 && (
+                  <p className="text-2xs text-muted-foreground/50 mt-1.5 pl-3">
+                    {excludedCount} evidence item{excludedCount === 1 ? '' : 's'} on file, excluded from this recommendation.
+                  </p>
                 )}
               </div>
             )
           })}
         </div>
       </section>
+
+      {/* References appendix */}
+      {(references.data ?? []).length > 0 && (
+        <section className="mt-8 print:break-inside-avoid">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
+            References — character &amp; working relationships
+          </h2>
+          <div className="mt-3 space-y-3">
+            {(references.data ?? []).map((ref) => (
+              <div key={ref.id} className="border-l-2 border-emerald-500/60 pl-3">
+                <p className="text-xs font-semibold text-foreground">
+                  {ref.reference_name}
+                  <span className="font-normal text-muted-foreground">
+                    {ref.reference_role ? ` — ${ref.reference_role}` : ''}
+                    {ref.reference_club ? `, ${ref.reference_club}` : ''}
+                    {ref.rating !== null ? ` · rating ${ref.rating}` : ''}
+                  </span>
+                </p>
+                {ref.summary && (
+                  <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">{ref.summary}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Mandate context footer */}
       <section className="mt-10 print:break-inside-avoid border-t-2 border-emerald-500 pt-4">

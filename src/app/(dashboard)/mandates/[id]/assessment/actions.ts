@@ -28,6 +28,21 @@ async function requireUser() {
   return { supabase, user }
 }
 
+// The mandate and coach must both belong to the caller — RLS enforces this too,
+// but checking here returns a clear error instead of an opaque policy failure.
+async function ownsMandateAndCoach(
+  supabase: ReturnType<typeof createServerSupabaseClient>,
+  userId: string,
+  mandateId: string,
+  coachId: string
+): Promise<boolean> {
+  const [mandate, coach] = await Promise.all([
+    supabase.from('mandates').select('id').eq('id', mandateId).eq('user_id', userId).maybeSingle(),
+    supabase.from('coaches').select('id').eq('id', coachId).eq('user_id', userId).maybeSingle(),
+  ])
+  return Boolean(mandate.data && coach.data)
+}
+
 export async function saveAssessmentAction(formData: FormData): Promise<ActionResult> {
   const { supabase, user } = await requireUser()
   if (!user) return { ok: false, error: 'Not authenticated' }
@@ -42,6 +57,9 @@ export async function saveAssessmentAction(formData: FormData): Promise<ActionRe
   if (!CRITERION_KEYS.includes(criterion)) return { ok: false, error: 'Unknown criterion' }
   if (!ASSESSMENT_STATUSES.includes(status as (typeof ASSESSMENT_STATUSES)[number])) {
     return { ok: false, error: 'Unknown status' }
+  }
+  if (!(await ownsMandateAndCoach(supabase, user.id, mandateId, coachId))) {
+    return { ok: false, error: 'Mandate or coach not found' }
   }
 
   const { error } = await supabase.from('candidate_assessments').upsert(
@@ -77,6 +95,9 @@ export async function addEvidenceAction(formData: FormData): Promise<ActionResul
   if (!CRITERION_KEYS.includes(criterion)) return { ok: false, error: 'Unknown criterion' }
   if (!METHOD_KEYS.includes(method)) return { ok: false, error: 'Unknown evidence method' }
   if (!title) return { ok: false, error: 'Evidence needs a title' }
+  if (!(await ownsMandateAndCoach(supabase, user.id, mandateId, coachId))) {
+    return { ok: false, error: 'Mandate or coach not found' }
+  }
 
   const { error } = await supabase.from('assessment_evidence').insert({
     user_id: user.id,
@@ -88,6 +109,7 @@ export async function addEvidenceAction(formData: FormData): Promise<ActionResul
     detail: String(formData.get('detail') ?? '').trim() || null,
     source: String(formData.get('source') ?? '').trim() || null,
     confidence: clampScore(formData.get('confidence')),
+    used_in_recommendation: formData.get('used_in_recommendation') !== 'false',
   })
   if (error) return { ok: false, error: 'Failed to add evidence' }
 
@@ -144,11 +166,16 @@ export async function saveRecommendationAction(formData: FormData): Promise<Acti
   const mandateId = String(formData.get('mandate_id') ?? '')
   const coachId = String(formData.get('coach_id') ?? '')
   const verdictRaw = String(formData.get('verdict') ?? '')
-  const verdict = RECOMMENDATION_VERDICTS.includes(verdictRaw as (typeof RECOMMENDATION_VERDICTS)[number])
-    ? verdictRaw
-    : null
+  // Empty string clears the verdict deliberately; anything else must be a known verdict.
+  if (verdictRaw !== '' && !RECOMMENDATION_VERDICTS.includes(verdictRaw as (typeof RECOMMENDATION_VERDICTS)[number])) {
+    return { ok: false, error: 'Unknown verdict' }
+  }
+  const verdict = verdictRaw === '' ? null : verdictRaw
 
   if (!mandateId || !coachId) return { ok: false, error: 'Missing candidate context' }
+  if (!(await ownsMandateAndCoach(supabase, user.id, mandateId, coachId))) {
+    return { ok: false, error: 'Mandate or coach not found' }
+  }
 
   const { error } = await supabase.from('candidate_recommendations').upsert(
     {
@@ -158,6 +185,7 @@ export async function saveRecommendationAction(formData: FormData): Promise<Acti
       verdict,
       confidence: clampScore(formData.get('confidence')),
       summary: String(formData.get('summary') ?? '').trim() || null,
+      key_strengths: String(formData.get('key_strengths') ?? '').trim() || null,
       key_risks: String(formData.get('key_risks') ?? '').trim() || null,
       mitigation: String(formData.get('mitigation') ?? '').trim() || null,
       updated_at: new Date().toISOString(),

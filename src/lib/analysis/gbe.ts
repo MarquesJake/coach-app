@@ -30,40 +30,46 @@ export type GbeResult = {
   breakdown: GbeStintBreakdown[]
 }
 
+// Leagues that never count for GBE regardless of name overlap with banded leagues
+// (youth/reserve/women's competitions, cups, friendlies, "Premier League 2" etc.)
+const DISQUALIFIED_LEAGUE = /women|girls|u\d{2}|youth|academy|reserve|premier league 2|development|cup|trophy|friendly|play.?off/i
+
 // League name -> GBE band lookup. Matched case-insensitively on substrings so
 // common data variants ("Premier League", "English Premier League") resolve.
+// Order matters: more specific patterns must come before generic ones
+// (e.g. "Austrian Bundesliga" before "Bundesliga", "Serie A Brazil" before "Serie A").
 const LEAGUE_BANDS: Array<{ pattern: RegExp; band: number }> = [
+  // Specific overrides first
+  { pattern: /austrian bundesliga|(?:ö|o)sterreichische bundesliga/i, band: 3 },
+  { pattern: /2\. ?bundesliga/i, band: 3 },
+  { pattern: /serie b/i, band: 3 },
+  { pattern: /ligue 2/i, band: 3 },
+  { pattern: /la ?liga ?2|segunda/i, band: 3 },
+  { pattern: /brasileir(ã|a)o|serie a brazil|brazilian serie a/i, band: 5 },
+  { pattern: /scottish prem/i, band: 3 },
+  { pattern: /mls|major league soccer/i, band: 3 },
+  { pattern: /liga mx/i, band: 3 },
+  { pattern: /swiss super league/i, band: 3 },
   // Band 1
-  { pattern: /premier league(?! ?2)(?!.*(scot|welsh|irish|academy|u21|u23))/i, band: 1 },
-  { pattern: /la ?liga(?! ?2)/i, band: 1 },
-  { pattern: /bundesliga(?! ?2)|(?<!2\. )bundesliga/i, band: 1 },
+  { pattern: /premier league(?!.*(scot|welsh|irish))/i, band: 1 },
+  { pattern: /la ?liga/i, band: 1 },
+  { pattern: /bundesliga/i, band: 1 },
   { pattern: /serie a/i, band: 1 },
   { pattern: /ligue 1/i, band: 1 },
   // Band 2
   { pattern: /championship/i, band: 2 },
   { pattern: /eredivisie/i, band: 2 },
   { pattern: /primeira liga|liga portugal/i, band: 2 },
-  { pattern: /pro league|belgian/i, band: 2 },
-  { pattern: /s(ü|u)per lig/i, band: 2 },
-  // Band 3
-  { pattern: /2\. ?bundesliga/i, band: 3 },
-  { pattern: /serie b/i, band: 3 },
-  { pattern: /ligue 2/i, band: 3 },
-  { pattern: /la ?liga ?2|segunda/i, band: 3 },
-  { pattern: /scottish prem/i, band: 3 },
-  { pattern: /mls|major league soccer/i, band: 3 },
-  { pattern: /liga mx/i, band: 3 },
-  { pattern: /austrian bundesliga/i, band: 3 },
-  { pattern: /swiss super league/i, band: 3 },
+  { pattern: /jupiler|belgian pro league|belgian first division/i, band: 2 },
+  { pattern: /s(ü|u)per lig\b/i, band: 2 },
   // Band 4
   { pattern: /league one/i, band: 4 },
   { pattern: /2\. liga/i, band: 4 },
-  { pattern: /allsvenskan|eliteserien|superligaen|danish/i, band: 4 },
-  { pattern: /czech|croatian|hnl|ekstraklasa/i, band: 4 },
+  { pattern: /allsvenskan|eliteserien|danish superliga|superligaen/i, band: 4 },
+  { pattern: /czech first league|fortuna liga|\bhnl\b|ekstraklasa/i, band: 4 },
   // Band 5
   { pattern: /league two/i, band: 5 },
-  { pattern: /greek|super league greece/i, band: 5 },
-  { pattern: /brasileir(ã|a)o|serie a brazil/i, band: 5 },
+  { pattern: /super league greece|greek super league/i, band: 5 },
   { pattern: /argentin/i, band: 5 },
 ]
 
@@ -72,6 +78,7 @@ const NON_MANAGER_ROLE = /assistant|interim|caretaker|academy|youth|u\d{2}|reser
 
 export function leagueBand(league: string | null | undefined): number | null {
   if (!league) return null
+  if (DISQUALIFIED_LEAGUE.test(league)) return null
   for (const { pattern, band } of LEAGUE_BANDS) {
     if (pattern.test(league)) return band
   }
@@ -139,9 +146,12 @@ export function calculateGbe(
     })
   }
 
-  const hasProLicence = coachingLicence === null || coachingLicence === undefined
+  // "UEFA Pro" / "Pro Licence" count; negated phrasings ("No Pro Licence",
+  // "working towards Pro") must not.
+  const licenceText = coachingLicence?.trim() || null
+  const hasProLicence = licenceText === null
     ? null
-    : /pro/i.test(coachingLicence)
+    : /\bpro\b/i.test(licenceText) && !/\b(no|not|without|lacks|pending|towards|studying|enrolled)\b/i.test(licenceText)
 
   let passRoute: string | null = null
   if (monthsBand1 >= 12) passRoute = '≥ 12 months in a Band 1 league in the last 5 years'

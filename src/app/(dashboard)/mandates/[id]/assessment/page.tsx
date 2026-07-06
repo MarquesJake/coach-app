@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { ASSESSMENT_CRITERIA } from '@/lib/assessment/criteria'
+import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { cn } from '@/lib/utils'
 
 export default async function MandateAssessmentIndexPage({
@@ -53,11 +54,50 @@ export default async function MandateAssessmentIndexPage({
       : Promise.resolve({ data: [] as { coach_id: string; verdict: string | null; confidence: number | null }[] }),
   ])
 
+  // Coverage counts captured evidence plus auto-derived platform evidence,
+  // matching what the per-candidate workspace matrix shows.
+  const [derivedCoaches, allStints, allTactical, allChecks, allRefs] = coachIds.length
+    ? await Promise.all([
+        supabase
+          .from('coaches')
+          .select('id, tactical_identity, preferred_style')
+          .in('id', coachIds),
+        supabase
+          .from('coach_stints')
+          .select('coach_id, club_name, points_per_game, league')
+          .in('coach_id', coachIds),
+        supabase
+          .from('coach_tactical_reports')
+          .select('id, coach_id, match_observed, formation_used, overall_tactical_score')
+          .in('coach_id', coachIds),
+        supabase
+          .from('coach_background_checks')
+          .select('id, coach_id, media_reputation, overall_risk_rating, last_verified_at')
+          .in('coach_id', coachIds),
+        supabase
+          .from('coach_references')
+          .select('id, coach_id, reference_name, reference_role, rating')
+          .in('coach_id', coachIds),
+      ])
+    : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }]
+
   const coverage = new Map<string, Set<string>>()
   for (const row of evidence.data ?? []) {
     const set = coverage.get(row.coach_id) ?? new Set<string>()
     set.add(row.criterion)
     coverage.set(row.coach_id, set)
+  }
+  for (const coach of derivedCoaches.data ?? []) {
+    const derived = deriveEvidence({
+      coach,
+      stints: (allStints.data ?? []).filter((s) => s.coach_id === coach.id),
+      tacticalReports: (allTactical.data ?? []).filter((t) => t.coach_id === coach.id),
+      backgroundChecks: (allChecks.data ?? []).filter((b) => b.coach_id === coach.id),
+      references: (allRefs.data ?? []).filter((r) => r.coach_id === coach.id),
+    })
+    const set = coverage.get(coach.id) ?? new Set<string>()
+    for (const item of derived) set.add(item.criterion)
+    coverage.set(coach.id, set)
   }
   const completeCounts = new Map<string, number>()
   for (const row of assessments.data ?? []) {

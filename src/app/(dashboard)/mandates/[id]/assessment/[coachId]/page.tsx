@@ -47,13 +47,13 @@ export default async function CandidateAssessmentPage({
         .eq('coach_id', coachId),
       supabase
         .from('assessment_evidence')
-        .select('id, criterion, method, title, detail, source, confidence, verification_status, created_at')
+        .select('id, criterion, method, title, detail, source, confidence, verification_status, used_in_recommendation, created_at')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .order('created_at', { ascending: false }),
       supabase
         .from('candidate_recommendations')
-        .select('verdict, confidence, summary, key_risks, mitigation')
+        .select('verdict, confidence, summary, key_strengths, key_risks, mitigation')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .maybeSingle(),

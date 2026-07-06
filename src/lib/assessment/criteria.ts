@@ -8,9 +8,9 @@ export const ASSESSMENT_CRITERIA = [
   { key: 'match_management', num: 4, label: 'Match Management', question: 'Can he read and change games from the touchline?' },
   { key: 'training_management', num: 5, label: 'Training Management', question: 'How does he prepare and improve the team?' },
   { key: 'players_development', num: 6, label: 'Players Development', question: 'Can he improve players and create long-term value?' },
-  { key: 'media_comms', num: 7, label: 'Media & Comms', question: 'Can he communicate, build trust and represent the club?' },
+  { key: 'media_comms', num: 7, label: 'Media & Communication', question: 'Can he communicate, build trust and represent the club?' },
   { key: 'personality_profile', num: 8, label: 'Personality Profile', question: 'Who is he behind the coach, and what risks come with him?' },
-  { key: 'cultural_org_fit', num: 9, label: 'Cultural & Org Fit', question: 'Does he fit who we are, and how likely is he to succeed here?' },
+  { key: 'cultural_org_fit', num: 9, label: 'Cultural & Organisational Fit', question: 'Does he fit who we are, and how likely is he to succeed here?' },
 ] as const
 
 export type CriterionKey = (typeof ASSESSMENT_CRITERIA)[number]['key']
@@ -18,10 +18,10 @@ export type CriterionKey = (typeof ASSESSMENT_CRITERIA)[number]['key']
 export const EVIDENCE_METHODS = [
   { key: 'desktop_research', label: 'Desktop research', short: 'Desk' },
   { key: 'data_analysis', label: 'Data analysis', short: 'Data' },
-  { key: 'ai_generated', label: 'AI-generated', short: 'AI' },
+  { key: 'ai_generated', label: 'AI-generated info', short: 'AI' },
   { key: 'media_review', label: 'Media review', short: 'Media' },
-  { key: 'match_analysis', label: 'Match analysis', short: 'Match' },
-  { key: 'training_observation', label: 'Training observation', short: 'Training' },
+  { key: 'match_analysis', label: 'Match analysis (live & video)', short: 'Match' },
+  { key: 'training_observation', label: 'Training observation (live & video)', short: 'Training' },
   { key: 'candidate_interview', label: 'Candidate interview', short: 'Interview' },
   { key: 'references', label: 'References', short: 'Refs' },
 ] as const
