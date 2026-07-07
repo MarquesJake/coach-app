@@ -145,7 +145,7 @@ export default async function BoardPackPage({
       </div>
 
       {/* Cover */}
-      <div className="rounded-lg print:rounded-none bg-[#101623] text-white px-10 py-14 relative overflow-hidden">
+      <div className="print-keep-color rounded-lg print:rounded-none bg-[#101623] text-white px-10 py-14 relative overflow-hidden">
         <span className="absolute top-6 right-6 bg-emerald-500 text-white text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 rounded-sm">
           CONFIDENTIAL
         </span>

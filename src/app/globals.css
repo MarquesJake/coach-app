@@ -217,3 +217,19 @@ select option {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.14);
 }
+
+/* Print / PDF exports (board packs) must read as standalone documents, not app
+   screens: drop the fixed sidebar and its layout offset so the dossier prints
+   full-width, and force light-on-dark cover fills to keep their colour. */
+@media print {
+  aside {
+    display: none !important;
+  }
+  .pl-\[220px\] {
+    padding-left: 0 !important;
+  }
+  .print-keep-color {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
