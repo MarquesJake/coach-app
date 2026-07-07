@@ -216,8 +216,16 @@ export default async function BoardPackPage({
             { label: 'Availability', value: coach.availability_status ?? '—' },
             { label: 'Family situation', value: coach.family_context ?? '—' },
             { label: 'Relocation', value: coach.relocation_flexibility ?? '—' },
-            { label: 'GBE status', value: gbe.status },
-            { label: 'GBE months (B1 / B1–2 / B1–5)', value: `${gbe.monthsBand1} / ${gbe.monthsBand1to2} / ${gbe.monthsBand1to5}` },
+            {
+              label: 'Work permit (GBE, indicative)',
+              value:
+                gbe.status === 'Pass'
+                  ? 'Auto-pass indicated'
+                  : gbe.status === 'Fail'
+                    ? 'Auto-pass not confirmed'
+                    : 'Requires confirmation',
+            },
+            { label: 'Banded months (B1 / B1–2 / B1–5)', value: `${gbe.monthsBand1} / ${gbe.monthsBand1to2} / ${gbe.monthsBand1to5}` },
           ].map((item) => (
             <div key={item.label} className="border-t-2 border-emerald-500/60 pt-2">
               <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
@@ -225,12 +233,10 @@ export default async function BoardPackPage({
             </div>
           ))}
         </div>
-        {gbe.passRoute && (
-          <p className="text-2xs text-muted-foreground mt-3">GBE route: {gbe.passRoute}</p>
-        )}
-        {gbe.notes.length > 0 && (
-          <p className="text-2xs text-muted-foreground mt-1">{gbe.notes.join(' ')}</p>
-        )}
+        <p className="text-2xs text-muted-foreground/80 mt-3">
+          Work-permit note: {gbe.passRoute ?? 'no GBE auto-pass route confirmed on recorded data'}. Final eligibility
+          requires legal / work-permit confirmation and is not a factor in the footballing assessment below.
+        </p>
       </section>
 
       {/* Career timeline */}
@@ -321,12 +327,12 @@ export default async function BoardPackPage({
         </div>
       </section>
 
-      {/* References appendix */}
-      {(references.data ?? []).length > 0 && (
-        <section className="mt-8 print:break-inside-avoid">
-          <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
-            References — character &amp; working relationships
-          </h2>
+      {/* References appendix — always present so the dossier shape is complete */}
+      <section className="mt-8 print:break-inside-avoid">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
+          References — character &amp; working relationships
+        </h2>
+        {(references.data ?? []).length > 0 ? (
           <div className="mt-3 space-y-3">
             {(references.data ?? []).map((ref) => (
               <div key={ref.id} className="border-l-2 border-emerald-500/60 pl-3">
@@ -344,8 +350,13 @@ export default async function BoardPackPage({
               </div>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <p className="text-2xs text-muted-foreground mt-3">
+            Pending structured references — stakeholder interviews (owners, staff, players, industry, media) are
+            collected in the structured references stage before appointment.
+          </p>
+        )}
+      </section>
 
       {/* Mandate context footer */}
       <section className="mt-10 print:break-inside-avoid border-t-2 border-emerald-500 pt-4">

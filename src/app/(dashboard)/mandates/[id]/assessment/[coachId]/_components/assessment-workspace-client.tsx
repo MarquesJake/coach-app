@@ -117,6 +117,14 @@ export function AssessmentWorkspaceClient({
       })
     }
 
+  // Board-readable summary: what the evidence supports, where the gaps are,
+  // and where the decision stands — legible in ten seconds.
+  const strongCriteria = ASSESSMENT_CRITERIA.filter((c) => {
+    const a = assessmentByCriterion.get(c.key)
+    return a?.status === 'complete' && a.score !== null && a.score >= 70 && coveredCriteria.has(c.key)
+  })
+  const gapCriteria = ASSESSMENT_CRITERIA.filter((c) => !coveredCriteria.has(c.key))
+
   const selectedAssessment = assessmentByCriterion.get(selected)
   const selectedEvidence = evidence.filter((e) => e.criterion === selected)
   const selectedDerived = derived.filter((d) => d.criterion === selected)
@@ -140,21 +148,49 @@ export function AssessmentWorkspaceClient({
           </p>
         </div>
         <div className="card-surface rounded-lg px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">GBE work permit</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Work-permit note</p>
           <p
             className={cn(
-              'text-lg font-semibold mt-0.5',
-              gbe.status === 'Pass' && 'text-emerald-400',
-              gbe.status === 'Fail' && 'text-red-400',
-              gbe.status === 'Insufficient data' && 'text-amber-400'
+              'text-sm font-medium mt-1',
+              gbe.status === 'Pass' ? 'text-emerald-400/90' : 'text-muted-foreground'
             )}
           >
-            {gbe.status}
+            {gbe.status === 'Pass'
+              ? 'GBE auto-pass indicated on recorded data'
+              : gbe.status === 'Fail'
+                ? 'GBE auto-pass not confirmed on recorded data'
+                : 'Requires legal / work-permit confirmation'}
           </p>
           <p className="text-2xs text-muted-foreground mt-0.5">
             {gbe.passRoute ?? (coachingLicence ? `Licence: ${coachingLicence}` : 'Licence not recorded')}
           </p>
         </div>
+      </div>
+
+      {/* Board summary — the ten-second read */}
+      <div className="card-surface rounded-lg px-5 py-3.5 border-l-2 border-primary/60">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto] gap-x-8 gap-y-1.5 items-start">
+          <p className="text-2xs text-muted-foreground">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500/90 mr-2">Strong evidence</span>
+            {strongCriteria.length > 0 ? strongCriteria.map((c) => c.label).join(', ') : 'None assessed yet'}
+          </p>
+          <p className="text-2xs text-muted-foreground">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-500/90 mr-2">Evidence gaps</span>
+            {gapCriteria.length > 0 ? gapCriteria.map((c) => c.label).join(', ') : 'Full coverage'}
+          </p>
+          <p className="text-2xs text-muted-foreground lg:text-right">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mr-2">Decision confidence</span>
+            <span className="text-foreground font-semibold tabular-nums">
+              {recommendation?.confidence !== null && recommendation?.confidence !== undefined ? `${recommendation.confidence}%` : '—'}
+            </span>
+          </p>
+        </div>
+        <p className="text-2xs text-muted-foreground mt-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mr-2">Recommendation</span>
+          {recommendation?.verdict
+            ? `${recommendation.verdict}${recommendation.summary ? ` — ${recommendation.summary}` : ''}`
+            : 'Not yet decided'}
+        </p>
       </div>
 
       {/* Coverage matrix */}
@@ -290,7 +326,7 @@ export function AssessmentWorkspaceClient({
           {selected === 'coach_profile' && (
             <div className="border-t border-border/50 pt-3">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1.5">
-                GBE breakdown — {gbe.status}
+                Work-permit note (GBE, indicative)
               </p>
               <p className="text-2xs text-muted-foreground">
                 Band 1: {gbe.monthsBand1}m · Band 1–2: {gbe.monthsBand1to2}m · Band 1–5: {gbe.monthsBand1to5}m (last 5 years)
@@ -421,7 +457,7 @@ export function AssessmentWorkspaceClient({
       <div className="card-surface rounded-lg p-5">
         <h3 className="text-sm font-semibold text-foreground">Final recommendation</h3>
         <p className="text-2xs text-muted-foreground mt-0.5 mb-3">
-          The conclusion the board pack is built around. Everything above should strengthen or qualify this.
+          Analyst conclusion — structured by the 9-criteria methodology and supported by the evidence above. This is what the board pack is built around.
         </p>
         <form action={submit(saveRecommendationAction)} className="space-y-3">
           <input type="hidden" name="mandate_id" value={mandateId} />
