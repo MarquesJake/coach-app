@@ -46,6 +46,7 @@
 | Match/Training Management unscored | "Deliberate — those criteria require live match and training observation. The methodology stages them after longlisting; it's the next evidence stage, and the module for capturing it is next on the roadmap." |
 | Work-permit note ("auto-pass not confirmed") | "An indicative screen from recorded career data. Final GBE eligibility is a legal confirmation — we keep it visible but secondary, because it qualifies the appointment, it doesn't drive the football judgement." |
 | "Is this all automated?" | "Evidence pull-through is automated; judgement is the analyst's. Boards don't buy an algorithm's opinion — they buy a defensible process. Automation deepens with each module." |
+| "This looks like SaaS / a dashboard" | "Deliberately: the workspace is the operating layer, and the board pack is the board-facing artifact. Clubs need a working system internally, but the output has to feel like a confidential appointment dossier." |
 | "Where's the match data / xG?" | "Phase 3 — quantitative layer on the roadmap. The workflow and evidence architecture come first because that's what makes the data defensible." |
 | Single-user product | "Correct for Phase 1 — organisations, seats and audit trail are the commercial layer, scheduled after the evidence modules." |
 | Slow page / cold start | Pause on the current screen and keep talking; every page is server-rendered and recovers on its own. Don't refresh mid-sentence. |
