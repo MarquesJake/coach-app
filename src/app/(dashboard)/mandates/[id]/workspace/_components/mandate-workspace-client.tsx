@@ -22,6 +22,7 @@ import {
   dismissSuggestion,
   generatePlayerDevelopmentSuggestions,
 } from '../../../actions-suggestions'
+import { displayClubName } from '@/lib/display-names'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1002,7 +1003,7 @@ function ClubBrief({
   stabilityMetrics: StabilityMetrics
 }) {
   const club = mandate.clubs
-  const clubName = mandate.custom_club_name ?? club?.name ?? 'Unknown club'
+  const clubName = displayClubName(mandate.custom_club_name, club?.name)
   const uniqueCoachingHistory = coachingHistory.filter((entry, index, rows) => {
     const key = [
       entry.coach_name,
@@ -1789,7 +1790,7 @@ export function MandateWorkspaceClient({
   const initialRecommendedId = getBoardCandidates(shortlist, longlistEntries).find((candidate) => candidate.source === 'shortlist')?.id
   const [selectedId, setSelectedId] = useState<string | null>(initialRecommendedId ?? shortlist[0]?.id ?? null)
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
-  const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
+  const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
   const shortlistReady = shortlist.filter((c) => ['Shortlist', 'Interview', 'Final'].includes(c.candidate_stage)).length
   const assessmentReady = shortlist.some((c) => (c.recommendation_verdict === 'Proceed' || c.recommendation_verdict === 'Target') && (c.assessment_complete_count ?? 0) >= 6)
   const recommendationStatus =

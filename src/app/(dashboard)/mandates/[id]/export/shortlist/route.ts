@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getMandateDetailForUser } from '@/lib/db/mandate'
+import { displayClubName } from '@/lib/display-names'
 
 function escapeHtml(s: string | null | undefined): string {
   if (s == null) return ''
@@ -53,7 +54,7 @@ export async function GET(
     target_completion_date?: string | null
     pipeline_stage?: string | null
   }
-  const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
+  const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
   const shortlist = ((shortlistResult as { data?: ShortlistRow[] | null })?.data ?? []) as ShortlistRow[]
 
   const html = `<!DOCTYPE html>

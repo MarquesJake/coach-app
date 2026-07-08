@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getStageLabel } from '@/lib/constants/mandateStages'
 import { cn } from '@/lib/utils'
+import { displayClubName } from '@/lib/display-names'
 import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, ChevronRight, Activity, Bell, Plus, Radio, FileText, LockKeyhole, ShieldCheck } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -139,7 +140,7 @@ function actionToneClass(tone: NextAction['tone']) {
 
 function clubName(m: { custom_club_name: string | null; clubs: { name: string | null } | null } | null) {
   if (!m) return 'Unknown'
-  return m.custom_club_name ?? m.clubs?.name ?? 'Unknown club'
+  return displayClubName(m.custom_club_name, m.clubs?.name)
 }
 
 function getMandateNextStep(mandate: MandateRow, flags: RiskFlag[]) {

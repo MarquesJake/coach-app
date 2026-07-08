@@ -10,6 +10,7 @@ import { STAGES, getStageLabel, getStageIndex, isValidPipelineStage, normaliseSt
 import { updateMandateStageAction } from '../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import type { BoardSignal } from '@/lib/db/mandate'
+import { displayClubName } from '@/lib/display-names'
 
 /** Mandate health: visual only. Green = strong longlist depth, Amber = thin shortlist, Red = low match confidence. */
 function mandateHealth(shortlistCount: number): 'green' | 'amber' | 'red' {
@@ -493,7 +494,7 @@ function MandateCard({
   const health = mandateHealth(count)
   const currentIndex = getStageIndex(stageKey)
   const hasNextStage = currentIndex < STAGES.length - 1
-  const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
+  const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
   const { pct: completeness, missing } = mandateCompleteness(mandate)
   const completenessLabel = missing === 0 ? 'Complete' : missing <= 3 ? 'Partial' : 'Needs update'
   const completenessBadgeClass =

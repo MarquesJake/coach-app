@@ -4,6 +4,7 @@ import { ASSESSMENT_CRITERIA, criterionLabel, methodLabel } from '@/lib/assessme
 import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
 import { CombinedFeed } from './_components/combined-feed'
 import type { IntelFeedItem } from './_components/combined-feed'
+import { displayClubName } from '@/lib/display-names'
 
 function safeDate(value: string | null | undefined, fallback: string | null | undefined) {
   return value ?? fallback ?? new Date().toISOString()
@@ -115,7 +116,7 @@ export default async function IntelligencePage() {
 
   const mandates = (mandatesRes.data ?? []).map((m) => {
     const clubName = (m.clubs as { name?: string } | null)?.name
-    return { id: m.id, label: m.custom_club_name || clubName || m.id }
+    return { id: m.id, label: displayClubName(m.custom_club_name, clubName, m.id) }
   })
   const mandateMap = new Map(mandates.map((m) => [m.id, m.label]))
 

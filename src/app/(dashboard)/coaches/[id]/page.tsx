@@ -5,6 +5,7 @@ import { getCoachById } from '@/lib/db/coaches'
 import { OverviewSnapshot } from './_components/overview-snapshot'
 import { getStageLabel } from '@/lib/constants/mandateStages'
 import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
+import { displayClubName } from '@/lib/display-names'
 
 type CoachRecord = Record<string, unknown>
 
@@ -163,7 +164,7 @@ function badgeClass(kind: 'api' | 'manual' | 'current' | 'relation') {
 }
 
 function mandateClubName(entry: MandateRelation): string {
-  return entry.mandate.custom_club_name ?? entry.mandate.clubs?.name ?? 'Confidential mandate'
+  return displayClubName(entry.mandate.custom_club_name, entry.mandate.clubs?.name, 'Confidential mandate')
 }
 
 function materialLabel(value: string): string {

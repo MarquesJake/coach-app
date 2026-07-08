@@ -5,6 +5,7 @@ import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { ASSESSMENT_CRITERIA } from '@/lib/assessment/criteria'
 import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { cn } from '@/lib/utils'
+import { displayClubName } from '@/lib/display-names'
 
 export default async function MandateAssessmentIndexPage({
   params,
@@ -109,10 +110,11 @@ export default async function MandateAssessmentIndexPage({
     (recommendations.data ?? []).map((r) => [r.coach_id, r])
   )
 
-  const clubName =
-    (mandate as { custom_club_name?: string | null }).custom_club_name ??
-    (mandate as { clubs?: { name?: string } | null }).clubs?.name ??
+  const clubName = displayClubName(
+    (mandate as { custom_club_name?: string | null }).custom_club_name,
+    (mandate as { clubs?: { name?: string } | null }).clubs?.name,
     'Mandate'
+  )
 
   const totalCriteria = ASSESSMENT_CRITERIA.length
 

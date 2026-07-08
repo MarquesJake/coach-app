@@ -114,6 +114,29 @@ const ONE_CLICK_DESTINATIONS = new Set([
   'agent_interaction',
 ])
 
+const CAPTURE_PLAYBOOK = [
+  {
+    title: 'Agent route',
+    detail: 'Availability, appetite, compensation range, release clause, staff likely to follow.',
+    destination: 'Profile claim or agent interaction',
+  },
+  {
+    title: 'Football reference',
+    detail: 'What the coach is like on the grass, dressing-room credibility, pressure behaviour.',
+    destination: 'Reference form, then assessment evidence',
+  },
+  {
+    title: 'Coach material',
+    detail: 'Game model deck, training week, session clips, player-development examples.',
+    destination: 'Confidential material',
+  },
+  {
+    title: 'Public signal',
+    detail: 'Interview, podcast, press conference, journalist note, social/media sentiment.',
+    destination: 'Intelligence feed or profile claim',
+  },
+] as const
+
 function formatDate(value: string | null | undefined) {
   if (!value) return '-'
   const date = new Date(value)
@@ -343,6 +366,30 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
             <ShieldCheck className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
             <p className="text-sm font-medium text-foreground">No inbox items in this view</p>
             <p className="mt-1 text-xs text-muted-foreground">Capture a call note, transcript, upload or analyst observation.</p>
+            <div className="mx-auto mt-6 grid max-w-5xl gap-3 px-5 text-left md:grid-cols-2 xl:grid-cols-4">
+              {CAPTURE_PLAYBOOK.map((item) => (
+                <button
+                  key={item.title}
+                  type="button"
+                  onClick={() => {
+                    const type = item.title === 'Agent route'
+                      ? 'agent_call'
+                      : item.title === 'Football reference'
+                        ? 'reference_call'
+                        : item.title === 'Coach material'
+                          ? 'coach_upload'
+                          : 'media_transcript'
+                    update('intake_type', type)
+                    setShowForm(true)
+                  }}
+                  className="rounded-md border border-border bg-background/40 p-3 text-left transition-colors hover:border-primary/35 hover:bg-background/60"
+                >
+                  <p className="text-xs font-semibold text-foreground">{item.title}</p>
+                  <p className="mt-2 text-[11px] leading-5 text-muted-foreground">{item.detail}</p>
+                  <p className="mt-3 text-[10px] font-semibold uppercase tracking-widest text-primary">{item.destination}</p>
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="divide-y divide-border">

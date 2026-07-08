@@ -6,6 +6,7 @@ import { calculateGbe } from '@/lib/analysis/gbe'
 import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { PrintButton } from './print-button'
 import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
+import { displayClubName } from '@/lib/display-names'
 
 // Board-ready Head Coach Assessment Pack: structured HTML print view.
 // Section order mirrors the club-leadership assessment deck format.
@@ -148,10 +149,11 @@ export default async function BoardPackPage({
     stints: stints.data ?? [],
   })
 
-  const clubName =
-    (mandate as { custom_club_name?: string | null }).custom_club_name ??
-    (mandate as { clubs?: { name?: string } | null }).clubs?.name ??
+  const clubName = displayClubName(
+    (mandate as { custom_club_name?: string | null }).custom_club_name,
+    (mandate as { clubs?: { name?: string } | null }).clubs?.name,
     'the club'
+  )
 
   const age = coach.date_of_birth
     ? Math.floor((Date.now() - new Date(coach.date_of_birth).getTime()) / (365.25 * 24 * 3600 * 1000))

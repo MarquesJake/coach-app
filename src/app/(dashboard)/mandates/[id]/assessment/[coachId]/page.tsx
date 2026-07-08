@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MandateTabNav } from '../../_components/mandate-tab-nav'
 import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { calculateGbe } from '@/lib/analysis/gbe'
+import { displayClubName } from '@/lib/display-names'
 import {
   AssessmentWorkspaceClient,
   type AssessmentRow,
@@ -138,10 +139,11 @@ export default async function CandidateAssessmentPage({
 
   const gbe = calculateGbe(stints.data ?? [], coach.coaching_licence)
 
-  const clubName =
-    (mandate as { custom_club_name?: string | null }).custom_club_name ??
-    (mandate as { clubs?: { name?: string } | null }).clubs?.name ??
+  const clubName = displayClubName(
+    (mandate as { custom_club_name?: string | null }).custom_club_name,
+    (mandate as { clubs?: { name?: string } | null }).clubs?.name,
     'Mandate'
+  )
 
   return (
     <div className="max-w-[1200px] mx-auto">

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { IntelligenceInboxClient, type IntelligenceInboxItem } from '../_components/intelligence-inbox-client'
+import { displayClubName } from '@/lib/display-names'
 
 export default async function IntelligenceInboxPage() {
   const supabase = createServerSupabaseClient()
@@ -34,7 +35,7 @@ export default async function IntelligenceInboxPage() {
   }))
   const mandates = (mandatesRes.data ?? []).map((mandate) => {
     const clubName = (mandate.clubs as { name?: string } | null)?.name
-    return { id: mandate.id, label: mandate.custom_club_name || clubName || mandate.id }
+    return { id: mandate.id, label: displayClubName(mandate.custom_club_name, clubName, mandate.id) }
   })
 
   const coachMap = new Map(coaches.map((coach) => [coach.id, coach.name]))

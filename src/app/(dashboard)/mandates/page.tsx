@@ -10,6 +10,7 @@ import { getMandatesForUser, getMandateBoardSignals } from '@/lib/db/mandate'
 import type { BoardSignal } from '@/lib/db/mandate'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createDemoMandateAction } from './actions'
+import { displayClubName } from '@/lib/display-names'
 
 type MandatesForUserRow = NonNullable<Awaited<ReturnType<typeof getMandatesForUser>>['data']>[number]
 
@@ -60,6 +61,13 @@ export default async function MandatesPage() {
     signal: signalMap.get(m.id) ?? null,
   }))
 
+  const displayReadyMandates = forBoard.map((mandate) => ({
+    ...mandate,
+    custom_club_name: mandate.custom_club_name
+      ? displayClubName(mandate.custom_club_name, mandate.clubs?.name)
+      : mandate.custom_club_name,
+  }))
+
   return (
     <div className="w-full flex flex-col min-h-0" style={{ height: 'calc(100vh - 8rem)' }}>
       <RealtimeMandatesListSubscriber />
@@ -102,7 +110,7 @@ export default async function MandatesPage() {
         </div>
       ) : (
         <div className="flex-1 min-h-0 flex flex-col">
-          <MandatesBoard initialMandates={forBoard} />
+          <MandatesBoard initialMandates={displayReadyMandates} />
         </div>
       )}
     </div>

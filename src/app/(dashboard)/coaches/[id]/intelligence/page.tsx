@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CoachIntelligenceClient } from './_components/coach-intelligence-client'
+import { displayClubName } from '@/lib/display-names'
 
 export default async function CoachIntelligencePage({ params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient()
@@ -29,7 +30,7 @@ export default async function CoachIntelligencePage({ params }: { params: { id: 
 
   const mandates = (mandatesRes.data ?? []).map((m) => {
     const clubName = (m.clubs as { name?: string } | null)?.name
-    const label = m.custom_club_name || clubName || m.id
+    const label = displayClubName(m.custom_club_name, clubName, m.id)
     return { id: m.id, label }
   })
 

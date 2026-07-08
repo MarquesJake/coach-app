@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CareerTab } from './_components/career-tab'
 import { getStageLabel } from '@/lib/constants/mandateStages'
+import { displayClubName } from '@/lib/display-names'
 
 // ── Pipeline stage badge colour ───────────────────────────────────────────
 function stageBadgeClass(stage: string | null): string {
@@ -114,7 +115,7 @@ export default async function CoachCareerPage({ params }: { params: { id: string
             {mandatePresence.map((entry) => {
               const mandate = entry.mandates
               if (!mandate) return null
-              const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
+              const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
               const dotCls = fitDotClass([entry.fit_tactical, entry.fit_level, entry.fit_cultural])
               return (
                 <li key={entry.id} className="flex items-center justify-between gap-3">

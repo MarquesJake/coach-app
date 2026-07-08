@@ -18,6 +18,7 @@ import { MANDATE_PIPELINE_STAGES, getStageIndex, getStageLabel } from '@/lib/con
 import { cn } from '@/lib/utils'
 import { Timeline } from '@/components/ui/timeline'
 import { MandateTabNav } from './_components/mandate-tab-nav'
+import { displayClubName } from '@/lib/display-names'
 
 type ShortlistRow = {
   id: string
@@ -116,6 +117,7 @@ export default async function MandateDetailPage({
     description: row.description,
     created_at: row.created_at,
   }))
+  const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-5">
@@ -134,7 +136,7 @@ export default async function MandateDetailPage({
       <div className="card-surface rounded p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-foreground">{mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'}</h1>
+            <h1 className="text-xl font-bold text-foreground">{clubName}</h1>
             <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">
               {(mandate.clubs?.league ?? (mandate.custom_club_name ? '—' : 'Unknown league'))} · {mandate.status} · {mandate.priority} priority
             </p>

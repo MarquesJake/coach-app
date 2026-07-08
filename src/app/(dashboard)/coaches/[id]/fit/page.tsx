@@ -5,6 +5,7 @@ import { getMandatesForUser } from '@/lib/db/mandate'
 import { getEvidenceCountForCoach } from '@/lib/db/fit'
 import { computeCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-completeness'
 import { FitClient } from './_components/fit-client'
+import { displayClubName } from '@/lib/display-names'
 
 export default async function CoachFitPage({ params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient()
@@ -17,7 +18,7 @@ export default async function CoachFitPage({ params }: { params: { id: string } 
   const { data: mandatesList } = await getMandatesForUser(user.id)
   const mandates = (mandatesList ?? []).map((m: { id: string; custom_club_name?: string | null; clubs?: { name?: string | null } | null }) => ({
     id: m.id,
-    label: (m.custom_club_name || (m.clubs as { name?: string } | null)?.name) || 'Mandate',
+    label: displayClubName(m.custom_club_name, (m.clubs as { name?: string } | null)?.name, 'Mandate'),
   }))
 
   const evidenceCount = await getEvidenceCountForCoach(user.id, params.id)
