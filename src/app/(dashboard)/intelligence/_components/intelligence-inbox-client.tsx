@@ -175,6 +175,9 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialEntity = searchParams.get('entity')
+  const initialSourceType = searchParams.get('sourceType')
+  const initialSourceTier = searchParams.get('sourceTier')
+  const initialSensitivity = searchParams.get('sensitivity')
   const [showForm, setShowForm] = useState(Boolean(searchParams.get('headline') || searchParams.get('clubId') || searchParams.get('coachId')))
   const [submitting, setSubmitting] = useState(false)
   const [statusFilter, setStatusFilter] = useState('open')
@@ -191,13 +194,13 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
     headline: searchParams.get('headline') || '',
     raw_detail: '',
     extracted_signal: '',
-    source_type: 'agent',
+    source_type: initialSourceType && SOURCE_TYPES.some((type) => type.key === initialSourceType) ? initialSourceType : 'agent',
     source_name: '',
-    source_tier: '2',
+    source_tier: initialSourceTier && SOURCE_TIERS.some((tier) => tier.key === initialSourceTier) ? initialSourceTier : '2',
     source_link: '',
     source_recorded_at: new Date().toISOString().slice(0, 16),
     channel: '',
-    sensitivity: 'standard',
+    sensitivity: initialSensitivity && SENSITIVITY_LEVELS.some((level) => level.key === initialSensitivity) ? initialSensitivity : 'standard',
     verification_status: 'single_source',
     review_status: 'triage',
     confidence: '',

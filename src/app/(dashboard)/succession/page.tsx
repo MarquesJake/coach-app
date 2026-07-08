@@ -35,7 +35,10 @@ function captureHref(club: SuccessionClub) {
   const search = new URLSearchParams({
     entity: 'club',
     clubId: club.id,
-    intake: 'analyst_note',
+    intake: 'club_meeting',
+    sourceType: 'club',
+    sourceTier: '1',
+    sensitivity: 'confidential',
     destination: 'intelligence_item',
     headline: `${displayClubName(club.name, null)} succession signal`,
   })
@@ -108,7 +111,7 @@ export default async function SuccessionRadarPage() {
             </p>
           </div>
           <Link
-            href="/intelligence/inbox?entity=club&intake=analyst_note&destination=intelligence_item"
+            href="/intelligence/inbox?entity=club&intake=club_meeting&sourceType=club&sourceTier=1&sensitivity=confidential&destination=intelligence_item"
             className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           >
             <FileInput className="h-3.5 w-3.5" />
