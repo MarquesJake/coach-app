@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowRight, CheckCircle2, ClipboardList, FileInput, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -173,16 +173,22 @@ function destinationHref(item: IntelligenceInboxItem) {
 
 export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandates }: Props) {
   const router = useRouter()
-  const [showForm, setShowForm] = useState(false)
+  const searchParams = useSearchParams()
+  const initialEntity = searchParams.get('entity')
+  const [showForm, setShowForm] = useState(Boolean(searchParams.get('headline') || searchParams.get('clubId') || searchParams.get('coachId')))
   const [submitting, setSubmitting] = useState(false)
   const [statusFilter, setStatusFilter] = useState('open')
   const [typeFilter, setTypeFilter] = useState('')
-  const [entityMode, setEntityMode] = useState<'coach' | 'club' | 'mandate' | 'agent' | 'none'>('coach')
+  const [entityMode, setEntityMode] = useState<'coach' | 'club' | 'mandate' | 'agent' | 'none'>(
+    initialEntity === 'club' || initialEntity === 'mandate' || initialEntity === 'agent' || initialEntity === 'none'
+      ? initialEntity
+      : 'coach'
+  )
   const [selectedCriteria, setSelectedCriteria] = useState<string[]>([])
   const [selectedMethods, setSelectedMethods] = useState<string[]>([])
   const [form, setForm] = useState({
-    intake_type: 'agent_call',
-    headline: '',
+    intake_type: searchParams.get('intake') || 'agent_call',
+    headline: searchParams.get('headline') || '',
     raw_detail: '',
     extracted_signal: '',
     source_type: 'agent',
@@ -196,11 +202,11 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
     review_status: 'triage',
     confidence: '',
     direction: '',
-    coach_id: '',
-    club_id: '',
-    mandate_id: '',
-    agent_id: '',
-    suggested_destination: 'intelligence_item',
+    coach_id: searchParams.get('coachId') || '',
+    club_id: searchParams.get('clubId') || '',
+    mandate_id: searchParams.get('mandateId') || '',
+    agent_id: searchParams.get('agentId') || '',
+    suggested_destination: searchParams.get('destination') || 'intelligence_item',
     commercial_surface: 'subscription_intelligence',
     analyst_notes: '',
     next_action: '',

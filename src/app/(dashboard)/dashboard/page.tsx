@@ -702,12 +702,15 @@ export default async function DashboardPage() {
         <div className="card-surface rounded-lg overflow-hidden">
           <div className="px-4 py-3.5 border-b border-border">
             <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Warm pipeline</h2>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Pre-vacancy mandates</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Pre-vacancy planning and succession signals</p>
           </div>
           {warmPipeline.length === 0 ? (
             <div className="px-4 py-6 text-center">
               <p className="text-xs font-medium text-foreground">No succession watchlist</p>
-              <p className="mt-1 text-[10px] text-muted-foreground">Use identified or board approved mandates to track likely future searches.</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Use Succession Radar to track clubs before a formal search opens.</p>
+              <Link href="/succession" className="mt-3 inline-flex text-[10px] font-semibold uppercase tracking-widest text-primary hover:underline">
+                Open radar
+              </Link>
             </div>
           ) : (
             <div className="divide-y divide-border/50">

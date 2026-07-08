@@ -18,11 +18,13 @@ import {
   GitCompare,
   SlidersHorizontal,
   ShieldCheck,
+  Activity,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const workspaceNav = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Succession', href: '/succession', icon: Activity },
   { label: 'Mandates', href: '/mandates', icon: Briefcase },
   { label: 'Coach Portal', href: '/coach-portal', icon: ShieldCheck },
 ]
