@@ -67,8 +67,28 @@ export type SuccessionCoach = {
   intelligence_confidence: number | null
 }
 
+export type SuccessionPlan = {
+  id: string
+  club_id: string
+  linked_mandate_id: string | null
+  status: string
+  priority: string
+  owner_name: string | null
+  next_review_date: string | null
+  manager_security: string | null
+  succession_timeline: string | null
+  desired_archetype: string | null
+  board_signal: string | null
+  risk_triggers: string[]
+  target_profile: unknown
+  notes: string | null
+  last_signal_at: string | null
+  updated_at: string
+}
+
 export type RadarClub = {
   club: SuccessionClub
+  plan: SuccessionPlan | null
   score: number
   band: 'urgent' | 'watch' | 'nurture'
   archetype: string
@@ -323,6 +343,7 @@ export function buildSuccessionRadar(params: {
   intelligence: SuccessionIntelSignal[]
   inbox: SuccessionInboxSignal[]
   coaches: SuccessionCoach[]
+  plans?: SuccessionPlan[]
 }) {
   const mandatesByClub = new Map<string, SuccessionMandateSignal[]>()
   for (const mandate of params.mandates) {
@@ -342,7 +363,13 @@ export function buildSuccessionRadar(params: {
     inboxByClub.set(item.club_id, [...(inboxByClub.get(item.club_id) ?? []), item])
   }
 
+  const plansByClub = new Map<string, SuccessionPlan>()
+  for (const plan of params.plans ?? []) {
+    plansByClub.set(plan.club_id, plan)
+  }
+
   return params.clubs.map((club): RadarClub => {
+    const savedPlan = plansByClub.get(club.id) ?? null
     const clubMandates = mandatesByClub.get(club.id) ?? []
     const warmMandate = clubMandates.find((m) => ['identified', 'board_approved'].includes(m.pipeline_stage ?? '')) ?? null
     const intel = intelByClub.get(club.id) ?? []
@@ -356,6 +383,9 @@ export function buildSuccessionRadar(params: {
     const risk = text(club.instability_risk)
     const boardRisk = text(club.board_risk_tolerance)
     const mediaPressure = text(club.media_pressure)
+    const planStatus = text(savedPlan?.status)
+    const planPriority = text(savedPlan?.priority)
+    const managerSecurity = text(savedPlan?.manager_security)
 
     if (warmMandate) {
       score += 28
@@ -372,6 +402,18 @@ export function buildSuccessionRadar(params: {
     if (includesAny(mediaPressure, ['high', 'extreme'])) {
       score += 12
       rationale.push('media pressure raises appointment risk')
+    }
+    if (includesAny(planStatus, ['active_planning', 'mandate_ready'])) {
+      score += 18
+      rationale.push('saved succession plan is active')
+    }
+    if (includesAny(planPriority, ['urgent', 'high'])) {
+      score += planPriority === 'urgent' ? 18 : 12
+      rationale.push('saved plan priority requires attention')
+    }
+    if (includesAny(managerSecurity, ['at_risk', 'vacant'])) {
+      score += managerSecurity === 'vacant' ? 24 : 18
+      rationale.push('manager security signal is live')
     }
     if (!club.current_manager) {
       score += 10
@@ -394,7 +436,7 @@ export function buildSuccessionRadar(params: {
       rationale.push('some source intelligence is stale')
     }
 
-    const archetype = successionArchetype(club)
+    const archetype = savedPlan?.desired_archetype || successionArchetype(club)
     const mandateDefaults = mandateDefaultsForClub(club, archetype)
     const suggestedCoaches = params.coaches
       .map((coach) => {
@@ -417,6 +459,7 @@ export function buildSuccessionRadar(params: {
     return {
       club,
       score: Math.max(0, Math.min(100, score)),
+      plan: savedPlan,
       band,
       archetype,
       mandateDefaults,

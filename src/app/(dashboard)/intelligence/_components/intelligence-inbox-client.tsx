@@ -37,6 +37,10 @@ export type IntelligenceInboxItem = {
   source_tier: string | null
   source_link: string | null
   source_recorded_at: string | null
+  source_expires_at: string | null
+  source_proximity: string | null
+  board_visibility: string
+  contradiction_status: string
   channel: string | null
   sensitivity: string
   verification_status: string
@@ -199,6 +203,10 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
     source_tier: initialSourceTier && SOURCE_TIERS.some((tier) => tier.key === initialSourceTier) ? initialSourceTier : '2',
     source_link: '',
     source_recorded_at: new Date().toISOString().slice(0, 16),
+    source_expires_at: '',
+    source_proximity: '',
+    board_visibility: 'internal_only',
+    contradiction_status: 'none',
     channel: '',
     sensitivity: initialSensitivity && SENSITIVITY_LEVELS.some((level) => level.key === initialSensitivity) ? initialSensitivity : 'standard',
     verification_status: 'single_source',
@@ -259,6 +267,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
       mandate_id: entityMode === 'mandate' ? form.mandate_id : null,
       agent_id: entityMode === 'agent' ? form.agent_id : null,
       source_recorded_at: form.source_recorded_at ? new Date(form.source_recorded_at).toISOString() : null,
+      source_expires_at: form.source_expires_at ? new Date(form.source_expires_at).toISOString() : null,
     })
     setSubmitting(false)
     if (result.error) {
@@ -590,6 +599,31 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
               </Field>
               <Field label="Recorded at">
                 <input type="datetime-local" value={form.source_recorded_at} onChange={(event) => update('source_recorded_at', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" />
+              </Field>
+            </div>
+
+            <div className="mt-3 grid gap-3 md:grid-cols-4">
+              <Field label="Source expires">
+                <input type="date" value={form.source_expires_at} onChange={(event) => update('source_expires_at', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" />
+              </Field>
+              <Field label="Source proximity">
+                <input value={form.source_proximity} onChange={(event) => update('source_proximity', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="e.g. board direct, agent close, media" />
+              </Field>
+              <Field label="Board visibility">
+                <select value={form.board_visibility} onChange={(event) => update('board_visibility', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
+                  <option value="internal_only">Internal only</option>
+                  <option value="anonymised">Anonymised</option>
+                  <option value="board_ready">Board-ready</option>
+                  <option value="legal_review">Legal review</option>
+                </select>
+              </Field>
+              <Field label="Contradiction">
+                <select value={form.contradiction_status} onChange={(event) => update('contradiction_status', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
+                  <option value="none">None</option>
+                  <option value="supports_existing">Supports existing</option>
+                  <option value="contradicts_existing">Contradicts existing</option>
+                  <option value="needs_resolution">Needs resolution</option>
+                </select>
               </Field>
             </div>
 

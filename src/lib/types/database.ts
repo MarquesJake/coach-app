@@ -2038,6 +2038,10 @@ export type Database = {
           source_link: string | null
           source_tier: string | null
           source_notes: string | null
+          source_expires_at: string | null
+          source_proximity: string | null
+          board_visibility: string
+          contradiction_status: string
           confidence: number | null
           occurred_at: string | null
           created_at: string
@@ -2062,6 +2066,10 @@ export type Database = {
           source_link?: string | null
           source_tier?: string | null
           source_notes?: string | null
+          source_expires_at?: string | null
+          source_proximity?: string | null
+          board_visibility?: string
+          contradiction_status?: string
           confidence?: number | null
           occurred_at?: string | null
           created_at?: string
@@ -2086,6 +2094,10 @@ export type Database = {
           source_link?: string | null
           source_tier?: string | null
           source_notes?: string | null
+          source_expires_at?: string | null
+          source_proximity?: string | null
+          board_visibility?: string
+          contradiction_status?: string
           confidence?: number | null
           occurred_at?: string | null
           created_at?: string
@@ -2113,6 +2125,10 @@ export type Database = {
           source_tier: string | null
           source_link: string | null
           source_recorded_at: string | null
+          source_expires_at: string | null
+          source_proximity: string | null
+          board_visibility: string
+          contradiction_status: string
           channel: string | null
           sensitivity: string
           verification_status: string
@@ -2152,6 +2168,10 @@ export type Database = {
           source_tier?: string | null
           source_link?: string | null
           source_recorded_at?: string | null
+          source_expires_at?: string | null
+          source_proximity?: string | null
+          board_visibility?: string
+          contradiction_status?: string
           channel?: string | null
           sensitivity?: string
           verification_status?: string
@@ -2191,6 +2211,10 @@ export type Database = {
           source_tier?: string | null
           source_link?: string | null
           source_recorded_at?: string | null
+          source_expires_at?: string | null
+          source_proximity?: string | null
+          board_visibility?: string
+          contradiction_status?: string
           channel?: string | null
           sensitivity?: string
           verification_status?: string
@@ -2699,6 +2723,75 @@ export type Database = {
             referencedRelation: "mandates"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      succession_plans: {
+        Row: {
+          id: string
+          user_id: string
+          org_id: string | null
+          club_id: string
+          linked_mandate_id: string | null
+          status: string
+          priority: string
+          owner_name: string | null
+          next_review_date: string | null
+          manager_security: string | null
+          succession_timeline: string | null
+          desired_archetype: string | null
+          board_signal: string | null
+          risk_triggers: string[]
+          target_profile: Json
+          notes: string | null
+          last_signal_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          org_id?: string | null
+          club_id: string
+          linked_mandate_id?: string | null
+          status?: string
+          priority?: string
+          owner_name?: string | null
+          next_review_date?: string | null
+          manager_security?: string | null
+          succession_timeline?: string | null
+          desired_archetype?: string | null
+          board_signal?: string | null
+          risk_triggers?: string[]
+          target_profile?: Json
+          notes?: string | null
+          last_signal_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          org_id?: string | null
+          club_id?: string
+          linked_mandate_id?: string | null
+          status?: string
+          priority?: string
+          owner_name?: string | null
+          next_review_date?: string | null
+          manager_security?: string | null
+          succession_timeline?: string | null
+          desired_archetype?: string | null
+          board_signal?: string | null
+          risk_triggers?: string[]
+          target_profile?: Json
+          notes?: string | null
+          last_signal_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: 'succession_plans_club_id_fkey'; columns: ['club_id']; isOneToOne: false; referencedRelation: 'clubs'; referencedColumns: ['id'] },
+          { foreignKeyName: 'succession_plans_linked_mandate_id_fkey'; columns: ['linked_mandate_id']; isOneToOne: false; referencedRelation: 'mandates'; referencedColumns: ['id'] },
         ]
       }
       mandates: {

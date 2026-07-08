@@ -11,9 +11,10 @@ import {
   type SuccessionInboxSignal,
   type SuccessionIntelSignal,
   type SuccessionMandateSignal,
+  type SuccessionPlan,
 } from '@/lib/succession/radar'
 import { cn } from '@/lib/utils'
-import { convertSuccessionPlanToMandateAction } from '../actions'
+import { convertSuccessionPlanToMandateAction, saveSuccessionPlanAction } from '../actions'
 
 function captureHref(club: SuccessionClub) {
   const search = new URLSearchParams({
@@ -67,7 +68,7 @@ export default async function SuccessionPlanPage({
 
   const clubId = params.clubId
 
-  const [clubRes, mandatesRes, intelRes, inboxRes, coachesRes] = await Promise.all([
+  const [clubRes, mandatesRes, intelRes, inboxRes, coachesRes, plansRes] = await Promise.all([
     supabase
       .from('clubs')
       .select('id, name, league, country, tier, current_manager, board_risk_tolerance, strategic_priority, media_pressure, development_vs_win_now, environment_assessment, instability_risk, tactical_model, pressing_model, build_model, market_reputation')
@@ -83,7 +84,7 @@ export default async function SuccessionPlanPage({
       .limit(10),
     supabase
       .from('intelligence_items')
-      .select('id, entity_id, title, detail, category, direction, confidence, occurred_at, verified, source_type, source_name, sensitivity')
+      .select('id, entity_id, title, detail, category, direction, confidence, occurred_at, verified, source_type, source_name, sensitivity, source_expires_at, source_proximity, board_visibility, contradiction_status')
       .eq('user_id', user.id)
       .eq('entity_type', 'club')
       .eq('entity_id', clubId)
@@ -102,6 +103,12 @@ export default async function SuccessionPlanPage({
       .select('id, name, club_current, nationality, available_status, availability_status, market_status, tactical_identity, preferred_style, pressing_intensity, build_preference, player_development_model, academy_integration, leadership_style, overall_manual_score, intelligence_confidence')
       .eq('user_id', user.id)
       .limit(500),
+    supabase
+      .from('succession_plans')
+      .select('id, club_id, linked_mandate_id, status, priority, owner_name, next_review_date, manager_security, succession_timeline, desired_archetype, board_signal, risk_triggers, target_profile, notes, last_signal_at, updated_at')
+      .eq('user_id', user.id)
+      .eq('club_id', clubId)
+      .limit(1),
   ])
 
   if (clubRes.error || !clubRes.data) redirect('/succession?error=Club+not+found')
@@ -112,10 +119,12 @@ export default async function SuccessionPlanPage({
     intelligence: (intelRes.data ?? []) as SuccessionIntelSignal[],
     inbox: (inboxRes.data ?? []) as SuccessionInboxSignal[],
     coaches: (coachesRes.data ?? []) as SuccessionCoach[],
+    plans: (plansRes.data ?? []) as SuccessionPlan[],
   })
 
   const clubName = displayClubName(plan.club.name, null)
   const defaults = plan.mandateDefaults
+  const savedPlan = plan.plan
   const activeMandate = (mandatesRes.data ?? []).find((mandate) => mandate.pipeline_stage !== 'closed')
   const intelligence = intelRes.data ?? []
   const inbox = inboxRes.data ?? []
@@ -127,6 +136,7 @@ export default async function SuccessionPlanPage({
     !plan.club.current_manager ? 'Current manager status is not confirmed in platform data' : null,
     !plan.club.environment_assessment ? 'Environment and ownership dynamics need a football-person read' : null,
     !plan.club.market_reputation ? 'Market reputation and agent temperature need checking' : null,
+    !savedPlan ? 'No saved succession plan owner or review cadence yet' : null,
   ].filter(Boolean) as string[]
 
   return (
@@ -173,6 +183,8 @@ export default async function SuccessionPlanPage({
               <span className="rounded bg-muted px-2 py-1">{[plan.club.league, plan.club.country].filter(Boolean).join(' · ') || 'League context pending'}</span>
               <span className="rounded bg-muted px-2 py-1">{plan.club.current_manager ? `Manager: ${plan.club.current_manager}` : 'Manager not confirmed'}</span>
               <span className="rounded bg-primary/10 px-2 py-1 text-primary">{bandLabel(plan)}</span>
+              {savedPlan && <span className="rounded bg-muted px-2 py-1">Plan: {savedPlan.status.replaceAll('_', ' ')}</span>}
+              {savedPlan?.next_review_date && <span className="rounded bg-muted px-2 py-1">Review: {savedPlan.next_review_date}</span>}
             </div>
           </div>
           <div className="rounded-md border border-border bg-background/40 p-4">
@@ -274,6 +286,14 @@ export default async function SuccessionPlanPage({
                   </div>
                   {item.detail && <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.detail}</p>}
                   <p className="mt-2 text-[10px] text-muted-foreground">{[item.source_type, item.source_name, item.sensitivity].filter(Boolean).join(' · ')}</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    {[
+                      item.source_proximity ? `Proximity: ${item.source_proximity}` : null,
+                      item.board_visibility ? `Board: ${item.board_visibility.replaceAll('_', ' ')}` : null,
+                      item.contradiction_status && item.contradiction_status !== 'none' ? `Contradiction: ${item.contradiction_status.replaceAll('_', ' ')}` : null,
+                      item.source_expires_at ? `Expires: ${new Date(item.source_expires_at).toISOString().slice(0, 10)}` : null,
+                    ].filter(Boolean).join(' · ')}
+                  </p>
                 </div>
               ))}
             </div>
@@ -281,6 +301,76 @@ export default async function SuccessionPlanPage({
         </div>
 
         <aside className="space-y-4">
+          <form action={saveSuccessionPlanAction} className="rounded-lg border border-border bg-card p-4">
+            <input type="hidden" name="club_id" value={plan.club.id} />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Saved succession plan</p>
+            <div className="mt-3 grid gap-3">
+              <label className="space-y-1">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Status</span>
+                <select name="status" defaultValue={savedPlan?.status ?? 'watching'} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground">
+                  <option value="watching">Watching</option>
+                  <option value="active_planning">Active planning</option>
+                  <option value="mandate_ready">Mandate ready</option>
+                  <option value="converted">Converted</option>
+                  <option value="paused">Paused</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="space-y-1">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Priority</span>
+                  <select name="priority" defaultValue={savedPlan?.priority ?? (plan.band === 'urgent' ? 'urgent' : plan.band === 'watch' ? 'high' : 'medium')} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </label>
+                <label className="space-y-1">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Manager</span>
+                  <select name="manager_security" defaultValue={savedPlan?.manager_security ?? 'unknown'} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground">
+                    <option value="unknown">Unknown</option>
+                    <option value="secure">Secure</option>
+                    <option value="watch">Watch</option>
+                    <option value="at_risk">At risk</option>
+                    <option value="vacant">Vacant</option>
+                  </select>
+                </label>
+              </div>
+              <label className="space-y-1">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Next review</span>
+                <input name="next_review_date" type="date" defaultValue={savedPlan?.next_review_date ?? ''} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Owner</span>
+                <input name="owner_name" defaultValue={savedPlan?.owner_name ?? ''} placeholder="Who owns this watch file?" className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Desired archetype</span>
+                <input name="desired_archetype" defaultValue={savedPlan?.desired_archetype ?? plan.archetype} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Timeline</span>
+                <input name="succession_timeline" defaultValue={savedPlan?.succession_timeline ?? defaults.succession_timeline} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Board signal</span>
+                <textarea name="board_signal" defaultValue={savedPlan?.board_signal ?? ''} rows={3} placeholder="Latest board mood, owner signal or succession trigger." className="w-full rounded border border-border bg-surface px-3 py-2 text-xs leading-5 text-foreground" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Risk triggers</span>
+                <textarea name="risk_triggers" defaultValue={(savedPlan?.risk_triggers ?? plan.rationale).join('\n')} rows={4} placeholder="One trigger per line" className="w-full rounded border border-border bg-surface px-3 py-2 text-xs leading-5 text-foreground" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Notes</span>
+                <textarea name="notes" defaultValue={savedPlan?.notes ?? ''} rows={3} placeholder="Internal football judgement, next calls, sensitivities." className="w-full rounded border border-border bg-surface px-3 py-2 text-xs leading-5 text-foreground" />
+              </label>
+              <button className="rounded bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90">
+                Save plan
+              </button>
+            </div>
+          </form>
+
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Why this matters</p>
             <div className="mt-3 space-y-3 text-xs leading-5 text-muted-foreground">

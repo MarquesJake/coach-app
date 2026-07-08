@@ -242,6 +242,10 @@ export async function createIntelligenceInboxItemAction(input: {
   source_tier?: string | null
   source_link?: string | null
   source_recorded_at?: string | null
+  source_expires_at?: string | null
+  source_proximity?: string | null
+  board_visibility?: string | null
+  contradiction_status?: string | null
   channel?: string | null
   sensitivity?: string | null
   verification_status?: string | null
@@ -294,6 +298,10 @@ export async function createIntelligenceInboxItemAction(input: {
       source_tier: input.source_tier ? normaliseTier(input.source_tier) : null,
       source_link: input.source_link?.trim() || null,
       source_recorded_at: input.source_recorded_at || null,
+      source_expires_at: input.source_expires_at || null,
+      source_proximity: input.source_proximity?.trim() || null,
+      board_visibility: optionalEnum(input.board_visibility, ['board_ready', 'anonymised', 'internal_only', 'legal_review']) ?? 'internal_only',
+      contradiction_status: optionalEnum(input.contradiction_status, ['none', 'supports_existing', 'contradicts_existing', 'needs_resolution']) ?? 'none',
       channel: input.channel?.trim() || null,
       sensitivity: enumValue(input.sensitivity, SENSITIVITY_LEVELS, 'standard'),
       verification_status: enumValue(input.verification_status, VERIFICATION_STATUSES, 'unverified'),
@@ -387,6 +395,10 @@ export async function promoteInboxItemToIntelligenceAction(input: { id: string }
       source_link: item.source_link,
       source_tier: normaliseTier(item.source_tier),
       source_notes: item.channel,
+      source_expires_at: item.source_expires_at,
+      source_proximity: item.source_proximity,
+      board_visibility: item.board_visibility,
+      contradiction_status: item.contradiction_status,
       confidence: item.confidence,
       occurred_at: item.source_recorded_at ?? item.created_at,
       verified: item.verification_status === 'verified',
@@ -477,6 +489,10 @@ export async function promoteIntelligenceInboxItemAction(input: {
         source_link: item.source_link,
         source_tier: normaliseTier(item.source_tier),
         source_notes: item.channel,
+        source_expires_at: item.source_expires_at,
+        source_proximity: item.source_proximity,
+        board_visibility: item.board_visibility,
+        contradiction_status: item.contradiction_status,
         confidence: item.confidence,
         occurred_at: item.source_recorded_at ?? item.created_at,
         verified: item.verification_status === 'verified',

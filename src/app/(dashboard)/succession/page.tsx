@@ -10,6 +10,7 @@ import {
   type SuccessionInboxSignal,
   type SuccessionIntelSignal,
   type SuccessionMandateSignal,
+  type SuccessionPlan,
 } from '@/lib/succession/radar'
 import { cn } from '@/lib/utils'
 
@@ -50,7 +51,7 @@ export default async function SuccessionRadarPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [clubsRes, mandatesRes, intelRes, inboxRes, coachesRes] = await Promise.all([
+  const [clubsRes, mandatesRes, intelRes, inboxRes, coachesRes, plansRes] = await Promise.all([
     supabase
       .from('clubs')
       .select('id, name, league, country, tier, current_manager, board_risk_tolerance, strategic_priority, media_pressure, development_vs_win_now, environment_assessment, instability_risk, tactical_model, pressing_model, build_model, market_reputation')
@@ -81,6 +82,11 @@ export default async function SuccessionRadarPage() {
       .select('id, name, club_current, nationality, available_status, availability_status, market_status, tactical_identity, preferred_style, pressing_intensity, build_preference, player_development_model, academy_integration, leadership_style, overall_manual_score, intelligence_confidence')
       .eq('user_id', user.id)
       .limit(500),
+    supabase
+      .from('succession_plans')
+      .select('id, club_id, linked_mandate_id, status, priority, owner_name, next_review_date, manager_security, succession_timeline, desired_archetype, board_signal, risk_triggers, target_profile, notes, last_signal_at, updated_at')
+      .eq('user_id', user.id)
+      .limit(300),
   ])
 
   const radar = buildSuccessionRadar({
@@ -89,6 +95,7 @@ export default async function SuccessionRadarPage() {
     intelligence: (intelRes.data ?? []) as SuccessionIntelSignal[],
     inbox: (inboxRes.data ?? []) as SuccessionInboxSignal[],
     coaches: (coachesRes.data ?? []) as SuccessionCoach[],
+    plans: (plansRes.data ?? []) as SuccessionPlan[],
   })
 
   const buildNow = radar.filter((item) => item.band === 'urgent')
@@ -217,6 +224,8 @@ export default async function SuccessionRadarPage() {
                     <span className="rounded bg-muted px-2 py-1">{item.openInboxCount} open inbox</span>
                     <span className="rounded bg-muted px-2 py-1">{item.staleIntelCount} stale sources</span>
                     {item.warmMandate && <span className="rounded bg-primary/10 px-2 py-1 text-primary">warm mandate</span>}
+                    {item.plan && <span className="rounded bg-primary/10 px-2 py-1 text-primary">{item.plan.status.replaceAll('_', ' ')}</span>}
+                    {item.plan?.next_review_date && <span className="rounded bg-muted px-2 py-1">review {item.plan.next_review_date}</span>}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Link href={`/succession/${item.club.id}`} className="inline-flex items-center gap-1.5 rounded border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">

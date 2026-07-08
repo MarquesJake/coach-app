@@ -11,6 +11,7 @@ import {
   type SuccessionInboxSignal,
   type SuccessionIntelSignal,
   type SuccessionMandateSignal,
+  type SuccessionPlan,
 } from '@/lib/succession/radar'
 
 function toText(value: FormDataEntryValue | null) {
@@ -19,6 +20,70 @@ function toText(value: FormDataEntryValue | null) {
 
 function daysFromNow(days: number) {
   return new Date(Date.now() + days * 86400000).toISOString().slice(0, 10)
+}
+
+function toList(value: string) {
+  return value
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+export async function saveSuccessionPlanAction(formData: FormData) {
+  const clubId = toText(formData.get('club_id'))
+  if (!clubId) redirect('/succession?error=Missing+club')
+
+  const supabase = createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: club } = await supabase
+    .from('clubs')
+    .select('id')
+    .eq('id', clubId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!club) redirect('/succession?error=Club+not+found')
+
+  const status = toText(formData.get('status')) || 'watching'
+  const priority = toText(formData.get('priority')) || 'medium'
+  const managerSecurity = toText(formData.get('manager_security')) || 'unknown'
+  const nextReviewDate = toText(formData.get('next_review_date')) || null
+  const desiredArchetype = toText(formData.get('desired_archetype')) || null
+  const successionTimeline = toText(formData.get('succession_timeline')) || null
+  const boardSignal = toText(formData.get('board_signal')) || null
+  const ownerName = toText(formData.get('owner_name')) || null
+  const notes = toText(formData.get('notes')) || null
+  const riskTriggers = toList(toText(formData.get('risk_triggers')))
+
+  const { error } = await supabase.from('succession_plans').upsert(
+    {
+      user_id: user.id,
+      club_id: clubId,
+      status,
+      priority,
+      manager_security: managerSecurity,
+      next_review_date: nextReviewDate,
+      desired_archetype: desiredArchetype,
+      succession_timeline: successionTimeline,
+      board_signal: boardSignal,
+      owner_name: ownerName,
+      notes,
+      risk_triggers: riskTriggers,
+      last_signal_at: boardSignal ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id,club_id', ignoreDuplicates: false }
+  )
+
+  if (error) {
+    redirect(`/succession/${clubId}?error=${encodeURIComponent(error.message)}`)
+  }
+
+  revalidatePath('/succession')
+  revalidatePath(`/succession/${clubId}`)
+  redirect(`/succession/${clubId}?success=Succession+plan+saved`)
 }
 
 export async function convertSuccessionPlanToMandateAction(formData: FormData) {
@@ -43,7 +108,7 @@ export async function convertSuccessionPlanToMandateAction(formData: FormData) {
     redirect(`/mandates/${existingMandate.id}/workspace?success=Succession+plan+already+has+an+active+mandate`)
   }
 
-  const [clubRes, mandatesRes, intelRes, inboxRes, coachesRes] = await Promise.all([
+  const [clubRes, mandatesRes, intelRes, inboxRes, coachesRes, plansRes] = await Promise.all([
     supabase
       .from('clubs')
       .select('id, name, league, country, tier, current_manager, board_risk_tolerance, strategic_priority, media_pressure, development_vs_win_now, environment_assessment, instability_risk, tactical_model, pressing_model, build_model, market_reputation')
@@ -75,6 +140,12 @@ export async function convertSuccessionPlanToMandateAction(formData: FormData) {
       .select('id, name, club_current, nationality, available_status, availability_status, market_status, tactical_identity, preferred_style, pressing_intensity, build_preference, player_development_model, academy_integration, leadership_style, overall_manual_score, intelligence_confidence')
       .eq('user_id', user.id)
       .limit(500),
+    supabase
+      .from('succession_plans')
+      .select('id, club_id, linked_mandate_id, status, priority, owner_name, next_review_date, manager_security, succession_timeline, desired_archetype, board_signal, risk_triggers, target_profile, notes, last_signal_at, updated_at')
+      .eq('user_id', user.id)
+      .eq('club_id', clubId)
+      .limit(1),
   ])
 
   if (clubRes.error || !clubRes.data) redirect('/succession?error=Club+not+found')
@@ -85,6 +156,7 @@ export async function convertSuccessionPlanToMandateAction(formData: FormData) {
     intelligence: (intelRes.data ?? []) as SuccessionIntelSignal[],
     inbox: (inboxRes.data ?? []) as SuccessionInboxSignal[],
     coaches: (coachesRes.data ?? []) as SuccessionCoach[],
+    plans: (plansRes.data ?? []) as SuccessionPlan[],
   })
 
   const defaults = plan.mandateDefaults
@@ -172,6 +244,27 @@ export async function convertSuccessionPlanToMandateAction(formData: FormData) {
     description: 'Mandate created from succession plan',
     metadata: { club_id: clubId, succession_score: plan.score, archetype: plan.archetype },
   })
+
+  await supabase
+    .from('succession_plans')
+    .upsert(
+      {
+        user_id: user.id,
+        club_id: clubId,
+        linked_mandate_id: mandate.id,
+        status: 'converted',
+        priority: defaults.priority === 'High' ? 'high' : defaults.priority === 'Low' ? 'low' : 'medium',
+        manager_security: plan.plan?.manager_security ?? 'unknown',
+        succession_timeline: defaults.succession_timeline,
+        desired_archetype: plan.archetype,
+        board_signal: plan.plan?.board_signal ?? null,
+        risk_triggers: plan.rationale,
+        target_profile: defaults,
+        last_signal_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,club_id', ignoreDuplicates: false }
+    )
 
   revalidatePath('/succession')
   revalidatePath(`/succession/${clubId}`)
