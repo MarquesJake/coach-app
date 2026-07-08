@@ -2,16 +2,49 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/db'
-import { addCoachPortalMaterialFormAction, saveCoachPortalProfileFormAction } from '../actions'
+import { displayClubName } from '@/lib/display-names'
+import {
+  addCoachPortalMaterialFormAction,
+  saveCoachPortalProfileFormAction,
+  updateCoachPortalAccessStatusFormAction,
+  updateCoachPortalMaterialVerificationFormAction,
+} from '../actions'
 
 type CoachRow = Database['public']['Tables']['coaches']['Row']
 type PortalRow = Database['public']['Tables']['coach_portal_profiles']['Row']
 type MaterialRow = Database['public']['Tables']['coach_private_materials']['Row']
+type AccessRequestRow = Database['public']['Tables']['confidential_access_requests']['Row'] & {
+  mandates?: {
+    id: string
+    custom_club_name: string | null
+    clubs?: { name?: string | null } | null
+  } | null
+}
 
 const inputClass =
   'w-full px-3 py-2 bg-surface border border-border rounded-md text-sm text-foreground placeholder-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors'
 
 const textAreaClass = `${inputClass} min-h-[92px] resize-y leading-relaxed`
+
+const MATERIAL_TYPE_LABELS: Record<string, string> = {
+  presentation: 'Coach presentation',
+  training_video: 'Training video',
+  match_video: 'Match video',
+  methodology: 'Methodology',
+  analysis: 'Analyst file',
+  media: 'Media / interview',
+  reference_pack: 'Reference pack',
+  other: 'Other',
+}
+
+const ACCESS_STATUS_LABELS: Record<string, string> = {
+  draft: 'Draft',
+  requested: 'Requested',
+  approved: 'Approved',
+  shared: 'Shared',
+  declined: 'Declined',
+  withdrawn: 'Withdrawn',
+}
 
 const PROFILE_FIELDS: Array<keyof PortalRow> = [
   'short_bio',
@@ -90,7 +123,7 @@ export default async function CoachPortalDetailPage({
   if (!user) redirect('/login')
 
   const coachId = params.coachId
-  const [coachRes, profileRes, materialsRes] = await Promise.all([
+  const [coachRes, profileRes, materialsRes, accessRequestsRes] = await Promise.all([
     supabase
       .from('coaches')
       .select('*')
@@ -109,6 +142,12 @@ export default async function CoachPortalDetailPage({
       .eq('coach_id', coachId)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('confidential_access_requests')
+      .select('*, mandates(id, custom_club_name, clubs(name))')
+      .eq('coach_id', coachId)
+      .eq('user_id', user.id)
+      .order('requested_at', { ascending: false }),
   ])
 
   if (coachRes.error || !coachRes.data) notFound()
@@ -116,7 +155,44 @@ export default async function CoachPortalDetailPage({
   const coach = coachRes.data as CoachRow
   const profile = (profileRes.data ?? null) as PortalRow | null
   const materials = (materialsRes.data ?? []) as MaterialRow[]
+  const accessRequests = (accessRequestsRes.data ?? []) as AccessRequestRow[]
   const score = readiness(profile, materials)
+  const verifiedMaterials = materials.filter((item) => item.verification_status === 'verified').length
+  const requestedMaterials = materials.filter((item) => ['requested', 'missing'].includes(item.confidentiality_status)).length
+  const liveRequests = accessRequests.filter((request) => ['requested', 'approved'].includes(request.status)).length
+  const hasMaterialType = (type: string) => materials.some((item) => item.material_type === type)
+  const intakeChecklist = [
+    {
+      label: 'Football identity',
+      done: Boolean(profile?.football_identity?.trim()),
+      detail: 'coach-owned game model and appointment fit',
+    },
+    {
+      label: 'Methodology / presentation',
+      done: hasMaterialType('presentation') || hasMaterialType('methodology'),
+      detail: 'deck or methodology file a board can understand',
+    },
+    {
+      label: 'Training proof',
+      done: hasMaterialType('training_video') || Boolean(profile?.training_week?.trim()),
+      detail: 'how the work looks on the grass',
+    },
+    {
+      label: 'Match proof',
+      done: hasMaterialType('match_video') || hasMaterialType('analysis'),
+      detail: 'match plan, adaptation, or analyst evidence',
+    },
+    {
+      label: 'People network',
+      done: Boolean(profile?.staff_network?.trim() || profile?.key_staff_likely_to_follow?.trim()),
+      detail: 'staff who may follow and operating model',
+    },
+    {
+      label: 'Reference permissions',
+      done: Boolean(profile?.reference_permissions?.trim()) || hasMaterialType('reference_pack'),
+      detail: 'who can be called, and when',
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -156,11 +232,52 @@ export default async function CoachPortalDetailPage({
                 Portal readiness
               </p>
             </div>
-            <p className="text-xs text-muted-foreground">{materials.length} private material{materials.length === 1 ? '' : 's'}</p>
+            <div className="text-right text-xs text-muted-foreground">
+              <p>{materials.length} private material{materials.length === 1 ? '' : 's'}</p>
+              <p>{verifiedMaterials} verified · {liveRequests} live request{liveRequests === 1 ? '' : 's'}</p>
+            </div>
           </div>
           <div className="mt-4 h-2 rounded-full bg-surface overflow-hidden">
             <div className="h-full rounded-full bg-primary" style={{ width: `${score}%` }} />
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Depth checklist</h3>
+            <p className="mt-0.5 text-2xs text-muted-foreground">
+              The minimum football-person evidence we need before a coach profile becomes club-useful rather than just biographical.
+            </p>
+          </div>
+          {requestedMaterials > 0 && (
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-300">
+              {requestedMaterials} material gap{requestedMaterials === 1 ? '' : 's'}
+            </span>
+          )}
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {intakeChecklist.map((item) => (
+            <div key={item.label} className="rounded-md border border-border/60 bg-surface/35 p-3">
+              <div className="flex items-start gap-2">
+                <span
+                  className={[
+                    'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold',
+                    item.done
+                      ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
+                      : 'border-amber-500/35 bg-amber-500/10 text-amber-300',
+                  ].join(' ')}
+                >
+                  {item.done ? 'OK' : '!'}
+                </span>
+                <div>
+                  <p className="text-xs font-medium text-foreground">{item.label}</p>
+                  <p className="mt-1 text-2xs leading-relaxed text-muted-foreground">{item.detail}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -324,14 +441,35 @@ export default async function CoachPortalDetailPage({
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{item.title}</p>
                       <p className="mt-0.5 text-2xs text-muted-foreground">
-                        {item.material_type.replaceAll('_', ' ')}
+                        {MATERIAL_TYPE_LABELS[item.material_type] ?? item.material_type.replaceAll('_', ' ')}
                         {item.source_label ? ` · ${item.source_label}` : ''}
                         {item.uploaded_by ? ` · ${item.uploaded_by}` : ''}
                       </p>
                     </div>
-                    <span className="shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[10px] text-muted-foreground">
-                      {item.confidentiality_status}
-                    </span>
+                    <div className="shrink-0 space-y-1 text-right">
+                      <span className="inline-block rounded-full border border-border/70 px-2 py-0.5 text-[10px] text-muted-foreground">
+                        {item.confidentiality_status}
+                      </span>
+                      <form action={updateCoachPortalMaterialVerificationFormAction}>
+                        <input type="hidden" name="coach_id" value={coach.id} />
+                        <input type="hidden" name="material_id" value={item.id} />
+                        <select
+                          name="verification_status"
+                          defaultValue={item.verification_status}
+                          className="block rounded border border-border bg-surface px-1.5 py-1 text-[10px] text-foreground"
+                        >
+                          <option value="unverified">Unverified</option>
+                          <option value="verified">Verified</option>
+                          <option value="disputed">Disputed</option>
+                        </select>
+                        <button
+                          type="submit"
+                          className="mt-1 rounded border border-border bg-surface px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                        >
+                          Save
+                        </button>
+                      </form>
+                    </div>
                   </div>
                   {item.description && <p className="mt-2 text-2xs text-muted-foreground leading-relaxed">{item.description}</p>}
                   {item.external_url && (
@@ -343,6 +481,83 @@ export default async function CoachPortalDetailPage({
               ))
             )}
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Confidential release queue</h3>
+            <p className="mt-0.5 text-2xs text-muted-foreground">
+              Club requests for the coach&apos;s private room, tracked separately from the assessment pack.
+            </p>
+          </div>
+          <Link href="/intelligence" className="text-xs font-medium text-primary hover:underline">
+            Intelligence feed →
+          </Link>
+        </div>
+        <div className="mt-4 space-y-3">
+          {accessRequests.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No club has requested confidential access for this coach yet. Requests are created from a candidate assessment when a process moves into serious review.
+            </p>
+          ) : (
+            accessRequests.map((request) => {
+              const mandate = request.mandates
+              const clubName = displayClubName(
+                mandate?.custom_club_name,
+                mandate?.clubs?.name ?? null,
+                'Mandate'
+              )
+
+              return (
+                <div key={request.id} className="rounded-md border border-border/60 bg-surface/35 p-3">
+                  <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">
+                        {clubName}
+                        <span className="ml-2 text-2xs font-normal text-muted-foreground">
+                          {request.requested_by || 'Internal request'}
+                          {request.requester_role ? ` · ${request.requester_role}` : ''}
+                        </span>
+                      </p>
+                      <p className="mt-1 text-2xs leading-relaxed text-muted-foreground">{request.request_reason}</p>
+                      {request.club_context && (
+                        <p className="mt-1 text-[10px] text-muted-foreground/75">{request.club_context}</p>
+                      )}
+                      {request.internal_notes && (
+                        <p className="mt-2 text-2xs leading-relaxed text-muted-foreground">
+                          Internal note: {request.internal_notes}
+                        </p>
+                      )}
+                    </div>
+                    <form action={updateCoachPortalAccessStatusFormAction} className="space-y-2">
+                      <input type="hidden" name="request_id" value={request.id} />
+                      <input type="hidden" name="coach_id" value={coach.id} />
+                      <select name="status" defaultValue={request.status} className={inputClass}>
+                        {Object.entries(ACCESS_STATUS_LABELS).map(([status, label]) => (
+                          <option key={status} value={status}>{label}</option>
+                        ))}
+                      </select>
+                      <textarea
+                        name="internal_notes"
+                        rows={2}
+                        defaultValue={request.internal_notes ?? ''}
+                        placeholder="Internal release note"
+                        className={inputClass}
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-primary/40 transition-colors"
+                      >
+                        Update release status
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       </section>
     </div>

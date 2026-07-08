@@ -19,6 +19,8 @@ const MATERIAL_TYPES = [
 ] as const
 const MATERIAL_UPLOADED_BY = ['coach', 'analyst', 'agent', 'club', 'unknown'] as const
 const MATERIAL_CONFIDENTIALITY_STATUSES = ['available', 'requested', 'missing', 'withheld'] as const
+const MATERIAL_VERIFICATION_STATUSES = ['unverified', 'verified', 'disputed'] as const
+const ACCESS_REQUEST_STATUSES = ['draft', 'requested', 'approved', 'shared', 'declined', 'withdrawn'] as const
 
 function text(formData: FormData, key: string): string | null {
   const value = formData.get(key)
@@ -151,9 +153,83 @@ export async function addCoachPortalMaterialAction(formData: FormData): Promise<
 
   revalidatePath('/coach-portal')
   revalidatePath(`/coach-portal/${coachId}`)
+  revalidatePath('/intelligence')
   return { ok: true }
 }
 
 export async function addCoachPortalMaterialFormAction(formData: FormData): Promise<void> {
   await addCoachPortalMaterialAction(formData)
+}
+
+export async function updateCoachPortalMaterialVerificationAction(formData: FormData): Promise<ActionResult> {
+  const { supabase, user } = await requireUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const materialId = text(formData, 'material_id') ?? ''
+  const coachId = text(formData, 'coach_id') ?? ''
+  const verificationStatus = enumValue(
+    text(formData, 'verification_status'),
+    MATERIAL_VERIFICATION_STATUSES,
+    'unverified'
+  )
+
+  if (!materialId || !coachId) return { ok: false, error: 'Missing material context' }
+  if (!(await ownsCoach(supabase, user.id, coachId))) return { ok: false, error: 'Coach not found' }
+
+  const { error } = await supabase
+    .from('coach_private_materials')
+    .update({
+      verification_status: verificationStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', materialId)
+    .eq('coach_id', coachId)
+    .eq('user_id', user.id)
+
+  if (error) return { ok: false, error: 'Failed to update material verification' }
+
+  revalidatePath('/coach-portal')
+  revalidatePath(`/coach-portal/${coachId}`)
+  revalidatePath('/intelligence')
+  return { ok: true }
+}
+
+export async function updateCoachPortalMaterialVerificationFormAction(formData: FormData): Promise<void> {
+  await updateCoachPortalMaterialVerificationAction(formData)
+}
+
+export async function updateCoachPortalAccessStatusAction(formData: FormData): Promise<ActionResult> {
+  const { supabase, user } = await requireUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const requestId = text(formData, 'request_id') ?? ''
+  const coachId = text(formData, 'coach_id') ?? ''
+  const status = enumValue(text(formData, 'status'), ACCESS_REQUEST_STATUSES, 'requested')
+  const internalNotes = text(formData, 'internal_notes')
+  const decidedStatuses = ['approved', 'shared', 'declined', 'withdrawn']
+
+  if (!requestId || !coachId) return { ok: false, error: 'Missing access request context' }
+  if (!(await ownsCoach(supabase, user.id, coachId))) return { ok: false, error: 'Coach not found' }
+
+  const { error } = await supabase
+    .from('confidential_access_requests')
+    .update({
+      status,
+      internal_notes: internalNotes,
+      decided_at: decidedStatuses.includes(status) ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', requestId)
+    .eq('coach_id', coachId)
+    .eq('user_id', user.id)
+
+  if (error) return { ok: false, error: 'Failed to update access request' }
+
+  revalidatePath('/coach-portal')
+  revalidatePath(`/coach-portal/${coachId}`)
+  return { ok: true }
+}
+
+export async function updateCoachPortalAccessStatusFormAction(formData: FormData): Promise<void> {
+  await updateCoachPortalAccessStatusAction(formData)
 }

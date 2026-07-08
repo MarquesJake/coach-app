@@ -11,7 +11,11 @@ type CoachRow = Pick<
 type PortalRow = Database['public']['Tables']['coach_portal_profiles']['Row']
 type MaterialRow = Pick<
   Database['public']['Tables']['coach_private_materials']['Row'],
-  'id' | 'coach_id' | 'material_type' | 'confidentiality_status'
+  'id' | 'coach_id' | 'material_type' | 'confidentiality_status' | 'verification_status'
+>
+type AccessRequestRow = Pick<
+  Database['public']['Tables']['confidential_access_requests']['Row'],
+  'id' | 'coach_id' | 'status'
 >
 
 const PROFILE_FIELDS: Array<keyof PortalRow> = [
@@ -62,7 +66,7 @@ export default async function CoachPortalPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [coachesRes, profilesRes, materialsRes] = await Promise.all([
+  const [coachesRes, profilesRes, materialsRes, accessRequestsRes] = await Promise.all([
     supabase
       .from('coaches')
       .select('id, name, club_current, nationality, availability_status, available_status, tactical_identity')
@@ -74,7 +78,11 @@ export default async function CoachPortalPage() {
       .eq('user_id', user.id),
     supabase
       .from('coach_private_materials')
-      .select('id, coach_id, material_type, confidentiality_status')
+      .select('id, coach_id, material_type, confidentiality_status, verification_status')
+      .eq('user_id', user.id),
+    supabase
+      .from('confidential_access_requests')
+      .select('id, coach_id, status')
       .eq('user_id', user.id),
   ])
 
@@ -85,9 +93,15 @@ export default async function CoachPortalPage() {
   for (const material of materials) {
     materialsByCoach.set(material.coach_id, [...(materialsByCoach.get(material.coach_id) ?? []), material])
   }
+  const accessRequests = (accessRequestsRes.data ?? []) as AccessRequestRow[]
+  const accessRequestsByCoach = new Map<string, AccessRequestRow[]>()
+  for (const request of accessRequests) {
+    accessRequestsByCoach.set(request.coach_id, [...(accessRequestsByCoach.get(request.coach_id) ?? []), request])
+  }
 
   const withPortal = coaches.filter((coach) => profiles.has(coach.id)).length
   const approved = (profilesRes.data ?? []).filter((profile) => profile.portal_status === 'approved').length
+  const liveAccessRequests = accessRequests.filter((request) => ['requested', 'approved'].includes(request.status)).length
   const readyForClub = coaches.filter((coach) => {
     const profile = profiles.get(coach.id) ?? null
     return readiness(profile, materialsByCoach.get(coach.id) ?? []) >= 70
@@ -109,11 +123,12 @@ export default async function CoachPortalPage() {
             the private context that makes an appointment decision defensible.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {[
             { label: 'Coaches', value: coaches.length },
             { label: 'Portal profiles', value: withPortal },
             { label: 'Club-ready', value: readyForClub },
+            { label: 'Live requests', value: liveAccessRequests },
           ].map((item) => (
             <div key={item.label} className="rounded-lg border border-border bg-card p-4">
               <p className="text-2xl font-semibold text-foreground tabular-nums">{item.value}</p>
@@ -153,7 +168,7 @@ export default async function CoachPortalPage() {
                 <Link
                   key={coach.id}
                   href={`/coach-portal/${coach.id}`}
-                  className="grid grid-cols-[1.5fr_150px_120px_140px_auto] gap-4 px-5 py-4 items-center hover:bg-surface/50 transition-colors"
+                  className="grid grid-cols-1 gap-3 px-5 py-4 hover:bg-surface/50 transition-colors md:grid-cols-[minmax(0,1.5fr)_150px_120px_140px_110px_auto] md:items-center md:gap-4"
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">{coach.name}</p>
@@ -172,6 +187,9 @@ export default async function CoachPortalPage() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {coachMaterials.length} material{coachMaterials.length === 1 ? '' : 's'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {(accessRequestsByCoach.get(coach.id) ?? []).length} request{(accessRequestsByCoach.get(coach.id) ?? []).length === 1 ? '' : 's'}
                   </p>
                   <span className="text-2xs font-medium text-primary">Open portal →</span>
                 </Link>

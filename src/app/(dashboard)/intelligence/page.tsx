@@ -22,6 +22,19 @@ function confidenceFromVerification(status: string | null | undefined, fallback?
   return null
 }
 
+function materialSensitivity(status: string | null | undefined) {
+  if (status === 'withheld') return 'Restricted'
+  if (status === 'requested' || status === 'missing') return 'Not yet held'
+  return 'Controlled access'
+}
+
+function portalSensitivity(status: string | null | undefined) {
+  if (status === 'shareable') return 'Shareable'
+  if (status === 'clubs_on_request') return 'Clubs on request'
+  if (status === 'coach_first_only') return 'Coach First only'
+  return 'Private'
+}
+
 function assessmentOriginHref(mandateId: string, coachId: string, criterion: string, params: Record<string, string>) {
   const search = new URLSearchParams({ criterion, ...params })
   return `/mandates/${mandateId}/assessment/${coachId}?${search.toString()}`
@@ -315,7 +328,7 @@ export default async function IntelligencePage() {
     title: material.title,
     detail: material.description,
     category: material.material_type,
-    sensitivity: material.confidentiality_status === 'confidential_room' ? 'confidential' : 'Standard',
+    sensitivity: materialSensitivity(material.confidentiality_status),
     confidence: confidenceFromVerification(material.verification_status),
     source_name: material.source_label,
     source_type: material.uploaded_by === 'coach' ? 'Coach upload' : 'Internal upload',
@@ -350,7 +363,7 @@ export default async function IntelligencePage() {
       title: `${coachMap.get(profile.coach_id) ?? 'Coach'} portal depth profile`,
       detail: profile.personal_statement ?? profile.football_identity ?? profile.presentation_summary,
       category: profile.portal_status,
-      sensitivity: profile.visibility_status === 'confidential' ? 'confidential' : 'Standard',
+      sensitivity: portalSensitivity(profile.visibility_status),
       confidence: Math.min(95, 35 + filledFields * 7),
       source_name: profile.representative_name ?? coachMap.get(profile.coach_id) ?? null,
       source_type: 'Coach-submitted profile',
