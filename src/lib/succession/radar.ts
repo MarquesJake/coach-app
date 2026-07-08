@@ -72,13 +72,35 @@ export type RadarClub = {
   score: number
   band: 'urgent' | 'watch' | 'nurture'
   archetype: string
+  mandateDefaults: SuccessionMandateDefaults
   rationale: string[]
   nextAction: string
   intelCount: number
   staleIntelCount: number
   openInboxCount: number
   warmMandate: SuccessionMandateSignal | null
-  suggestedCoaches: Array<SuccessionCoach & { fitScore: number; fitReasons: string[] }>
+  suggestedCoaches: Array<SuccessionCoach & { fitScore: number; fitReasons: string[]; fitBreakdown: SuccessionFitBreakdown }>
+}
+
+export type SuccessionFitBreakdown = {
+  tactical: number
+  development: number
+  environment: number
+  availability: number
+  evidence: number
+}
+
+export type SuccessionMandateDefaults = {
+  strategic_objective: string
+  tactical_model_required: string
+  pressing_intensity_required: string
+  build_preference_required: string
+  leadership_profile_required: string
+  budget_band: string
+  succession_timeline: string
+  board_risk_appetite: 'Conservative' | 'Moderate' | 'Aggressive'
+  priority: 'High' | 'Medium' | 'Low'
+  confidentiality_level: 'Standard' | 'High' | 'Board Only'
 }
 
 function text(value: string | null | undefined) {
@@ -124,6 +146,94 @@ export function successionArchetype(club: SuccessionClub) {
   return 'Environment-fit head coach'
 }
 
+export function mandateDefaultsForClub(club: SuccessionClub, archetype = successionArchetype(club)): SuccessionMandateDefaults {
+  const brief = [
+    club.strategic_priority,
+    club.development_vs_win_now,
+    club.tactical_model,
+    club.pressing_model,
+    club.build_model,
+    club.environment_assessment,
+    club.instability_risk,
+    club.media_pressure,
+  ].map(text).join(' ')
+
+  const isElite = includesAny(brief, ['champions league', 'europe', 'trophy', 'elite', 'top four'])
+  const isSurvival = includesAny(brief, ['relegation', 'survival', 'stability', 'stabilise'])
+  const isPromotion = includesAny(brief, ['promotion', 'promote'])
+  const isDevelopment = archetype === 'Development builder'
+  const highPressure = includesAny(brief, ['high', 'extreme', 'pressure', 'sack', 'unstable'])
+
+  const strategic_objective = isElite
+    ? 'Win trophies / Champions League'
+    : isSurvival
+      ? 'Avoid relegation / stabilise'
+      : isPromotion
+        ? 'Achieve promotion'
+        : isDevelopment
+          ? 'Develop youth / academy focus'
+          : 'Rebuild / new identity'
+
+  const tactical_model_required = includesAny(brief, ['possession', 'build', 'technical'])
+    ? 'Possession / build-out'
+    : includesAny(brief, ['counter', 'compact', 'direct'])
+      ? 'Counter-attack / compact'
+      : includesAny(brief, ['press', 'intensity', 'front-foot'])
+        ? 'High press / dominant'
+        : 'Hybrid / flexible'
+
+  const pressing_intensity_required = includesAny(brief, ['high press', 'intense', 'front-foot'])
+    ? 'High'
+    : includesAny(brief, ['low block', 'compact', 'low press'])
+      ? 'Low'
+      : 'Medium'
+
+  const build_preference_required = includesAny(brief, ['short', 'build', 'possession'])
+    ? 'Short build'
+    : includesAny(brief, ['direct', 'long ball'])
+      ? 'Long ball / direct'
+      : 'Mixed'
+
+  const leadership_profile_required = archetype === 'Development builder'
+    ? 'Developer'
+    : archetype === 'Stabiliser'
+      ? 'Pragmatic'
+      : archetype === 'Pressure operator'
+        ? 'Demanding'
+        : includesAny(brief, ['culture', 'environment', 'alignment'])
+          ? 'Collaborative'
+          : 'Strategic'
+
+  const boardRisk = text(club.board_risk_tolerance)
+  const board_risk_appetite: SuccessionMandateDefaults['board_risk_appetite'] = includesAny(boardRisk, ['high', 'aggressive', 'extreme'])
+    ? 'Aggressive'
+    : includesAny(boardRisk, ['low', 'conservative'])
+      ? 'Conservative'
+      : 'Moderate'
+
+  const league = text(`${club.league} ${club.tier}`)
+  const budget_band = includesAny(league, ['premier league', 'champions league'])
+    ? '£30m - £60m'
+    : includesAny(league, ['championship'])
+      ? '£5m - £15m'
+      : includesAny(league, ['league one', 'league two'])
+        ? '£1m - £5m'
+        : '£5m - £15m'
+
+  return {
+    strategic_objective,
+    tactical_model_required,
+    pressing_intensity_required,
+    build_preference_required,
+    leadership_profile_required,
+    budget_band,
+    succession_timeline: highPressure ? 'Immediate / within 30 days' : 'End of season / 6+ months',
+    board_risk_appetite,
+    priority: highPressure ? 'High' : 'Medium',
+    confidentiality_level: highPressure ? 'Board Only' : 'High',
+  }
+}
+
 export function scoreCoachForClub(coach: SuccessionCoach, club: SuccessionClub, archetype: string) {
   const coachText = [
     coach.tactical_identity,
@@ -145,39 +255,66 @@ export function scoreCoachForClub(coach: SuccessionCoach, club: SuccessionClub, 
     club.build_model,
   ].map(text).join(' ')
   const reasons: string[] = []
-  let score = 40
+  const breakdown: SuccessionFitBreakdown = {
+    tactical: 40,
+    development: 40,
+    environment: 40,
+    availability: 35,
+    evidence: 35,
+  }
 
   if (archetype === 'Development builder' && includesAny(coachText, ['academy', 'youth', 'development', 'player'])) {
-    score += 22
+    breakdown.development += 35
     reasons.push('development pathway signal')
   }
   if (archetype === 'Stabiliser' && includesAny(coachText, ['organised', 'compact', 'stability', 'experience'])) {
-    score += 18
+    breakdown.environment += 30
     reasons.push('stability signal')
   }
   if (archetype === 'Pressure operator' && includesAny(coachText, ['promotion', 'elite', 'winner', 'pressure'])) {
-    score += 18
+    breakdown.environment += 30
     reasons.push('pressure environment signal')
   }
   if (includesAny(`${coachText} ${clubText}`, ['press', 'intensity']) && includesAny(coachText, ['press', 'intensity', 'front-foot'])) {
-    score += 14
+    breakdown.tactical += 24
     reasons.push('pressing identity fit')
   }
   if (includesAny(`${coachText} ${clubText}`, ['possession', 'build']) && includesAny(coachText, ['possession', 'build', 'technical'])) {
-    score += 14
+    breakdown.tactical += 24
     reasons.push('build-up identity fit')
   }
+  if (includesAny(clubText, ['academy', 'development', 'youth']) && includesAny(coachText, ['academy', 'development', 'youth'])) {
+    breakdown.development += 20
+    reasons.push('academy pathway fit')
+  }
+  if (includesAny(clubText, ['culture', 'environment', 'alignment']) && includesAny(coachText, ['collaborative', 'culture', 'communication'])) {
+    breakdown.environment += 18
+    reasons.push('environment fit signal')
+  }
   if (includesAny(coachText, ['available', 'open', 'unattached'])) {
-    score += 10
+    breakdown.availability += 30
     reasons.push('more executable availability')
   }
-  if (coach.overall_manual_score != null) score += Math.round((coach.overall_manual_score - 50) / 5)
+  if (coach.overall_manual_score != null) {
+    breakdown.evidence += Math.round((coach.overall_manual_score - 50) / 2)
+  }
   if (coach.intelligence_confidence != null && coach.intelligence_confidence >= 70) {
-    score += 6
+    breakdown.evidence += 25
     reasons.push('stronger intelligence confidence')
   }
 
-  return { score: Math.max(0, Math.min(100, score)), reasons: reasons.slice(0, 3) }
+  const bounded = Object.fromEntries(
+    Object.entries(breakdown).map(([key, value]) => [key, Math.max(0, Math.min(100, value))])
+  ) as SuccessionFitBreakdown
+  const score = Math.round(
+    bounded.tactical * 0.28 +
+    bounded.development * 0.18 +
+    bounded.environment * 0.24 +
+    bounded.availability * 0.15 +
+    bounded.evidence * 0.15
+  )
+
+  return { score: Math.max(0, Math.min(100, score)), reasons: reasons.slice(0, 4), breakdown: bounded }
 }
 
 export function buildSuccessionRadar(params: {
@@ -258,14 +395,15 @@ export function buildSuccessionRadar(params: {
     }
 
     const archetype = successionArchetype(club)
+    const mandateDefaults = mandateDefaultsForClub(club, archetype)
     const suggestedCoaches = params.coaches
       .map((coach) => {
         const fit = scoreCoachForClub(coach, club, archetype)
-        return { ...coach, fitScore: fit.score, fitReasons: fit.reasons }
+        return { ...coach, fitScore: fit.score, fitReasons: fit.reasons, fitBreakdown: fit.breakdown }
       })
       .filter((coach) => coach.fitScore >= 50)
       .sort((a, b) => b.fitScore - a.fitScore)
-      .slice(0, 3)
+      .slice(0, 5)
 
     const band: RadarClub['band'] = score >= 55 ? 'urgent' : score >= 30 ? 'watch' : 'nurture'
     const nextAction = openInbox.length > 0
@@ -281,6 +419,7 @@ export function buildSuccessionRadar(params: {
       score: Math.max(0, Math.min(100, score)),
       band,
       archetype,
+      mandateDefaults,
       rationale: rationale.slice(0, 4),
       nextAction,
       intelCount: intel.length,

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Activity, ArrowRight, Building2, Clock, FileInput, Radio, ShieldAlert, Users } from 'lucide-react'
+import { Activity, ArrowRight, Building2, ClipboardList, Clock, FileInput, Radio, ShieldAlert, Users } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { displayClubName } from '@/lib/display-names'
 import {
@@ -219,6 +219,10 @@ export default async function SuccessionRadarPage() {
                     {item.warmMandate && <span className="rounded bg-primary/10 px-2 py-1 text-primary">warm mandate</span>}
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <Link href={`/succession/${item.club.id}`} className="inline-flex items-center gap-1.5 rounded border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+                      <ClipboardList className="h-3.5 w-3.5" />
+                      Open plan
+                    </Link>
                     <Link href={`/clubs/${item.club.id}`} className="inline-flex items-center gap-1.5 rounded border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
                       <Building2 className="h-3.5 w-3.5" />
                       Open club
