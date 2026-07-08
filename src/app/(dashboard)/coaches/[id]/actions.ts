@@ -15,7 +15,7 @@ type CoachUpdate = Database['public']['Tables']['coaches']['Update']
 
 const COACH_UPDATE_WHITELIST: Set<string> = new Set([
   'preferred_name', 'date_of_birth', 'languages', 'base_location', 'relocation_flexibility', 'family_context',
-  'agent_name', 'agent_contact', 'compensation_expectation', 'availability_status', 'market_status',
+  'agent_name', 'agent_contact', 'compensation_expectation', 'contract_expiry', 'release_clause', 'contract_notes', 'availability_status', 'market_status',
   'tactical_identity', 'preferred_systems', 'transition_model', 'rest_defence_model', 'set_piece_approach', 'training_methodology',
   'pressing_intensity', 'build_preference', 'recruitment_collaboration', 'staff_management_style', 'player_development_model',
   'academy_integration', 'comms_profile', 'media_style', 'conflict_history', 'leadership_style',
@@ -132,6 +132,10 @@ function sanitizeCoachPayload(payload: Record<string, unknown>): CoachUpdate {
     if (key === 'age') {
       const n = toNum(raw)
       out[key] = n
+      continue
+    }
+    if (key === 'contract_expiry') {
+      out[key] = toDateStr(raw)
       continue
     }
     if (typeof raw === 'string') {

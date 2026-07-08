@@ -7,8 +7,12 @@ import { calculateGbe } from '@/lib/analysis/gbe'
 import {
   AssessmentWorkspaceClient,
   type AssessmentRow,
+  type ConfidentialAccessRequestRow,
   type EvidenceRow,
+  type InterviewAnswerRow,
+  type PrivateMaterialRow,
   type RecommendationRow,
+  type ReferenceAnswerRow,
 } from './_components/assessment-workspace-client'
 
 export default async function CandidateAssessmentPage({
@@ -47,7 +51,19 @@ export default async function CandidateAssessmentPage({
     .single()
   if (!coach) notFound()
 
-  const [assessments, evidence, recommendation, stints, tacticalReports, backgroundChecks, references] =
+  const [
+    assessments,
+    evidence,
+    recommendation,
+    interviewAnswers,
+    referenceAnswers,
+    privateMaterials,
+    accessRequests,
+    stints,
+    tacticalReports,
+    backgroundChecks,
+    references,
+  ] =
     await Promise.all([
       supabase
         .from('candidate_assessments')
@@ -66,6 +82,33 @@ export default async function CandidateAssessmentPage({
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .maybeSingle(),
+      supabase
+        .from('candidate_interview_answers')
+        .select('id, question_key, question, answer, criterion, interview_focus, interviewer, confidence, created_at')
+        .eq('mandate_id', mandateId)
+        .eq('coach_id', coachId)
+        .order('created_at', { ascending: false })
+        .limit(20),
+      supabase
+        .from('candidate_reference_answers')
+        .select('id, stakeholder_group, reference_name, reference_role, question_key, question, answer, criterion, confidence, would_hire_again, risk_flag, created_at')
+        .eq('mandate_id', mandateId)
+        .eq('coach_id', coachId)
+        .order('created_at', { ascending: false })
+        .limit(20),
+      supabase
+        .from('coach_private_materials')
+        .select('id, title, material_type, description, external_url, source_label, uploaded_by, confidentiality_status, verification_status, created_at')
+        .eq('coach_id', coachId)
+        .order('created_at', { ascending: false })
+        .limit(20),
+      supabase
+        .from('confidential_access_requests')
+        .select('id, requested_by, requester_role, club_context, request_reason, status, requested_at, decided_at')
+        .eq('mandate_id', mandateId)
+        .eq('coach_id', coachId)
+        .order('requested_at', { ascending: false })
+        .limit(10),
       supabase
         .from('coach_stints')
         .select('club_name, league, role_title, started_on, ended_on, points_per_game')
@@ -122,7 +165,7 @@ export default async function CandidateAssessmentPage({
           href={`/mandates/${mandateId}/assessment/${coachId}/board-pack`}
           className="shrink-0 px-3 py-2 bg-primary text-primary-foreground text-xs font-medium rounded-md hover:bg-primary/90 transition-colors"
         >
-          Board pack →
+          Assessment pack →
         </Link>
       </div>
 
@@ -134,6 +177,10 @@ export default async function CandidateAssessmentPage({
         evidence={(evidence.data ?? []) as EvidenceRow[]}
         derived={derived}
         recommendation={(recommendation.data ?? null) as RecommendationRow | null}
+        interviewAnswers={(interviewAnswers.data ?? []) as InterviewAnswerRow[]}
+        referenceAnswers={(referenceAnswers.data ?? []) as ReferenceAnswerRow[]}
+        privateMaterials={(privateMaterials.data ?? []) as PrivateMaterialRow[]}
+        accessRequests={(accessRequests.data ?? []) as ConfidentialAccessRequestRow[]}
         gbe={gbe}
         coachingLicence={coach.coaching_licence}
       />

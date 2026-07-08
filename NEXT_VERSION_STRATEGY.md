@@ -63,7 +63,7 @@
 2. **Multi-user / organisation support.** Everything is single-user (per-user RLS). CoachInside sells org-wide sharing of shortlists and notes; a club buys seats, not a person.
 3. **Coach-facing side.** No equivalent of COACH+ — no self-maintained coach profiles, no coach acquisition loop, no second revenue stream.
 4. **Player–coach fit.** Player Match and Coach ID both connect coach game models to squad/player fit. We have the seed of this (development suggestions) but no fit engine.
-5. **Exportable deliverables.** Board packs live in-app; no branded PDF dossier export — the artifact a sporting director forwards upward.
+5. **Exportable deliverables.** Head Coach Assessment Packs live in-app; no branded PDF export — the artifact a sporting director forwards upward.
 6. **Marketing proof.** Landing page has strong language but zero numbers, logos, testimonials, screenshots or pricing.
 
 ---
@@ -71,7 +71,7 @@
 ## 4. Next-version plan (proposed priority order)
 
 ### V-next (4–6 weeks): "Sellable single-club product"
-1. **Board-pack PDF export** — one-click branded dossier per mandate (shortlist, fit rationale, risk summary, recommendation). Highest demo-to-deal value, lowest build cost; matches what Coach ID delivers as a consultancy artifact.
+1. **Head Coach Assessment Pack PDF export** — one-click branded assessment pack per mandate (shortlist, fit rationale, risk summary, recommendation). Highest demo-to-deal value, lowest build cost; matches what Coach ID delivers as a consultancy artifact.
 2. **Coach performance layer v1** — from existing API-Football pipeline: tenure timelines, PPG before/during/after, league-position trajectory, squad-age and youth-minutes trends per stint. Presented inside our evidence layer with provenance. Goal: neutralize "where's your data?" without buying a data deal yet.
 3. **Landing-page proof upgrade** — screenshots of the mandate workspace, the three demo narratives as case studies, a concrete numbers strip, clear CTA to a guided demo account.
 4. Fix the fresh-account redirect loop on `/dashboard/setup` (found today; new users see a blank screen after signup — fatal for trials).
@@ -103,7 +103,7 @@ Four documents received from an investor (a working head-coach search toolkit, J
 
 ### Strategic read
 
-**This is the artifact the product should generate.** The Riera deck is precisely the consultancy deliverable Analytics FC and Twenty First Group charge retainers for — and the investor is assembling it by hand in PowerPoint, with explicit placeholders begging for automation ("AI-generated interpretation of the xG data", "requires thorough media screening"). Coach First's next version should be the machine that produces this dossier in minutes instead of weeks.
+**This is the artifact the product should generate.** The Head Coach Assessment Pack is precisely the consultancy deliverable Analytics FC and Twenty First Group charge retainers for — and the investor is assembling a worked Albert Riera example by hand in PowerPoint, with explicit placeholders begging for automation ("AI-generated interpretation of the xG data", "requires thorough media screening"). Coach First's next version should be the machine that produces this assessment pack in minutes instead of weeks.
 
 **Mapping to the current product:**
 | Methodology criterion | Coach First today | Gap |
@@ -122,9 +122,9 @@ Four documents received from an investor (a working head-coach search toolkit, J
 
 ### What the next version could look like: the "Assessment OS"
 
-Inside a mandate, each shortlisted candidate gets a **9-section dossier workspace**. Sections auto-populate from three sources: (a) structured data already in the platform, (b) a coach-performance data layer (xG deltas, ELO, PPG vs budget, formation usage), and (c) **AI-drafted narrative sections** (personality profile, media screening, xG interpretation) that a human reviews and signs off — matching the investor's "AI-generated, verified by sources" annotation and our existing confidence/provenance model. Interview and reference modules capture structured answers against the standard question banks, tagged to criteria, so contradictions between what a coach says, what the data says, and what referees say surface automatically. One click renders the board-pack PDF in the Riera-deck format, ending in Proceed / Shortlist / Target / Monitor / Dismiss.
+Inside a mandate, each shortlisted candidate gets a **9-section assessment workspace**. Sections auto-populate from three sources: (a) structured data already in the platform, (b) a coach-performance data layer (xG deltas, ELO, PPG vs budget, formation usage), and (c) **AI-drafted narrative sections** (personality profile, media screening, xG interpretation) that a human reviews and signs off — matching the investor's "AI-generated, verified by sources" annotation and our existing confidence/provenance model. Interview and reference modules capture structured answers against the standard question banks, tagged to criteria, so contradictions between what a coach says, what the data says, and what referees say surface automatically. One click renders the Head Coach Assessment Pack, ending in Proceed / Shortlist / Target / Monitor / Dismiss.
 
-This reframes the V-next priorities: the **board-pack export** and **performance layer** stay top, but the export format is now defined (the Riera deck), and the diligence layer expands into interview + references workflows — a feature no competitor (CoachInside, FMDB Pro) has productized, and which converts the consultancy playbook (Coach ID, TFG) into self-serve software.
+This reframes the V-next priorities: the **Head Coach Assessment Pack export** and **performance layer** stay top, but the export format is now defined by the investor's worked example, and the diligence layer expands into interview + references workflows — a feature no competitor (CoachInside, FMDB Pro) has productized, and which converts the consultancy playbook (Coach ID, TFG) into self-serve software.
 
 ## 6. Combined plan — Claude × Codex synthesis (5 July 2026)
 
@@ -137,7 +137,7 @@ Both analyses independently reached the same thesis: **productize the investor m
 - **Don't build more generic database features.** Confirmed by both analyses.
 
 **Retained from the Claude audit (gaps in the Codex plan):**
-- **The quantitative performance layer is not optional.** The Riera dossier's core pages (xG pre/post appointment, ELO trajectory, PPG-vs-budget, formation usage) are data products. Without a data plan the dossier generator produces empty sections. Sequencing: API-Football (already integrated) + public ELO/results first; FBref/StatsBomb/Opta partnership when revenue justifies it.
+- **The quantitative performance layer is not optional.** The Head Coach Assessment Pack's core pages (xG pre/post appointment, ELO trajectory, PPG-vs-budget, formation usage) are data products. Without a data plan the pack generator produces empty sections. Sequencing: API-Football (already integrated) + public ELO/results first; FBref/StatsBomb/Opta partnership when revenue justifies it.
 - **Organisations & seats.** An appointment process is multi-stakeholder by definition (different people conduct interviews and collect references). Single-user architecture caps the product at "analyst tool." Needed before selling to clubs, but not for the investor demo.
 - **GBE work-permit calculator** — small, differentiating for the English market, present in the investor's own dossier.
 - **GTM & pricing** (Section 4): English pyramid + agencies wedge, pricing benchmarks, coach-side flywheel later.
@@ -145,14 +145,14 @@ Both analyses independently reached the same thesis: **productize the investor m
 **Shared principle (both flagged independently):** AI drafts, humans sign off. Every claim carries source, method, confidence, verification status, date, and whether it fed the final recommendation. This is what makes the output board-defensible.
 
 **Final refinements (Codex round 2, agreed):**
-- **Board-pack as forcing function, not export feature.** Every field, score, note, interview answer, reference and data source exists because it strengthens or qualifies the final recommendation. Anything that can't trace to the board pack is scope creep. This is the product's design principle.
+- **Assessment pack as forcing function, not export feature.** Every field, score, note, interview answer, reference and data source exists because it strengthens or qualifies the final recommendation. Anything that can't trace to the Head Coach Assessment Pack is scope creep. This is the product's design principle.
 - **GBE/work-permit calculator pulled forward into Phase 1.** Small, concrete, demoable, England-specific seriousness. Feasible early: it's rules logic (cumulative months as first-team manager in GBE Band 1–5 leagues over 5 years + licence) over stint data the platform already models, plus a static league-band lookup.
 
 **Phase 1 build order (agreed, 5 July 2026):**
 1. **Assessment data model** — 9 criteria, evidence methods, evidence records, coverage + verification status. Reuse existing diligence tables (`coach_tactical_reports`, `coach_background_checks`) as evidence sources rather than duplicating them.
 2. **Candidate assessment workspace** — matrix/heatmap plus per-criterion notes, confidence, evidence, gaps.
 3. **GBE calculator** — deterministic eligibility from stint/league/licence data (static league-band lookup).
-4. **Board-pack generator** — structured HTML/PDF of the Riera-style pack.
+4. **Head Coach Assessment Pack generator** — structured HTML/PDF of the investor-defined pack.
 5. **Mandate demo flow** — one mandate, three candidates, matrix, evidence gaps, recommendation pack.
 
 Scope test for everything: *if it does not strengthen, qualify, evidence, or package the final appointment recommendation, it waits.*
@@ -161,8 +161,8 @@ Scope test for everything: *if it does not strengthen, qualify, evidence, or pac
 
 | Phase | Scope | Outcome |
 |---|---|---|
-| **1. Assessment backbone** (~4–6 wks) | 9-criteria data model per mandate-candidate; assessment matrix coverage heatmap; dossier workspace auto-filled from existing data; board-pack PDF in the Riera format; GBE work-permit calculator | The killer demo works end-to-end with curated data |
-| **2. Human evidence modules** | Interview kit (question banks, structured capture, per-criterion rating); references tracker (5 stakeholder banks, pattern + contradiction synthesis); AI-drafted sections with provenance & sign-off. Structured child tables (question item, respondent type, answer, rating, contradiction flag) linked to assessment_evidence rows — evidence stays the coverage seam, per the Codex review. Also from review: contract fields (expiry, current salary, release clauses) and key-staff-likely-to-follow on coaches, to complete the board-pack profile grid | The full methodology runs inside the product |
+| **1. Assessment backbone** (~4–6 wks) | 9-criteria data model per mandate-candidate; assessment matrix coverage heatmap; assessment workspace auto-filled from existing data; Head Coach Assessment Pack PDF; GBE work-permit calculator | The killer demo works end-to-end with curated data |
+| **2. Human evidence modules** | Interview kit (question banks, structured capture, per-criterion rating); references tracker (5 stakeholder banks, pattern + contradiction synthesis); AI-drafted sections with provenance & sign-off. Structured child tables (question item, respondent type, answer, rating, contradiction flag) linked to assessment_evidence rows — evidence stays the coverage seam, per the Codex review. Also from review: contract fields (expiry, current salary, release clauses) and key-staff-likely-to-follow on coaches, to complete the assessment-pack profile grid | The full methodology runs inside the product |
 | **3. Quantitative layer** | xG pre/post, ELO, PPG-vs-budget, formation usage from API-Football + public sources; squad age & development metrics; transfer-asset ledger | Dossier data pages populate automatically |
 | **4. Sell to organisations** | Orgs/seats/roles, shared mandates, audit trail; landing-page proof upgrade; pricing | Convert demo interest into club contracts |
 

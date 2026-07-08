@@ -2,13 +2,13 @@
 
 **Login:** jakemarques@live.com (own account — do NOT sign up fresh; new-account setup has a known redirect issue).
 **Production:** https://coach-app-seven-rose.vercel.app
-**Browser:** Chrome (board-pack PDF export keeps its colours in Chrome's Save-as-PDF).
+**Browser:** Chrome (assessment-pack PDF export keeps its colours in Chrome's Save-as-PDF).
 
 **One-line thesis:** *CoachInside tells you who exists. Consultancies tell you what they think. Coach First is where the club runs the decision.*
 
 ---
 
-## The story (Mandate → 3 candidates → Brian → evidence → recommendation → board pack)
+## The story (Mandate → 3 candidates → Brian → evidence → recommendation → assessment pack)
 
 ### 1. Mandate context (30s)
 Open **Mandates → QPR Head Coach Succession → Workspace**.
@@ -32,9 +32,9 @@ Click **Brian Barry-Murphy**.
 Scroll to **Final recommendation**.
 > "Analyst conclusion, structured by the methodology, supported by the evidence above: Proceed at 74% — with the risks and mitigation stated, not hidden."
 
-### 5. The board pack (60s)
-Click **Board pack →**.
-> "One click: the confidential dossier the board actually receives. Strengths, risks, recommendation. Profile and hiring feasibility. Career timeline. All nine assessment findings with their evidence cited. References appendix. This is what consultancies charge five-figure retainers to produce over weeks — generated from the workspace in seconds."
+### 5. The Head Coach Assessment Pack (60s)
+Click **Assessment pack →**.
+> "One click: the confidential Head Coach Assessment Pack the board actually receives. Strengths, risks, recommendation. Profile and hiring feasibility. Career timeline. All nine assessment findings with their evidence cited. References appendix. This is what consultancies charge five-figure retainers to produce over weeks — generated from the workspace in seconds."
 Click **Print / Save as PDF** to show the export.
 
 ### 6. Close (15s)
@@ -45,7 +45,7 @@ Click **Print / Save as PDF** to show the export.
 ## Don'ts
 - Don't sign up a fresh account live (setup redirect issue).
 - Don't lead with GBE — it's a note, not a claim.
-- Don't open Knutsen/Still board packs unless asked (thinner than Brian's; references show "pending structured references").
+- Don't open Knutsen/Still assessment packs unless asked (thinner than Brian's; references show "pending structured references").
 - Don't demo from Safari if exporting the PDF.
 
 ## If asked "is this automated?"

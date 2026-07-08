@@ -5,9 +5,21 @@ import { ASSESSMENT_CRITERIA, methodLabel } from '@/lib/assessment/criteria'
 import { calculateGbe } from '@/lib/analysis/gbe'
 import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { PrintButton } from './print-button'
+import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
 
-// Board-ready candidate dossier: structured HTML print view.
+// Board-ready Head Coach Assessment Pack: structured HTML print view.
 // Section order mirrors the club-leadership assessment deck format.
+
+function display(value: string | null | undefined) {
+  return value && value.trim() ? value.trim() : '—'
+}
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 export default async function BoardPackPage({
   params,
@@ -28,7 +40,7 @@ export default async function BoardPackPage({
     .single()
   if (!mandate) notFound()
 
-  // Board packs are generated for shortlisted candidates only.
+  // Assessment packs are generated for shortlisted candidates only.
   const { data: shortlisted } = await supabase
     .from('mandate_shortlist')
     .select('coach_id')
@@ -39,13 +51,25 @@ export default async function BoardPackPage({
 
   const { data: coach } = await supabase
     .from('coaches')
-    .select('id, name, club_current, nationality, date_of_birth, languages, coaching_licence, agent_name, wage_expectation, availability_status, tactical_identity, preferred_style, family_context, relocation_flexibility')
+    .select('id, name, club_current, nationality, date_of_birth, languages, coaching_licence, agent_name, agent_contact, wage_expectation, compensation_expectation, staff_cost_estimate, contract_expiry, release_clause, contract_notes, availability_status, market_status, tactical_identity, preferred_style, family_context, relocation_flexibility, due_diligence_summary, compliance_notes')
     .eq('id', coachId)
     .eq('user_id', user.id)
     .single()
   if (!coach) notFound()
 
-  const [assessments, evidence, recommendationRes, stints, tacticalReports, backgroundChecks, references] =
+  const [
+    assessments,
+    evidence,
+    recommendationRes,
+    privateMaterials,
+    accessRequests,
+    portalProfile,
+    profileClaims,
+    stints,
+    tacticalReports,
+    backgroundChecks,
+    references,
+  ] =
     await Promise.all([
       supabase
         .from('candidate_assessments')
@@ -64,6 +88,33 @@ export default async function BoardPackPage({
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .maybeSingle(),
+      supabase
+        .from('coach_private_materials')
+        .select('id, title, material_type, description, source_label, uploaded_by, confidentiality_status, verification_status')
+        .eq('coach_id', coachId)
+        .order('created_at', { ascending: false })
+        .limit(12),
+      supabase
+        .from('confidential_access_requests')
+        .select('id, requested_by, requester_role, club_context, request_reason, status, requested_at, decided_at')
+        .eq('mandate_id', mandateId)
+        .eq('coach_id', coachId)
+        .order('requested_at', { ascending: false })
+        .limit(5),
+      supabase
+        .from('coach_portal_profiles')
+        .select('portal_status, visibility_status, football_identity, training_week, session_design_principles, staff_network, key_staff_likely_to_follow, reference_permissions, sensitive_notes')
+        .eq('coach_id', coachId)
+        .eq('user_id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('profile_claims')
+        .select('id, claim_type, profile_field, claimed_value, evidence_summary, source_type, source_name, source_tier, confidence, sensitivity, verification_status, review_status, occurred_at, used_in_recommendation')
+        .eq('coach_id', coachId)
+        .eq('user_id', user.id)
+        .eq('used_in_recommendation', true)
+        .order('occurred_at', { ascending: false, nullsFirst: false })
+        .limit(8),
       supabase
         .from('coach_stints')
         .select('club_name, league, role_title, started_on, ended_on, points_per_game')
@@ -87,7 +138,7 @@ export default async function BoardPackPage({
   const assessmentByCriterion = new Map((assessments.data ?? []).map((a) => [a.criterion, a]))
   const gbe = calculateGbe(stints.data ?? [], coach.coaching_licence)
 
-  // The dossier must show the same evidence base the workspace coverage counts:
+  // The assessment pack must show the same evidence base the workspace coverage counts:
   // captured evidence marked for the recommendation, plus auto-derived platform evidence.
   const derived = deriveEvidence({
     coach,
@@ -107,11 +158,15 @@ export default async function BoardPackPage({
     : null
 
   const evidenceRows = evidence.data ?? []
+  const materialRows = privateMaterials.data ?? []
+  const requestRows = accessRequests.data ?? []
+  const claimRows = profileClaims.data ?? []
+  const latestAccessRequest = requestRows[0]
 
   return (
     <div id="board-pack-root" className="max-w-[860px] mx-auto pb-16 print:max-w-none print:pb-0">
       {/* Print styling: drop app chrome and flip the dark theme to a light,
-          paper-friendly palette so the dossier prints like a board document, not
+          paper-friendly palette so the pack prints like a board document, not
           a raw dark app page. Scoped to print + this subtree only. */}
       <style
         dangerouslySetInnerHTML={{
@@ -212,10 +267,9 @@ export default async function BoardPackPage({
             { label: 'Licence', value: coach.coaching_licence ?? 'Not recorded' },
             { label: 'Languages', value: coach.languages?.length ? coach.languages.join(', ') : '—' },
             { label: 'Agent', value: coach.agent_name ?? 'None recorded' },
-            { label: 'Wage expectation', value: coach.wage_expectation || '—' },
             { label: 'Availability', value: coach.availability_status ?? '—' },
-            { label: 'Family situation', value: coach.family_context ?? '—' },
-            { label: 'Relocation', value: coach.relocation_flexibility ?? '—' },
+            { label: 'Market status', value: coach.market_status ?? '—' },
+            { label: 'Tactical identity', value: coach.tactical_identity ?? coach.preferred_style ?? '—' },
             {
               label: 'Work permit (GBE, indicative)',
               value:
@@ -237,6 +291,118 @@ export default async function BoardPackPage({
           Work-permit note: {gbe.passRoute ?? 'no GBE auto-pass route confirmed on recorded data'}. Final eligibility
           requires legal / work-permit confirmation and is not a factor in the footballing assessment below.
         </p>
+      </section>
+
+      {/* Appointment feasibility */}
+      <section className="mt-8 print:break-inside-avoid">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
+          02 · Appointment feasibility
+        </h2>
+        <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+          This is the private intelligence layer a club cannot reliably obtain from public data alone: deal context,
+          representative route, staff implications and personal practicalities.
+        </p>
+        <div className="grid grid-cols-4 gap-4 mt-3">
+          {[
+            { label: 'Contract expiry', value: formatDate(coach.contract_expiry) },
+            { label: 'Release / compensation clause', value: display(coach.release_clause) },
+            { label: 'Wage expectation', value: display(coach.wage_expectation) },
+            { label: 'Compensation expectation', value: display(coach.compensation_expectation) },
+            { label: 'Staff cost estimate', value: display(coach.staff_cost_estimate) },
+            { label: 'Agent contact', value: display(coach.agent_contact) },
+            { label: 'Family situation', value: display(coach.family_context) },
+            { label: 'Relocation', value: display(coach.relocation_flexibility) },
+          ].map((item) => (
+            <div key={item.label} className="border-t-2 border-emerald-500/60 pt-2">
+              <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
+              <p className="text-sm font-medium text-foreground mt-0.5">{item.value}</p>
+            </div>
+          ))}
+        </div>
+        {(coach.contract_notes || coach.due_diligence_summary || coach.compliance_notes) && (
+          <div className="grid grid-cols-3 gap-4 mt-4">
+            {[
+              { label: 'Contract context', value: coach.contract_notes },
+              { label: 'Due diligence', value: coach.due_diligence_summary },
+              { label: 'Compliance / risk note', value: coach.compliance_notes },
+            ].map((item) => (
+              <div key={item.label} className="border-l-2 border-emerald-500/50 pl-3">
+                <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
+                <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">{display(item.value)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Coach-submitted material */}
+      <section className="mt-8 print:break-inside-avoid">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
+          03 · Coach-submitted depth
+        </h2>
+        <div className="grid grid-cols-3 gap-4 mt-3">
+          {[
+            { label: 'Portal status', value: portalProfile.data?.portal_status ?? 'not invited' },
+            { label: 'Visibility', value: portalProfile.data?.visibility_status ?? 'private' },
+            { label: 'Private material', value: `${materialRows.length} item${materialRows.length === 1 ? '' : 's'} logged` },
+          ].map((item) => (
+            <div key={item.label} className="border-t-2 border-emerald-500/60 pt-2">
+              <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
+              <p className="text-sm font-medium text-foreground mt-0.5">{item.value}</p>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          {[
+            { label: 'Football identity', value: portalProfile.data?.football_identity },
+            { label: 'Training week', value: portalProfile.data?.training_week },
+            { label: 'Session design', value: portalProfile.data?.session_design_principles },
+            { label: 'Staff network', value: portalProfile.data?.staff_network ?? portalProfile.data?.key_staff_likely_to_follow },
+            { label: 'Reference permissions', value: portalProfile.data?.reference_permissions },
+            { label: 'Sensitive context', value: portalProfile.data?.sensitive_notes },
+          ].map((item) => (
+            <div key={item.label} className="border-l border-border pl-3">
+              <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
+              <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">{display(item.value)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Source-backed private claims */}
+      <section className="mt-8 print:break-inside-avoid">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
+          Source-backed private intelligence
+        </h2>
+        {claimRows.length > 0 ? (
+          <div className="mt-3 space-y-2">
+            {claimRows.map((claim) => (
+              <div key={claim.id} className="border-l-2 border-emerald-500/50 pl-3">
+                <p className="text-xs font-semibold text-foreground">
+                  {claimTypeLabel(claim.claim_type)}
+                  <span className="font-normal text-muted-foreground">
+                    {' — '}
+                    {claimFieldLabel(claim.profile_field)}
+                    {claim.confidence !== null ? ` · ${claim.confidence}% confidence` : ''}
+                    {claim.verification_status === 'verified' ? ' · verified' : claim.verification_status === 'disputed' ? ' · disputed' : ' · unverified'}
+                  </span>
+                </p>
+                <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">
+                  {claim.claimed_value}
+                </p>
+                <p className="text-2xs text-muted-foreground/80 mt-1 leading-relaxed">
+                  {claim.evidence_summary}
+                  {claim.source_name ? ` Source: ${claim.source_name}` : ''}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-2xs text-muted-foreground mt-3">
+            No source-backed private claims are currently included in this recommendation. Agent calls, references and
+            analyst notes can be reviewed before they update the coach profile or board recommendation.
+          </p>
+        )}
       </section>
 
       {/* Career timeline */}
@@ -327,7 +493,63 @@ export default async function BoardPackPage({
         </div>
       </section>
 
-      {/* References appendix — always present so the dossier shape is complete */}
+      {/* Confidential data room */}
+      <section className="mt-8 print:break-inside-avoid">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
+          Confidential data room
+        </h2>
+        <div className="grid grid-cols-3 gap-4 mt-3">
+          <div className="border-t-2 border-emerald-500/60 pt-2">
+            <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
+              Private material
+            </p>
+            <p className="text-sm font-semibold text-foreground mt-0.5">
+              {materialRows.length} item{materialRows.length === 1 ? '' : 's'} logged
+            </p>
+            <p className="text-2xs text-muted-foreground mt-1">
+              Coach presentations, training video, methodology and analyst-held files are controlled separately from
+              this assessment pack.
+            </p>
+          </div>
+          <div className="border-t-2 border-emerald-500/60 pt-2">
+            <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
+              Access status
+            </p>
+            <p className="text-sm font-semibold text-foreground mt-0.5">
+              {latestAccessRequest ? latestAccessRequest.status : 'No request raised'}
+            </p>
+            <p className="text-2xs text-muted-foreground mt-1">
+              {latestAccessRequest?.request_reason ?? 'A club-side request is created when the appointment process moves into private review.'}
+            </p>
+          </div>
+          <div className="border-t-2 border-emerald-500/60 pt-2">
+            <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
+              Football value
+            </p>
+            <p className="text-sm font-semibold text-foreground mt-0.5">Training-ground reality</p>
+            <p className="text-2xs text-muted-foreground mt-1">
+              This layer captures what a normal database does not: how the coach presents, trains, prepares and explains
+              the work.
+            </p>
+          </div>
+        </div>
+        {materialRows.length > 0 && (
+          <ul className="mt-3 space-y-1">
+            {materialRows.slice(0, 5).map((item) => (
+              <li key={item.id} className="text-2xs text-muted-foreground/80 pl-3 border-l border-border">
+                <span className="text-foreground/80">{item.title}</span>
+                {' — '}
+                {item.material_type.replaceAll('_', ' ')}
+                {item.source_label ? `, ${item.source_label}` : ''}
+                {item.confidentiality_status ? `, ${item.confidentiality_status}` : ''}
+                {item.verification_status === 'verified' ? ' ✓ verified' : ''}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* References appendix — always present so the assessment-pack shape is complete */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
           References — character &amp; working relationships

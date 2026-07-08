@@ -742,3 +742,43 @@ export async function updateShortlistWorkspaceAction(formData: FormData) {
   revalidatePath(`/mandates/${mandateId}/workspace`)
   return {}
 }
+
+export async function removeShortlistCandidateAction(formData: FormData) {
+  const { supabase, user } = await requireUser()
+  const shortlistId = toText(formData.get('shortlist_id'))
+  const mandateId = toText(formData.get('mandate_id'))
+  if (!shortlistId || !mandateId) return { error: 'Missing fields' }
+
+  const { data: entry } = await supabase
+    .from('mandate_shortlist')
+    .select('id, coach_id, mandates!inner(user_id)')
+    .eq('id', shortlistId)
+    .eq('mandate_id', mandateId)
+    .single()
+
+  if (!entry || (entry.mandates as { user_id: string }).user_id !== user.id) {
+    return { error: 'Not found' }
+  }
+
+  const { error } = await supabase
+    .from('mandate_shortlist')
+    .delete()
+    .eq('id', shortlistId)
+    .eq('mandate_id', mandateId)
+
+  if (error) return { error: error.message }
+
+  await logActivity({
+    entityType: 'mandate',
+    entityId: mandateId,
+    actionType: 'shortlist_removed',
+    description: 'Candidate removed from shortlist',
+    metadata: { shortlist_id: shortlistId, coach_id: entry.coach_id },
+  })
+
+  revalidatePath('/mandates')
+  revalidatePath(`/mandates/${mandateId}`)
+  revalidatePath(`/mandates/${mandateId}/workspace`)
+  revalidatePath(`/mandates/${mandateId}/assessment`)
+  return {}
+}

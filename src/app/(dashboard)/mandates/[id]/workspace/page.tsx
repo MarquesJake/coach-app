@@ -57,6 +57,57 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
     .eq('mandate_id', params.id)
     .order('created_at', { ascending: true })
 
+  const shortlistRows = shortlist ?? []
+  const shortlistCoachIds = shortlistRows.map((row) => row.coach_id)
+
+  const [recommendationsRes, assessmentsRes, evidenceRes] = shortlistCoachIds.length
+    ? await Promise.all([
+        supabase
+          .from('candidate_recommendations')
+          .select('coach_id, verdict, confidence, summary, key_strengths, key_risks, mitigation')
+          .eq('mandate_id', params.id)
+          .in('coach_id', shortlistCoachIds),
+        supabase
+          .from('candidate_assessments')
+          .select('coach_id, criterion, status')
+          .eq('mandate_id', params.id)
+          .in('coach_id', shortlistCoachIds),
+        supabase
+          .from('assessment_evidence')
+          .select('coach_id, criterion')
+          .eq('mandate_id', params.id)
+          .in('coach_id', shortlistCoachIds),
+      ])
+    : [{ data: [] }, { data: [] }, { data: [] }]
+
+  const recommendationMap = new Map((recommendationsRes.data ?? []).map((row) => [row.coach_id, row]))
+  const completeCountMap = new Map<string, number>()
+  const coverageMap = new Map<string, Set<string>>()
+  for (const row of assessmentsRes.data ?? []) {
+    if (row.status === 'complete') {
+      completeCountMap.set(row.coach_id, (completeCountMap.get(row.coach_id) ?? 0) + 1)
+    }
+  }
+  for (const row of evidenceRes.data ?? []) {
+    const set = coverageMap.get(row.coach_id) ?? new Set<string>()
+    set.add(row.criterion)
+    coverageMap.set(row.coach_id, set)
+  }
+  const enrichedShortlist = shortlistRows.map((row) => {
+    const recommendation = recommendationMap.get(row.coach_id)
+    return {
+      ...row,
+      recommendation_verdict: recommendation?.verdict ?? null,
+      recommendation_confidence: recommendation?.confidence ?? null,
+      recommendation_summary: recommendation?.summary ?? null,
+      recommendation_key_strengths: recommendation?.key_strengths ?? null,
+      recommendation_key_risks: recommendation?.key_risks ?? null,
+      recommendation_mitigation: recommendation?.mitigation ?? null,
+      assessment_complete_count: completeCountMap.get(row.coach_id) ?? 0,
+      evidence_coverage_count: coverageMap.get(row.coach_id)?.size ?? 0,
+    }
+  })
+
   // Fetch club season results — up to 8 seasons, sorted oldest first for trajectory reading
   const { data: seasonResults } = clubId
     ? await supabase
@@ -136,7 +187,7 @@ export default async function MandateWorkspacePage({ params }: { params: { id: s
       <MandateTabNav mandateId={params.id} />
       <MandateWorkspaceClient
         mandate={mandate as Mandate}
-        shortlist={(shortlist ?? []) as Candidate[]}
+        shortlist={enrichedShortlist as Candidate[]}
         seasonResults={(seasonResults ?? []) as SeasonResult[]}
         coachingHistory={(coachingHistory ?? []) as CoachingRecord[]}
         stabilityMetrics={stabilityMetrics}

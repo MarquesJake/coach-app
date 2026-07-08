@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import type { Database } from '@/lib/types/db'
 import {
   createAgent as dbCreateAgent,
   updateAgent as dbUpdateAgent,
@@ -19,8 +20,26 @@ import {
   createInteraction,
   deleteInteraction,
 } from '@/lib/db/agentInteractions'
+import {
+  CLAIM_REVIEW_STATUSES,
+  CLAIM_SENSITIVITIES,
+  CLAIM_VERIFICATION_STATUSES,
+  PROFILE_CLAIM_TYPES,
+  isClaimProfileField,
+} from '@/lib/profile-claims'
 
 type Result = { ok: true; data?: { id: string } } | { ok: false; error: string }
+type ProfileClaimInsert = Database['public']['Tables']['profile_claims']['Insert']
+type InteractionClaimInput = {
+  claim_type: string
+  profile_field?: string | null
+  claimed_value: string
+  evidence_summary: string
+  confidence?: number | null
+  sensitivity?: string | null
+  verification_status?: string | null
+  used_in_recommendation?: boolean | null
+}
 
 async function requireUser() {
   const supabase = createServerSupabaseClient()
@@ -236,10 +255,33 @@ export async function createAgentInteractionAction(payload: {
   follow_up_date?: string | null
   coach_id?: string | null
   club_id?: string | null
+  claims?: InteractionClaimInput[]
 }): Promise<Result> {
   try {
-    const { user } = await requireUser()
-    const { error } = await createInteraction(user.id, {
+    const { supabase, user } = await requireUser()
+    const coachId = payload.coach_id ?? null
+    const agent = await supabase
+      .from('agents')
+      .select('id, full_name, agency_name')
+      .eq('id', payload.agent_id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (!agent.data) return { ok: false, error: 'Agent not found' }
+    const agentData = agent.data
+
+    let currentCoach: Record<string, unknown> | null = null
+    if (coachId) {
+      const coach = await supabase
+        .from('coaches')
+        .select('*')
+        .eq('id', coachId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      if (!coach.data) return { ok: false, error: 'Coach not found' }
+      currentCoach = coach.data as unknown as Record<string, unknown>
+    }
+
+    const { data: interaction, error } = await createInteraction(user.id, {
       agent_id: payload.agent_id,
       occurred_at: payload.occurred_at,
       channel: payload.channel ?? null,
@@ -257,8 +299,133 @@ export async function createAgentInteractionAction(payload: {
       club_id: payload.club_id ?? null,
     })
     if (error) return { ok: false, error: error.message ?? 'Failed to add interaction' }
+
+    const claims = (payload.claims ?? [])
+      .map((claim) => ({
+        ...claim,
+        claimed_value: claim.claimed_value.trim(),
+        evidence_summary: claim.evidence_summary.trim(),
+      }))
+      .filter((claim) => claim.claimed_value && claim.evidence_summary)
+
+    if (claims.some((claim) => claim.confidence != null && (claim.confidence < 0 || claim.confidence > 100))) {
+      return { ok: false, error: 'Claim confidence must be between 0 and 100' }
+    }
+
+    if (claims.length > 0) {
+      if (!coachId || !currentCoach) return { ok: false, error: 'Link a coach before adding profile claims' }
+      const rows: ProfileClaimInsert[] = claims.slice(0, 4).map((claim) => {
+        const profileField = isClaimProfileField(claim.profile_field) ? claim.profile_field : null
+        const claimType = PROFILE_CLAIM_TYPES.includes(claim.claim_type as (typeof PROFILE_CLAIM_TYPES)[number])
+          ? claim.claim_type
+          : 'other'
+        const sensitivity = CLAIM_SENSITIVITIES.includes(claim.sensitivity as (typeof CLAIM_SENSITIVITIES)[number])
+          ? claim.sensitivity ?? 'standard'
+          : 'standard'
+        const verificationStatus = CLAIM_VERIFICATION_STATUSES.includes(
+          claim.verification_status as (typeof CLAIM_VERIFICATION_STATUSES)[number]
+        )
+          ? claim.verification_status ?? 'unverified'
+          : 'unverified'
+        const sourceName = [
+          agentData.full_name,
+          agentData.agency_name ? `(${agentData.agency_name})` : null,
+        ].filter(Boolean).join(' ')
+
+        return {
+          user_id: user.id,
+          entity_type: 'coach',
+          entity_id: coachId,
+          coach_id: coachId,
+          agent_id: payload.agent_id,
+          interaction_id: (interaction as { id: string }).id,
+          claim_type: claimType,
+          profile_field: profileField,
+          current_value: profileField && currentCoach[profileField] != null ? String(currentCoach[profileField]) : null,
+          claimed_value: claim.claimed_value,
+          evidence_summary: claim.evidence_summary,
+          source_type: 'agent_conversation',
+          source_name: sourceName || null,
+          source_notes: payload.summary,
+          source_tier: claim.verification_status === 'verified' ? '1' : '2',
+          confidence: claim.confidence ?? payload.confidence ?? null,
+          sensitivity,
+          verification_status: verificationStatus,
+          used_in_recommendation: claim.used_in_recommendation !== false,
+          occurred_at: payload.occurred_at,
+        }
+      })
+      const { error: claimError } = await supabase.from('profile_claims').insert(rows)
+      if (claimError) return { ok: false, error: claimError.message ?? 'Failed to add profile claims' }
+    }
+
     revalidatePath(`/agents/${payload.agent_id}`)
     revalidatePath(`/agents/${payload.agent_id}/interactions`)
+    if (coachId) revalidatePath(`/coaches/${coachId}`)
+    revalidatePath('/intelligence')
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
+  }
+}
+
+export async function reviewProfileClaimAction(payload: {
+  id: string
+  agent_id?: string | null
+  coach_id?: string | null
+  review_status: string
+  apply_to_profile?: boolean
+}): Promise<Result> {
+  try {
+    const { supabase, user } = await requireUser()
+    if (!CLAIM_REVIEW_STATUSES.includes(payload.review_status as (typeof CLAIM_REVIEW_STATUSES)[number])) {
+      return { ok: false, error: 'Unknown claim review status' }
+    }
+
+    const { data: claim, error: claimError } = await supabase
+      .from('profile_claims')
+      .select('*')
+      .eq('id', payload.id)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (claimError || !claim) return { ok: false, error: 'Claim not found' }
+
+    const profileField = isClaimProfileField(claim.profile_field) ? claim.profile_field : null
+    const targetCoachId = claim.coach_id
+    const shouldApply = Boolean(payload.apply_to_profile && targetCoachId && profileField)
+    const nextStatus = shouldApply ? 'applied' : payload.review_status
+    const now = new Date().toISOString()
+
+    if (shouldApply) {
+      const { error: coachError } = await supabase
+        .from('coaches')
+        .update({
+          [profileField as string]: claim.claimed_value,
+          last_updated: now,
+        })
+        .eq('id', targetCoachId as string)
+        .eq('user_id', user.id)
+      if (coachError) return { ok: false, error: coachError.message ?? 'Failed to update coach profile' }
+    }
+
+    const { error } = await supabase
+      .from('profile_claims')
+      .update({
+        review_status: nextStatus,
+        reviewed_at: now,
+        reviewed_by: user.email ?? user.id,
+        applied_at: shouldApply ? now : null,
+        updated_at: now,
+      })
+      .eq('id', payload.id)
+      .eq('user_id', user.id)
+    if (error) return { ok: false, error: error.message ?? 'Failed to review claim' }
+
+    if (payload.agent_id) {
+      revalidatePath(`/agents/${payload.agent_id}`)
+      revalidatePath(`/agents/${payload.agent_id}/interactions`)
+    }
+    if (claim.coach_id) revalidatePath(`/coaches/${claim.coach_id}`)
     revalidatePath('/intelligence')
     return { ok: true }
   } catch (e) {

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getStageLabel } from '@/lib/constants/mandateStages'
 import { cn } from '@/lib/utils'
-import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, ChevronRight, Activity, Bell, Plus, Radio } from 'lucide-react'
+import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, ChevronRight, Activity, Bell, Plus, Radio, FileText, LockKeyhole, ShieldCheck } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -160,6 +160,20 @@ function riskIcon(flag: RiskFlag) {
   }
 }
 
+function WorkflowLine({ label, text, href }: { label: string; text: string; href: string }) {
+  return (
+    <Link href={href} className="group block rounded-md border border-border bg-background/40 px-3 py-2 transition-colors hover:border-primary/35">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-foreground">{label}</p>
+          <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{text}</p>
+        </div>
+        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+      </div>
+    </Link>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
@@ -171,7 +185,18 @@ export default async function DashboardPage() {
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString()
 
   // All fetches in parallel
-  const [mandatesRes, deliverablesRes, activityRes, alertsRes, coachUpdatesRes] = await Promise.all([
+  const [
+    mandatesRes,
+    deliverablesRes,
+    activityRes,
+    alertsRes,
+    coachUpdatesRes,
+    inboxOpenRes,
+    inboxReadyRes,
+    assessmentEvidenceRes,
+    profileClaimsRes,
+    privateMaterialsRes,
+  ] = await Promise.all([
     supabase
       .from('mandates')
       .select(`
@@ -222,6 +247,34 @@ export default async function DashboardPage() {
       .eq('confidence', 'High')
       .order('occurred_at', { ascending: false, nullsFirst: false })
       .limit(4),
+
+    supabase
+      .from('intelligence_inbox_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .not('review_status', 'in', '("promoted","archived")'),
+
+    supabase
+      .from('intelligence_inbox_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('review_status', 'ready_to_promote'),
+
+    supabase
+      .from('assessment_evidence')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id),
+
+    supabase
+      .from('profile_claims')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .in('review_status', ['pending', 'accepted']),
+
+    supabase
+      .from('coach_private_materials')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id),
   ])
 
   const mandates = (mandatesRes.data ?? []) as MandateRow[]
@@ -229,6 +282,11 @@ export default async function DashboardPage() {
   const activityLog = (activityRes.data ?? []) as ActivityRow[]
   const alerts = (alertsRes.data ?? []) as AlertRow[]
   const coachUpdates = (coachUpdatesRes.data ?? []) as CoachUpdateRow[]
+  const openInboxCount = inboxOpenRes.count ?? 0
+  const readyInboxCount = inboxReadyRes.count ?? 0
+  const assessmentEvidenceCount = assessmentEvidenceRes.count ?? 0
+  const profileClaimsCount = profileClaimsRes.count ?? 0
+  const privateMaterialsCount = privateMaterialsRes.count ?? 0
 
   // Build last-activity-per-mandate map
   const lastActivityMap = new Map<string, string>()
@@ -413,6 +471,48 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* ── Appointment OS workflow ── */}
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Head Coach Appointment OS</p>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Capture intelligence, qualify evidence, package the decision</h2>
+            </div>
+            <Link href="/intelligence/inbox" className="inline-flex items-center gap-1.5 rounded-md border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/15">
+              Open inbox
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-2 md:grid-cols-4">
+            {[
+              { label: 'Raw football intelligence', value: openInboxCount, href: '/intelligence/inbox', icon: Radio, detail: 'Calls, transcripts, uploads, media' },
+              { label: 'Profile claims', value: profileClaimsCount, href: '/intelligence/inbox?destination=profile_claim', icon: ShieldCheck, detail: 'Contract, staff, family, risk' },
+              { label: 'Assessment evidence', value: assessmentEvidenceCount, href: '/intelligence', icon: FileText, detail: '9-criteria methodology proof' },
+              { label: 'Confidential material', value: privateMaterialsCount, href: '/coach-portal', icon: LockKeyhole, detail: 'Coach uploads and data-room assets' },
+            ].map(({ label, value, href, icon: Icon, detail }) => (
+              <Link key={label} href={href} className="rounded-md border border-border bg-background/40 p-3 transition-colors hover:border-primary/35 hover:bg-background/60">
+                <div className="flex items-center justify-between gap-2">
+                  <Icon className="h-4 w-4 text-primary" />
+                  <span className="text-xl font-semibold tabular-nums text-foreground">{value}</span>
+                </div>
+                <p className="mt-2 text-xs font-medium text-foreground">{label}</p>
+                <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{detail}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Investor-ready proof</p>
+          <div className="mt-3 space-y-2">
+            <WorkflowLine label="1. Intelligence" text={`${openInboxCount} open item${openInboxCount === 1 ? '' : 's'} awaiting review`} href="/intelligence/inbox" />
+            <WorkflowLine label="2. Promotion" text={`${readyInboxCount} item${readyInboxCount === 1 ? '' : 's'} ready to become profile/evidence/material`} href="/intelligence/inbox" />
+            <WorkflowLine label="3. Assessment pack" text="Evidence flows into candidate assessment and the Head Coach Assessment Pack" href={heroMandates[0] ? `/mandates/${heroMandates[0].id}/assessment` : '/mandates'} />
+          </div>
+        </div>
+      </div>
+
       {/* ── Active mandates table ── */}
       <div className="card-surface rounded-lg overflow-hidden">
         <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
@@ -573,7 +673,7 @@ export default async function DashboardPage() {
           {deliverables.length === 0 ? (
             <div className="px-4 py-6 text-center">
               <p className="text-xs font-medium text-foreground">No dated deliverables</p>
-              <p className="mt-1 text-[10px] text-muted-foreground">Add board packs, interview windows, or outreach deadlines inside a mandate.</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Add assessment packs, interview windows, or outreach deadlines inside a mandate.</p>
             </div>
           ) : (
             <div className="divide-y divide-border/50">

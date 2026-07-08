@@ -15,8 +15,13 @@ export const MANDATES_SUBNAV: SubNavItem[] = [
   { label: 'New mandate', href: '/mandates/new' },
 ]
 
+export const COACH_PORTAL_SUBNAV: SubNavItem[] = [
+  { label: 'Portal board', href: '/coach-portal' },
+]
+
 export const INTELLIGENCE_SUBNAV: SubNavItem[] = [
   { label: 'Feed', href: '/intelligence' },
+  { label: 'Inbox', href: '/intelligence/inbox' },
 ]
 
 export const STAFF_SUBNAV: SubNavItem[] = []

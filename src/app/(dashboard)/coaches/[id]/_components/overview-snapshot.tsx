@@ -25,6 +25,9 @@ const OVERVIEW_FIELDS: EditCoachField[] = [
   { key: 'agent_name', label: 'Agent name', type: 'text' },
   { key: 'agent_contact', label: 'Agent contact', type: 'text' },
   { key: 'compensation_expectation', label: 'Compensation expectation', type: 'text' },
+  { key: 'contract_expiry', label: 'Contract expiry', type: 'text', placeholder: 'YYYY-MM-DD' },
+  { key: 'release_clause', label: 'Release / compensation clause', type: 'text' },
+  { key: 'contract_notes', label: 'Contract context notes', type: 'textarea' },
   { key: 'availability_status', label: 'Availability status', type: 'text' },
   { key: 'market_status', label: 'Market status', type: 'text' },
 ]
@@ -53,6 +56,9 @@ export function OverviewSnapshot({ coachId, coach }: { coachId: string; coach: C
     agent_name: coach.agent_name ?? '',
     agent_contact: coach.agent_contact ?? '',
     compensation_expectation: coach.compensation_expectation ?? '',
+    contract_expiry: coach.contract_expiry ?? '',
+    release_clause: coach.release_clause ?? '',
+    contract_notes: coach.contract_notes ?? '',
     availability_status: coach.availability_status ?? '',
     market_status: coach.market_status ?? '',
   }

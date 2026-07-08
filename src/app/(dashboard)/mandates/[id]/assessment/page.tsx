@@ -244,7 +244,7 @@ export default async function MandateAssessmentIndexPage({
                       href={`/mandates/${mandateId}/assessment/${row.coach_id}/board-pack`}
                       className="text-2xs font-medium text-muted-foreground hover:text-foreground"
                     >
-                      Board pack
+                      Assessment pack
                     </Link>
                   </div>
                 </div>

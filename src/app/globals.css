@@ -254,8 +254,8 @@ select option {
   background: rgba(255, 255, 255, 0.14);
 }
 
-/* Print / PDF exports (board packs) must read as standalone documents, not app
-   screens: drop the fixed sidebar and its layout offset so the dossier prints
+/* Print / PDF exports (assessment packs) must read as standalone documents, not app
+   screens: drop the fixed sidebar and its layout offset so the pack prints
    full-width, and force light-on-dark cover fills to keep their colour. */
 @media print {
   aside {
@@ -268,7 +268,7 @@ select option {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  /* The app's ambient dark background must never print — the dossier's own
+  /* The app's ambient dark background must never print — the pack's own
      explicit fills (cover, badges) keep their colour via print-keep-color. */
   body {
     background: #ffffff !important;

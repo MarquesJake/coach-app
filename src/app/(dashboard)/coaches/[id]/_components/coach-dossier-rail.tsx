@@ -30,6 +30,8 @@ export function CoachDossierRail({ coach }: { coach: CoachRecord }) {
   const languages = Array.isArray(coach.languages) ? (coach.languages as string[]).join(', ') : (coach.languages as string) ?? null
   const agent = (coach.agent_name as string) ?? null
   const compensation = (coach.compensation_expectation as string) ?? (coach.wage_expectation as string) ?? null
+  const contractExpiry = coach.contract_expiry as string | null | undefined
+  const releaseClause = coach.release_clause as string | null | undefined
   const staffCost = coach.staff_cost_estimate as string | null | undefined
   const lastUpdated = coach.last_updated as string | null | undefined
   const intelligenceConf = coach.intelligence_confidence as number | null | undefined
@@ -45,6 +47,8 @@ export function CoachDossierRail({ coach }: { coach: CoachRecord }) {
         <Row label="Languages" value={languages} />
         <Row label="Agent" value={agent} />
         <Row label="Compensation band" value={compensation} />
+        <Row label="Contract expiry" value={contractExpiry ? formatDate(contractExpiry) : null} />
+        <Row label="Release clause" value={releaseClause ?? null} />
         <Row label="Staff cost band" value={staffCost ?? null} />
         <Row label="Last updated" value={lastUpdated ? formatDate(lastUpdated) : null} />
         <div className="py-2 border-b border-border/50 last:border-0">

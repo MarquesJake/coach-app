@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { OverviewSnapshot } from './_components/overview-snapshot'
 import { getStageLabel } from '@/lib/constants/mandateStages'
+import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
 
 type CoachRecord = Record<string, unknown>
 
@@ -24,6 +25,46 @@ type ExternalProfile = {
   confidence: number | null
   match_confidence: number | null
   current_team_name: string | null
+}
+
+type PortalProfile = {
+  portal_status: string
+  visibility_status: string
+  football_identity: string | null
+  training_week: string | null
+  session_design_principles: string | null
+  staff_network: string | null
+  key_staff_likely_to_follow: string | null
+  reference_permissions: string | null
+  sensitive_notes: string | null
+}
+
+type PrivateMaterial = {
+  id: string
+  title: string
+  material_type: string
+  description: string | null
+  source_label: string | null
+  uploaded_by: string
+  confidentiality_status: string
+  verification_status: string
+  created_at: string
+}
+
+type ProfileClaim = {
+  id: string
+  claim_type: string
+  profile_field: string | null
+  claimed_value: string
+  evidence_summary: string
+  source_type: string
+  source_name: string | null
+  source_tier: string | null
+  confidence: number | null
+  sensitivity: string
+  verification_status: string
+  review_status: string
+  occurred_at: string | null
 }
 
 type MandateRelation = {
@@ -125,6 +166,15 @@ function mandateClubName(entry: MandateRelation): string {
   return entry.mandate.custom_club_name ?? entry.mandate.clubs?.name ?? 'Confidential mandate'
 }
 
+function materialLabel(value: string): string {
+  return value.replaceAll('_', ' ')
+}
+
+function profileValue(value: unknown): string {
+  if (typeof value === 'string' && value.trim()) return value.trim()
+  return 'Not captured'
+}
+
 export default async function CoachOverviewPage({ params }: { params: { id: string } }) {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -133,7 +183,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
   const { data: coach, error } = await getCoachById(user.id, params.id)
   if (error || !coach) notFound()
 
-  const [externalProfileRes, stintsRes, shortlistRes, longlistRes] = await Promise.all([
+  const [externalProfileRes, stintsRes, shortlistRes, longlistRes, portalRes, materialsRes, claimsRes] = await Promise.all([
     supabase
       .from('coach_external_profiles')
       .select('source_name, synced_at, confidence, match_confidence, current_team_name')
@@ -163,12 +213,37 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
       `)
       .eq('coach_id', params.id)
       .eq('mandates.user_id', user.id),
+    supabase
+      .from('coach_portal_profiles')
+      .select('portal_status, visibility_status, football_identity, training_week, session_design_principles, staff_network, key_staff_likely_to_follow, reference_permissions, sensitive_notes')
+      .eq('coach_id', params.id)
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('coach_private_materials')
+      .select('id, title, material_type, description, source_label, uploaded_by, confidentiality_status, verification_status, created_at')
+      .eq('coach_id', params.id)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(8),
+    supabase
+      .from('profile_claims')
+      .select('id, claim_type, profile_field, claimed_value, evidence_summary, source_type, source_name, source_tier, confidence, sensitivity, verification_status, review_status, occurred_at')
+      .eq('coach_id', params.id)
+      .eq('user_id', user.id)
+      .order('occurred_at', { ascending: false, nullsFirst: false })
+      .limit(8),
   ])
 
   const coachRecord = coach as CoachRecord
   const externalProfile = (externalProfileRes.data ?? null) as ExternalProfile | null
   const summary = dossierSummary(coachRecord, externalProfile)
   const stints = (stintsRes.data ?? []) as Stint[]
+  const portalProfile = (portalRes.data ?? null) as PortalProfile | null
+  const privateMaterials = (materialsRes.data ?? []) as PrivateMaterial[]
+  const profileClaims = (claimsRes.data ?? []) as ProfileClaim[]
+  const verifiedClaims = profileClaims.filter((claim) => claim.verification_status === 'verified').length
+  const appliedClaims = profileClaims.filter((claim) => claim.review_status === 'applied').length
 
   const mandateMap = new Map<string, MandateRelation>()
   for (const row of (longlistRes.data ?? []) as unknown as Array<{ id: string; ranking_score: number | null; mandates: MandateRelation['mandate'] | null }>) {
@@ -242,7 +317,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div id="profile-claims" className="rounded-xl border border-border bg-card p-6 scroll-mt-24">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-foreground">Career timeline</h2>
@@ -254,7 +329,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
           </div>
           {stints.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
-              Career timeline is not evidenced yet. Add verified roles or run enrichment before this dossier goes to a board pack.
+              Career timeline is not evidenced yet. Add verified roles or run enrichment before this profile goes into an assessment pack.
             </div>
           ) : (
             <ol className="space-y-3">
@@ -327,6 +402,175 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
                 </li>
               ))}
             </ul>
+          )}
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                Private football intelligence
+              </p>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Commercial and personal appointment context</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The information a club pays for because it is hard to get from public data.
+              </p>
+            </div>
+            <Link href={`/coach-portal/${params.id}`} className="shrink-0 text-xs text-primary hover:underline">
+              Coach portal
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              { label: 'Contract expiry', value: coachRecord.contract_expiry ? formatDate(String(coachRecord.contract_expiry)) : null },
+              { label: 'Release / compensation clause', value: text(coachRecord.release_clause) },
+              { label: 'Wage expectation', value: text(coachRecord.wage_expectation) },
+              { label: 'Compensation expectation', value: text(coachRecord.compensation_expectation) },
+              { label: 'Staff cost estimate', value: text(coachRecord.staff_cost_estimate) },
+              { label: 'Agent / representative', value: [text(coachRecord.agent_name), text(coachRecord.agent_contact)].filter(Boolean).join(' · ') },
+              { label: 'Family context', value: text(coachRecord.family_context) },
+              { label: 'Relocation flexibility', value: text(coachRecord.relocation_flexibility) },
+            ].map((item) => (
+              <div key={item.label} className="rounded-lg border border-border bg-surface/40 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{item.label}</p>
+                <p className="mt-1 text-sm text-foreground">{item.value || 'Not captured'}</p>
+              </div>
+            ))}
+          </div>
+          {text(coachRecord.contract_notes) && (
+            <div className="mt-3 rounded-lg border border-border bg-surface/40 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Contract context notes</p>
+              <p className="mt-1 text-sm leading-6 text-foreground">{text(coachRecord.contract_notes)}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                Source-backed claims
+              </p>
+              <h2 className="mt-1 text-base font-semibold text-foreground">What our network says has changed</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Agent calls, references and analyst notes become reviewable profile claims before they influence a pack.
+              </p>
+            </div>
+            <div className="text-right text-2xs text-muted-foreground">
+              <p>{profileClaims.length} claim{profileClaims.length === 1 ? '' : 's'}</p>
+              <p>{verifiedClaims} verified · {appliedClaims} applied</p>
+            </div>
+          </div>
+          {profileClaims.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
+              No profile claims captured yet. Log agent conversations or references to build private intelligence over time.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {profileClaims.map((claim) => (
+                <div id={`claim-${claim.id}`} key={claim.id} className="rounded-lg border border-border bg-surface/40 p-3 scroll-mt-24">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+                      {claimTypeLabel(claim.claim_type)}
+                    </span>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                      {claimFieldLabel(claim.profile_field)}
+                    </span>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                      {claim.review_status}
+                    </span>
+                    {claim.confidence != null && (
+                      <span className="text-[10px] text-muted-foreground tabular-nums">{claim.confidence}% confidence</span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm font-medium text-foreground">{claim.claimed_value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{claim.evidence_summary}</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    {[claim.source_name, claim.source_type.replaceAll('_', ' '), claim.source_tier ? `tier ${claim.source_tier}` : null, claim.sensitivity].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                Coach-submitted depth
+              </p>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Portal profile and private material</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The supply-side layer: the best version of the coach, checked by football people before it reaches a club.
+              </p>
+            </div>
+            <span className="rounded-full border border-border bg-surface px-2 py-1 text-[10px] text-muted-foreground">
+              {portalProfile?.portal_status ?? 'not invited'}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              { label: 'Football identity', value: portalProfile?.football_identity },
+              { label: 'Training week', value: portalProfile?.training_week },
+              { label: 'Session design', value: portalProfile?.session_design_principles },
+              { label: 'Staff network', value: portalProfile?.staff_network ?? portalProfile?.key_staff_likely_to_follow },
+              { label: 'Reference permissions', value: portalProfile?.reference_permissions },
+              { label: 'Sensitive context', value: portalProfile?.sensitive_notes },
+            ].map((item) => (
+              <div key={item.label} className="rounded-lg border border-border bg-surface/40 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{item.label}</p>
+                <p className="mt-1 line-clamp-3 text-sm leading-6 text-foreground">{profileValue(item.value)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-card p-6">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                Confidential materials
+              </p>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Training-ground evidence library</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Presentations, video, methodology and reference packs that can sit behind a controlled club request.
+              </p>
+            </div>
+            <p className="text-right text-2xs text-muted-foreground">
+              {privateMaterials.length} item{privateMaterials.length === 1 ? '' : 's'}
+            </p>
+          </div>
+          {privateMaterials.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
+              No private materials logged yet. Add coach presentations, training video and methodology in the coach portal.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {privateMaterials.map((item) => (
+                <div id={`material-${item.id}`} key={item.id} className="rounded-lg border border-border bg-surface/40 p-3 scroll-mt-24">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">{item.title}</p>
+                      <p className="mt-0.5 text-2xs text-muted-foreground">
+                        {materialLabel(item.material_type)}
+                        {item.source_label ? ` · ${item.source_label}` : ''}
+                        {item.uploaded_by ? ` · ${item.uploaded_by}` : ''}
+                        {item.verification_status === 'verified' ? ' · verified' : ''}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                      {item.confidentiality_status}
+                    </span>
+                  </div>
+                  {item.description && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </section>

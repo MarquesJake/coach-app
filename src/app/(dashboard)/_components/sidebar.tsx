@@ -17,12 +17,14 @@ import {
   Bell,
   GitCompare,
   SlidersHorizontal,
+  ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const workspaceNav = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Mandates', href: '/mandates', icon: Briefcase },
+  { label: 'Coach Portal', href: '/coach-portal', icon: ShieldCheck },
 ]
 
 const intelligenceNav = [

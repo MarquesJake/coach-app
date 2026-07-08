@@ -191,6 +191,420 @@ export type Database = {
           },
         ]
       }
+      candidate_interview_answers: {
+        Row: {
+          answer: string
+          coach_id: string
+          confidence: number | null
+          created_at: string
+          criterion: string
+          evidence_id: string | null
+          id: string
+          interview_focus: string
+          interviewer: string | null
+          mandate_id: string
+          question: string
+          question_key: string
+          updated_at: string
+          used_in_recommendation: boolean
+          user_id: string
+          verification_status: string
+        }
+        Insert: {
+          answer: string
+          coach_id: string
+          confidence?: number | null
+          created_at?: string
+          criterion: string
+          evidence_id?: string | null
+          id?: string
+          interview_focus?: string
+          interviewer?: string | null
+          mandate_id: string
+          question: string
+          question_key: string
+          updated_at?: string
+          used_in_recommendation?: boolean
+          user_id: string
+          verification_status?: string
+        }
+        Update: {
+          answer?: string
+          coach_id?: string
+          confidence?: number | null
+          created_at?: string
+          criterion?: string
+          evidence_id?: string | null
+          id?: string
+          interview_focus?: string
+          interviewer?: string | null
+          mandate_id?: string
+          question?: string
+          question_key?: string
+          updated_at?: string
+          used_in_recommendation?: boolean
+          user_id?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_interview_answers_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_answers_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_answers_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_reference_answers: {
+        Row: {
+          answer: string
+          coach_id: string
+          confidence: number | null
+          created_at: string
+          criterion: string
+          evidence_id: string | null
+          id: string
+          mandate_id: string
+          question: string
+          question_key: string
+          reference_name: string | null
+          reference_role: string | null
+          risk_flag: boolean
+          stakeholder_group: string
+          updated_at: string
+          used_in_recommendation: boolean
+          user_id: string
+          verification_status: string
+          would_hire_again: string
+        }
+        Insert: {
+          answer: string
+          coach_id: string
+          confidence?: number | null
+          created_at?: string
+          criterion: string
+          evidence_id?: string | null
+          id?: string
+          mandate_id: string
+          question: string
+          question_key: string
+          reference_name?: string | null
+          reference_role?: string | null
+          risk_flag?: boolean
+          stakeholder_group: string
+          updated_at?: string
+          used_in_recommendation?: boolean
+          user_id: string
+          verification_status?: string
+          would_hire_again?: string
+        }
+        Update: {
+          answer?: string
+          coach_id?: string
+          confidence?: number | null
+          created_at?: string
+          criterion?: string
+          evidence_id?: string | null
+          id?: string
+          mandate_id?: string
+          question?: string
+          question_key?: string
+          reference_name?: string | null
+          reference_role?: string | null
+          risk_flag?: boolean
+          stakeholder_group?: string
+          updated_at?: string
+          used_in_recommendation?: boolean
+          user_id?: string
+          verification_status?: string
+          would_hire_again?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_reference_answers_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_reference_answers_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_reference_answers_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_private_materials: {
+        Row: {
+          id: string
+          user_id: string
+          coach_id: string
+          title: string
+          material_type: string
+          description: string | null
+          external_url: string | null
+          storage_path: string | null
+          source_label: string | null
+          uploaded_by: string
+          confidentiality_status: string
+          verification_status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          coach_id: string
+          title: string
+          material_type?: string
+          description?: string | null
+          external_url?: string | null
+          storage_path?: string | null
+          source_label?: string | null
+          uploaded_by?: string
+          confidentiality_status?: string
+          verification_status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          coach_id?: string
+          title?: string
+          material_type?: string
+          description?: string | null
+          external_url?: string | null
+          storage_path?: string | null
+          source_label?: string | null
+          uploaded_by?: string
+          confidentiality_status?: string
+          verification_status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_private_materials_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      confidential_access_requests: {
+        Row: {
+          id: string
+          user_id: string
+          mandate_id: string
+          coach_id: string
+          requested_by: string | null
+          requester_role: string | null
+          club_context: string | null
+          request_reason: string
+          status: string
+          internal_notes: string | null
+          requested_at: string
+          decided_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          mandate_id: string
+          coach_id: string
+          requested_by?: string | null
+          requester_role?: string | null
+          club_context?: string | null
+          request_reason: string
+          status?: string
+          internal_notes?: string | null
+          requested_at?: string
+          decided_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          mandate_id?: string
+          coach_id?: string
+          requested_by?: string | null
+          requester_role?: string | null
+          club_context?: string | null
+          request_reason?: string
+          status?: string
+          internal_notes?: string | null
+          requested_at?: string
+          decided_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "confidential_access_requests_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidential_access_requests_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_portal_profiles: {
+        Row: {
+          id: string
+          user_id: string
+          coach_id: string
+          portal_status: string
+          visibility_status: string
+          coach_email: string | null
+          coach_phone: string | null
+          representative_name: string | null
+          representative_email: string | null
+          base_location: string | null
+          preferred_contact_method: string | null
+          short_bio: string | null
+          personal_statement: string | null
+          football_identity: string | null
+          in_possession_model: string | null
+          out_of_possession_model: string | null
+          transition_model: string | null
+          set_piece_model: string | null
+          training_week: string | null
+          session_design_principles: string | null
+          player_development_proof: string | null
+          academy_integration: string | null
+          recruitment_preferences: string | null
+          staff_network: string | null
+          key_staff_likely_to_follow: string | null
+          presentation_summary: string | null
+          video_summary: string | null
+          media_and_communication: string | null
+          reference_permissions: string | null
+          sensitive_notes: string | null
+          release_notes: string | null
+          submitted_at: string | null
+          reviewed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          coach_id: string
+          portal_status?: string
+          visibility_status?: string
+          coach_email?: string | null
+          coach_phone?: string | null
+          representative_name?: string | null
+          representative_email?: string | null
+          base_location?: string | null
+          preferred_contact_method?: string | null
+          short_bio?: string | null
+          personal_statement?: string | null
+          football_identity?: string | null
+          in_possession_model?: string | null
+          out_of_possession_model?: string | null
+          transition_model?: string | null
+          set_piece_model?: string | null
+          training_week?: string | null
+          session_design_principles?: string | null
+          player_development_proof?: string | null
+          academy_integration?: string | null
+          recruitment_preferences?: string | null
+          staff_network?: string | null
+          key_staff_likely_to_follow?: string | null
+          presentation_summary?: string | null
+          video_summary?: string | null
+          media_and_communication?: string | null
+          reference_permissions?: string | null
+          sensitive_notes?: string | null
+          release_notes?: string | null
+          submitted_at?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          coach_id?: string
+          portal_status?: string
+          visibility_status?: string
+          coach_email?: string | null
+          coach_phone?: string | null
+          representative_name?: string | null
+          representative_email?: string | null
+          base_location?: string | null
+          preferred_contact_method?: string | null
+          short_bio?: string | null
+          personal_statement?: string | null
+          football_identity?: string | null
+          in_possession_model?: string | null
+          out_of_possession_model?: string | null
+          transition_model?: string | null
+          set_piece_model?: string | null
+          training_week?: string | null
+          session_design_principles?: string | null
+          player_development_proof?: string | null
+          academy_integration?: string | null
+          recruitment_preferences?: string | null
+          staff_network?: string | null
+          key_staff_likely_to_follow?: string | null
+          presentation_summary?: string | null
+          video_summary?: string | null
+          media_and_communication?: string | null
+          reference_permissions?: string | null
+          sensitive_notes?: string | null
+          release_notes?: string | null
+          submitted_at?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_portal_profiles_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clubs: {
         Row: {
           country: string
@@ -867,8 +1281,11 @@ export type Database = {
           agent_name: string | null
           agent_contact: string | null
           compensation_expectation: string | null
+          contract_expiry: string | null
+          contract_notes: string | null
           availability_status: string | null
           market_status: string | null
+          release_clause: string | null
           tactical_identity: string | null
           preferred_systems: string[]
           transition_model: string | null
@@ -934,8 +1351,11 @@ export type Database = {
           agent_name?: string | null
           agent_contact?: string | null
           compensation_expectation?: string | null
+          contract_expiry?: string | null
+          contract_notes?: string | null
           availability_status?: string | null
           market_status?: string | null
+          release_clause?: string | null
           tactical_identity?: string | null
           preferred_systems?: string[]
           transition_model?: string | null
@@ -1001,8 +1421,11 @@ export type Database = {
           agent_name?: string | null
           agent_contact?: string | null
           compensation_expectation?: string | null
+          contract_expiry?: string | null
+          contract_notes?: string | null
           availability_status?: string | null
           market_status?: string | null
+          release_clause?: string | null
           tactical_identity?: string | null
           preferred_systems?: string[]
           transition_model?: string | null
@@ -1676,6 +2099,130 @@ export type Database = {
         }
         Relationships: []
       }
+      intelligence_inbox_items: {
+        Row: {
+          id: string
+          user_id: string
+          org_id: string | null
+          intake_type: string
+          headline: string
+          raw_detail: string | null
+          extracted_signal: string | null
+          source_type: string
+          source_name: string | null
+          source_tier: string | null
+          source_link: string | null
+          source_recorded_at: string | null
+          channel: string | null
+          sensitivity: string
+          verification_status: string
+          review_status: string
+          confidence: number | null
+          direction: string | null
+          methodology_criteria: string[]
+          evidence_methods: string[]
+          entity_type: string | null
+          entity_id: string | null
+          coach_id: string | null
+          club_id: string | null
+          mandate_id: string | null
+          agent_id: string | null
+          suggested_destination: string
+          destination_record_type: string | null
+          destination_record_id: string | null
+          commercial_surface: string
+          analyst_notes: string | null
+          next_action: string | null
+          due_date: string | null
+          promoted_at: string | null
+          promoted_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          org_id?: string | null
+          intake_type?: string
+          headline: string
+          raw_detail?: string | null
+          extracted_signal?: string | null
+          source_type?: string
+          source_name?: string | null
+          source_tier?: string | null
+          source_link?: string | null
+          source_recorded_at?: string | null
+          channel?: string | null
+          sensitivity?: string
+          verification_status?: string
+          review_status?: string
+          confidence?: number | null
+          direction?: string | null
+          methodology_criteria?: string[]
+          evidence_methods?: string[]
+          entity_type?: string | null
+          entity_id?: string | null
+          coach_id?: string | null
+          club_id?: string | null
+          mandate_id?: string | null
+          agent_id?: string | null
+          suggested_destination?: string
+          destination_record_type?: string | null
+          destination_record_id?: string | null
+          commercial_surface?: string
+          analyst_notes?: string | null
+          next_action?: string | null
+          due_date?: string | null
+          promoted_at?: string | null
+          promoted_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          org_id?: string | null
+          intake_type?: string
+          headline?: string
+          raw_detail?: string | null
+          extracted_signal?: string | null
+          source_type?: string
+          source_name?: string | null
+          source_tier?: string | null
+          source_link?: string | null
+          source_recorded_at?: string | null
+          channel?: string | null
+          sensitivity?: string
+          verification_status?: string
+          review_status?: string
+          confidence?: number | null
+          direction?: string | null
+          methodology_criteria?: string[]
+          evidence_methods?: string[]
+          entity_type?: string | null
+          entity_id?: string | null
+          coach_id?: string | null
+          club_id?: string | null
+          mandate_id?: string | null
+          agent_id?: string | null
+          suggested_destination?: string
+          destination_record_type?: string | null
+          destination_record_id?: string | null
+          commercial_surface?: string
+          analyst_notes?: string | null
+          next_action?: string | null
+          due_date?: string | null
+          promoted_at?: string | null
+          promoted_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: 'intelligence_inbox_items_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] },
+          { foreignKeyName: 'intelligence_inbox_items_club_id_fkey'; columns: ['club_id']; isOneToOne: false; referencedRelation: 'clubs'; referencedColumns: ['id'] },
+          { foreignKeyName: 'intelligence_inbox_items_mandate_id_fkey'; columns: ['mandate_id']; isOneToOne: false; referencedRelation: 'mandates'; referencedColumns: ['id'] },
+          { foreignKeyName: 'intelligence_inbox_items_agent_id_fkey'; columns: ['agent_id']; isOneToOne: false; referencedRelation: 'agents'; referencedColumns: ['id'] }
+        ]
+      }
       coach_due_diligence_items: {
         Row: {
           id: string
@@ -1783,6 +2330,103 @@ export type Database = {
           created_at?: string
         }
         Relationships: []
+      }
+      profile_claims: {
+        Row: {
+          id: string
+          user_id: string
+          entity_type: string
+          entity_id: string
+          coach_id: string | null
+          agent_id: string | null
+          interaction_id: string | null
+          claim_type: string
+          profile_field: string | null
+          current_value: string | null
+          claimed_value: string
+          evidence_summary: string
+          source_type: string
+          source_name: string | null
+          source_link: string | null
+          source_notes: string | null
+          source_tier: string | null
+          confidence: number | null
+          sensitivity: string
+          verification_status: string
+          review_status: string
+          used_in_recommendation: boolean
+          occurred_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          applied_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          entity_type?: string
+          entity_id: string
+          coach_id?: string | null
+          agent_id?: string | null
+          interaction_id?: string | null
+          claim_type: string
+          profile_field?: string | null
+          current_value?: string | null
+          claimed_value: string
+          evidence_summary: string
+          source_type?: string
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          source_tier?: string | null
+          confidence?: number | null
+          sensitivity?: string
+          verification_status?: string
+          review_status?: string
+          used_in_recommendation?: boolean
+          occurred_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          applied_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          entity_type?: string
+          entity_id?: string
+          coach_id?: string | null
+          agent_id?: string | null
+          interaction_id?: string | null
+          claim_type?: string
+          profile_field?: string | null
+          current_value?: string | null
+          claimed_value?: string
+          evidence_summary?: string
+          source_type?: string
+          source_name?: string | null
+          source_link?: string | null
+          source_notes?: string | null
+          source_tier?: string | null
+          confidence?: number | null
+          sensitivity?: string
+          verification_status?: string
+          review_status?: string
+          used_in_recommendation?: boolean
+          occurred_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          applied_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: 'profile_claims_agent_id_fkey'; columns: ['agent_id']; isOneToOne: false; referencedRelation: 'agents'; referencedColumns: ['id'] },
+          { foreignKeyName: 'profile_claims_coach_id_fkey'; columns: ['coach_id']; isOneToOne: false; referencedRelation: 'coaches'; referencedColumns: ['id'] },
+          { foreignKeyName: 'profile_claims_interaction_id_fkey'; columns: ['interaction_id']; isOneToOne: false; referencedRelation: 'agent_interactions'; referencedColumns: ['id'] },
+        ]
       }
       coach_development_signals: {
         Row: {

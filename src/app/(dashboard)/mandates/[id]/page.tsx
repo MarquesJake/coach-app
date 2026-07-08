@@ -366,7 +366,7 @@ export default async function MandateDetailPage({
 
             {deliverables.length === 0 ? (
               <div className="rounded border border-border bg-surface/60 px-3 py-4 text-sm text-muted-foreground">
-                No deliverables added yet. Use this for board packs, interview windows and decision deadlines.
+                No deliverables added yet. Use this for assessment packs, interview windows and decision deadlines.
               </div>
             ) : (
               <div className="space-y-2">

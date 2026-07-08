@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { updateShortlistWorkspaceAction } from '../../../actions'
+import { removeShortlistCandidateAction, updateShortlistWorkspaceAction } from '../../../actions'
 import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
 import {
   computeCoachIntelSignals,
@@ -80,6 +80,14 @@ type Candidate = {
   fit_communication: string | null
   fit_network: string | null
   fit_notes: string | null
+  recommendation_verdict: string | null
+  recommendation_confidence: number | null
+  recommendation_summary: string | null
+  recommendation_key_strengths: string | null
+  recommendation_key_risks: string | null
+  recommendation_mitigation: string | null
+  assessment_complete_count: number
+  evidence_coverage_count: number
   coaches: { name: string | null; club_current: string | null; nationality: string | null } | null
 }
 
@@ -243,6 +251,17 @@ function fitSignalLabel(label: string, value: string | null): string | null {
 }
 
 function shortlistDecisionScore(candidate: Candidate): number {
+  const verdictWeight: Record<string, number> = {
+    Proceed: 130,
+    Target: 120,
+    Shortlist: 105,
+    Monitor: 75,
+    Dismiss: -20,
+  }
+  if (candidate.recommendation_verdict) {
+    return (verdictWeight[candidate.recommendation_verdict] ?? 50) + (candidate.recommendation_confidence ?? 0)
+  }
+
   const stageWeight: Record<string, number> = {
     Final: 50,
     Interview: 42,
@@ -256,6 +275,9 @@ function shortlistDecisionScore(candidate: Candidate): number {
 }
 
 function shortlistSourceCoverage(candidate: Candidate): number {
+  if (candidate.evidence_coverage_count > 0) {
+    return Math.round((candidate.evidence_coverage_count / 9) * 100)
+  }
   const signals = [candidate.fit_tactical, candidate.fit_level, candidate.fit_cultural, candidate.fit_communication, candidate.fit_network]
   const coveredSignals = signals.filter((signal) => signal && signal !== 'Unknown').length
   return Math.round((coveredSignals / signals.length) * 100)
@@ -395,6 +417,28 @@ function alternativeOptionLine(primary: BoardCandidate, secondary: BoardCandidat
 }
 
 function buildShortlistBoardCandidate(candidate: Candidate, index: number): BoardCandidate {
+  if (candidate.recommendation_verdict) {
+    return {
+      id: candidate.id,
+      coachId: candidate.coach_id,
+      name: candidate.coaches?.name ?? 'Unknown coach',
+      club: candidate.coaches?.club_current ?? null,
+      label: shortlistCandidateLabel(candidate),
+      source: 'shortlist',
+      score: shortlistDecisionScore(candidate),
+      confidence: candidate.recommendation_confidence ?? candidate.placement_probability,
+      sourceCoverage: shortlistSourceCoverage(candidate),
+      rankLabel: `${candidate.recommendation_verdict} verdict`,
+      why: [
+        candidate.recommendation_key_strengths,
+        candidate.recommendation_summary,
+        candidate.assessment_complete_count > 0 ? `${candidate.assessment_complete_count}/9 criteria complete` : null,
+      ].filter(Boolean).slice(0, 3) as string[],
+      risk: candidate.recommendation_key_risks ?? candidate.fit_notes ?? `${candidate.risk_rating} risk rating needs board review`,
+      comparisonNote: candidate.recommendation_mitigation ?? candidate.recommendation_summary,
+    }
+  }
+
   const why = [
     fitSignalLabel('tactical fit', candidate.fit_tactical),
     fitSignalLabel('level experience', candidate.fit_level),
@@ -568,7 +612,9 @@ function BoardRecommendation({
             </span>
             {primary.score != null && (
               <span className="rounded-full border border-primary/20 bg-card px-2 py-0.5 text-[10px] text-primary">
-                {primary.source === 'shortlist' ? `${Math.round(primary.score)}% probability` : `Score ${Math.round(primary.score)}`}
+                {primary.source === 'shortlist'
+                  ? `${Math.round(primary.confidence)}% confidence`
+                  : `Score ${Math.round(primary.score)}`}
               </span>
             )}
           </div>
@@ -1355,6 +1401,7 @@ function FitAssessment({
 }) {
   const [isPending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
+  const router = useRouter()
 
   // ── Intel state (owned here so derived values can inform header + tension) ──
   const [intelSignals, setIntelSignals] = useState<CoachIntelSignals | null>(null)
@@ -1432,6 +1479,13 @@ function FitAssessment({
       await updateShortlistWorkspaceAction(formData)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
+    })
+  }
+
+  async function handleRemove(formData: FormData) {
+    startTransition(async () => {
+      await removeShortlistCandidateAction(formData)
+      router.refresh()
     })
   }
 
@@ -1569,6 +1623,18 @@ function FitAssessment({
         </button>
       </form>
 
+      <form action={handleRemove} className="border-t border-border pt-4">
+        <input type="hidden" name="shortlist_id" value={candidate.id} />
+        <input type="hidden" name="mandate_id" value={mandateId} />
+        <button
+          type="submit"
+          disabled={isPending}
+          className="w-full h-9 rounded-lg border border-red-500/20 bg-red-500/5 text-xs font-medium text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+        >
+          Remove from this mandate
+        </button>
+      </form>
+
       {/* Decision Tension block — shown when a meaningful trade-off is detected */}
       {!intelLoading && decisionTension && (
         <div className="rounded border border-amber-500/20 bg-amber-500/5 px-3 py-2.5">
@@ -1671,6 +1737,26 @@ function CandidatePipeline({
                 <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
                   {c.coaches?.club_current || 'Free agent'}
                 </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {c.recommendation_verdict && (
+                    <span className={cn(
+                      'rounded border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider',
+                      c.recommendation_verdict === 'Proceed' || c.recommendation_verdict === 'Target'
+                        ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                        : c.recommendation_verdict === 'Dismiss'
+                          ? 'border-red-500/30 bg-red-500/10 text-red-400'
+                          : 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                    )}>
+                      {c.recommendation_verdict}
+                      {c.recommendation_confidence !== null ? ` ${c.recommendation_confidence}%` : ''}
+                    </span>
+                  )}
+                  {c.evidence_coverage_count > 0 && (
+                    <span className="rounded border border-border bg-card px-1.5 py-0.5 text-[9px] text-muted-foreground">
+                      {c.evidence_coverage_count}/9 evidenced
+                    </span>
+                  )}
+                </div>
               </button>
             )
           })}
@@ -1705,9 +1791,12 @@ export function MandateWorkspaceClient({
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
   const clubName = mandate.custom_club_name ?? mandate.clubs?.name ?? 'Unknown club'
   const shortlistReady = shortlist.filter((c) => ['Shortlist', 'Interview', 'Final'].includes(c.candidate_stage)).length
+  const assessmentReady = shortlist.some((c) => (c.recommendation_verdict === 'Proceed' || c.recommendation_verdict === 'Target') && (c.assessment_complete_count ?? 0) >= 6)
   const recommendationStatus =
-    shortlistReady >= 3
-      ? 'Board pack ready'
+    assessmentReady
+      ? 'Assessment pack ready'
+      : shortlistReady >= 3
+      ? 'Assessment pack ready'
       : shortlist.length > 0
         ? 'Evidence building'
         : longlistEntries.length > 0
