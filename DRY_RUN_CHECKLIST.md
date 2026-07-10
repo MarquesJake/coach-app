@@ -1,6 +1,6 @@
 # Coach First — Investor Demo Dry-Run Checklist (QPR flow)
 
-*Verified live against production (authenticated walk of every step) on 8 July 2026, deploy `419377d`.*
+*Verified live against production (authenticated walk of every step) on 8 July 2026, head `d0d363a` + interview/reference depth seeded.*
 
 **URL:** https://coach-app-seven-rose.vercel.app · **Login:** jakemarques@live.com · **Browser: Chrome**
 
@@ -25,11 +25,11 @@
 ## 2. Exact 5-minute talk track
 - **(0:00) Workspace:** "QPR need a head coach. The brief isn't 'find a coach' — it's develop young players, integrate the academy, protect player value. Coach First turns that brief into a structured appointment decision."
 - **(0:30) Assessment tab:** "Seven shortlisted, but the board decision comes down to three. Lead recommendation: Barry-Murphy, Proceed at 74%. Knutsen — credible, but we're monitoring, not moving. Edward Still — rejected, and the board can see exactly *why*. Showing your working on the rejected option is half the value."
-- **(1:15) Brian's workspace, summary bar:** "The ten-second read: strong evidence across seven criteria, two honest gaps — match management and training observation, which is exactly what the interview and training-visit stage fills. Confidence 74. Recommendation: proceed to structured interview and references."
+- **(1:15) Brian's workspace, summary bar:** "The ten-second read: strong evidence across eight criteria, one honest gap — match management, which live match observation fills next. Training management was a gap last week; a structured reference from his assistant coach closed it — that's the reference process working. Confidence 74."
 - **(2:00) Matrix:** "Nine criteria from a real club-leadership assessment methodology, crossed with eight evidence methods. Every cell is evidence — green verified, amber unverified, grey auto-derived from platform data. This is the audit trail behind the recommendation."
 - **(2:45) Players Development row:** "Analyst conclusion on the left; the evidence behind it on the right — each item carries source, method, confidence and verification status. AI drafts, the analyst signs off."
 - **(3:15) Final recommendation:** "Analyst conclusion, structured by the methodology: Proceed at 74% — risks and mitigation stated, not hidden."
-- **(3:45) Assessment pack:** "One click: the confidential Head Coach Assessment Pack the board receives. Strengths, risks, recommendation. Hiring feasibility. Career record. All nine findings with evidence cited. References appendix. Consultancies charge five-figure retainers and take weeks to produce this; it's generated from the workspace in seconds."
+- **(3:45) Assessment pack:** "One click: the confidential Head Coach Assessment Pack the board receives. Strengths, risks, recommendation. Appointment feasibility — contract expiry, wage, clause, agent: the intelligence clubs actually pay for. Structured references from a CEO, his assistant, a player and a sporting director — including the honest negative. Interview answers on the record. Consultancies charge five-figure retainers and take weeks; it's generated from the workspace in seconds."
 - **(4:45) Close:** "Next modules are specced from the same methodology — structured interviews and references, then the quantitative layer: xG impact, ELO trajectory, points-per-game versus budget. Same principle throughout: every claim traceable to evidence."
 
 ## 3. What NOT to click
@@ -43,7 +43,7 @@
 ## 4. Known risks and how to frame them
 | Risk | If it comes up, say |
 |---|---|
-| Match/Training Management unscored | "Deliberate — those criteria require live match and training observation. The methodology stages them after longlisting; it's the next evidence stage, and the module for capturing it is next on the roadmap." |
+| Match Management unscored | "Deliberate — that criterion requires live match observation, staged after longlisting. Training management had the same gap until his assistant's structured reference closed it — the process fills gaps in order." |
 | Work-permit note ("auto-pass not confirmed") | "An indicative screen from recorded career data. Final GBE eligibility is a legal confirmation — we keep it visible but secondary, because it qualifies the appointment, it doesn't drive the football judgement." |
 | "Is this all automated?" | "Evidence pull-through is automated; judgement is the analyst's. Boards don't buy an algorithm's opinion — they buy a defensible process. Automation deepens with each module." |
 | "This looks like SaaS / a dashboard" | "Deliberately: the workspace is the operating layer, and the Head Coach Assessment Pack is the board-facing artifact. Clubs need a working system internally, but the output has to feel like a confidential appointment document." |
@@ -52,7 +52,7 @@
 | Slow page / cold start | Pause on the current screen and keep talking; every page is server-rendered and recovers on its own. Don't refresh mid-sentence. |
 
 ## 5. One-line Phase 2 roadmap bridge
-> "Everything you just saw is Phase 1 — Phase 2 adds structured interview and reference capture from the same methodology, so the two evidence gaps you saw fill themselves, and every stakeholder conversation becomes queryable evidence."
+> "Structured interview and reference capture is already live — you saw a CEO, an assistant coach, a player and a sporting director on the record in the pack. Next: the confidential coach data room deepens, then the quantitative layer. Every stakeholder conversation becomes queryable evidence."
 
 ## 6. Backup plan if PDF/print misbehaves on the call
 1. **First line:** you already saved `Barry-Murphy-Board-Pack.pdf` pre-call (see Pre-call). Open it from Desktop and screen-share the file — "here's one we exported earlier."
