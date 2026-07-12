@@ -1,6 +1,12 @@
 # Coach First — Investor Demo Dry-Run Checklist (QPR flow)
 
-*Verified live against production (authenticated walk of every step) on 8 July 2026, head `d0d363a` + interview/reference depth seeded.*
+> **BUILD FROZEN — 12 July 2026, tag `demo-freeze-2026-07-12` (head `d0d363a`).**
+> No code or schema changes until after the investor presentation. Data polish only,
+> and only with explicit sign-off. Full verification sweep passed on freeze day:
+> quality gates green (14/14 tests, tsc, lint, build), authenticated browser walk of
+> the demo path on production, pack narrative consistency confirmed.
+
+*Verified live against production (authenticated walk of every step) on 12 July 2026, head `d0d363a` + interview/reference depth seeded.*
 
 **URL:** https://coach-app-seven-rose.vercel.app · **Login:** jakemarques@live.com · **Browser: Chrome**
 
