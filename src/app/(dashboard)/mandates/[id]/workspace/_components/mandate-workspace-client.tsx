@@ -302,16 +302,16 @@ function normaliseAnalystReason(reason: string, source: BoardCandidate['source']
     : 'Shortlist evidence supports continued board review'
 }
 
-type MandateContext = 'brighton' | 'qpr' | 'bolton' | 'development' | 'generic'
+type MandateContext = 'brighton' | 'qpr' | 'promotion' | 'development' | 'generic'
 
 function mandateContext(mandateObjective: string | null): MandateContext {
   const objective = mandateObjective?.toLowerCase() ?? ''
   if (/qpr/.test(objective)) return 'qpr'
   if (/brighton/.test(objective)) return 'brighton'
-  if (/bolton/.test(objective)) return 'bolton'
+  if (/bolton/.test(objective)) return 'promotion'
   if (/player trading|progressive football|progression|identity/.test(objective)) return 'brighton'
   if (/academy|pathway|youth|young|player value|player growth/.test(objective)) return 'qpr'
-  if (/promotion|stability|efficiency|league one|reliability|efl/.test(objective)) return 'bolton'
+  if (/promotion|stability|efficiency|league one|reliability|efl/.test(objective)) return 'promotion'
   if (/develop|development|academy|pathway|youth|young|value creation|player growth/.test(objective)) return 'development'
   return 'generic'
 }
@@ -320,7 +320,7 @@ function boardWhy(candidate: BoardCandidate, mandateObjective: string | null): s
   const context = mandateContext(mandateObjective)
   const firstLine = context === 'brighton'
     ? 'Clear alignment with an identity-led brief, supported by progressive football and player trading signals'
-    : context === 'bolton'
+    : context === 'promotion'
       ? 'Clear alignment with a promotion brief, supported by stability and league execution signals'
       : context === 'qpr' || context === 'development'
         ? 'Clear alignment with a development-led brief, supported by available profile and pathway signals'
@@ -328,14 +328,14 @@ function boardWhy(candidate: BoardCandidate, mandateObjective: string | null): s
 
   const supportingLine = context === 'brighton'
     ? 'Profile fit protects the playing model while keeping recruitment and resale logic central'
-    : context === 'bolton'
+    : context === 'promotion'
       ? 'Profile points towards EFL execution, dressing room stability and efficient squad usage'
       : context === 'qpr'
         ? 'Profile suggests willingness to trust younger players in senior environments'
         : normaliseAnalystReason(candidate.why[0] ?? '', candidate.source)
   const contextualLine = context === 'brighton'
     ? 'Recommendation protects the football identity while keeping player progression and resale value central'
-    : context === 'bolton'
+    : context === 'promotion'
       ? 'Evidence points to a reliable operator for promotion pressure rather than pure stylistic upside'
       : context === 'qpr' || context === 'development'
         ? 'Evidence indicates a squad-building profile oriented towards progression rather than short-term experience'
@@ -375,7 +375,7 @@ function recommendationTradeOff(primary: BoardCandidate, mandateObjective: strin
   if (context === 'brighton') {
     return 'Recommendation favours identity continuity and player trading upside over low-risk Premier League familiarity.'
   }
-  if (context === 'bolton') {
+  if (context === 'promotion') {
     return 'Recommendation favours promotion reliability and efficiency over high-upside tactical experimentation.'
   }
   if (context === 'qpr' || context === 'development') {
@@ -411,7 +411,7 @@ function alternativeOptionLine(primary: BoardCandidate, secondary: BoardCandidat
   if (context === 'brighton') {
     return 'Offers a comparable identity fit with a different balance of Premier League certainty and player trading upside'
   }
-  if (context === 'bolton') {
+  if (context === 'promotion') {
     return 'Represents a practical EFL alternative with slightly lower promotion reliability evidence'
   }
   return 'Offers a comparable fit with less clarity in development signals'
@@ -748,12 +748,12 @@ function scanCopy(objective: string | null) {
       empty: 'Curated candidates currently carry the Brighton identity and player trading case. Add a dedicated scan later when player value evidence is connected.',
     }
   }
-  if (context === 'bolton') {
+  if (context === 'promotion') {
     return {
       title: 'Promotion reliability scan',
       active: false,
       description: 'This scan type is not active yet. Curated candidates are shown through expert review.',
-      empty: 'Curated candidates currently carry the Bolton promotion and stability case. Add a dedicated scan later when EFL reliability evidence is connected.',
+      empty: 'Curated candidates currently carry this promotion and stability case. Add a dedicated scan later when EFL reliability evidence is connected.',
     }
   }
   return {
