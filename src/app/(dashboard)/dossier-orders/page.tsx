@@ -15,11 +15,13 @@ export default async function DossierOrdersPage() {
   const sellerOrganizationId = await getInternalOrganizationId(user.id)
   if (!sellerOrganizationId) return <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">Create the Coach First organisation before publishing dossier offers.</div>
 
-  const [{ data: orders }, { data: offers }] = await Promise.all([
-    supabase.from('dossier_orders').select('*').eq('seller_organization_id', sellerOrganizationId).order('ordered_at', { ascending: false }),
-    supabase.from('dossier_offers').select('id, coach_name, headline, status, price_amount, currency, buyer_organization_id, mandate_id').eq('seller_organization_id', sellerOrganizationId).order('created_at', { ascending: false }),
+  const [{ data: orders }, { data: orderCommercials }, { data: offers }] = await Promise.all([
+    supabase.from('dossier_orders').select('id, offer_id, buyer_organization_id, coach_id, status, intended_use, ordered_at, expires_at').eq('seller_organization_id', sellerOrganizationId).order('ordered_at', { ascending: false }),
+    supabase.from('dossier_order_commercials').select('order_id, price_amount, currency, payment_status').eq('seller_organization_id', sellerOrganizationId),
+    supabase.from('dossier_offers').select('id, coach_name, headline, status, buyer_organization_id, mandate_id').eq('seller_organization_id', sellerOrganizationId).order('created_at', { ascending: false }),
   ])
   const offerMap = new Map((offers ?? []).map((offer) => [offer.id, offer]))
+  const commercialMap = new Map((orderCommercials ?? []).map((commercial) => [commercial.order_id, commercial]))
   const buyerIds = Array.from(new Set((offers ?? []).map((offer) => offer.buyer_organization_id)))
   const { data: buyers } = buyerIds.length ? await supabase.from('organizations').select('id, name').in('id', buyerIds) : { data: [] }
   const buyerMap = new Map((buyers ?? []).map((buyer) => [buyer.id, buyer.name]))
@@ -33,6 +35,7 @@ export default async function DossierOrdersPage() {
       <section className="mt-6 space-y-4">
         {(orders ?? []).map((order) => {
           const offer = offerMap.get(order.offer_id)
+          const commercial = commercialMap.get(order.id)
           const orderMaterials = (materials ?? []).filter((material) => material.coach_id === order.coach_id)
           return (
             <article key={order.id} className="rounded-md border border-border bg-card p-5">
@@ -47,8 +50,7 @@ export default async function DossierOrdersPage() {
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-muted-foreground">Order value</p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">{formatPrice(order.price_amount, order.currency)}</p>
-                  <p className="mt-1 text-xs capitalize text-muted-foreground">{order.payment_status.replaceAll('_', ' ')}</p>
+                  {commercial ? <><p className="mt-1 text-sm font-semibold text-foreground">{formatPrice(commercial.price_amount, commercial.currency)}</p><p className="mt-1 text-xs capitalize text-muted-foreground">{commercial.payment_status.replaceAll('_', ' ')}</p></> : <p className="mt-1 text-xs font-medium text-amber-800">Commercial terms missing</p>}
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-muted-foreground">Requested</p>

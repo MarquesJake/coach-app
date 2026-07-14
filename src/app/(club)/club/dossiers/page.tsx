@@ -8,8 +8,8 @@ export default async function ClubDossiersPage({ searchParams }: { searchParams:
   if (!context) return null
   const supabase = createServerSupabaseClient()
   const [{ data: offers }, { data: orders }] = await Promise.all([
-    supabase.from('dossier_offers').select('*').eq('buyer_organization_id', context.organizationId).in('status', ['published', 'purchased']).order('published_at', { ascending: false }),
-    supabase.from('dossier_orders').select('id, offer_id, status, payment_status, expires_at').eq('buyer_organization_id', context.organizationId),
+    supabase.from('dossier_offers').select('id, coach_name, verdict, confidence, preview_summary, private_material_count').eq('buyer_organization_id', context.organizationId).in('status', ['published', 'purchased']).order('published_at', { ascending: false }),
+    supabase.from('dossier_orders').select('id, offer_id, status, expires_at').eq('buyer_organization_id', context.organizationId),
   ])
   const orderMap = new Map((orders ?? []).map((order) => [order.offer_id, order]))
 

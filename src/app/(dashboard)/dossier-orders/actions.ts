@@ -33,14 +33,23 @@ export async function publishDossierOfferAction(formData: FormData): Promise<Act
   ])
   if (!mandate || !coach || !recommendation) return { ok: false, error: 'Complete the candidate recommendation before publishing a dossier' }
 
-  const { error } = await supabase.from('dossier_offers').upsert({
+  const { data: existingOffer } = await supabase
+    .from('dossier_offers')
+    .select('id, status')
+    .eq('buyer_organization_id', buyerOrganizationId)
+    .eq('mandate_id', mandateId)
+    .eq('coach_id', coachId)
+    .maybeSingle()
+  if (existingOffer?.status === 'purchased') return { ok: false, error: 'This club already has an active dossier request' }
+
+  const { data: offer, error } = await supabase.from('dossier_offers').upsert({
     seller_organization_id: sellerOrganizationId,
     buyer_organization_id: buyerOrganizationId,
     club_brief_id: brief?.[0]?.id ?? null,
     mandate_id: mandateId,
     coach_id: coachId,
     created_by: user.id,
-    status: 'published',
+    status: 'draft',
     headline: `${coach.name} — Head Coach Assessment`,
     preview_summary: recommendation.summary ?? 'A structured appointment recommendation based on Coach First evidence and football judgement.',
     fit_summary: 'Assessed against the club brief, squad context, leadership environment and nine-criterion Head Coach Assessment Methodology.',
@@ -53,13 +62,29 @@ export async function publishDossierOfferAction(formData: FormData): Promise<Act
     coach_nationality: coach.nationality,
     included_sections: ['Executive recommendation', 'Club and squad fit', 'Nine-criterion assessment', 'Interview evidence', 'Structured references', 'Appointment feasibility', 'Controlled coach materials'],
     private_material_count: privateMaterialCount ?? 0,
-    price_amount: Math.round(pricePounds * 100),
-    currency: 'GBP',
-    published_at: new Date().toISOString(),
+    published_at: null,
     available_until: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date().toISOString(),
-  }, { onConflict: 'buyer_organization_id,mandate_id,coach_id' })
-  if (error) return { ok: false, error: 'Failed to publish the club dossier preview' }
+  }, { onConflict: 'buyer_organization_id,mandate_id,coach_id' }).select('id').single()
+  if (error || !offer) return { ok: false, error: 'Failed to prepare the club dossier preview' }
+
+  const now = new Date().toISOString()
+  const { error: commercialError } = await supabase.from('dossier_offer_commercials').upsert({
+    offer_id: offer.id,
+    seller_organization_id: sellerOrganizationId,
+    price_amount: Math.round(pricePounds * 100),
+    currency: 'GBP',
+    created_by: user.id,
+    updated_at: now,
+  }, { onConflict: 'offer_id' })
+  if (commercialError) return { ok: false, error: 'Failed to save the internal commercial terms' }
+
+  const { error: publishError } = await supabase
+    .from('dossier_offers')
+    .update({ status: 'published', published_at: now, updated_at: now })
+    .eq('id', offer.id)
+    .eq('seller_organization_id', sellerOrganizationId)
+  if (publishError) return { ok: false, error: 'Failed to publish the club dossier preview' }
   revalidatePath(`/mandates/${mandateId}/pack`)
   revalidatePath('/dossier-orders')
   revalidatePath('/club')

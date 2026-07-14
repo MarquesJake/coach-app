@@ -10,7 +10,7 @@ export default async function ClubHomePage() {
   const [{ data: briefs }, { data: offers }, { data: orders }] = await Promise.all([
     supabase.from('club_briefs').select('id, title, status, updated_at').eq('buyer_organization_id', context.organizationId).order('updated_at', { ascending: false }).limit(1),
     supabase.from('dossier_offers').select('id, coach_name, headline, verdict, confidence, status').eq('buyer_organization_id', context.organizationId).in('status', ['published', 'purchased']).order('published_at', { ascending: false }),
-    supabase.from('dossier_orders').select('id, offer_id, status, payment_status, expires_at').eq('buyer_organization_id', context.organizationId).order('ordered_at', { ascending: false }),
+    supabase.from('dossier_orders').select('id, offer_id, status, expires_at').eq('buyer_organization_id', context.organizationId).order('ordered_at', { ascending: false }),
   ])
   const brief = briefs?.[0]
   const orderByOffer = new Map((orders ?? []).map((order) => [order.offer_id, order]))

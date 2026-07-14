@@ -9,11 +9,11 @@ export default async function ClubDossierDetailPage({ params, searchParams }: { 
   const context = await getClubPortalContext()
   if (!context) return null
   const supabase = createServerSupabaseClient()
-  const { data: offer } = await supabase.from('dossier_offers').select('*').eq('id', params.id).eq('buyer_organization_id', context.organizationId).single()
+  const { data: offer } = await supabase.from('dossier_offers').select('id, coach_name, coach_current_role, coach_nationality, verdict, confidence, private_material_count, preview_summary, fit_summary, key_strengths, key_risks, included_sections').eq('id', params.id).eq('buyer_organization_id', context.organizationId).single()
   if (!offer) notFound()
-  const { data: orders } = await supabase.from('dossier_orders').select('*').eq('offer_id', offer.id).eq('buyer_organization_id', context.organizationId).limit(1)
+  const { data: orders } = await supabase.from('dossier_orders').select('id, status').eq('offer_id', offer.id).eq('buyer_organization_id', context.organizationId).limit(1)
   const order = orders?.[0]
-  const { data: grants } = order ? await supabase.from('confidential_access_grants').select('*').eq('order_id', order.id).limit(1) : { data: [] }
+  const { data: grants } = order ? await supabase.from('confidential_access_grants').select('id, status, expires_at, allow_download').eq('order_id', order.id).limit(1) : { data: [] }
   const grant = grants?.[0]
   const grantIsActive = grant?.status === 'active' && new Date(grant.expires_at).getTime() > Date.now()
   const { data: releasedRows } = grantIsActive ? await supabase.from('confidential_access_grant_materials').select('material_id').eq('grant_id', grant.id) : { data: [] }

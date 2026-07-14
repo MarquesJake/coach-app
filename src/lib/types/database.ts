@@ -221,6 +221,51 @@ export type Database = {
           },
         ]
       }
+      dossier_offer_commercials: {
+        Row: {
+          created_at: string
+          created_by: string
+          currency: string
+          offer_id: string
+          price_amount: number
+          seller_organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          currency?: string
+          offer_id: string
+          price_amount?: number
+          seller_organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          offer_id?: string
+          price_amount?: number
+          seller_organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_offer_commercials_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: true
+            referencedRelation: "dossier_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_offer_commercials_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dossier_offers: {
         Row: {
           available_until: string | null
@@ -233,7 +278,6 @@ export type Database = {
           confidence: number | null
           created_at: string
           created_by: string
-          currency: string
           fit_summary: string | null
           headline: string
           id: string
@@ -242,7 +286,6 @@ export type Database = {
           key_strengths: string | null
           mandate_id: string
           preview_summary: string
-          price_amount: number
           private_material_count: number
           published_at: string | null
           seller_organization_id: string
@@ -261,7 +304,6 @@ export type Database = {
           confidence?: number | null
           created_at?: string
           created_by: string
-          currency?: string
           fit_summary?: string | null
           headline: string
           id?: string
@@ -270,7 +312,6 @@ export type Database = {
           key_strengths?: string | null
           mandate_id: string
           preview_summary: string
-          price_amount?: number
           private_material_count?: number
           published_at?: string | null
           seller_organization_id: string
@@ -289,7 +330,6 @@ export type Database = {
           confidence?: number | null
           created_at?: string
           created_by?: string
-          currency?: string
           fit_summary?: string | null
           headline?: string
           id?: string
@@ -298,7 +338,6 @@ export type Database = {
           key_strengths?: string | null
           mandate_id?: string
           preview_summary?: string
-          price_amount?: number
           private_material_count?: number
           published_at?: string | null
           seller_organization_id?: string
@@ -344,6 +383,54 @@ export type Database = {
           },
         ]
       }
+      dossier_order_commercials: {
+        Row: {
+          created_at: string
+          currency: string
+          internal_notes: string | null
+          order_id: string
+          payment_status: string
+          price_amount: number
+          seller_organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency: string
+          internal_notes?: string | null
+          order_id: string
+          payment_status?: string
+          price_amount: number
+          seller_organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          internal_notes?: string | null
+          order_id?: string
+          payment_status?: string
+          price_amount?: number
+          seller_organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_order_commercials_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "dossier_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_order_commercials_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dossier_orders: {
         Row: {
           access_request_id: string
@@ -353,17 +440,13 @@ export type Database = {
           buyer_reference: string | null
           club_brief_id: string | null
           coach_id: string
-          currency: string
           expires_at: string | null
           id: string
           intended_use: string
-          internal_notes: string | null
           mandate_id: string
           offer_id: string
           ordered_at: string
           ordered_by: string
-          payment_status: string
-          price_amount: number
           seller_organization_id: string
           status: string
           updated_at: string
@@ -376,17 +459,13 @@ export type Database = {
           buyer_reference?: string | null
           club_brief_id?: string | null
           coach_id: string
-          currency: string
           expires_at?: string | null
           id?: string
           intended_use: string
-          internal_notes?: string | null
           mandate_id: string
           offer_id: string
           ordered_at?: string
           ordered_by: string
-          payment_status?: string
-          price_amount: number
           seller_organization_id: string
           status?: string
           updated_at?: string
@@ -399,17 +478,13 @@ export type Database = {
           buyer_reference?: string | null
           club_brief_id?: string | null
           coach_id?: string
-          currency?: string
           expires_at?: string | null
           id?: string
           intended_use?: string
-          internal_notes?: string | null
           mandate_id?: string
           offer_id?: string
           ordered_at?: string
           ordered_by?: string
-          payment_status?: string
-          price_amount?: number
           seller_organization_id?: string
           status?: string
           updated_at?: string
