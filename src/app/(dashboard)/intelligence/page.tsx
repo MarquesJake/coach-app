@@ -1,43 +1,100 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import {
+  ArrowRight,
+  CheckCircle2,
+  ClipboardCheck,
+  Clock3,
+  Inbox,
+  MessageSquarePlus,
+  Network,
+  ShieldCheck,
+} from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { ASSESSMENT_CRITERIA, criterionLabel, methodLabel } from '@/lib/assessment/criteria'
-import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
-import { CombinedFeed } from './_components/combined-feed'
-import type { IntelFeedItem } from './_components/combined-feed'
-import { displayClubName } from '@/lib/display-names'
+import { getInternalOrganizationId } from '@/lib/organizations/context'
 
-function safeDate(value: string | null | undefined, fallback: string | null | undefined) {
-  return value ?? fallback ?? new Date().toISOString()
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+type Signal = {
+  id: string
+  title: string
+  detail: string | null
+  entity_type: string
+  entity_id: string
+  source_name: string | null
+  source_type: string | null
+  source_tier: string | null
+  confidence: number | null
+  occurred_at: string | null
+  created_at: string
+  verified: boolean
+  direction: string | null
+  sensitivity: string | null
+  source_expires_at: string | null
 }
 
-function sourceTierLabel(value: string | null | undefined) {
-  if (!value) return null
-  return value.startsWith('T') ? value : `T${value}`
+function displayDate(value: string | null) {
+  if (!value) return 'Date not recorded'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Date not recorded'
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-function confidenceFromVerification(status: string | null | undefined, fallback?: number | null) {
-  if (fallback != null) return fallback
-  if (status === 'verified') return 80
-  if (status === 'disputed') return 25
-  return null
+function entityHref(signal: Signal) {
+  if (signal.entity_type === 'coach') return `/coaches/${signal.entity_id}/intelligence?entry=${signal.id}`
+  if (signal.entity_type === 'club') return `/clubs/${signal.entity_id}`
+  if (signal.entity_type === 'mandate') return `/mandates/${signal.entity_id}/workspace`
+  return '/intelligence'
 }
 
-function materialSensitivity(status: string | null | undefined) {
-  if (status === 'withheld') return 'Restricted'
-  if (status === 'requested' || status === 'missing') return 'Not yet held'
-  return 'Controlled access'
+function statusLabel(signal: Signal, now: Date) {
+  if (signal.source_expires_at && new Date(signal.source_expires_at) < now) return 'Refresh required'
+  if (signal.sensitivity?.toLowerCase() === 'high') return 'Sensitive'
+  if (signal.verified) return 'Verified'
+  return 'Needs review'
 }
 
-function portalSensitivity(status: string | null | undefined) {
-  if (status === 'shareable') return 'Shareable'
-  if (status === 'clubs_on_request') return 'Clubs on request'
-  if (status === 'coach_first_only') return 'Coach First only'
-  return 'Private'
+function statusClass(signal: Signal, now: Date) {
+  if (signal.source_expires_at && new Date(signal.source_expires_at) < now) return 'border-amber-700/20 bg-amber-50 text-amber-900'
+  if (signal.sensitivity?.toLowerCase() === 'high') return 'border-red-700/20 bg-red-50 text-red-900'
+  if (signal.verified) return 'border-emerald-700/20 bg-emerald-50 text-emerald-900'
+  return 'border-border bg-muted/40 text-muted-foreground'
 }
 
-function assessmentOriginHref(mandateId: string, coachId: string, criterion: string, params: Record<string, string>) {
-  const search = new URLSearchParams({ criterion, ...params })
-  return `/mandates/${mandateId}/assessment/${coachId}?${search.toString()}`
+function directionClass(direction: string | null) {
+  if (direction === 'Positive') return 'text-emerald-800'
+  if (direction === 'Negative') return 'text-red-800'
+  return 'text-muted-foreground'
+}
+
+function WorkCard({
+  icon: Icon,
+  eyebrow,
+  value,
+  label,
+  detail,
+  href,
+}: {
+  icon: typeof Inbox
+  eyebrow: string
+  value: number
+  label: string
+  detail: string
+  href: string
+}) {
+  return (
+    <Link href={href} className="group border border-border bg-card p-4 transition-colors hover:border-primary/35 hover:bg-muted/25">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{eyebrow}</p>
+          <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{value}</p>
+          <p className="mt-1 text-sm font-medium text-foreground">{label}</p>
+        </div>
+        <Icon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+      </div>
+      <p className="mt-3 text-xs leading-5 text-muted-foreground">{detail}</p>
+    </Link>
+  )
 }
 
 export default async function IntelligencePage() {
@@ -45,364 +102,146 @@ export default async function IntelligencePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const organizationId = await getInternalOrganizationId(user.id)
+  const db = supabase as any
+  const now = new Date()
+
   const [
-    intelRes,
-    interRes,
-    claimsRes,
-    assessmentEvidenceRes,
-    interviewsRes,
-    referencesRes,
-    materialsRes,
-    portalProfilesRes,
+    signalsRes,
+    inboxRes,
     coachesRes,
-    agentsRes,
-    clubsRes,
-    mandatesRes,
+    sessionsRes,
+    claimsRes,
+    campaignsRes,
+    contactsRes,
   ] = await Promise.all([
     supabase
       .from('intelligence_items')
-      .select('*')
+      .select('id, title, detail, entity_type, entity_id, source_name, source_type, source_tier, confidence, occurred_at, created_at, verified, direction, sensitivity, source_expires_at')
       .eq('user_id', user.id)
       .eq('is_deleted', false)
       .order('occurred_at', { ascending: false, nullsFirst: false })
-      .limit(200),
-    supabase
-      .from('agent_interactions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('occurred_at', { ascending: false })
-      .limit(200),
-    supabase
-      .from('profile_claims')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('occurred_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
-      .limit(200),
+      .limit(40),
     supabase
-      .from('assessment_evidence')
-      .select('*')
+      .from('intelligence_inbox_items')
+      .select('id, review_status')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(200),
-    supabase
-      .from('candidate_interview_answers')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(200),
-    supabase
-      .from('candidate_reference_answers')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(200),
-    supabase
-      .from('coach_private_materials')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(200),
-    supabase
-      .from('coach_portal_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .limit(200),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name'),
-    supabase.from('agents').select('id, full_name, agency_name').eq('user_id', user.id).order('full_name'),
-    supabase.from('clubs').select('id, name').eq('user_id', user.id).order('name'),
-    supabase.from('mandates').select('id, custom_club_name, clubs(name)').eq('user_id', user.id).limit(100),
+      .in('review_status', ['captured', 'triage', 'needs_verification', 'ready_to_promote']),
+    supabase.from('coaches').select('id, name').eq('user_id', user.id),
+    organizationId
+      ? db.from('intelligence_sessions').select('id, processing_status').eq('org_id', organizationId).in('processing_status', ['captured', 'reviewing'])
+      : Promise.resolve({ data: [] }),
+    organizationId
+      ? db.from('profile_claims').select('id, review_status').eq('org_id', organizationId).is('deleted_at', null).eq('review_status', 'pending')
+      : Promise.resolve({ data: [] }),
+    organizationId
+      ? db.from('reference_campaigns').select('id, next_action, next_review_at').eq('org_id', organizationId).in('status', ['draft', 'active'])
+      : Promise.resolve({ data: [] }),
+    organizationId
+      ? db.from('football_contacts').select('id, next_follow_up_at').eq('org_id', organizationId).not('next_follow_up_at', 'is', null)
+      : Promise.resolve({ data: [] }),
   ])
 
-  const coaches = (coachesRes.data ?? []).map((c) => ({ id: c.id, name: (c as { name: string }).name }))
-  const coachMap = new Map(coaches.map((c) => [c.id, c.name]))
-
-  const agents = (agentsRes.data ?? []).map((a) => ({
-    id: a.id,
-    name: ((a as { full_name?: string | null; agency_name?: string | null }).full_name ?? (a as { agency_name?: string | null }).agency_name ?? 'Agent'),
-  }))
-  const agentMap = new Map(agents.map((a) => [a.id, a.name]))
-
-  const clubs = (clubsRes.data ?? []).map((c) => ({ id: c.id, name: (c as { name: string }).name }))
-  const clubMap = new Map(clubs.map((c) => [c.id, c.name]))
-
-  const mandates = (mandatesRes.data ?? []).map((m) => {
-    const clubName = (m.clubs as { name?: string } | null)?.name
-    return { id: m.id, label: displayClubName(m.custom_club_name, clubName, m.id) }
-  })
-  const mandateMap = new Map(mandates.map((m) => [m.id, m.label]))
-
-  const intelItems: IntelFeedItem[] = (intelRes.data ?? []).map((item) => ({
-    id: item.id,
-    kind: 'intel',
-    lane: 'Manual intelligence',
-    occurred_at: safeDate(item.occurred_at, item.created_at),
-    title: item.title,
-    detail: item.detail,
-    category: item.category,
-    direction: item.direction,
-    sensitivity: item.sensitivity,
-    confidence: item.confidence,
-    source_tier: sourceTierLabel(item.source_tier),
-    source_name: item.source_name,
-    source_type: item.source_type,
-    verified: item.verified,
-    entity_type: item.entity_type,
-    entity_id: item.entity_id,
-    mandate_id: item.mandate_id,
-    entity_name: item.entity_type === 'coach' ? coachMap.get(item.entity_id) ?? item.entity_id
-      : item.entity_type === 'club' ? clubMap.get(item.entity_id) ?? item.entity_id
-      : mandateMap.get(item.entity_id) ?? item.entity_id,
-    mandate_label: item.mandate_id ? mandateMap.get(item.mandate_id) ?? null : null,
-    coach_id: item.entity_type === 'coach' ? item.entity_id : null,
-    coach_name: item.entity_type === 'coach' ? coachMap.get(item.entity_id) ?? null : null,
-    origin_table: 'intelligence_items',
-    origin_label: 'Manual intelligence note',
-    origin_href: item.entity_type === 'coach'
-      ? `/coaches/${item.entity_id}/intelligence?entry=${item.id}`
-      : item.entity_type === 'club'
-        ? `/clubs/${item.entity_id}`
-        : item.entity_type === 'mandate'
-          ? `/mandates/${item.entity_id}`
-          : '/intelligence',
-    commercial_surfaces: ['Coach profile', 'Mandate shortlist', 'Head Coach Assessment Pack'],
-  }))
-
-  const interactionItems: IntelFeedItem[] = (interRes.data ?? []).map((item) => ({
-    id: item.id,
-    kind: 'interaction',
-    lane: 'Agent conversations',
-    occurred_at: safeDate(item.occurred_at, item.created_at),
-    title: item.summary,
-    summary: item.summary,
-    detail: item.detail,
-    topic: item.topic,
-    category: item.topic,
-    direction: item.direction,
-    sentiment: item.sentiment,
-    interaction_type: item.interaction_type,
-    channel: item.channel,
-    confidence: item.confidence,
-    reliability_score: item.reliability_score,
-    influence_score: item.influence_score,
-    follow_up_date: item.follow_up_date,
-    agent_id: item.agent_id,
-    agent_name: agentMap.get(item.agent_id) ?? 'Agent',
-    coach_id: item.coach_id,
-    coach_name: item.coach_id ? coachMap.get(item.coach_id) ?? null : null,
-    club_id: item.club_id,
-    club_name: item.club_id ? clubMap.get(item.club_id) ?? null : null,
-    source_name: agentMap.get(item.agent_id) ?? 'Agent',
-    source_type: item.channel ?? 'Agent conversation',
-    origin_table: 'agent_interactions',
-    origin_label: 'Agent interaction',
-    origin_href: `/agents/${item.agent_id}/interactions?entry=${item.id}`,
-    commercial_surfaces: ['Coach profile', 'Private feasibility', 'Confidential access'],
-  }))
-
-  const claimItems: IntelFeedItem[] = (claimsRes.data ?? []).map((claim) => ({
-    id: claim.id,
-    kind: 'claim',
-    lane: 'Source-backed claims',
-    occurred_at: safeDate(claim.occurred_at, claim.created_at),
-    title: `${claimTypeLabel(claim.claim_type)}: ${claimFieldLabel(claim.profile_field)}`,
-    detail: claim.evidence_summary || claim.claimed_value,
-    category: claimTypeLabel(claim.claim_type),
-    sensitivity: claim.sensitivity,
-    confidence: claim.confidence,
-    source_tier: sourceTierLabel(claim.source_tier),
-    source_name: claim.source_name,
-    source_type: claim.source_type,
-    verification_status: claim.verification_status,
-    review_status: claim.review_status,
-    used_in_recommendation: claim.used_in_recommendation,
-    verified: claim.verification_status === 'verified',
-    entity_type: claim.entity_type,
-    entity_id: claim.entity_id,
-    coach_id: claim.coach_id,
-    coach_name: claim.coach_id ? coachMap.get(claim.coach_id) ?? null : null,
-    agent_id: claim.agent_id ?? undefined,
-    agent_name: claim.agent_id ? agentMap.get(claim.agent_id) ?? null : null,
-    origin_table: 'profile_claims',
-    origin_label: 'Profile claim',
-    origin_href: claim.interaction_id && claim.agent_id
-      ? `/agents/${claim.agent_id}/interactions?entry=${claim.interaction_id}`
-      : claim.coach_id
-        ? `/coaches/${claim.coach_id}#claim-${claim.id}`
-        : '/intelligence',
-    commercial_surfaces: ['Coach profile', 'Appointment feasibility', 'Head Coach Assessment Pack'],
-  }))
-
-  const assessmentItems: IntelFeedItem[] = (assessmentEvidenceRes.data ?? []).map((evidence) => ({
-    id: evidence.id,
-    kind: 'assessment_evidence',
-    lane: 'Assessment evidence',
-    occurred_at: evidence.created_at,
-    title: evidence.title,
-    detail: evidence.detail,
-    category: criterionLabel(evidence.criterion),
-    confidence: evidence.confidence,
-    source_name: evidence.source,
-    source_type: methodLabel(evidence.method),
-    verification_status: evidence.verification_status,
-    used_in_recommendation: evidence.used_in_recommendation,
-    verified: evidence.verification_status === 'verified',
-    criterion: evidence.criterion,
-    criterion_label: criterionLabel(evidence.criterion),
-    method: evidence.method,
-    method_label: methodLabel(evidence.method),
-    coach_id: evidence.coach_id,
-    coach_name: coachMap.get(evidence.coach_id) ?? null,
-    mandate_id: evidence.mandate_id,
-    mandate_label: mandateMap.get(evidence.mandate_id) ?? null,
-    origin_table: 'assessment_evidence',
-    origin_label: 'Assessment evidence',
-    origin_href: assessmentOriginHref(evidence.mandate_id, evidence.coach_id, evidence.criterion, { evidence: evidence.id }),
-    commercial_surfaces: ['Assessment workspace', 'Coverage heatmap', 'Head Coach Assessment Pack'],
-  }))
-
-  const interviewItems: IntelFeedItem[] = (interviewsRes.data ?? []).map((answer) => ({
-    id: answer.id,
-    kind: 'interview',
-    lane: 'Candidate interviews',
-    occurred_at: answer.created_at,
-    title: answer.question,
-    detail: answer.answer,
-    category: criterionLabel(answer.criterion),
-    confidence: answer.confidence,
-    source_name: answer.interviewer,
-    source_type: 'Candidate interview',
-    verification_status: answer.verification_status,
-    used_in_recommendation: answer.used_in_recommendation,
-    verified: answer.verification_status === 'verified',
-    criterion: answer.criterion,
-    criterion_label: criterionLabel(answer.criterion),
-    method: 'candidate_interview',
-    method_label: methodLabel('candidate_interview'),
-    coach_id: answer.coach_id,
-    coach_name: coachMap.get(answer.coach_id) ?? null,
-    mandate_id: answer.mandate_id,
-    mandate_label: mandateMap.get(answer.mandate_id) ?? null,
-    origin_table: 'candidate_interview_answers',
-    origin_label: 'Interview answer',
-    origin_href: assessmentOriginHref(answer.mandate_id, answer.coach_id, answer.criterion, { interview: answer.id }),
-    commercial_surfaces: ['Assessment workspace', 'Interview appendix', 'Head Coach Assessment Pack'],
-  }))
-
-  const referenceItems: IntelFeedItem[] = (referencesRes.data ?? []).map((answer) => ({
-    id: answer.id,
-    kind: 'reference',
-    lane: 'References',
-    occurred_at: answer.created_at,
-    title: answer.question,
-    detail: answer.answer,
-    category: criterionLabel(answer.criterion),
-    direction: answer.risk_flag ? 'Negative' : undefined,
-    sensitivity: answer.risk_flag ? 'High' : 'Standard',
-    confidence: confidenceFromVerification(answer.verification_status, answer.confidence),
-    source_name: [answer.reference_name, answer.reference_role].filter(Boolean).join(', ') || null,
-    source_type: `${answer.stakeholder_group} reference`,
-    verification_status: answer.verification_status,
-    used_in_recommendation: answer.used_in_recommendation,
-    verified: answer.verification_status === 'verified',
-    criterion: answer.criterion,
-    criterion_label: criterionLabel(answer.criterion),
-    method: 'references',
-    method_label: methodLabel('references'),
-    coach_id: answer.coach_id,
-    coach_name: coachMap.get(answer.coach_id) ?? null,
-    mandate_id: answer.mandate_id,
-    mandate_label: mandateMap.get(answer.mandate_id) ?? null,
-    origin_table: 'candidate_reference_answers',
-    origin_label: 'Reference answer',
-    origin_href: assessmentOriginHref(answer.mandate_id, answer.coach_id, answer.criterion, { reference: answer.id }),
-    commercial_surfaces: ['Assessment workspace', 'References appendix', 'Board risk'],
-  }))
-
-  const materialItems: IntelFeedItem[] = (materialsRes.data ?? []).map((material) => ({
-    id: material.id,
-    kind: 'material',
-    lane: 'Coach-submitted material',
-    occurred_at: material.created_at,
-    title: material.title,
-    detail: material.description,
-    category: material.material_type,
-    sensitivity: materialSensitivity(material.confidentiality_status),
-    confidence: confidenceFromVerification(material.verification_status),
-    source_name: material.source_label,
-    source_type: material.uploaded_by === 'coach' ? 'Coach upload' : 'Internal upload',
-    verification_status: material.verification_status,
-    verified: material.verification_status === 'verified',
-    coach_id: material.coach_id,
-    coach_name: coachMap.get(material.coach_id) ?? null,
-    origin_table: 'coach_private_materials',
-    origin_label: 'Private material',
-    origin_href: `/coach-portal/${material.coach_id}#material-${material.id}`,
-    commercial_surfaces: ['Coach portal', 'Confidential access', 'Head Coach Assessment Pack'],
-  }))
-
-  const portalItems: IntelFeedItem[] = (portalProfilesRes.data ?? []).map((profile) => {
-    const filledFields = [
-      profile.football_identity,
-      profile.in_possession_model,
-      profile.out_of_possession_model,
-      profile.training_week,
-      profile.session_design_principles,
-      profile.player_development_proof,
-      profile.presentation_summary,
-      profile.video_summary,
-      profile.reference_permissions,
-    ].filter((value) => typeof value === 'string' && value.trim().length > 0).length
-
-    return {
-      id: profile.id,
-      kind: 'portal_profile',
-      lane: 'Coach portal',
-      occurred_at: safeDate(profile.reviewed_at, profile.updated_at),
-      title: `${coachMap.get(profile.coach_id) ?? 'Coach'} portal depth profile`,
-      detail: profile.personal_statement ?? profile.football_identity ?? profile.presentation_summary,
-      category: profile.portal_status,
-      sensitivity: portalSensitivity(profile.visibility_status),
-      confidence: Math.min(95, 35 + filledFields * 7),
-      source_name: profile.representative_name ?? coachMap.get(profile.coach_id) ?? null,
-      source_type: 'Coach-submitted profile',
-      verification_status: profile.reviewed_at ? 'verified' : 'unverified',
-      verified: Boolean(profile.reviewed_at),
-      coach_id: profile.coach_id,
-      coach_name: coachMap.get(profile.coach_id) ?? null,
-      origin_table: 'coach_portal_profiles',
-      origin_label: 'Coach portal profile',
-      origin_href: `/coach-portal/${profile.coach_id}`,
-      commercial_surfaces: ['Coach portal', 'Coach profile', 'Confidential access'],
-    } satisfies IntelFeedItem
-  })
-
-  const allItems = [
-    ...intelItems,
-    ...interactionItems,
-    ...claimItems,
-    ...assessmentItems,
-    ...interviewItems,
-    ...referenceItems,
-    ...materialItems,
-    ...portalItems,
-  ].sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime())
-
-  const criterionCounts = ASSESSMENT_CRITERIA.map((criterion) => ({
-    key: criterion.key,
-    label: criterion.label,
-    count: allItems.filter((item) => item.criterion === criterion.key || item.category === criterion.label).length,
-  }))
+  const coachNames = new Map((coachesRes.data ?? []).map((coach) => [coach.id, coach.name]))
+  const signals = (signalsRes.data ?? []) as Signal[]
+  const inboxCount = inboxRes.data?.length ?? 0
+  const openSessions = sessionsRes.data?.length ?? 0
+  const pendingClaims = claimsRes.data?.length ?? 0
+  const activeCampaigns = campaignsRes.data?.length ?? 0
+  const overdueFollowUps = [
+    ...(campaignsRes.data ?? []).map((campaign: { next_review_at: string | null }) => campaign.next_review_at),
+    ...(contactsRes.data ?? []).map((contact: { next_follow_up_at: string | null }) => contact.next_follow_up_at),
+  ].filter((date): date is string => Boolean(date) && new Date(date) < now).length
+  const nextCampaign = (campaignsRes.data ?? []).find((campaign: { next_action: string | null }) => campaign.next_action)?.next_action
 
   return (
-    <CombinedFeed
-      items={allItems}
-      criterionCounts={criterionCounts}
-      coaches={coaches}
-      agents={agents}
-      clubs={clubs}
-      mandates={mandates}
-    />
+    <div className="mx-auto w-full max-w-[1320px] space-y-5">
+      <header className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Internal decision desk</p>
+          <h2 className="mt-2 font-serif text-2xl font-semibold text-foreground">Current work</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Current signals and the work needed to turn football knowledge into approved, usable evidence.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/intelligence/inbox" className="inline-flex h-9 items-center gap-2 border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/35">
+            <Inbox className="h-4 w-4" />Triage intake
+          </Link>
+          <Link href="/intelligence/conversations" className="inline-flex h-9 items-center gap-2 bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+            <MessageSquarePlus className="h-4 w-4" />Capture conversation
+          </Link>
+        </div>
+      </header>
+
+      <section className="grid border border-border bg-card sm:grid-cols-2 xl:grid-cols-4">
+        <WorkCard icon={Inbox} eyebrow="Intake" value={inboxCount} label="items to triage" detail="Raw material stays outside recommendations until reviewed." href="/intelligence/inbox" />
+        <WorkCard icon={MessageSquarePlus} eyebrow="Conversations" value={openSessions} label="sessions in review" detail="Turn notes or transcripts into narrow, reviewable claims." href="/intelligence/conversations" />
+        <WorkCard icon={ClipboardCheck} eyebrow="Claims" value={pendingClaims} label="claims awaiting sign-off" detail="Only accepted claims strengthen a profile or assessment." href="/intelligence/review" />
+        <WorkCard icon={Clock3} eyebrow="Network" value={overdueFollowUps} label="overdue follow-ups" detail={nextCampaign ?? `${activeCampaigns} active reference campaign${activeCampaigns === 1 ? '' : 's'}.`} href="/network/campaigns" />
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="border border-border bg-card">
+          <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Live signals</p>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Current, discrete intelligence only</h2>
+            </div>
+            <p className="text-xs text-muted-foreground">Assessment evidence, references and private materials live in their relevant workspaces.</p>
+          </div>
+
+          {signals.length === 0 ? (
+            <div className="flex min-h-[360px] flex-col items-center justify-center px-6 text-center">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted/40"><CheckCircle2 className="h-5 w-5 text-emerald-700" /></span>
+              <h3 className="mt-4 text-base font-semibold text-foreground">The live feed is clear</h3>
+              <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Capture the next real conversation or triage a new source. It will enter the evidence process before it appears as a usable signal.</p>
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                <Link href="/intelligence/conversations" className="inline-flex h-9 items-center gap-2 bg-primary px-3 text-sm font-semibold text-primary-foreground"><MessageSquarePlus className="h-4 w-4" />Capture conversation</Link>
+                <Link href="/intelligence/inbox" className="inline-flex h-9 items-center gap-2 border border-border bg-card px-3 text-sm font-medium text-foreground"><Inbox className="h-4 w-4" />Triage intake</Link>
+              </div>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {signals.map((signal) => {
+                const coachName = signal.entity_type === 'coach' ? coachNames.get(signal.entity_id) : null
+                const label = statusLabel(signal, now)
+                return (
+                  <Link key={signal.id} href={entityHref(signal)} className="group block px-5 py-4 transition-colors hover:bg-muted/25">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClass(signal, now)}`}>{label}</span>
+                          {signal.direction && <span className={`text-[11px] font-medium ${directionClass(signal.direction)}`}>{signal.direction}</span>}
+                          {coachName && <span className="text-[11px] text-muted-foreground">{coachName}</span>}
+                        </div>
+                        <p className="mt-2 text-sm font-semibold text-foreground">{signal.title}</p>
+                        {signal.detail && <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">{signal.detail}</p>}
+                        <p className="mt-3 text-xs text-muted-foreground">{[signal.source_type, signal.source_name, signal.source_tier ? `T${signal.source_tier.replace(/^T/i, '')}` : null, signal.confidence != null ? `${signal.confidence}% confidence` : null].filter(Boolean).join(' · ') || 'Source context incomplete'}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground"><span>{displayDate(signal.occurred_at ?? signal.created_at)}</span><ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        <aside className="space-y-4">
+          <section className="border border-border bg-card p-5">
+            <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Evidence rule</p></div>
+            <p className="mt-3 text-sm font-semibold leading-6 text-foreground">A signal is not a recommendation.</p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Raw notes are captured first. An analyst reviews claims, records confidence and provenance, then explicitly promotes approved evidence into a mandate.</p>
+          </section>
+          <section className="border border-border bg-card p-5">
+            <div className="flex items-center gap-2"><Network className="h-4 w-4 text-primary" /><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Next network move</p></div>
+            <p className="mt-3 text-sm font-semibold leading-6 text-foreground">{nextCampaign ?? 'Start with a contact, not a generic research task.'}</p>
+            <Link href="/network" className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">Open Football Network <ArrowRight className="h-3.5 w-3.5" /></Link>
+          </section>
+        </aside>
+      </section>
+    </div>
   )
 }
