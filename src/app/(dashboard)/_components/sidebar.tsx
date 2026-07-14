@@ -19,36 +19,35 @@ import {
   SlidersHorizontal,
   ShieldCheck,
   Activity,
+  ChevronDown,
+  PackageCheck,
+  Landmark,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/theme-toggle'
 
-const workspaceNav = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+const primaryNav = [
+  { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Succession', href: '/succession', icon: Activity },
   { label: 'Mandates', href: '/mandates', icon: Briefcase },
-  { label: 'Coach Portal', href: '/coach-portal', icon: ShieldCheck },
-]
-
-const intelligenceNav = [
   { label: 'Coaches', href: '/coaches', icon: Users },
-  { label: 'Clubs', href: '/clubs', icon: Building2 },
-  { label: 'Agents', href: '/agents', icon: UserCircle },
   { label: 'Intelligence', href: '/intelligence', icon: Radio },
 ]
 
+const networkNav = [
+  { label: 'Clubs', href: '/clubs', icon: Building2 },
+  { label: 'Agents', href: '/agents', icon: UserCircle },
+]
+
 const internalNav = [
+  { label: 'Dossier orders', href: '/dossier-orders', icon: PackageCheck },
+  { label: 'Coach portal', href: '/coach-portal', icon: ShieldCheck },
   { label: 'Alerts', href: '/alerts', icon: Bell },
   { label: 'Matches', href: '/matches', icon: GitCompare },
   { label: 'Staff', href: '/staff', icon: Users },
   { label: 'Config', href: '/config', icon: SlidersHorizontal },
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Data tools', href: '/admin/data-tools', icon: Database },
-]
-
-const navSections = [
-  { label: 'Workspace', items: workspaceNav },
-  { label: 'Market intelligence', items: intelligenceNav },
 ]
 
 export function Sidebar() {
@@ -88,47 +87,70 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
-        {navSections.map((section) => (
-          <div key={section.label}>
-            <div className="mb-1 px-3">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
-                {section.label}
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              {section.items.map((item) => {
-                const active = isActive(item.href)
-                const Icon = item.icon
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      'flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors relative',
-                      active
-                        ? 'text-primary bg-primary/[0.06]'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                    )}
-                  >
-                    {active && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-r" />
-                    )}
-                    <Icon className="w-4 h-4 flex-shrink-0" />
-                    {item.label}
-                  </Link>
-                )
-              })}
-            </div>
+      <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-4">
+        <div>
+          <div className="mb-1 px-3">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
+              Work
+            </span>
           </div>
-        ))}
+          <div className="space-y-0.5">
+            {primaryNav.map((item) => {
+              const active = isActive(item.href)
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'relative flex items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors',
+                    active
+                      ? 'bg-primary/[0.06] text-primary'
+                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                  )}
+                >
+                  {active && <div className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-r bg-primary" />}
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
 
-        <details className="group rounded-lg border border-border/60 bg-surface/30">
+        <details className="group" open={networkNav.some((item) => isActive(item.href))}>
+          <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground">
+            <span className="flex items-center gap-2.5">
+              <Landmark className="h-4 w-4" />
+              Network
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-0.5 space-y-0.5 pl-3">
+            {networkNav.map((item) => {
+              const active = isActive(item.href)
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-2.5 rounded-md px-3 py-2 text-[12px] font-medium transition-colors',
+                    active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        </details>
+
+        <details className="group rounded-lg border border-border/60 bg-surface/30" open={internalNav.some((item) => isActive(item.href))}>
           <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 transition-colors hover:text-foreground">
             Internal tools
-            <span className="rounded border border-amber-400/20 bg-amber-400/10 px-1.5 py-0.5 text-[8px] text-amber-300">
-              Admin only
-            </span>
+            <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
           </summary>
           <div className="space-y-0.5 border-t border-border/60 p-2">
             {internalNav.map((item) => {

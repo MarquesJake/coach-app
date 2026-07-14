@@ -14,6 +14,632 @@ export type Database = {
   }
   public: {
     Tables: {
+      organizations: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          organization_type: string
+          slug: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          organization_type: string
+          slug: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          organization_type?: string
+          slug?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organizations_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_memberships: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          role: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          role: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_briefs: {
+        Row: {
+          appointment_context: string | null
+          availability_timeline: string | null
+          budget_parameters: string | null
+          buyer_organization_id: string
+          club_id: string | null
+          confidentiality_notes: string | null
+          created_at: string
+          created_by: string
+          football_identity: string | null
+          id: string
+          in_possession_requirements: string | null
+          leadership_and_culture: string | null
+          linked_mandate_id: string | null
+          location_requirements: string | null
+          out_of_possession_requirements: string | null
+          player_development_priorities: string | null
+          process_requirements: string | null
+          role_title: string
+          service_organization_id: string
+          set_piece_requirements: string | null
+          squad_context: string | null
+          status: string
+          submitted_at: string | null
+          title: string
+          transition_requirements: string | null
+          updated_at: string
+          work_permit_position: string | null
+        }
+        Insert: {
+          appointment_context?: string | null
+          availability_timeline?: string | null
+          budget_parameters?: string | null
+          buyer_organization_id: string
+          club_id?: string | null
+          confidentiality_notes?: string | null
+          created_at?: string
+          created_by: string
+          football_identity?: string | null
+          id?: string
+          in_possession_requirements?: string | null
+          leadership_and_culture?: string | null
+          linked_mandate_id?: string | null
+          location_requirements?: string | null
+          out_of_possession_requirements?: string | null
+          player_development_priorities?: string | null
+          process_requirements?: string | null
+          role_title?: string
+          service_organization_id: string
+          set_piece_requirements?: string | null
+          squad_context?: string | null
+          status?: string
+          submitted_at?: string | null
+          title: string
+          transition_requirements?: string | null
+          updated_at?: string
+          work_permit_position?: string | null
+        }
+        Update: {
+          appointment_context?: string | null
+          availability_timeline?: string | null
+          budget_parameters?: string | null
+          buyer_organization_id?: string
+          club_id?: string | null
+          confidentiality_notes?: string | null
+          created_at?: string
+          created_by?: string
+          football_identity?: string | null
+          id?: string
+          in_possession_requirements?: string | null
+          leadership_and_culture?: string | null
+          linked_mandate_id?: string | null
+          location_requirements?: string | null
+          out_of_possession_requirements?: string | null
+          player_development_priorities?: string | null
+          process_requirements?: string | null
+          role_title?: string
+          service_organization_id?: string
+          set_piece_requirements?: string | null
+          squad_context?: string | null
+          status?: string
+          submitted_at?: string | null
+          title?: string
+          transition_requirements?: string | null
+          updated_at?: string
+          work_permit_position?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_briefs_buyer_organization_id_fkey"
+            columns: ["buyer_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_briefs_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_briefs_linked_mandate_id_fkey"
+            columns: ["linked_mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_briefs_service_organization_id_fkey"
+            columns: ["service_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_offers: {
+        Row: {
+          available_until: string | null
+          buyer_organization_id: string
+          club_brief_id: string | null
+          coach_current_role: string | null
+          coach_id: string
+          coach_name: string
+          coach_nationality: string | null
+          confidence: number | null
+          created_at: string
+          created_by: string
+          currency: string
+          fit_summary: string | null
+          headline: string
+          id: string
+          included_sections: Json
+          key_risks: string | null
+          key_strengths: string | null
+          mandate_id: string
+          preview_summary: string
+          price_amount: number
+          private_material_count: number
+          published_at: string | null
+          seller_organization_id: string
+          status: string
+          updated_at: string
+          verdict: string | null
+        }
+        Insert: {
+          available_until?: string | null
+          buyer_organization_id: string
+          club_brief_id?: string | null
+          coach_current_role?: string | null
+          coach_id: string
+          coach_name: string
+          coach_nationality?: string | null
+          confidence?: number | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          fit_summary?: string | null
+          headline: string
+          id?: string
+          included_sections?: Json
+          key_risks?: string | null
+          key_strengths?: string | null
+          mandate_id: string
+          preview_summary: string
+          price_amount?: number
+          private_material_count?: number
+          published_at?: string | null
+          seller_organization_id: string
+          status?: string
+          updated_at?: string
+          verdict?: string | null
+        }
+        Update: {
+          available_until?: string | null
+          buyer_organization_id?: string
+          club_brief_id?: string | null
+          coach_current_role?: string | null
+          coach_id?: string
+          coach_name?: string
+          coach_nationality?: string | null
+          confidence?: number | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          fit_summary?: string | null
+          headline?: string
+          id?: string
+          included_sections?: Json
+          key_risks?: string | null
+          key_strengths?: string | null
+          mandate_id?: string
+          preview_summary?: string
+          price_amount?: number
+          private_material_count?: number
+          published_at?: string | null
+          seller_organization_id?: string
+          status?: string
+          updated_at?: string
+          verdict?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_offers_buyer_organization_id_fkey"
+            columns: ["buyer_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_offers_club_brief_id_fkey"
+            columns: ["club_brief_id"]
+            isOneToOne: false
+            referencedRelation: "club_briefs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_offers_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_offers_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_offers_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_orders: {
+        Row: {
+          access_request_id: string
+          activated_at: string | null
+          approved_at: string | null
+          buyer_organization_id: string
+          buyer_reference: string | null
+          club_brief_id: string | null
+          coach_id: string
+          currency: string
+          expires_at: string | null
+          id: string
+          intended_use: string
+          internal_notes: string | null
+          mandate_id: string
+          offer_id: string
+          ordered_at: string
+          ordered_by: string
+          payment_status: string
+          price_amount: number
+          seller_organization_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_request_id: string
+          activated_at?: string | null
+          approved_at?: string | null
+          buyer_organization_id: string
+          buyer_reference?: string | null
+          club_brief_id?: string | null
+          coach_id: string
+          currency: string
+          expires_at?: string | null
+          id?: string
+          intended_use: string
+          internal_notes?: string | null
+          mandate_id: string
+          offer_id: string
+          ordered_at?: string
+          ordered_by: string
+          payment_status?: string
+          price_amount: number
+          seller_organization_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_request_id?: string
+          activated_at?: string | null
+          approved_at?: string | null
+          buyer_organization_id?: string
+          buyer_reference?: string | null
+          club_brief_id?: string | null
+          coach_id?: string
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          intended_use?: string
+          internal_notes?: string | null
+          mandate_id?: string
+          offer_id?: string
+          ordered_at?: string
+          ordered_by?: string
+          payment_status?: string
+          price_amount?: number
+          seller_organization_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_orders_access_request_id_fkey"
+            columns: ["access_request_id"]
+            isOneToOne: true
+            referencedRelation: "confidential_access_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_orders_buyer_organization_id_fkey"
+            columns: ["buyer_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_orders_club_brief_id_fkey"
+            columns: ["club_brief_id"]
+            isOneToOne: false
+            referencedRelation: "club_briefs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_orders_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_orders_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_orders_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: true
+            referencedRelation: "dossier_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_orders_seller_organization_id_fkey"
+            columns: ["seller_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      confidential_access_grants: {
+        Row: {
+          access_request_id: string
+          allow_download: boolean
+          buyer_organization_id: string
+          coach_id: string
+          created_at: string
+          expires_at: string
+          granted_at: string
+          granted_by: string
+          id: string
+          order_id: string
+          release_notes: string | null
+          revoked_at: string | null
+          status: string
+          updated_at: string
+          watermark_label: string | null
+        }
+        Insert: {
+          access_request_id: string
+          allow_download?: boolean
+          buyer_organization_id: string
+          coach_id: string
+          created_at?: string
+          expires_at: string
+          granted_at?: string
+          granted_by: string
+          id?: string
+          order_id: string
+          release_notes?: string | null
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          watermark_label?: string | null
+        }
+        Update: {
+          access_request_id?: string
+          allow_download?: boolean
+          buyer_organization_id?: string
+          coach_id?: string
+          created_at?: string
+          expires_at?: string
+          granted_at?: string
+          granted_by?: string
+          id?: string
+          order_id?: string
+          release_notes?: string | null
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          watermark_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "confidential_access_grants_access_request_id_fkey"
+            columns: ["access_request_id"]
+            isOneToOne: true
+            referencedRelation: "confidential_access_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidential_access_grants_buyer_organization_id_fkey"
+            columns: ["buyer_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidential_access_grants_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidential_access_grants_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "dossier_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      confidential_access_grant_materials: {
+        Row: {
+          grant_id: string
+          material_id: string
+          released_at: string
+          released_by: string
+        }
+        Insert: {
+          grant_id: string
+          material_id: string
+          released_at?: string
+          released_by: string
+        }
+        Update: {
+          grant_id?: string
+          material_id?: string
+          released_at?: string
+          released_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "confidential_access_grant_materials_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "confidential_access_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidential_access_grant_materials_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "coach_private_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_access_events: {
+        Row: {
+          actor_user_id: string | null
+          event_type: string
+          grant_id: string | null
+          id: string
+          material_id: string | null
+          metadata: Json
+          occurred_at: string
+          order_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          event_type: string
+          grant_id?: string | null
+          id?: string
+          material_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          order_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          event_type?: string
+          grant_id?: string | null
+          id?: string
+          material_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_access_events_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "confidential_access_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_access_events_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "coach_private_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_access_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "dossier_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_evidence: {
         Row: {
           coach_id: string
@@ -3154,7 +3780,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_organization_member: {
+        Args: { allowed_roles?: string[]; target_organization_id: string }
+        Returns: boolean
+      }
+      submit_dossier_order: {
+        Args: {
+          buyer_reference_text?: string
+          intended_use_text: string
+          target_offer_id: string
+        }
+        Returns: string
+      }
+      approve_dossier_order: {
+        Args: {
+          access_days?: number
+          material_ids: string[]
+          permit_download?: boolean
+          release_note?: string
+          target_order_id: string
+        }
+        Returns: string
+      }
+      revoke_dossier_access: {
+        Args: { target_order_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

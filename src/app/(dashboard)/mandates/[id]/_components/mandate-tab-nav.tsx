@@ -5,11 +5,10 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 const tabs = (id: string) => [
-  { label: 'Workspace', href: `/mandates/${id}/workspace` },
-  { label: 'Overview', href: `/mandates/${id}` },
-  { label: 'Longlist', href: `/mandates/${id}/longlist` },
-  { label: 'Shortlist', href: `/mandates/${id}/shortlist` },
-  { label: 'Assessment', href: `/mandates/${id}/assessment` },
+  { label: 'Brief', href: `/mandates/${id}/workspace`, matches: [`/mandates/${id}`, `/mandates/${id}/workspace`, `/mandates/${id}/preferences`, `/mandates/${id}/edit`] },
+  { label: 'Candidates', href: `/mandates/${id}/candidates`, matches: [`/mandates/${id}/candidates`, `/mandates/${id}/longlist`, `/mandates/${id}/shortlist`] },
+  { label: 'Assessment', href: `/mandates/${id}/assessment`, matches: [`/mandates/${id}/assessment`] },
+  { label: 'Pack', href: `/mandates/${id}/pack`, matches: [`/mandates/${id}/pack`] },
 ]
 
 export function MandateTabNav({ mandateId }: { mandateId: string }) {
@@ -17,11 +16,13 @@ export function MandateTabNav({ mandateId }: { mandateId: string }) {
 
   return (
     <div className="flex gap-1 border-b border-border mb-5">
-      {tabs(mandateId).map(({ label, href }) => {
-        const active =
-          href === `/mandates/${mandateId}`
-            ? pathname === `/mandates/${mandateId}`
-            : pathname.startsWith(href)
+      {tabs(mandateId).map(({ label, href, matches }) => {
+        const assessmentPackPath = pathname.includes('/assessment/') && pathname.endsWith('/board-pack')
+        const active = label === 'Pack'
+          ? pathname.startsWith(href) || assessmentPackPath
+          : label === 'Assessment'
+            ? pathname.startsWith(`/mandates/${mandateId}/assessment`) && !assessmentPackPath
+            : matches.some((match) => match === `/mandates/${mandateId}` ? pathname === match : pathname.startsWith(match))
         return (
           <Link
             key={href}
