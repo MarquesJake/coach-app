@@ -69,6 +69,7 @@ export default async function BoardPackPage({
     stints,
     tacticalReports,
     backgroundChecks,
+    structuredReferences,
     references,
   ] =
     await Promise.all([
@@ -129,6 +130,13 @@ export default async function BoardPackPage({
         .from('coach_background_checks')
         .select('id, media_reputation, overall_risk_rating, last_verified_at')
         .eq('coach_id', coachId),
+      supabase
+        .from('candidate_reference_answers')
+        .select('id, stakeholder_group, reference_name, reference_role, question, answer, confidence, verification_status, would_hire_again, risk_flag')
+        .eq('mandate_id', mandateId)
+        .eq('coach_id', coachId)
+        .eq('used_in_recommendation', true)
+        .order('created_at', { ascending: true }),
       supabase
         .from('coach_references')
         .select('id, reference_name, reference_role, reference_club, rating, summary')
@@ -556,7 +564,29 @@ export default async function BoardPackPage({
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
           References — character &amp; working relationships
         </h2>
-        {(references.data ?? []).length > 0 ? (
+        {(structuredReferences.data ?? []).length > 0 ? (
+          <div className="mt-3 space-y-3">
+            {(structuredReferences.data ?? []).map((ref) => (
+              <div key={ref.id} className="border-l-2 border-emerald-500/60 pl-3">
+                <p className="text-xs font-semibold text-foreground">
+                  {ref.reference_name}
+                  <span className="font-normal text-muted-foreground">
+                    {ref.reference_role ? ` — ${ref.reference_role}` : ''}
+                  </span>
+                </p>
+                <p className="text-2xs text-muted-foreground/80 mt-1">
+                  {ref.stakeholder_group.replaceAll('_', ' ')}
+                  {ref.confidence !== null ? ` · ${ref.confidence}% confidence` : ''}
+                  {ref.verification_status ? ` · ${ref.verification_status}` : ''}
+                  {ref.would_hire_again ? ` · would hire/work again: ${ref.would_hire_again}` : ''}
+                  {ref.risk_flag ? ' · risk flagged' : ''}
+                </p>
+                <p className="text-2xs text-foreground/80 mt-1 leading-relaxed">{ref.question}</p>
+                <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">{ref.answer}</p>
+              </div>
+            ))}
+          </div>
+        ) : (references.data ?? []).length > 0 ? (
           <div className="mt-3 space-y-3">
             {(references.data ?? []).map((ref) => (
               <div key={ref.id} className="border-l-2 border-emerald-500/60 pl-3">
