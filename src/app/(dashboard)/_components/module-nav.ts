@@ -4,6 +4,7 @@ export const COACHES_SUBNAV: SubNavItem[] = [
   { label: 'Inventory', href: '/coaches' },
   { label: 'Compare', href: '/coaches/compare' },
   { label: 'Watchlist', href: '/coaches/watchlist' },
+  { label: 'Trusted Bench', href: '/coaches/bench' },
 ]
 
 export const AGENTS_SUBNAV: SubNavItem[] = [
@@ -22,6 +23,13 @@ export const COACH_PORTAL_SUBNAV: SubNavItem[] = [
 export const INTELLIGENCE_SUBNAV: SubNavItem[] = [
   { label: 'Feed', href: '/intelligence' },
   { label: 'Inbox', href: '/intelligence/inbox' },
+  { label: 'Conversations', href: '/intelligence/conversations' },
+  { label: 'Review Queue', href: '/intelligence/review' },
+]
+
+export const NETWORK_SUBNAV: SubNavItem[] = [
+  { label: 'Contacts', href: '/network' },
+  { label: 'Reference campaigns', href: '/network/campaigns' },
 ]
 
 export const STAFF_SUBNAV: SubNavItem[] = []

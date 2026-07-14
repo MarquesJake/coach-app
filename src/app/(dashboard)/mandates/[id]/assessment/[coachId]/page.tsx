@@ -5,6 +5,8 @@ import { MandateTabNav } from '../../_components/mandate-tab-nav'
 import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { calculateGbe } from '@/lib/analysis/gbe'
 import { displayClubName } from '@/lib/display-names'
+import { getInternalOrganizationId } from '@/lib/organizations/context'
+import { AssessmentClaimPromotion } from './_components/assessment-claim-promotion'
 import {
   AssessmentWorkspaceClient,
   type AssessmentRow,
@@ -24,6 +26,7 @@ export default async function CandidateAssessmentPage({
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const organizationId = await getInternalOrganizationId(user.id)
 
   const { id: mandateId, coachId } = params
 
@@ -64,6 +67,7 @@ export default async function CandidateAssessmentPage({
     tacticalReports,
     backgroundChecks,
     references,
+    trustedClaims,
   ] =
     await Promise.all([
       supabase
@@ -71,9 +75,10 @@ export default async function CandidateAssessmentPage({
         .select('criterion, score, summary, status')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId),
-      supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
         .from('assessment_evidence')
-        .select('id, criterion, method, title, detail, source, confidence, verification_status, used_in_recommendation, created_at')
+        .select('id, criterion, method, title, detail, source, confidence, verification_status, used_in_recommendation, created_at, origin_profile_claim_id')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .order('created_at', { ascending: false }),
@@ -127,6 +132,21 @@ export default async function CandidateAssessmentPage({
         .from('coach_references')
         .select('id, reference_name, reference_role, rating')
         .eq('coach_id', coachId),
+      organizationId
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? (supabase as any)
+            .from('profile_claims')
+            .select('id, claimed_value, evidence_summary, evidence_strength, external_visibility, statement_type, fact_check_status, restriction_status, review_status, methodology_criteria, reviewed_at')
+            .eq('org_id', organizationId)
+            .eq('coach_id', coachId)
+            .in('review_status', ['accepted', 'applied'])
+            .neq('external_visibility', 'internal_only')
+            .neq('statement_type', 'allegation')
+            .neq('fact_check_status', 'requires_legal')
+            .eq('restriction_status', 'active')
+            .is('deleted_at', null)
+            .order('reviewed_at', { ascending: false })
+        : Promise.resolve({ data: [] }),
     ])
 
   const derived = deriveEvidence({
@@ -185,6 +205,12 @@ export default async function CandidateAssessmentPage({
         accessRequests={(accessRequests.data ?? []) as ConfidentialAccessRequestRow[]}
         gbe={gbe}
         coachingLicence={coach.coaching_licence}
+      />
+      <AssessmentClaimPromotion
+        mandateId={mandateId}
+        coachId={coachId}
+        claims={trustedClaims.data ?? []}
+        promotedClaimIds={(evidence.data ?? []).map((row: { origin_profile_claim_id?: string | null }) => row.origin_profile_claim_id).filter((id: string | null | undefined): id is string => Boolean(id))}
       />
     </div>
   )

@@ -27,6 +27,7 @@ import {
   CLAIM_VERIFICATION_STATUSES,
   PROFILE_CLAIM_TYPES,
 } from '@/lib/profile-claims'
+import { getInternalOrganizationId } from '@/lib/organizations/context'
 
 const ENTITY_TYPES = ['coach', 'staff', 'club', 'mandate', 'agent'] as const
 const DIRECTIONS = ['Positive', 'Neutral', 'Negative'] as const
@@ -517,10 +518,14 @@ export async function promoteIntelligenceInboxItemAction(input: {
       .eq('user_id', user.id)
       .maybeSingle()
     if (!coach) return { ok: false, error: 'Coach not found' }
+    const organizationId = await getInternalOrganizationId(user.id)
+    if (!organizationId) return { ok: false, error: 'Internal organisation access is required' }
     const { data: promoted, error } = await supabase
       .from('profile_claims')
       .insert({
         user_id: user.id,
+        org_id: organizationId,
+        created_by: user.id,
         entity_type: 'coach',
         entity_id: item.coach_id,
         coach_id: item.coach_id,
@@ -538,6 +543,11 @@ export async function promoteIntelligenceInboxItemAction(input: {
         sensitivity: itemSensitivityToClaim(item.sensitivity),
         verification_status: itemVerificationToClaim(item.verification_status),
         review_status: item.verification_status === 'verified' ? 'accepted' : 'pending',
+        statement_type: 'opinion',
+        evidence_strength: item.verification_status === 'disputed' ? 'disputed' : 'single_source',
+        fact_check_status: 'not_applicable',
+        external_visibility: item.board_visibility === 'internal_only' || item.board_visibility === 'legal_review' ? 'internal_only' : 'anonymised_external',
+        methodology_criteria: item.methodology_criteria,
         used_in_recommendation: true,
         occurred_at: item.source_recorded_at ?? item.created_at,
       })

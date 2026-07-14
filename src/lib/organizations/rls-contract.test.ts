@@ -15,6 +15,10 @@ const productionRlsSuite = readFileSync(
   resolve('supabase/tests/club_identity_rls.sql'),
   'utf8'
 )
+const trustedIntelligenceMigration = readFileSync(
+  resolve('supabase/migrations/20260714174946_trusted_intelligence_vertical.sql'),
+  'utf8'
+)
 
 test('club invitation schema stores only hashed single-use tokens', () => {
   assert.match(identityMigration, /token_hash text not null unique/)
@@ -49,10 +53,30 @@ test('production RLS suite covers internal leakage, privileged RPCs, and revocat
     'coaches', 'candidate_assessments', 'assessment_evidence',
     'candidate_reference_answers', 'profile_claims', 'mandates',
     'succession_plans', 'intelligence_inbox_items',
+    'football_contacts', 'contact_coach_relationships', 'intelligence_sessions',
+    'claim_relationships', 'reference_campaigns', 'reference_campaign_contacts',
+    'trusted_bench_entries', 'appointment_outcomes',
   ]) assert.match(productionRlsSuite, new RegExp(`public\\.${table}`))
   assert.match(productionRlsSuite, /approve_dossier_order/)
   assert.match(productionRlsSuite, /revoke_dossier_access/)
   assert.match(productionRlsSuite, /Privilege escalation attempt/)
   assert.match(productionRlsSuite, /set status = 'revoked'/)
   assert.match(productionRlsSuite, /rollback;/)
+})
+
+test('trusted intelligence migration enforces internal roles and immutable promotion origins', () => {
+  for (const table of [
+    'football_contacts', 'contact_coach_relationships', 'intelligence_sessions',
+    'claim_relationships', 'reference_campaigns', 'reference_campaign_contacts',
+    'trusted_bench_entries', 'appointment_outcomes',
+  ]) {
+    assert.match(trustedIntelligenceMigration, new RegExp(`alter table public\\.${table} enable row level security`))
+  }
+  assert.match(trustedIntelligenceMigration, /array\['owner', 'admin', 'analyst'\]/)
+  assert.match(trustedIntelligenceMigration, /assessment_evidence_claim_origin_unique/)
+  assert.match(trustedIntelligenceMigration, /provenance_snapshot jsonb/)
+  assert.match(trustedIntelligenceMigration, /profile_claims_allegation_safety_check/)
+  assert.match(trustedIntelligenceMigration, /intelligence_audit_tombstones/)
+  assert.match(trustedIntelligenceMigration, /allowed_mime_types/)
+  assert.doesNotMatch(trustedIntelligenceMigration, /audio\/(mpeg|mp4|wav)/)
 })

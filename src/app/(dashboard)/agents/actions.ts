@@ -27,6 +27,7 @@ import {
   PROFILE_CLAIM_TYPES,
   isClaimProfileField,
 } from '@/lib/profile-claims'
+import { getInternalOrganizationId } from '@/lib/organizations/context'
 
 type Result = { ok: true; data?: { id: string } } | { ok: false; error: string }
 type ProfileClaimInsert = Database['public']['Tables']['profile_claims']['Insert']
@@ -314,6 +315,8 @@ export async function createAgentInteractionAction(payload: {
 
     if (claims.length > 0) {
       if (!coachId || !currentCoach) return { ok: false, error: 'Link a coach before adding profile claims' }
+      const organizationId = await getInternalOrganizationId(user.id)
+      if (!organizationId) return { ok: false, error: 'Internal organisation access is required' }
       const rows: ProfileClaimInsert[] = claims.slice(0, 4).map((claim) => {
         const profileField = isClaimProfileField(claim.profile_field) ? claim.profile_field : null
         const claimType = PROFILE_CLAIM_TYPES.includes(claim.claim_type as (typeof PROFILE_CLAIM_TYPES)[number])
@@ -334,6 +337,8 @@ export async function createAgentInteractionAction(payload: {
 
         return {
           user_id: user.id,
+          org_id: organizationId,
+          created_by: user.id,
           entity_type: 'coach',
           entity_id: coachId,
           coach_id: coachId,
@@ -351,6 +356,10 @@ export async function createAgentInteractionAction(payload: {
           confidence: claim.confidence ?? payload.confidence ?? null,
           sensitivity,
           verification_status: verificationStatus,
+          statement_type: 'opinion',
+          evidence_strength: verificationStatus === 'disputed' ? 'disputed' : 'single_source',
+          fact_check_status: 'not_applicable',
+          external_visibility: 'anonymised_external',
           used_in_recommendation: claim.used_in_recommendation !== false,
           occurred_at: payload.occurred_at,
         }

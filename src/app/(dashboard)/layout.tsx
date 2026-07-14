@@ -44,9 +44,9 @@ export default async function DashboardLayout({
     return (
       <div className="min-h-screen bg-background">
         <Sidebar />
-        <div className="pl-[220px]">
+        <div className="pt-14 md:pl-[220px] md:pt-0">
           <main className="min-h-screen">
-            <div className="max-w-[1400px] mx-auto px-6 py-6">
+            <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-6">
               {children}
             </div>
           </main>
@@ -63,9 +63,9 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="pl-[220px]">
+      <div className="pt-14 md:pl-[220px] md:pt-0">
         <main className="min-h-screen">
-          <div className="max-w-[1400px] mx-auto px-6 py-6">
+          <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-6">
             {children}
           </div>
         </main>

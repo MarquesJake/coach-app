@@ -122,6 +122,15 @@ begin
     (select count(*) from public.mandates) +
     (select count(*) from public.succession_plans) +
     (select count(*) from public.intelligence_inbox_items) +
+    (select count(*) from public.football_contacts) +
+    (select count(*) from public.contact_coach_relationships) +
+    (select count(*) from public.intelligence_sessions) +
+    (select count(*) from public.claim_relationships) +
+    (select count(*) from public.reference_campaigns) +
+    (select count(*) from public.reference_campaign_contacts) +
+    (select count(*) from public.trusted_bench_entries) +
+    (select count(*) from public.appointment_outcomes) +
+    (select count(*) from public.intelligence_audit_tombstones) +
     (select count(*) from public.dossier_offer_commercials) +
     (select count(*) from public.dossier_order_commercials)
   into leaked_rows;
@@ -169,6 +178,13 @@ begin
   if not organization_creation_denied then
     raise exception 'Club identity could create an internal organization';
   end if;
+
+  begin
+    insert into public.football_contacts (org_id, created_by, full_name)
+    values ((select id from public.organizations where slug = 'coach-first'), '11111111-1111-4111-8111-111111111111', 'Denied contact');
+    raise exception 'Club identity could create a football contact';
+  exception when insufficient_privilege then null; when check_violation then null;
+  end;
 end;
 $$;
 
@@ -195,6 +211,46 @@ begin
   if visible_rows <> 0 then
     raise exception 'Revoked club identity retained access to % rows', visible_rows;
   end if;
+end;
+$$;
+
+reset role;
+
+insert into auth.users (
+  id, aud, role, email, email_confirmed_at, raw_app_meta_data,
+  raw_user_meta_data, created_at, updated_at
+) values (
+  '33333333-3333-4333-8333-333333333333',
+  'authenticated', 'authenticated', 'rls-coach-test@coachfirst.invalid', now(),
+  '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now()
+);
+
+insert into public.organizations (name, slug, organization_type, status, created_by)
+values ('RLS Coach Business', 'rls-coach-business', 'coach_business', 'active', '33333333-3333-4333-8333-333333333333');
+insert into public.organization_memberships (organization_id, user_id, role, status, accepted_at)
+select id, '33333333-3333-4333-8333-333333333333', 'coach', 'active', now()
+from public.organizations where slug = 'rls-coach-business';
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
+select set_config('request.jwt.claims', '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}', true);
+
+do $$
+declare leaked_rows bigint;
+begin
+  select
+    (select count(*) from public.football_contacts) +
+    (select count(*) from public.contact_coach_relationships) +
+    (select count(*) from public.intelligence_sessions) +
+    (select count(*) from public.profile_claims) +
+    (select count(*) from public.claim_relationships) +
+    (select count(*) from public.reference_campaigns) +
+    (select count(*) from public.reference_campaign_contacts) +
+    (select count(*) from public.trusted_bench_entries) +
+    (select count(*) from public.appointment_outcomes) +
+    (select count(*) from public.intelligence_audit_tombstones)
+  into leaked_rows;
+  if leaked_rows <> 0 then raise exception 'Coach identity leaked % trusted-intelligence rows', leaked_rows; end if;
 end;
 $$;
 

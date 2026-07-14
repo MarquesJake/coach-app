@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { ASSESSMENT_CRITERIA, methodLabel } from '@/lib/assessment/criteria'
 import { calculateGbe } from '@/lib/analysis/gbe'
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { PrintButton } from './print-button'
 import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
@@ -109,12 +111,16 @@ export default async function BoardPackPage({
         .eq('coach_id', coachId)
         .eq('user_id', user.id)
         .maybeSingle(),
-      supabase
+      (supabase as any)
         .from('profile_claims')
-        .select('id, claim_type, profile_field, claimed_value, evidence_summary, source_type, source_name, source_tier, confidence, sensitivity, verification_status, review_status, occurred_at, used_in_recommendation')
+        .select('id, claim_type, profile_field, claimed_value, evidence_summary, source_type, source_tier, confidence, sensitivity, verification_status, review_status, occurred_at, used_in_recommendation, statement_type, fact_check_status, external_visibility')
         .eq('coach_id', coachId)
         .eq('user_id', user.id)
         .eq('used_in_recommendation', true)
+        .in('review_status', ['accepted', 'applied'])
+        .neq('external_visibility', 'internal_only')
+        .neq('statement_type', 'allegation')
+        .neq('fact_check_status', 'requires_legal')
         .order('occurred_at', { ascending: false, nullsFirst: false })
         .limit(8),
       supabase
@@ -170,7 +176,7 @@ export default async function BoardPackPage({
   const evidenceRows = evidence.data ?? []
   const materialRows = privateMaterials.data ?? []
   const requestRows = accessRequests.data ?? []
-  const claimRows = profileClaims.data ?? []
+  const claimRows = (profileClaims.data ?? []) as Array<Record<string, any>>
   const latestAccessRequest = requestRows[0]
 
   return (
@@ -402,7 +408,7 @@ export default async function BoardPackPage({
                 </p>
                 <p className="text-2xs text-muted-foreground/80 mt-1 leading-relaxed">
                   {claim.evidence_summary}
-                  {claim.source_name ? ` Source: ${claim.source_name}` : ''}
+                  {' Source: anonymised football-network intelligence.'}
                 </p>
               </div>
             ))}

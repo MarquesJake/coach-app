@@ -22,6 +22,8 @@ import {
   ChevronDown,
   PackageCheck,
   Landmark,
+  ContactRound,
+  Menu,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -35,6 +37,7 @@ const primaryNav = [
 ]
 
 const networkNav = [
+  { label: 'Football network', href: '/network', icon: ContactRound },
   { label: 'Clubs', href: '/clubs', icon: Building2 },
   { label: 'Agents', href: '/agents', icon: UserCircle },
 ]
@@ -49,6 +52,8 @@ const internalNav = [
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Data tools', href: '/admin/data-tools', icon: Database },
 ]
+
+const mobileNav = [...primaryNav, ...networkNav, ...internalNav]
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -68,7 +73,56 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed z-30 flex h-full w-[220px] flex-col border-r border-border bg-card">
+    <>
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/10">
+            <Zap className="h-3.5 w-3.5 text-primary" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[13px] font-semibold leading-tight text-foreground">Coach First</span>
+            <span className="text-[9px] uppercase leading-tight tracking-[0.12em] text-muted-foreground">Intelligence OS</span>
+          </div>
+        </Link>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <details className="group">
+            <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground" aria-label="Open navigation">
+              <Menu className="h-5 w-5" />
+            </summary>
+            <div className="fixed inset-x-3 top-[62px] max-h-[calc(100vh-74px)] overflow-y-auto border border-border bg-card p-2 shadow-lg">
+              <nav aria-label="Mobile navigation" className="grid gap-1 sm:grid-cols-2">
+                {mobileNav.map((item) => {
+                  const active = isActive(item.href)
+                  const Icon = item.icon
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        'flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors',
+                        active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                      )}
+                    >
+                      <Icon className="h-4 w-4 flex-shrink-0" />
+                      {item.label}
+                    </Link>
+                  )
+                })}
+              </nav>
+              <button
+                onClick={handleSignOut}
+                className="mt-2 flex min-h-10 w-full items-center gap-2.5 border-t border-border px-3 pt-3 text-[13px] font-medium text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </button>
+            </div>
+          </details>
+        </div>
+      </header>
+
+      <aside className="fixed z-30 hidden h-full w-[220px] flex-col border-r border-border bg-card md:flex">
       {/* Logo */}
       <div className="border-b border-border px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-2.5">
@@ -187,6 +241,7 @@ export function Sidebar() {
         </button>
         <ThemeToggle />
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }

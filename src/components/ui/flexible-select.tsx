@@ -29,6 +29,8 @@ export interface FlexibleSelectProps {
   noMatchMessage?: string
   /** When true and there is typed text with no match, show option to submit as "custom:&lt;text&gt;" (store name only, no create). */
   allowCustomOnly?: boolean
+  /** When true, only a selected option can be submitted; unmatched text submits an empty value. */
+  selectionOnly?: boolean
   required?: boolean
   'aria-label'?: string
   className?: string
@@ -49,6 +51,7 @@ export function FlexibleSelect({
   emptyMessage = 'No options',
   noMatchMessage = 'No match — will create new',
   allowCustomOnly = false,
+  selectionOnly = false,
   required = false,
   'aria-label': ariaLabel,
   className,
@@ -92,7 +95,7 @@ export function FlexibleSelect({
   const showCustomOnlyOption = allowCustomOnly && query.length > 0 && filtered.length === 0
   const submitValue =
     selectedId ??
-    (customOnlySelected ? `custom:${query}` : query)
+    (selectionOnly ? '' : customOnlySelected ? `custom:${query}` : query)
 
   // Sync controlled value to display (e.g. when options load after initial render)
   useEffect(() => {

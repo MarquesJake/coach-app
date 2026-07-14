@@ -27,6 +27,7 @@ export const ANALYST_ROUTE_PREFIXES = [
   '/intelligence',
   '/mandates',
   '/matches',
+  '/network',
   '/settings',
   '/staff',
   '/succession',
