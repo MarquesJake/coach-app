@@ -33,10 +33,10 @@ export function computeCompleteness(coach: Record<string, unknown>): number {
   return Math.round((filled / COACH_COMPLETENESS_KEYS.length) * 100)
 }
 
-/** Coach completeness system: 0–100 from tactical, leadership, risk, stint, intelligence, scoring. */
+/** Coach completeness system: 0–100 from the evidence dimensions available to the caller. */
 export function computeCoachCompleteness(
   coach: Record<string, unknown>,
-  opts?: { stintCount?: number; intelligenceCount?: number }
+  opts?: { stintCount?: number; intelligenceCount?: number; staffNetworkCount?: number }
 ): number {
   const tactical =
     Boolean((coach.preferred_style as string)?.trim()) ||
@@ -53,6 +53,12 @@ export function computeCoachCompleteness(
   const stint = (opts?.stintCount ?? 0) >= 1
   const intelligence = (opts?.intelligenceCount ?? 0) >= 1
   const scoring = (coach.overall_manual_score as number | null) != null
-  const total = [tactical, leadership, risk, stint, intelligence, scoring].filter(Boolean).length
-  return Math.round((total / 6) * 100)
+  const dimensions = [tactical, leadership, risk, stint, intelligence, scoring]
+
+  if (opts?.staffNetworkCount != null) {
+    dimensions.push(opts.staffNetworkCount >= 1)
+  }
+
+  const total = dimensions.filter(Boolean).length
+  return Math.round((total / dimensions.length) * 100)
 }

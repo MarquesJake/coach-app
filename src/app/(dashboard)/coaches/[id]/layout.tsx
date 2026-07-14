@@ -74,7 +74,17 @@ export default async function CoachDetailLayout({
   )
   const { count: stintCount } = stintCountRes
   const onWatchlist = watchlistRes?.onWatchlist ?? false
-  const coachCompleteness = computeCoachCompleteness(coachRecord, { stintCount: stintCount ?? 0, intelligenceCount: evidenceCount })
+
+  const { count: staffNetworkCount } = await supabase
+    .from('coach_staff_history')
+    .select('id', { count: 'exact', head: true })
+    .eq('coach_id', params.id)
+
+  const coachCompleteness = computeCoachCompleteness(coachRecord, {
+    stintCount: stintCount ?? 0,
+    intelligenceCount: evidenceCount,
+    staffNetworkCount: staffNetworkCount ?? 0,
+  })
   const completeness = computeCompleteness(coachRecord)
 
   const coachActivity = (activityResult.data ?? []).map((row) => ({
@@ -83,11 +93,6 @@ export default async function CoachDetailLayout({
     description: row.description,
     created_at: row.created_at,
   }))
-
-  const { count: staffNetworkCount } = await supabase
-    .from('coach_staff_history')
-    .select('id', { count: 'exact', head: true })
-    .eq('coach_id', params.id)
 
   let coachAgentsLinks: Array<{ id: string; agent_id: string; relationship_type: string; relationship_strength: number | null; confidence: number | null; notes: string | null; agents?: { id: string; full_name: string | null; agency_name: string | null } | null }> = []
   let agentsOptions: Array<{ id: string; full_name: string | null; agency_name: string | null }> = []
