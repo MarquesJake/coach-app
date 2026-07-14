@@ -1,5 +1,10 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import {
+  classifyOrganizationAccess,
+  isAnalystApiRoute,
+  isAnalystRoute,
+} from '@/lib/organizations/access'
 
 export async function updateSession(request: NextRequest) {
   // Forward pathname to server components via request header
@@ -43,23 +48,57 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protected routes - redirect to login if not authenticated
+  const pathname = request.nextUrl.pathname
+  const isClubInvite = pathname.startsWith('/club/invite/')
+  const isPublicPath =
+    pathname === '/' ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/club/login') ||
+    isClubInvite ||
+    pathname.startsWith('/auth')
+
+  // Protected routes - redirect to the correct login if not authenticated.
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/club/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname !== '/'
+    !isPublicPath
   ) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = pathname.startsWith('/club') ? '/club/login' : '/login'
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users from login to dashboard overview (stable destination, no bounce)
-  if (user && request.nextUrl.pathname === '/login') {
+  if (!user) return response
+
+  const { data: memberships } = await supabase
+    .from('organization_memberships')
+    .select('role, status')
+    .eq('user_id', user.id)
+  const access = classifyOrganizationAccess(memberships)
+
+  if (access.isClubOnlyIdentity && isAnalystApiRoute(pathname)) {
+    return NextResponse.json({ error: 'Analyst API access is not available to club accounts.' }, { status: 403 })
+  }
+
+  // Club identities never enter the analyst application, including after
+  // membership revocation. The club layout then renders the inactive state.
+  if (access.isClubOnlyIdentity && isAnalystRoute(pathname)) {
     const url = request.nextUrl.clone()
-    url.pathname = '/dashboard/overview'
+    url.pathname = '/club'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+
+  if (pathname === '/login') {
+    const url = request.nextUrl.clone()
+    url.pathname = access.isClubOnlyIdentity ? '/club' : '/dashboard/overview'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+
+  if (pathname === '/club/login') {
+    const url = request.nextUrl.clone()
+    url.pathname = access.hasActiveClubAccess ? '/club' : access.hasActiveInternalAccess ? '/dashboard/overview' : '/club'
+    url.search = ''
     return NextResponse.redirect(url)
   }
 

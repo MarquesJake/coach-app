@@ -1,4 +1,8 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import {
+  classifyOrganizationAccess,
+  type OrganizationAccessProfile,
+} from './access'
 
 export type OrganizationContext = {
   organizationId: string
@@ -62,4 +66,15 @@ export async function getInternalOrganizationId(userId: string): Promise<string 
     .eq('status', 'active')
     .limit(1)
   return organizations?.[0]?.id ?? null
+}
+
+export async function getOrganizationAccessProfile(
+  userId: string
+): Promise<OrganizationAccessProfile> {
+  const { data: memberships } = await createServerSupabaseClient()
+    .from('organization_memberships')
+    .select('role, status')
+    .eq('user_id', userId)
+
+  return classifyOrganizationAccess(memberships)
 }

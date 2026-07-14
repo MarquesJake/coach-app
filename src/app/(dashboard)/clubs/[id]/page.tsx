@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { KeyRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { ClubAgentsSection } from './_components/club-agents-section'
@@ -338,6 +339,13 @@ export default function ClubOverviewPage() {
 
   return (
     <div className="space-y-6">
+
+      <div className="flex justify-end">
+        <Link href={`/clubs/${club.id}/access`} className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3 text-xs font-semibold text-foreground hover:bg-secondary/50">
+          <KeyRound className="h-4 w-4 text-primary" />
+          Club access
+        </Link>
+      </div>
 
       {/* ── Layer A: External factual context (TheSportsDB) ─────────────────── */}
       {(club.description || club.stadium || club.founded_year || club.current_manager || club.website) && (

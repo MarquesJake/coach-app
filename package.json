@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
+    "test:rls": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/club_identity_rls.sql",
     "db:types": "supabase gen types typescript --linked --schema public > src/lib/types/database.ts",
     "db:types:project": "supabase gen types typescript --project-id $SUPABASE_PROJECT_REF --schema public > src/lib/types/database.ts",
     "db:types:db-url": "supabase gen types typescript --db-url $SUPABASE_DB_URL --schema public > src/lib/types/database.ts",

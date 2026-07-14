@@ -102,6 +102,110 @@ export type Database = {
           },
         ]
       }
+      club_invitations: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          organization_id: string
+          revoked_at: string | null
+          role: string
+          status: string
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          organization_id: string
+          revoked_at?: string | null
+          role: string
+          status?: string
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          organization_id?: string
+          revoked_at?: string | null
+          role?: string
+          status?: string
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_access_events: {
+        Row: {
+          actor_user_id: string | null
+          event_type: string
+          id: string
+          invitation_id: string | null
+          metadata: Json
+          occurred_at: string
+          organization_id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          event_type: string
+          id?: string
+          invitation_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          organization_id: string
+          target_user_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          event_type?: string
+          id?: string
+          invitation_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          organization_id?: string
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_access_events_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "club_invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_access_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_briefs: {
         Row: {
           appointment_context: string | null
@@ -3855,6 +3959,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_club_invitation: {
+        Args: { invitation_token_hash: string }
+        Returns: string
+      }
+      club_invitation_email_matches: {
+        Args: { candidate_email: string; invitation_token_hash: string }
+        Returns: boolean
+      }
+      issue_club_invitation: {
+        Args: {
+          intended_email: string
+          invitation_expires_at: string
+          invitation_token_hash: string
+          invited_role: string
+          target_organization_id: string
+        }
+        Returns: string
+      }
+      is_internal_operator: {
+        Args: { allowed_roles?: string[] }
+        Returns: boolean
+      }
       is_organization_member: {
         Args: { allowed_roles?: string[]; target_organization_id: string }
         Returns: boolean
@@ -3879,6 +4005,28 @@ export type Database = {
       }
       revoke_dossier_access: {
         Args: { target_order_id: string }
+        Returns: undefined
+      }
+      preview_club_invitation: {
+        Args: { invitation_token_hash: string }
+        Returns: {
+          email_hint: string
+          expires_at: string
+          invitation_status: string
+          invited_role: string
+          organization_name: string
+        }[]
+      }
+      record_club_first_login: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      revoke_club_invitation: {
+        Args: { target_invitation_id: string }
+        Returns: undefined
+      }
+      revoke_club_membership: {
+        Args: { target_membership_id: string }
         Returns: undefined
       }
     }

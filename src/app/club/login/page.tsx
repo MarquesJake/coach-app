@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Building2, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { classifyOrganizationAccess } from '@/lib/organizations/access'
 
 export default function ClubLoginPage() {
   const [email, setEmail] = useState('')
@@ -17,9 +18,19 @@ export default function ClubLoginPage() {
     event.preventDefault()
     setLoading(true)
     setError(null)
-    const { error: signInError } = await createClient().auth.signInWithPassword({ email, password })
+    const supabase = createClient()
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
     if (signInError) { setError(signInError.message); setLoading(false); return }
-    router.push('/club')
+    const { data: memberships } = await supabase.from('organization_memberships').select('role, status').eq('user_id', data.user.id)
+    const access = classifyOrganizationAccess(memberships)
+    if (!access.hasClubIdentity && !access.hasActiveInternalAccess) {
+      await supabase.auth.signOut()
+      setError('This account has not been invited to a club decision room.')
+      setLoading(false)
+      return
+    }
+    if (access.hasActiveClubAccess) await supabase.rpc('record_club_first_login')
+    router.push(access.hasClubIdentity ? '/club' : '/dashboard/overview')
     router.refresh()
   }
 

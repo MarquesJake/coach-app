@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { getOrganizationAccessProfile } from '@/lib/organizations/context'
 import { Sidebar } from './_components/sidebar'
 
 export default async function DashboardLayout({
@@ -13,6 +14,11 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     redirect('/login')
+  }
+
+  const organizationAccess = await getOrganizationAccessProfile(user.id)
+  if (organizationAccess.isClubOnlyIdentity) {
+    redirect('/club')
   }
 
   const { data: clubs } = await supabase

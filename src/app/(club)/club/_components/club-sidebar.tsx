@@ -14,7 +14,13 @@ const navigation = [
   { label: 'Account', href: '/club/account', icon: Settings },
 ]
 
-export function ClubSidebar({ organizationName }: { organizationName: string }) {
+export function ClubSidebar({
+  organizationName,
+  showInternalWorkspaceLink,
+}: {
+  organizationName: string
+  showInternalWorkspaceLink: boolean
+}) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -53,10 +59,12 @@ export function ClubSidebar({ organizationName }: { organizationName: string }) 
       </nav>
 
       <div className="border-t border-border p-3">
-        <Link href="/dashboard" className="mb-1 flex items-center gap-2.5 rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground">
-          <ShieldCheck className="h-4 w-4" />
-          Coach First workspace
-        </Link>
+        {showInternalWorkspaceLink && (
+          <Link href="/dashboard" className="mb-1 flex items-center gap-2.5 rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground">
+            <ShieldCheck className="h-4 w-4" />
+            Coach First workspace
+          </Link>
+        )}
         <div className="flex items-center gap-1">
           <button onClick={signOut} className="flex flex-1 items-center gap-2.5 rounded-md px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground">
             <LogOut className="h-4 w-4" />
