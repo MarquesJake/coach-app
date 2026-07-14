@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const identityMigration = readFileSync(
-  resolve('supabase/migrations/20260714163101_club_identity_invitations.sql'),
+  resolve('supabase/migrations/20260714163809_club_identity_invitations.sql'),
   'utf8'
 )
 const commercialSplit = readFileSync(
