@@ -29,6 +29,7 @@ export const INTELLIGENCE_SUBNAV: SubNavItem[] = [
 
 export const NETWORK_SUBNAV: SubNavItem[] = [
   { label: 'Contacts', href: '/network' },
+  { label: 'Corpus operations', href: '/network/corpus' },
   { label: 'Reference campaigns', href: '/network/campaigns' },
 ]
 

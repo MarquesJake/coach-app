@@ -4,6 +4,7 @@ import {
   BENCH_STAGES,
   buildPromotionSnapshot,
   calculateBenchEligibility,
+  calculateCorpusPilotProgress,
   getSourceDiversity,
   isAllowedValue,
   isClaimPromotable,
@@ -51,6 +52,34 @@ test('bench eligibility requires corroboration, coverage and current operational
   }, now)
   assert.equal(result.vetted, true)
   assert.equal(result.placementReady, true)
+})
+
+test('corpus pilot progress exposes operational gaps without exceeding 100 percent', () => {
+  const result = calculateCorpusPilotProgress({
+    conversations: 8,
+    independentSources: 3,
+    stakeholderGroups: 2,
+    criteriaCovered: 4,
+    corroboratedClaims: 2,
+    unresolvedLegalItems: 0,
+  })
+  assert.equal(result.progressPercent, 85)
+  assert.equal(result.pilotReady, false)
+  assert.deepEqual(result.missing, ['1 stakeholder group', '2 methodology criteria'])
+})
+
+test('corpus pilot requires complete source coverage and no unresolved legal items', () => {
+  const result = calculateCorpusPilotProgress({
+    conversations: 5,
+    independentSources: 2,
+    stakeholderGroups: 3,
+    criteriaCovered: 6,
+    corroboratedClaims: 1,
+    unresolvedLegalItems: 1,
+  })
+  assert.equal(result.progressPercent, 100)
+  assert.equal(result.pilotReady, false)
+  assert.deepEqual(result.missing, ['resolve legal-review items'])
 })
 
 test('source diversity deduplicates contacts and stakeholder groups', () => {

@@ -81,6 +81,54 @@ export type BenchEligibilityInput = {
   workPermitReviewedAt: string | null
 }
 
+export const CORPUS_PILOT_TARGETS = {
+  conversations: 5,
+  independentSources: 2,
+  stakeholderGroups: 3,
+  criteriaCovered: 6,
+  corroboratedClaims: 1,
+} as const
+
+export type CorpusPilotProgressInput = {
+  conversations: number
+  independentSources: number
+  stakeholderGroups: number
+  criteriaCovered: number
+  corroboratedClaims: number
+  unresolvedLegalItems: number
+}
+
+export function calculateCorpusPilotProgress(input: CorpusPilotProgressInput) {
+  const targets = CORPUS_PILOT_TARGETS
+  const remaining = (count: number, singular: string, plural = `${singular}s`) => `${count} ${count === 1 ? singular : plural}`
+  const weightedProgress = [
+    Math.min(input.conversations / targets.conversations, 1) * 25,
+    Math.min(input.independentSources / targets.independentSources, 1) * 20,
+    Math.min(input.stakeholderGroups / targets.stakeholderGroups, 1) * 20,
+    Math.min(input.criteriaCovered / targets.criteriaCovered, 1) * 25,
+    Math.min(input.corroboratedClaims / targets.corroboratedClaims, 1) * 10,
+  ]
+  const missing: string[] = []
+  if (input.conversations < targets.conversations) missing.push(remaining(targets.conversations - input.conversations, 'conversation'))
+  if (input.independentSources < targets.independentSources) missing.push(remaining(targets.independentSources - input.independentSources, 'independent source'))
+  if (input.stakeholderGroups < targets.stakeholderGroups) missing.push(remaining(targets.stakeholderGroups - input.stakeholderGroups, 'stakeholder group'))
+  if (input.criteriaCovered < targets.criteriaCovered) missing.push(remaining(targets.criteriaCovered - input.criteriaCovered, 'methodology criterion', 'methodology criteria'))
+  if (input.corroboratedClaims < targets.corroboratedClaims) missing.push('corroborated claim')
+  if (input.unresolvedLegalItems > 0) missing.push('resolve legal-review items')
+
+  const progressPercent = Math.round(weightedProgress.reduce((total, value) => total + value, 0))
+  const pilotReady = missing.length === 0
+  const phase = pilotReady
+    ? 'evidence_ready'
+    : input.conversations === 0 && input.criteriaCovered === 0
+      ? 'not_started'
+      : progressPercent >= 50
+        ? 'building'
+        : 'early'
+
+  return { progressPercent, pilotReady, phase, missing }
+}
+
 function isWithinDays(value: string | null, days: number, now: Date) {
   if (!value) return false
   const timestamp = new Date(value).getTime()
