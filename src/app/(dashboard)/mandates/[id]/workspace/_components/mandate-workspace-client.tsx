@@ -1872,7 +1872,7 @@ export function MandateWorkspaceClient({
               <p className="mt-0.5 text-sm font-semibold text-foreground">{shortlist.length}</p>
             </div>
             <div className="rounded border border-border bg-surface/50 px-3 py-2">
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Scored</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Market scored</p>
               <p className="mt-0.5 text-sm font-semibold text-foreground">{longlistEntries.length}</p>
             </div>
             <div className="rounded border border-primary/20 bg-primary/10 px-3 py-2">
@@ -1952,7 +1952,7 @@ export function MandateWorkspaceClient({
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Scored
+              Market scored
               {longlistEntries.length > 0 && (
                 <span className="ml-1 tabular-nums text-muted-foreground">({longlistEntries.length})</span>
               )}
