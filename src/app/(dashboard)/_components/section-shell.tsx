@@ -27,7 +27,7 @@ export function SectionShell({
   const showSubnav = subnav.length > 0
 
   const wrapperClass = sticky
-    ? 'sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border pb-0 -mx-6 px-6 pt-0 -mt-6'
+    ? 'sticky top-0 z-20 bg-background border-b border-border pb-0 -mx-6 px-6 pt-0 -mt-6'
     : 'border-b border-border pb-4'
 
   return (

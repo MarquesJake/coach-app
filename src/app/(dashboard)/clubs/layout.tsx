@@ -10,7 +10,7 @@ export default function ClubsLayout({
     <div className="flex -mx-6 -mt-6 h-[calc(100vh-1.5rem)]">
 
       {/* Left: persistent club browser */}
-      <div className="w-[272px] shrink-0 border-r border-white/10 overflow-hidden flex flex-col bg-[#0f111a]">
+      <div className="flex w-[272px] shrink-0 flex-col overflow-hidden border-r border-border bg-card">
         <ClubBrowserPanel />
       </div>
 

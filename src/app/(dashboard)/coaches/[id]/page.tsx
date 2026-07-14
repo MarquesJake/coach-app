@@ -276,7 +276,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
   return (
     <div className="space-y-5">
       <section className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border bg-gradient-to-r from-card via-card to-primary/5 px-6 py-5">
+        <div className="border-b border-border bg-card px-6 py-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">Board dossier</p>

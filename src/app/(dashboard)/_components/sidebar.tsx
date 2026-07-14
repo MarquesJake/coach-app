@@ -21,6 +21,7 @@ import {
   Activity,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 const workspaceNav = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -68,11 +69,11 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[220px] bg-card border-r border-border flex flex-col fixed h-full z-30 shadow-[12px_0_40px_rgba(0,0,0,0.12)]">
+    <aside className="fixed z-30 flex h-full w-[220px] flex-col border-r border-border bg-card">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-border bg-gradient-to-b from-surface-raised/70 to-transparent">
+      <div className="border-b border-border px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_24px_rgba(16,185,129,0.12)]">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/10">
             <Zap className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="flex flex-col">
@@ -154,14 +155,15 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-3 border-t border-border">
+      <div className="flex items-center gap-1 border-t border-border px-3 py-3">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors w-full"
+          className="flex flex-1 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="h-4 w-4" />
           Sign Out
         </button>
+        <ThemeToggle />
       </div>
     </aside>
   )

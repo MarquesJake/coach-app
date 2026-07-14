@@ -372,10 +372,10 @@ export default async function DashboardPage() {
     <div className="space-y-6 max-w-[1400px]">
 
       {/* ── Header ── */}
-      <div className="overflow-hidden rounded-xl border border-border bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(59,130,246,0.05)_42%,rgba(19,21,30,1)_100%)]">
+      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-[var(--shadow-sm)]">
         <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1fr_360px] lg:items-start">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1 text-[10px] font-semibold uppercase text-muted-foreground">
               <Activity className="h-3 w-3 text-primary" />
               Operating brief
             </div>
@@ -401,7 +401,7 @@ export default async function DashboardPage() {
                 { label: 'Open alerts', value: alerts.length },
                 { label: 'High confidence intel', value: coachUpdates.length },
               ].map(({ label, value }) => (
-                <div key={label} className="rounded-lg border border-white/10 bg-black/10 px-3 py-3">
+                <div key={label} className="rounded-md border border-border bg-surface px-3 py-3">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
                   <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
                 </div>
@@ -409,8 +409,8 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-white/10 bg-black/15">
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <div className="rounded-md border border-border bg-surface">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h2 className="text-xs font-bold uppercase tracking-widest text-foreground">Next best actions</h2>
               <Bell className="h-3.5 w-3.5 text-primary" />
             </div>
@@ -422,9 +422,9 @@ export default async function DashboardPage() {
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-white/10">
+              <div className="divide-y divide-border">
                 {nextActions.map(action => (
-                  <Link key={action.id} href={action.href} className="group flex items-start justify-between gap-3 px-4 py-3 transition-colors hover:bg-white/[0.03]">
+                  <Link key={action.id} href={action.href} className="group flex items-start justify-between gap-3 px-4 py-3 transition-colors hover:bg-secondary/60">
                     <div className="min-w-0">
                       <p className="truncate text-xs font-medium text-foreground">{action.title}</p>
                       <p className="mt-1 truncate text-[10px] text-muted-foreground">{action.detail}</p>
