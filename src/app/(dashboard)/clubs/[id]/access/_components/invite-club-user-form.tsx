@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { Check, Copy, LoaderCircle, Send } from 'lucide-react'
 import { issueClubInvitationAction } from '../actions'
 
@@ -12,7 +11,6 @@ export function InviteClubUserForm({
   clubId: string
   organizationId: string
 }) {
-  const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
@@ -28,7 +26,6 @@ export function InviteClubUserForm({
         return
       }
       setInviteLink(result.inviteLink ?? null)
-      router.refresh()
     })
   }
 
