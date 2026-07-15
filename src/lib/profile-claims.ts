@@ -1,4 +1,5 @@
 import type { Database } from '@/lib/types/db'
+import { formatEnumLabel } from '@/lib/intelligence/display'
 
 export const PROFILE_CLAIM_TYPES = [
   'availability',
@@ -86,11 +87,11 @@ export function isClaimProfileField(value: string | null | undefined): value is 
 }
 
 export function claimTypeLabel(value: string | null | undefined) {
-  if (!value) return 'Claim'
-  return PROFILE_CLAIM_LABELS[value as (typeof PROFILE_CLAIM_TYPES)[number]] ?? value
+  if (!value) return 'Finding'
+  return PROFILE_CLAIM_LABELS[value as (typeof PROFILE_CLAIM_TYPES)[number]] ?? formatEnumLabel(value)
 }
 
 export function claimFieldLabel(value: string | null | undefined) {
   if (!value) return 'Profile note'
-  return CLAIM_PROFILE_FIELD_LABELS[value as ClaimProfileField] ?? value
+  return CLAIM_PROFILE_FIELD_LABELS[value as ClaimProfileField] ?? formatEnumLabel(value)
 }

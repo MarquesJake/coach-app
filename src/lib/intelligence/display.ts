@@ -33,6 +33,22 @@ const EXTERNAL_VISIBILITY_LABELS: Record<string, string> = {
   attributed_external: 'Attribution approved',
 }
 
+const COACH_PORTAL_STATUS_LABELS: Record<string, string> = {
+  not_invited: 'Not invited',
+  invited: 'Invited',
+  in_progress: 'In progress',
+  submitted: 'Submitted for review',
+  approved: 'Approved',
+  changes_requested: 'Changes requested',
+}
+
+const COACH_PORTAL_VISIBILITY_LABELS: Record<string, string> = {
+  private: 'Private',
+  coach_first_only: 'Coach First only',
+  clubs_on_request: 'Available to clubs on request',
+  shareable: 'Approved for sharing',
+}
+
 const STAKEHOLDER_GROUP_LABELS: Record<string, string> = {
   owners_ceos: 'Owners / CEOs',
   sporting_leadership: 'Sporting leadership',
@@ -76,6 +92,14 @@ export function statementTypeLabel(value: string) {
 
 export function externalVisibilityLabel(value: string) {
   return EXTERNAL_VISIBILITY_LABELS[value] ?? fallbackLabel(value)
+}
+
+export function coachPortalStatusLabel(value: string) {
+  return COACH_PORTAL_STATUS_LABELS[value] ?? fallbackLabel(value)
+}
+
+export function coachPortalVisibilityLabel(value: string) {
+  return COACH_PORTAL_VISIBILITY_LABELS[value] ?? fallbackLabel(value)
 }
 
 export function stakeholderGroupLabel(value: string) {

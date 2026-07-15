@@ -6,6 +6,7 @@ import { OverviewSnapshot } from './_components/overview-snapshot'
 import { getStageLabel } from '@/lib/constants/mandateStages'
 import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
 import { displayClubName } from '@/lib/display-names'
+import { coachPortalStatusLabel, reviewStatusLabel, formatEnumLabel } from '@/lib/intelligence/display'
 
 type CoachRecord = Record<string, unknown>
 
@@ -452,7 +453,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
-                Source-backed claims
+                Source-backed findings
               </p>
               <h2 className="mt-1 text-base font-semibold text-foreground">What our network says has changed</h2>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -460,8 +461,8 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
               </p>
             </div>
             <div className="text-right text-2xs text-muted-foreground">
-              <p>{profileClaims.length} claim{profileClaims.length === 1 ? '' : 's'}</p>
-              <p>{verifiedClaims} verified · {appliedClaims} applied</p>
+              <p>{profileClaims.length} finding{profileClaims.length === 1 ? '' : 's'}</p>
+              <p>{verifiedClaims} reviewed · {appliedClaims} used in assessment</p>
             </div>
           </div>
           {profileClaims.length === 0 ? (
@@ -480,7 +481,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
                       {claimFieldLabel(claim.profile_field)}
                     </span>
                     <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
-                      {claim.review_status}
+                      {reviewStatusLabel(claim.review_status)}
                     </span>
                     {claim.confidence != null && (
                       <span className="text-[10px] text-muted-foreground tabular-nums">{claim.confidence}% confidence</span>
@@ -489,7 +490,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
                   <p className="mt-1 text-sm font-medium text-foreground">{claim.claimed_value}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{claim.evidence_summary}</p>
                   <p className="mt-1 text-[10px] text-muted-foreground">
-                    {[claim.source_name, claim.source_type.replaceAll('_', ' '), claim.source_tier ? `tier ${claim.source_tier}` : null, claim.sensitivity].filter(Boolean).join(' · ')}
+                    {[claim.source_name, formatEnumLabel(claim.source_type), claim.source_tier ? `Tier ${claim.source_tier}` : null, formatEnumLabel(claim.sensitivity)].filter(Boolean).join(' · ')}
                   </p>
                 </div>
               ))}
@@ -511,7 +512,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
               </p>
             </div>
             <span className="rounded-full border border-border bg-surface px-2 py-1 text-[10px] text-muted-foreground">
-              {portalProfile?.portal_status ?? 'not invited'}
+              {coachPortalStatusLabel(portalProfile?.portal_status ?? 'not_invited')}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

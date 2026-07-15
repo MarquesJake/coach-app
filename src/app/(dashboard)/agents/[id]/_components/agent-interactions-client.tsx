@@ -21,6 +21,7 @@ import {
   claimFieldLabel,
   claimTypeLabel,
 } from '@/lib/profile-claims'
+import { reviewStatusLabel } from '@/lib/intelligence/display'
 
 const CHANNELS = ['Phone', 'WhatsApp', 'Email', 'In person', 'Video call']
 const DIRECTIONS = ['Inbound', 'Outbound']
@@ -317,7 +318,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
                                       Finding
                                     </span>
                                     <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', CLAIM_STATUS_CLASSES[claim.review_status] ?? 'border-border bg-muted text-muted-foreground')}>
-                                      {claim.review_status}
+                                      {reviewStatusLabel(claim.review_status)}
                                     </span>
                                     <span className="text-[10px] text-muted-foreground">
                                       {claimTypeLabel(claim.claim_type)} · {claimFieldLabel(claim.profile_field)}

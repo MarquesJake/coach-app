@@ -9,7 +9,13 @@ import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { PrintButton } from './print-button'
 import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
 import { displayClubName } from '@/lib/display-names'
-import { evidenceStrengthLabel, formatEnumLabel, stakeholderGroupLabel } from '@/lib/intelligence/display'
+import {
+  coachPortalStatusLabel,
+  coachPortalVisibilityLabel,
+  evidenceStrengthLabel,
+  formatEnumLabel,
+  stakeholderGroupLabel,
+} from '@/lib/intelligence/display'
 
 // Board-ready Head Coach Assessment Pack: structured HTML print view.
 // Section order mirrors the club-leadership assessment deck format.
@@ -376,8 +382,8 @@ export default async function BoardPackPage({
         </h2>
         <div className="grid grid-cols-3 gap-4 mt-3">
           {[
-            { label: 'Portal status', value: portalProfile.data?.portal_status ?? 'not invited' },
-            { label: 'Visibility', value: portalProfile.data?.visibility_status ?? 'private' },
+            { label: 'Portal status', value: coachPortalStatusLabel(portalProfile.data?.portal_status ?? 'not_invited') },
+            { label: 'Visibility', value: coachPortalVisibilityLabel(portalProfile.data?.visibility_status ?? 'private') },
             { label: 'Private material', value: `${materialRows.length} item${materialRows.length === 1 ? '' : 's'} logged` },
           ].map((item) => (
             <div key={item.label} className="border-t-2 border-emerald-500/60 pt-2">
