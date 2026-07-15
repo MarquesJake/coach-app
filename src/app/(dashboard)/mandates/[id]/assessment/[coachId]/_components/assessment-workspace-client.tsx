@@ -30,6 +30,7 @@ import {
   INTERVIEW_QUESTIONS,
   REFERENCE_GROUP_LABELS,
   REFERENCE_QUESTIONS,
+  type InterviewFocus,
 } from '@/lib/assessment/question-banks'
 
 export type AssessmentRow = {
@@ -229,7 +230,7 @@ function StructuredInterviewPanel({
             >
               <p className="text-xs font-medium text-foreground">{answer.question}</p>
               <p className="text-2xs text-muted-foreground mt-0.5">
-                {answer.interview_focus.replace('_', ' ')}
+                {INTERVIEW_FOCUS_LABELS[answer.interview_focus as InterviewFocus] ?? answer.interview_focus}
                 {answer.interviewer ? ` · ${answer.interviewer}` : ''}
                 {answer.confidence !== null ? ` · confidence ${answer.confidence}` : ''}
               </p>

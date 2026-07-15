@@ -218,7 +218,7 @@ export function RiskSection({ coachId, coach, evidence, dueDiligenceItems, cover
             ))}
           </ul>
         )}
-        <Link href="/intelligence" className="inline-block mt-3 text-xs text-primary hover:underline">Open Intelligence feed</Link>
+        <Link href="/intelligence" className="inline-block mt-3 text-xs text-primary hover:underline">Open latest intel</Link>
       </section>
 
       {/* Due diligence items */}

@@ -9,7 +9,7 @@ import { logActivity } from '@/lib/db/activity'
 import { createAlert } from '@/lib/db/alerts'
 import { parseSourceConfidenceFromFormData } from '@/lib/source-confidence'
 import { getMandateFitFields } from '@/lib/db/mandate'
-import type { Database } from '@/lib/types/db'
+import type { Database, Json } from '@/lib/types/db'
 
 type CoachUpdate = Database['public']['Tables']['coaches']['Update']
 
@@ -263,7 +263,7 @@ export async function refreshSimilarityForCoachAction(coachId: string): Promise<
       const { score, breakdown } = computeSimilarity(main, other as Record<string, unknown>)
       const a = coachId < other.id ? coachId : other.id
       const b = coachId < other.id ? other.id : coachId
-      await supabase.from('coach_similarity').upsert({ coach_a_id: a, coach_b_id: b, similarity_score: score, breakdown: breakdown as unknown, computed_at: new Date().toISOString() }, { onConflict: 'coach_a_id,coach_b_id' })
+      await supabase.from('coach_similarity').upsert({ coach_a_id: a, coach_b_id: b, similarity_score: score, breakdown: breakdown as Json, computed_at: new Date().toISOString() }, { onConflict: 'coach_a_id,coach_b_id' })
     }
     revalidatePath(`/coaches/${coachId}/similar`)
     revalidatePath('/coaches/compare')
@@ -860,7 +860,7 @@ export async function upsertCoachDerivedMetricsAction(
     loan_reliance_score: payload.loan_reliance_score ?? null,
     network_density_score: payload.network_density_score ?? null,
     computed_at: now,
-    raw: (payload.raw ?? {}) as Record<string, unknown>,
+    raw: (payload.raw ?? {}) as Json,
   }
   const { error } = await supabase.from('coach_derived_metrics').upsert(row, { onConflict: 'coach_id' })
   if (!error) revalidatePath(`/coaches/${coachId}`)

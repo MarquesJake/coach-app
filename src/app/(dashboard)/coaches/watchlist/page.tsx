@@ -24,7 +24,7 @@ export default async function CoachesWatchlistPage() {
           <EmptyState
             title="No data available."
             description="Add coaches to your watchlist from their profile using the star control. You will see alerts when intelligence, risk or market status changes."
-            actionLabel="Go to Inventory"
+            actionLabel="Go to all coaches"
             actionHref="/coaches"
           />
         </div>

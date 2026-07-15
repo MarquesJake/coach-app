@@ -43,7 +43,7 @@ const networkNav = [
 ]
 
 const internalNav = [
-  { label: 'Dossier orders', href: '/dossier-orders', icon: PackageCheck },
+  { label: 'Dossiers', href: '/dossier-orders', icon: PackageCheck },
   { label: 'Coach portal', href: '/coach-portal', icon: ShieldCheck },
   { label: 'Alerts', href: '/alerts', icon: Bell },
   { label: 'Matches', href: '/matches', icon: GitCompare },
@@ -52,8 +52,6 @@ const internalNav = [
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Data tools', href: '/admin/data-tools', icon: Database },
 ]
-
-const mobileNav = [...primaryNav, ...networkNav, ...internalNav]
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -91,24 +89,41 @@ export function Sidebar() {
               <Menu className="h-5 w-5" />
             </summary>
             <div className="fixed inset-x-3 top-[62px] max-h-[calc(100vh-74px)] overflow-y-auto border border-border bg-card p-2 shadow-lg">
-              <nav aria-label="Mobile navigation" className="grid gap-1 sm:grid-cols-2">
-                {mobileNav.map((item) => {
-                  const active = isActive(item.href)
-                  const Icon = item.icon
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        'flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors',
-                        active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-                      )}
-                    >
-                      <Icon className="h-4 w-4 flex-shrink-0" />
-                      {item.label}
-                    </Link>
-                  )
-                })}
+              <nav aria-label="Mobile navigation" className="space-y-2">
+                <div>
+                  <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">Work</p>
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    {primaryNav.map((item) => {
+                      const active = isActive(item.href)
+                      const Icon = item.icon
+                      return <Link key={item.href} href={item.href} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
+                    })}
+                  </div>
+                </div>
+                <details open={networkNav.some((item) => isActive(item.href))} className="group border-t border-border/60 pt-1">
+                  <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-[11px] font-semibold text-muted-foreground">
+                    <span>Football network</span><ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    {networkNav.map((item) => {
+                      const active = isActive(item.href)
+                      const Icon = item.icon
+                      return <Link key={item.href} href={item.href} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
+                    })}
+                  </div>
+                </details>
+                <details open={internalNav.some((item) => isActive(item.href))} className="group border-t border-border/60 pt-1">
+                  <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2 text-[11px] font-semibold text-muted-foreground">
+                    <span>Internal tools</span><ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    {internalNav.map((item) => {
+                      const active = isActive(item.href)
+                      const Icon = item.icon
+                      return <Link key={item.href} href={item.href} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
+                    })}
+                  </div>
+                </details>
               </nav>
               <button
                 onClick={handleSignOut}
@@ -176,7 +191,7 @@ export function Sidebar() {
           <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground">
             <span className="flex items-center gap-2.5">
               <Landmark className="h-4 w-4" />
-              Network
+              Football network
             </span>
             <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
           </summary>

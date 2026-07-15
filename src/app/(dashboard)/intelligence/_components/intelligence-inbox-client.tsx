@@ -90,8 +90,8 @@ const STATUS_CLASS: Record<string, string> = {
 
 const DESTINATION_HELP: Record<string, string> = {
   intelligence_item: 'Turns messy notes into a clean searchable intelligence signal.',
-  profile_claim: 'Should become a source-backed profile claim before touching the coach record.',
-  assessment_evidence: 'Should support one of the 9 assessment criteria for a live mandate.',
+  profile_claim: 'Creates a draft finding that must be reviewed before it can influence a coach record or assessment.',
+  assessment_evidence: 'Review this as a finding before using it in an assessment.',
   private_material: 'Should live in the confidential coach material layer.',
   agent_interaction: 'Should be logged as a relationship/conversation record.',
   reference_answer: 'Should be captured through the structured reference process.',
@@ -100,9 +100,8 @@ const DESTINATION_HELP: Record<string, string> = {
 }
 
 const DESTINATION_ACTION_LABEL: Record<string, string> = {
-  intelligence_item: 'Promote to feed',
-  profile_claim: 'Create profile claim',
-  assessment_evidence: 'Create assessment evidence',
+  intelligence_item: 'Add to latest intel',
+  profile_claim: 'Create draft finding',
   private_material: 'Create confidential material',
   agent_interaction: 'Create agent interaction',
   reference_answer: 'Use reference form',
@@ -113,7 +112,6 @@ const DESTINATION_ACTION_LABEL: Record<string, string> = {
 const ONE_CLICK_DESTINATIONS = new Set([
   'intelligence_item',
   'profile_claim',
-  'assessment_evidence',
   'private_material',
   'agent_interaction',
 ])
@@ -122,7 +120,7 @@ const CAPTURE_PLAYBOOK = [
   {
     title: 'Agent route',
     detail: 'Availability, appetite, compensation range, release clause, staff likely to follow.',
-    destination: 'Profile claim or agent interaction',
+    destination: 'Draft finding or agent interaction',
   },
   {
     title: 'Football reference',
@@ -137,7 +135,7 @@ const CAPTURE_PLAYBOOK = [
   {
     title: 'Public signal',
     detail: 'Interview, podcast, press conference, journalist note, social/media sentiment.',
-    destination: 'Intelligence feed or profile claim',
+    destination: 'Latest intel or draft finding',
   },
 ] as const
 
@@ -162,10 +160,6 @@ function destinationHref(item: IntelligenceInboxItem) {
     return `/intelligence?entry=${item.destination_record_id}`
   }
   if (item.destination_record_type === 'profile_claims' && item.destination_record_id && item.coach_id) return `/coaches/${item.coach_id}#claim-${item.destination_record_id}`
-  if (item.destination_record_type === 'assessment_evidence' && item.destination_record_id && item.coach_id && item.mandate_id) {
-    const criterion = item.methodology_criteria[0] ?? 'coach_profile'
-    return `/mandates/${item.mandate_id}/assessment/${item.coach_id}?criterion=${criterion}&evidence=${item.destination_record_id}`
-  }
   if (item.destination_record_type === 'coach_private_materials' && item.destination_record_id && item.coach_id) return `/coach-portal/${item.coach_id}#material-${item.destination_record_id}`
   if (item.destination_record_type === 'agent_interactions' && item.destination_record_id && item.agent_id) return `/agents/${item.agent_id}/interactions?entry=${item.destination_record_id}`
   if (item.coach_id) return `/coaches/${item.coach_id}`
@@ -182,7 +176,8 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
   const initialSourceType = searchParams.get('sourceType')
   const initialSourceTier = searchParams.get('sourceTier')
   const initialSensitivity = searchParams.get('sensitivity')
-  const [showForm, setShowForm] = useState(Boolean(searchParams.get('headline') || searchParams.get('clubId') || searchParams.get('coachId')))
+  const initialCoachId = searchParams.get('coach') || searchParams.get('coachId')
+  const [showForm, setShowForm] = useState(Boolean(searchParams.get('headline') || searchParams.get('clubId') || initialCoachId))
   const [submitting, setSubmitting] = useState(false)
   const [statusFilter, setStatusFilter] = useState('open')
   const [typeFilter, setTypeFilter] = useState('')
@@ -213,7 +208,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
     review_status: 'triage',
     confidence: '',
     direction: '',
-    coach_id: searchParams.get('coachId') || '',
+    coach_id: initialCoachId || '',
     club_id: searchParams.get('clubId') || '',
     mandate_id: searchParams.get('mandateId') || '',
     agent_id: searchParams.get('agentId') || '',
@@ -298,7 +293,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
       toastError(result.error ?? 'Failed to promote inbox item')
       return
     }
-    toastSuccess('Inbox item promoted')
+    toastSuccess('Inbox item routed')
     router.refresh()
   }
 
@@ -313,12 +308,12 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Intelligence Inbox</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Drop in agent calls, reference notes, meeting transcripts, coach uploads, media clips and future data imports. Review the source, map it to the methodology, then promote only what strengthens or qualifies the appointment recommendation.
+              Capture public sources and incoming material, map them to the methodology, then route them to latest intel or a draft finding. Human conversations are logged separately and every finding requires review.
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Metric label="Open items" value={openCount} />
-              <Metric label="Ready to promote" value={readyCount} />
-              <Metric label="Promoted" value={promotedCount} />
+              <Metric label="Ready to route" value={readyCount} />
+              <Metric label="Routed" value={promotedCount} />
               <Metric label="Sensitive" value={confidentialCount} />
             </div>
           </div>

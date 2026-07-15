@@ -4,13 +4,6 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/db/activity'
-import { createAlert } from '@/lib/db/alerts'
-import {
-  ASSESSMENT_CRITERIA,
-  EVIDENCE_METHODS,
-  VERIFICATION_STATUSES as ASSESSMENT_VERIFICATION_STATUSES,
-} from '@/lib/assessment/criteria'
-import { canAssessCandidate, type AssessmentAccessClient } from '@/lib/assessment/access'
 import {
   COMMERCIAL_SURFACES,
   DESTINATIONS,
@@ -77,10 +70,6 @@ function itemVerificationToClaim(value: string | null | undefined) {
     : 'unverified'
 }
 
-function firstAllowed(value: string[] | null | undefined, allowed: readonly { key: string }[], fallback: string) {
-  return value?.find((key) => allowed.some((option) => option.key === key)) ?? fallback
-}
-
 function detailFromInboxItem(item: {
   extracted_signal: string | null
   raw_detail: string | null
@@ -125,15 +114,6 @@ function materialTypeFromInbox(item: { intake_type: string; headline: string }) 
   return 'other'
 }
 
-async function assessGuard(
-  supabase: ReturnType<typeof createServerSupabaseClient>,
-  userId: string,
-  mandateId: string,
-  coachId: string
-) {
-  return canAssessCandidate(supabase as unknown as AssessmentAccessClient, userId, mandateId, coachId)
-}
-
 async function ownsEntity(
   supabase: ReturnType<typeof createServerSupabaseClient>,
   userId: string,
@@ -150,87 +130,6 @@ async function requireUser() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   return { supabase, user }
-}
-
-export async function createIntelligenceItemAction(input: {
-  entity_type: string
-  entity_id: string
-  title: string
-  detail?: string | null
-  category?: string | null
-  source_name?: string | null
-  source_type?: string | null
-  source_link?: string | null
-  source_tier?: string | null
-  source_notes?: string | null
-  confidence?: number | null
-  occurred_at?: string | null
-  verified?: boolean
-  verified_by?: string | null
-  direction?: string | null
-  sensitivity?: string | null
-  mandate_id?: string | null
-}) {
-  const { supabase, user } = await requireUser()
-  const allowed = ['coach', 'staff', 'club', 'mandate']
-  if (!allowed.includes(input.entity_type) || !input.entity_id || !input.title?.trim()) {
-    return { data: null, error: 'Invalid entity type, entity id, or title' }
-  }
-  const verified = input.verified === true
-  const verified_at = verified ? new Date().toISOString() : null
-  const { data, error } = await supabase
-    .from('intelligence_items')
-    .insert({
-      user_id: user.id,
-      entity_type: input.entity_type,
-      entity_id: input.entity_id,
-      title: input.title.trim(),
-      detail: input.detail?.trim() || null,
-      category: input.category?.trim() || null,
-      source_name: input.source_name?.trim() || null,
-      source_type: input.source_type?.trim() || null,
-      source_link: input.source_link?.trim() || null,
-      source_tier: input.source_tier?.trim() || null,
-      source_notes: input.source_notes?.trim() || null,
-      confidence: input.confidence != null ? Math.max(0, Math.min(100, input.confidence)) : null,
-      occurred_at: input.occurred_at || null,
-      verified,
-      verified_at,
-      verified_by: input.verified_by?.trim() || null,
-      direction: input.direction?.trim() || null,
-      sensitivity: input.sensitivity?.trim() || 'Standard',
-      mandate_id: input.mandate_id?.trim() || null,
-    })
-    .select('id')
-    .single()
-  if (!error) {
-    revalidatePath('/intelligence')
-    if (input.entity_type === 'coach' && input.entity_id) {
-      revalidatePath(`/coaches/${input.entity_id}/risk`)
-    }
-    await logActivity({
-      entityType: input.entity_type,
-      entityId: input.entity_id,
-      actionType: 'intelligence_added',
-      description: 'Intelligence added',
-      metadata: { title: input.title.trim() },
-    })
-    if (input.entity_type === 'coach' && input.entity_id) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: onList } = await (supabase as any).from('watchlist_coaches').select('coach_id').eq('user_id', user.id).eq('coach_id', input.entity_id).maybeSingle()
-      if (onList) {
-        await createAlert({
-          userId: user.id,
-          entityType: 'coach',
-          entityId: input.entity_id,
-          alertType: 'new_intelligence',
-          title: 'New intelligence added',
-          detail: input.title?.trim() || input.category?.trim() || undefined,
-        })
-      }
-    }
-  }
-  return { data: data as { id: string } | null, error: error?.message ?? null }
 }
 
 export async function createIntelligenceInboxItemAction(input: {
@@ -358,90 +257,6 @@ export async function updateIntelligenceInboxStatusAction(input: {
   return { ok: true }
 }
 
-export async function promoteInboxItemToIntelligenceAction(input: { id: string }) {
-  const { supabase, user } = await requireUser()
-  const { data: item, error: itemError } = await supabase
-    .from('intelligence_inbox_items')
-    .select('*')
-    .eq('id', input.id)
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (itemError) return { ok: false, error: itemError.message }
-  if (!item) return { ok: false, error: 'Inbox item not found' }
-  if (!item.entity_type || !item.entity_id) {
-    return { ok: false, error: 'Link the inbox item to a coach, club, mandate, or agent first' }
-  }
-  if (!ENTITY_TYPES.includes(item.entity_type as (typeof ENTITY_TYPES)[number])) {
-    return { ok: false, error: 'Unsupported entity type' }
-  }
-
-  const detailParts = [
-    item.extracted_signal,
-    item.raw_detail ? `Raw context: ${item.raw_detail}` : null,
-    item.analyst_notes ? `Analyst note: ${item.analyst_notes}` : null,
-  ].filter(Boolean)
-  const category = item.methodology_criteria[0] ?? item.intake_type
-  const { data: promoted, error: insertError } = await supabase
-    .from('intelligence_items')
-    .insert({
-      user_id: user.id,
-      entity_type: item.entity_type,
-      entity_id: item.entity_id,
-      category,
-      title: item.headline,
-      detail: detailParts.join('\n\n') || null,
-      source_type: item.source_type,
-      source_name: item.source_name,
-      source_link: item.source_link,
-      source_tier: normaliseTier(item.source_tier),
-      source_notes: item.channel,
-      source_expires_at: item.source_expires_at,
-      source_proximity: item.source_proximity,
-      board_visibility: item.board_visibility,
-      contradiction_status: item.contradiction_status,
-      confidence: item.confidence,
-      occurred_at: item.source_recorded_at ?? item.created_at,
-      verified: item.verification_status === 'verified',
-      verified_at: item.verification_status === 'verified' ? new Date().toISOString() : null,
-      verified_by: item.verification_status === 'verified' ? 'Coach First analyst' : null,
-      direction: item.direction,
-      sensitivity: itemSensitivityToIntelligence(item.sensitivity),
-      mandate_id: item.mandate_id,
-    })
-    .select('id')
-    .single()
-
-  if (insertError || !promoted) return { ok: false, error: insertError?.message ?? 'Failed to promote item' }
-
-  const { error: updateError } = await supabase
-    .from('intelligence_inbox_items')
-    .update({
-      review_status: 'promoted',
-      destination_record_type: 'intelligence_items',
-      destination_record_id: promoted.id,
-      promoted_at: new Date().toISOString(),
-      promoted_by: user.email ?? 'Coach First analyst',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', item.id)
-    .eq('user_id', user.id)
-
-  if (updateError) return { ok: false, error: updateError.message }
-
-  revalidatePath('/intelligence')
-  revalidatePath('/intelligence/inbox')
-  if (item.entity_type === 'coach') revalidatePath(`/coaches/${item.entity_id}/intelligence`)
-  await logActivity({
-    entityType: item.entity_type,
-    entityId: item.entity_id,
-    actionType: 'intelligence_inbox_promoted',
-    description: 'Raw intelligence promoted to cleaned intelligence',
-    metadata: { inbox_id: item.id, intelligence_id: promoted.id, title: item.headline },
-  })
-  return { ok: true, data: { id: promoted.id } }
-}
-
 export async function promoteIntelligenceInboxItemAction(input: {
   id: string
   destination?: string | null
@@ -458,7 +273,11 @@ export async function promoteIntelligenceInboxItemAction(input: {
   if (!item) return { ok: false, error: 'Inbox item not found' }
   if (item.review_status === 'promoted') return { ok: false, error: 'This item has already been promoted' }
 
-  const destination = enumValue(input.destination ?? item.suggested_destination, DESTINATIONS, 'intelligence_item')
+  const requestedDestination = input.destination ?? item.suggested_destination
+  if (requestedDestination === 'assessment_evidence') {
+    return { ok: false, error: 'Review this item as a finding before using it in an assessment.' }
+  }
+  const destination = enumValue(requestedDestination, DESTINATIONS, 'intelligence_item')
   const now = new Date().toISOString()
   const detail = detailFromInboxItem(item)
   const sourceLabel = [
@@ -510,7 +329,7 @@ export async function promoteIntelligenceInboxItemAction(input: {
     destinationRecordId = promoted.id
     if (item.entity_type === 'coach') revalidateTargets.push(`/coaches/${item.entity_id}/intelligence`)
   } else if (destination === 'profile_claim') {
-    if (!item.coach_id) return { ok: false, error: 'Link a coach before promoting to a profile claim' }
+    if (!item.coach_id) return { ok: false, error: 'Link a coach before promoting to a finding' }
     const { data: coach } = await supabase
       .from('coaches')
       .select('id')
@@ -542,58 +361,23 @@ export async function promoteIntelligenceInboxItemAction(input: {
         confidence: item.confidence,
         sensitivity: itemSensitivityToClaim(item.sensitivity),
         verification_status: itemVerificationToClaim(item.verification_status),
-        review_status: item.verification_status === 'verified' ? 'accepted' : 'pending',
+        review_status: 'pending',
         statement_type: 'opinion',
         evidence_strength: item.verification_status === 'disputed' ? 'disputed' : 'single_source',
         fact_check_status: 'not_applicable',
         external_visibility: item.board_visibility === 'internal_only' || item.board_visibility === 'legal_review' ? 'internal_only' : 'anonymised_external',
         methodology_criteria: item.methodology_criteria,
-        used_in_recommendation: true,
+        used_in_recommendation: false,
         occurred_at: item.source_recorded_at ?? item.created_at,
       })
       .select('id')
       .single()
-    if (error || !promoted) return { ok: false, error: error?.message ?? 'Failed to promote to profile claim' }
+    if (error || !promoted) return { ok: false, error: error?.message ?? 'Failed to promote to finding' }
     destinationRecordType = 'profile_claims'
     destinationRecordId = promoted.id
     entityType = 'coach'
     entityId = item.coach_id
     revalidateTargets.push(`/coaches/${item.coach_id}`)
-  } else if (destination === 'assessment_evidence') {
-    if (!item.coach_id || !item.mandate_id) return { ok: false, error: 'Link both a coach and mandate before promoting to assessment evidence' }
-    if (!(await assessGuard(supabase, user.id, item.mandate_id, item.coach_id))) {
-      return { ok: false, error: 'Candidate is not on this mandate shortlist' }
-    }
-    const criterion = firstAllowed(item.methodology_criteria, ASSESSMENT_CRITERIA, 'coach_profile')
-    const method = firstAllowed(item.evidence_methods, EVIDENCE_METHODS, 'desktop_research')
-    if (!ASSESSMENT_VERIFICATION_STATUSES.includes(itemVerificationToAssessment(item.verification_status) as (typeof ASSESSMENT_VERIFICATION_STATUSES)[number])) {
-      return { ok: false, error: 'Unsupported verification status' }
-    }
-    const { data: promoted, error } = await supabase
-      .from('assessment_evidence')
-      .insert({
-        user_id: user.id,
-        mandate_id: item.mandate_id,
-        coach_id: item.coach_id,
-        criterion,
-        method,
-        title: item.headline,
-        detail,
-        source: sourceLabel,
-        confidence: item.confidence,
-        verification_status: itemVerificationToAssessment(item.verification_status),
-        used_in_recommendation: true,
-      })
-      .select('id')
-      .single()
-    if (error || !promoted) return { ok: false, error: error?.message ?? 'Failed to promote to assessment evidence' }
-    destinationRecordType = 'assessment_evidence'
-    destinationRecordId = promoted.id
-    entityType = 'coach'
-    entityId = item.coach_id
-    revalidateTargets.push(`/mandates/${item.mandate_id}/assessment`)
-    revalidateTargets.push(`/mandates/${item.mandate_id}/assessment/${item.coach_id}`)
-    revalidateTargets.push(`/mandates/${item.mandate_id}/assessment/${item.coach_id}/board-pack`)
   } else if (destination === 'private_material') {
     if (!item.coach_id) return { ok: false, error: 'Link a coach before promoting to confidential material' }
     const { data: coach } = await supabase

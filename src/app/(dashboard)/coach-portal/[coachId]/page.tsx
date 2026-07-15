@@ -493,7 +493,7 @@ export default async function CoachPortalDetailPage({
             </p>
           </div>
           <Link href="/intelligence" className="text-xs font-medium text-primary hover:underline">
-            Intelligence feed →
+            Latest intel →
           </Link>
         </div>
         <div className="mt-4 space-y-3">

@@ -91,6 +91,106 @@ $$;
 
 reset role;
 
+do $$
+declare
+  internal_user uuid;
+  archive_test_id uuid;
+  archive_without_metadata_denied boolean := false;
+begin
+  select membership.user_id into internal_user
+  from public.organization_memberships membership
+  join public.organizations organization on organization.id = membership.organization_id
+  where organization.slug = 'coach-first'
+    and membership.status = 'active'
+    and membership.role in ('owner', 'admin')
+  limit 1;
+
+  insert into public.intelligence_items (
+    user_id, entity_type, entity_id, title, is_deleted
+  ) values (
+    internal_user, 'coach', gen_random_uuid(), 'RLS archive audit fixture', false
+  ) returning id into archive_test_id;
+
+  begin
+    update public.intelligence_items set is_deleted = true where id = archive_test_id;
+  exception when others then
+    archive_without_metadata_denied := position('archiving intelligence requires' in lower(sqlerrm)) > 0;
+  end;
+  if not archive_without_metadata_denied then
+    raise exception 'Archive transition without metadata was accepted';
+  end if;
+
+  update public.intelligence_items
+  set
+    is_deleted = true,
+    archived_at = now(),
+    archive_recorded_at = now(),
+    archived_by = internal_user,
+    archive_reason = 'RLS contract test'
+  where id = archive_test_id;
+end;
+$$;
+
+insert into auth.users (
+  id, aud, role, email, email_confirmed_at, raw_app_meta_data,
+  raw_user_meta_data, created_at, updated_at
+) values (
+  '44444444-4444-4444-8444-444444444444',
+  'authenticated', 'authenticated', 'rls-second-internal@coachfirst.invalid', now(),
+  '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now()
+);
+
+insert into public.organizations (name, slug, organization_type, status, created_by)
+values (
+  'RLS Second Internal', 'rls-second-internal', 'internal', 'active',
+  '44444444-4444-4444-8444-444444444444'
+);
+insert into public.organization_memberships (organization_id, user_id, role, status, accepted_at)
+select id, '44444444-4444-4444-8444-444444444444', 'analyst', 'active', now()
+from public.organizations where slug = 'rls-second-internal';
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '44444444-4444-4444-8444-444444444444', true);
+select set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated"}', true);
+
+do $$
+declare
+  leaked_rows bigint;
+  cross_org_insert_denied boolean := false;
+begin
+  select
+    (select count(*) from public.football_contacts) +
+    (select count(*) from public.contact_coach_relationships) +
+    (select count(*) from public.intelligence_sessions) +
+    (select count(*) from public.profile_claims) +
+    (select count(*) from public.claim_relationships) +
+    (select count(*) from public.reference_campaigns) +
+    (select count(*) from public.reference_campaign_contacts) +
+    (select count(*) from public.trusted_bench_entries) +
+    (select count(*) from public.appointment_outcomes)
+  into leaked_rows;
+  if leaked_rows <> 0 then
+    raise exception 'Second internal organisation leaked % trusted-intelligence rows', leaked_rows;
+  end if;
+
+  begin
+    insert into public.football_contacts (org_id, created_by, full_name)
+    values (
+      (select id from public.organizations where slug = 'coach-first'),
+      '44444444-4444-4444-8444-444444444444',
+      'Denied cross-organisation contact'
+    );
+  exception when others then
+    cross_org_insert_denied := true;
+  end;
+  if not cross_org_insert_denied then
+    raise exception 'Second internal organisation could write into Coach First';
+  end if;
+end;
+$$;
+
+reset role;
+
 insert into public.organization_memberships (
   organization_id, user_id, role, status, accepted_at
 )
@@ -131,6 +231,15 @@ begin
     (select count(*) from public.trusted_bench_entries) +
     (select count(*) from public.appointment_outcomes) +
     (select count(*) from public.intelligence_audit_tombstones) +
+    (select count(*) from public.coach_derived_metrics) +
+    (select count(*) from public.watchlist_coaches) +
+    (select count(*) from public.coach_similarity) +
+    (select count(*) from public.scoring_models) +
+    (select count(*) from public.coach_scores) +
+    (select count(*) from public.coach_recruitment_history) +
+    (select count(*) from public.coach_media_events) +
+    (select count(*) from public.coach_due_diligence_items) +
+    (select count(*) from public.evidence_items) +
     (select count(*) from public.dossier_offer_commercials) +
     (select count(*) from public.dossier_order_commercials)
   into leaked_rows;
@@ -248,7 +357,16 @@ begin
     (select count(*) from public.reference_campaign_contacts) +
     (select count(*) from public.trusted_bench_entries) +
     (select count(*) from public.appointment_outcomes) +
-    (select count(*) from public.intelligence_audit_tombstones)
+    (select count(*) from public.intelligence_audit_tombstones) +
+    (select count(*) from public.coach_derived_metrics) +
+    (select count(*) from public.watchlist_coaches) +
+    (select count(*) from public.coach_similarity) +
+    (select count(*) from public.scoring_models) +
+    (select count(*) from public.coach_scores) +
+    (select count(*) from public.coach_recruitment_history) +
+    (select count(*) from public.coach_media_events) +
+    (select count(*) from public.coach_due_diligence_items) +
+    (select count(*) from public.evidence_items)
   into leaked_rows;
   if leaked_rows <> 0 then raise exception 'Coach identity leaked % trusted-intelligence rows', leaked_rows; end if;
 end;

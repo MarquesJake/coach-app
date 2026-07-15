@@ -59,15 +59,14 @@ export const INBOX_REVIEW_STATUSES = [
   { key: 'captured', label: 'Captured' },
   { key: 'triage', label: 'Triage' },
   { key: 'needs_verification', label: 'Needs verification' },
-  { key: 'ready_to_promote', label: 'Ready to promote' },
-  { key: 'promoted', label: 'Promoted' },
+  { key: 'ready_to_promote', label: 'Ready to route' },
+  { key: 'promoted', label: 'Routed' },
   { key: 'archived', label: 'Archived' },
 ] as const
 
 export const DESTINATIONS = [
-  { key: 'intelligence_item', label: 'Clean intelligence item' },
-  { key: 'profile_claim', label: 'Profile claim' },
-  { key: 'assessment_evidence', label: 'Assessment evidence' },
+  { key: 'intelligence_item', label: 'Latest intel' },
+  { key: 'profile_claim', label: 'Draft finding' },
   { key: 'private_material', label: 'Confidential material' },
   { key: 'agent_interaction', label: 'Agent interaction' },
   { key: 'reference_answer', label: 'Reference answer' },

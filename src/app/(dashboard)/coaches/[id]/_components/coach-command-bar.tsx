@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ClipboardCheck, AlertCircle, FileDown, Star } from 'lucide-react'
+import { AlertCircle, ChevronDown, ClipboardCheck, FileDown, FileInput, MessageSquarePlus, Star } from 'lucide-react'
 import { addCoachToCompareIds } from '@/lib/compare'
 import { cn } from '@/lib/utils'
 import { EditCoachDrawer, type EditCoachField } from './edit-coach-drawer'
-import { AddIntelligenceDrawer } from './add-intelligence-drawer'
 import { updateCoachCoreAction, addToWatchlistAction, removeFromWatchlistAction } from '@/app/(dashboard)/coaches/[id]/actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 
@@ -116,7 +115,6 @@ export function CoachCommandBar({
 }) {
   const router = useRouter()
   const [modifyOpen, setModifyOpen] = useState(false)
-  const [intelligenceOpen, setIntelligenceOpen] = useState(false)
   const [watchlist, setWatchlist] = useState(onWatchlist)
   const [watchlistPending, setWatchlistPending] = useState(false)
   useEffect(() => { setWatchlist(onWatchlist) }, [onWatchlist])
@@ -349,13 +347,22 @@ export function CoachCommandBar({
             >
               Preview mandate fit
             </Link>
-            <button
-              type="button"
-              onClick={() => setIntelligenceOpen(true)}
-              className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface/50 transition-colors"
-            >
-              Add intelligence
-            </button>
+            <details className="group relative">
+              <summary className="inline-flex cursor-pointer list-none items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface/50 hover:text-foreground">
+                Add intelligence
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="absolute right-0 z-30 mt-1 w-52 border border-border bg-card p-1 shadow-lg">
+                <Link href={`/intelligence/conversations?coach=${coachId}`} className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted/40">
+                  <MessageSquarePlus className="h-3.5 w-3.5 text-primary" />
+                  Log conversation
+                </Link>
+                <Link href={`/intelligence/inbox?coach=${coachId}`} className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted/40">
+                  <FileInput className="h-3.5 w-3.5 text-primary" />
+                  Add source item
+                </Link>
+              </div>
+            </details>
             <button
               type="button"
               onClick={() => {
@@ -378,12 +385,6 @@ export function CoachCommandBar({
               <FileDown className="w-3.5 h-3.5" />
               Export dossier
             </button>
-            <AddIntelligenceDrawer
-              coachId={coachId}
-              open={intelligenceOpen}
-              onClose={() => setIntelligenceOpen(false)}
-              onSuccess={() => router.refresh()}
-            />
           </div>
         </div>
       </div>

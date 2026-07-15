@@ -15,10 +15,11 @@ export type AgentInventoryAgent = {
   reliability_score: number | null
   risk_flag: boolean
   preferred_contact_channel: string | null
-  created_at: string
+  created_at: string | null
 }
 
-function relativeTime(iso: string): string {
+function relativeTime(iso: string | null): string {
+  if (!iso) return '—'
   try {
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return '—'

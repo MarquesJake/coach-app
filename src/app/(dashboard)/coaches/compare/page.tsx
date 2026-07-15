@@ -28,8 +28,8 @@ export default async function CoachesComparePage({
       <div className="rounded-lg border border-border bg-card p-6">
         <EmptyState
           title="No data available."
-          description="Go to Inventory and select 2 to 4 coaches using the checkboxes, then click Compare."
-          actionLabel="Go to Inventory"
+          description="Go to All coaches and select 2 to 4 coaches using the checkboxes, then click Compare."
+          actionLabel="Go to all coaches"
           actionHref="/coaches"
         />
       </div>
@@ -43,7 +43,7 @@ export default async function CoachesComparePage({
         <EmptyState
           title="Could not load coaches"
           description="The selected coaches may no longer be available. Try selecting again from the list."
-          actionLabel="Go to Inventory"
+          actionLabel="Go to all coaches"
           actionHref="/coaches"
         />
       </div>

@@ -9,6 +9,7 @@ import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { PrintButton } from './print-button'
 import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
 import { displayClubName } from '@/lib/display-names'
+import { evidenceStrengthLabel, formatEnumLabel, stakeholderGroupLabel } from '@/lib/intelligence/display'
 
 // Board-ready Head Coach Assessment Pack: structured HTML print view.
 // Section order mirrors the club-leadership assessment deck format.
@@ -22,6 +23,23 @@ function formatDate(value: string | null | undefined) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '—'
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function evidenceReviewLabel(item: {
+  origin_profile_claim_id: string | null
+  provenance_snapshot: unknown
+  verification_status: string
+}) {
+  if (item.origin_profile_claim_id) {
+    const snapshot = item.provenance_snapshot && typeof item.provenance_snapshot === 'object'
+      ? item.provenance_snapshot as Record<string, unknown>
+      : null
+    const strength = typeof snapshot?.evidence_strength === 'string' ? snapshot.evidence_strength : 'single_source'
+    return ` · Reviewed · ${evidenceStrengthLabel(strength)}`
+  }
+  if (item.verification_status === 'verified') return ' · Verified'
+  if (item.verification_status === 'disputed') return ' · Disputed'
+  return ''
 }
 
 export default async function BoardPackPage({
@@ -82,7 +100,7 @@ export default async function BoardPackPage({
         .eq('coach_id', coachId),
       supabase
         .from('assessment_evidence')
-        .select('criterion, method, title, detail, source, confidence, verification_status, used_in_recommendation')
+        .select('criterion, method, title, detail, source, confidence, verification_status, used_in_recommendation, origin_profile_claim_id, provenance_snapshot')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .order('created_at', { ascending: true }),
@@ -485,7 +503,7 @@ export default async function BoardPackPage({
                         {methodLabel(item.method)}
                         {item.source ? `, ${item.source}` : ''}
                         {item.confidence !== null ? `, confidence ${item.confidence}` : ''}
-                        {item.verification_status === 'verified' ? ' ✓ verified' : item.verification_status === 'disputed' ? ' ⚠ disputed' : ''}
+                        {evidenceReviewLabel(item)}
                       </li>
                     ))}
                     {criterionDerived.map((item, i) => (
@@ -555,7 +573,7 @@ export default async function BoardPackPage({
               <li key={item.id} className="text-2xs text-muted-foreground/80 pl-3 border-l border-border">
                 <span className="text-foreground/80">{item.title}</span>
                 {' — '}
-                {item.material_type.replaceAll('_', ' ')}
+                {formatEnumLabel(item.material_type)}
                 {item.source_label ? `, ${item.source_label}` : ''}
                 {item.confidentiality_status ? `, ${item.confidentiality_status}` : ''}
                 {item.verification_status === 'verified' ? ' ✓ verified' : ''}
@@ -581,7 +599,7 @@ export default async function BoardPackPage({
                   </span>
                 </p>
                 <p className="text-2xs text-muted-foreground/80 mt-1">
-                  {ref.stakeholder_group.replaceAll('_', ' ')}
+                  {stakeholderGroupLabel(ref.stakeholder_group)}
                   {ref.confidence !== null ? ` · ${ref.confidence}% confidence` : ''}
                   {ref.verification_status ? ` · ${ref.verification_status}` : ''}
                   {ref.would_hire_again ? ` · would hire/work again: ${ref.would_hire_again}` : ''}

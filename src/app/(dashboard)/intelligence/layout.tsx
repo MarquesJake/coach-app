@@ -9,7 +9,7 @@ export default function IntelligenceLayout({
   return (
     <SectionShell
       title="Intelligence"
-      description="Intelligence feed and sources"
+      description="Current signals, conversations and reviewed findings"
       subnav={INTELLIGENCE_SUBNAV}
       sticky
     >

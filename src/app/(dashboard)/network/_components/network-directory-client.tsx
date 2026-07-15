@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { createFootballContactAction } from '../../intelligence/trusted-actions'
+import { externalVisibilityLabel, stakeholderGroupLabel } from '@/lib/intelligence/display'
 
 type ContactRow = {
   id: string
@@ -73,9 +74,9 @@ export function NetworkDirectoryClient({ contacts, coaches }: { contacts: Contac
           <tbody className="divide-y divide-border">
             {filtered.map((contact) => <tr key={contact.id} className="hover:bg-muted/20">
               <td className="px-4 py-3"><Link href={`/network/${contact.id}`} className="font-medium text-foreground hover:text-primary">{contact.full_name}</Link><p className="text-xs text-muted-foreground">{contact.current_role_title || 'Role not recorded'}{contact.current_organization ? ` · ${contact.current_organization}` : ''}</p></td>
-              <td className="px-4 py-3"><Badge variant="outline">{contact.stakeholder_group.replaceAll('_', ' ')}</Badge>{contact.reliability_score != null && <span className="ml-2 text-xs text-muted-foreground">{contact.reliability_score}/100</span>}</td>
+              <td className="px-4 py-3"><Badge variant="outline">{stakeholderGroupLabel(contact.stakeholder_group)}</Badge>{contact.reliability_score != null && <span className="ml-2 text-xs text-muted-foreground">{contact.reliability_score}/100</span>}</td>
               <td className="px-4 py-3 text-muted-foreground">{contact.relationship_count} coach link{contact.relationship_count === 1 ? '' : 's'} · {contact.session_count} conversation{contact.session_count === 1 ? '' : 's'}</td>
-              <td className="px-4 py-3 text-xs text-muted-foreground">{contact.default_attribution_permission.replaceAll('_', ' ')}</td>
+              <td className="px-4 py-3 text-xs text-muted-foreground">{externalVisibilityLabel(contact.default_attribution_permission)}</td>
               <td className="px-4 py-3 text-xs text-muted-foreground">{contact.next_follow_up_at ? new Date(contact.next_follow_up_at).toLocaleDateString('en-GB') : 'No follow-up set'}</td>
             </tr>)}
             {!filtered.length && <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No contacts match this view.</td></tr>}

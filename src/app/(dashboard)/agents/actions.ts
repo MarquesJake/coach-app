@@ -314,7 +314,7 @@ export async function createAgentInteractionAction(payload: {
     }
 
     if (claims.length > 0) {
-      if (!coachId || !currentCoach) return { ok: false, error: 'Link a coach before adding profile claims' }
+      if (!coachId || !currentCoach) return { ok: false, error: 'Link a coach before adding findings' }
       const organizationId = await getInternalOrganizationId(user.id)
       if (!organizationId) return { ok: false, error: 'Internal organisation access is required' }
       const rows: ProfileClaimInsert[] = claims.slice(0, 4).map((claim) => {
@@ -365,7 +365,7 @@ export async function createAgentInteractionAction(payload: {
         }
       })
       const { error: claimError } = await supabase.from('profile_claims').insert(rows)
-      if (claimError) return { ok: false, error: claimError.message ?? 'Failed to add profile claims' }
+      if (claimError) return { ok: false, error: claimError.message ?? 'Failed to add findings' }
     }
 
     revalidatePath(`/agents/${payload.agent_id}`)

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { canAssessCandidate, type AssessmentAccessClient } from '@/lib/assessment/access'
+import { evidenceStrengthLabel } from '@/lib/intelligence/display'
 import {
   BENCH_STAGES,
   CAMPAIGN_CONTACT_STAGES,
@@ -221,7 +222,7 @@ export async function createIntelligenceSessionAction(input: {
     if (sessionError) return { ok: false, error: sessionError.message }
 
     const validClaims = input.claims.filter((claim) => claim.claimedValue.trim() && claim.evidenceSummary.trim())
-    if (validClaims.length && !input.coachId) return { ok: false, error: 'Link a coach before creating claim drafts.' }
+    if (validClaims.length && !input.coachId) return { ok: false, error: 'Link a coach before creating draft findings.' }
     if (validClaims.length) {
       const rows = validClaims.map((claim) => {
         const safety = normalizeClaimSafety({
@@ -263,7 +264,7 @@ export async function createIntelligenceSessionAction(input: {
       const { error: claimError } = await db.from('profile_claims').insert(rows)
       if (claimError) {
         await db.from('intelligence_sessions').update({ processing_status: 'failed', failure_reason: claimError.message }).eq('id', session.id)
-        return { ok: false, error: `Conversation saved, but claim drafts failed: ${claimError.message}` }
+        return { ok: false, error: `Conversation saved, but finding drafts failed: ${claimError.message}` }
       }
     }
     revalidatePath('/intelligence/conversations')
@@ -353,7 +354,7 @@ export async function splitTrustedClaimAction(input: {
     }))
     const { error } = await db.from('profile_claims').insert(rows)
     if (error) return { ok: false, error: error.message }
-    await db.from('profile_claims').update({ review_status: 'rejected', source_notes: [claim.source_notes, 'Split into narrower claim drafts.'].filter(Boolean).join('\n'), updated_at: new Date().toISOString() }).eq('id', claim.id)
+    await db.from('profile_claims').update({ review_status: 'rejected', source_notes: [claim.source_notes, 'Split into narrower finding drafts.'].filter(Boolean).join('\n'), updated_at: new Date().toISOString() }).eq('id', claim.id)
     revalidatePath('/intelligence/review')
     revalidateCoach(claim.coach_id)
     return { ok: true }
@@ -598,7 +599,7 @@ export async function promoteClaimToAssessmentAction(input: {
       ? await db.from('contact_coach_relationships').select('stakeholder_group, role_at_time, proximity, first_hand').eq('org_id', organizationId).eq('contact_id', claim.contact_id).eq('coach_id', input.coachId).limit(1).maybeSingle()
       : { data: null }
     const sourceRole = relationship?.role_at_time || relationship?.stakeholder_group || 'trusted football source'
-    const sourceLabel = `Anonymised ${String(sourceRole).replaceAll('_', ' ')} · ${relationship?.proximity || 'source proximity recorded'} · ${claim.evidence_strength}`
+    const sourceLabel = `Anonymised ${String(sourceRole).replaceAll('_', ' ')} · ${relationship?.proximity || 'source proximity recorded'} · ${evidenceStrengthLabel(claim.evidence_strength)}`
     const snapshot = buildPromotionSnapshot({
       claimText: claim.claimed_value,
       evidenceSummary: claim.evidence_summary,
@@ -635,7 +636,7 @@ export async function promoteClaimToAssessmentAction(input: {
     revalidatePath(`/mandates/${input.mandateId}/assessment/${input.coachId}`)
     revalidatePath(`/mandates/${input.mandateId}/assessment/${input.coachId}/board-pack`)
     revalidateCoach(input.coachId)
-    return { ok: true, id: data.id, message: 'Claim added to the assessment with a frozen provenance snapshot.' }
+    return { ok: true, id: data.id, message: 'Finding added to the assessment with a frozen provenance snapshot.' }
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unable to promote claim.' }
   }

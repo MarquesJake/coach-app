@@ -122,7 +122,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
       return
     }
     if ((form.claim_value.trim() || form.claim_evidence_summary.trim()) && !form.coach_id) {
-      toastError('Link a coach before adding a profile claim')
+      toastError('Link a coach before adding a finding')
       return
     }
     setSubmitting(true)
@@ -314,7 +314,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
                                 <div className="min-w-0 flex-1">
                                   <div className="flex flex-wrap items-center gap-2">
                                     <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
-                                      Profile claim
+                                      Finding
                                     </span>
                                     <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', CLAIM_STATUS_CLASSES[claim.review_status] ?? 'border-border bg-muted text-muted-foreground')}>
                                       {claim.review_status}
@@ -472,7 +472,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
 
           <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-3">
             <div>
-              <p className="text-xs font-semibold text-foreground">Profile claim from this call</p>
+              <p className="text-xs font-semibold text-foreground">Finding from this call</p>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
                 Optional. Use this when the call changes what we believe about a coach.
               </p>

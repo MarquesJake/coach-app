@@ -30,7 +30,7 @@ export default async function DossierOrdersPage() {
 
   return (
     <div className="mx-auto max-w-[1200px]">
-      <div className="border-b border-border pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Commercial and release control</p><h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Dossier orders</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Purchase is the commercial instruction. This desk decides which coach-owned files are actually released, to whom and for how long.</p></div>
+      <div className="border-b border-border pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Commercial and release control</p><h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Dossier release desk</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">A request begins the commercial conversation. This desk decides which coach-owned files are released, to whom and for how long.</p></div>
 
       <section className="mt-6 space-y-4">
         {(orders ?? []).map((order) => {

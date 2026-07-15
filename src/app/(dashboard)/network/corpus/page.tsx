@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { ArrowRight, ClipboardList, MessageSquarePlus, Plus } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
+import { formatEnumLabel } from '@/lib/intelligence/display'
 import {
   CORPUS_PILOT_TARGETS,
   calculateBenchEligibility,
@@ -137,6 +138,11 @@ export default async function CorpusOperationsPage() {
 
   return (
     <div className="space-y-4">
+      <header className="border-b border-border pb-4">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Research targets</p>
+        <h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Coach research programme</h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Build a defensible view of each coach through first-hand conversations, independent sources and reviewed findings.</p>
+      </header>
       <div className="flex flex-col gap-3 border-y border-border py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <span><strong className="font-semibold text-foreground">{activeRows.length}</strong> <span className="text-muted-foreground">active coaches</span></span>
@@ -145,7 +151,7 @@ export default async function CorpusOperationsPage() {
           <span><strong className="font-semibold text-foreground">{placementReady}</strong> <span className="text-muted-foreground">placement ready</span></span>
           <span className={overdueFollowUps ? 'text-destructive' : ''}><strong className="font-semibold">{overdueFollowUps}</strong> <span className={overdueFollowUps ? '' : 'text-muted-foreground'}>overdue follow-ups</span></span>
         </div>
-        <Link href="/coaches/bench" className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-surface-raised"><Plus className="mr-2 h-4 w-4" />Manage pilot pool</Link>
+        <Link href="/coaches/bench" className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-surface-raised"><Plus className="mr-2 h-4 w-4" />Manage research pool</Link>
       </div>
 
       <div className="overflow-x-auto border border-border bg-card">
@@ -153,7 +159,7 @@ export default async function CorpusOperationsPage() {
           <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-medium">Coach</th>
-              <th className="px-4 py-3 font-medium">Pilot progress</th>
+              <th className="px-4 py-3 font-medium">Research progress</th>
               <th className="px-4 py-3 font-medium">Conversations</th>
               <th className="px-4 py-3 font-medium">Source coverage</th>
               <th className="px-4 py-3 font-medium">Reviewed evidence</th>
@@ -166,12 +172,12 @@ export default async function CorpusOperationsPage() {
               <tr key={row.id} className={row.stage === 'paused' ? 'opacity-60' : ''}>
                 <td className="px-4 py-4 align-top">
                   <Link href={`/coaches/${row.coach.id}/intelligence`} className="font-medium hover:text-primary">{row.coach.name}</Link>
-                  <p className="mt-1 text-xs capitalize text-muted-foreground">{String(row.stage).replaceAll('_', ' ')} · {row.coach.club_current || 'Available'}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{formatEnumLabel(String(row.stage))} · {row.coach.club_current || 'Available'}</p>
                 </td>
                 <td className="w-48 px-4 py-4 align-top">
                   <div className="flex items-center justify-between text-xs"><span>{phaseLabels[row.progress.phase]}</span><strong>{row.progress.progressPercent}%</strong></div>
                   <div className="mt-2 h-1.5 overflow-hidden bg-muted"><div className="h-full bg-primary" style={{ width: `${row.progress.progressPercent}%` }} /></div>
-                  <p className="mt-2 text-xs text-muted-foreground">{row.progress.pilotReady ? 'Q1 evidence gate passed' : row.progress.missing.slice(0, 2).join(' · ')}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{row.progress.pilotReady ? 'Research target reached' : row.progress.missing.slice(0, 2).join(' · ')}</p>
                 </td>
                 <td className="px-4 py-4 align-top">
                   <p className="font-medium">{row.conversations}/{CORPUS_PILOT_TARGETS.conversations}</p>
@@ -182,24 +188,24 @@ export default async function CorpusOperationsPage() {
                   <p className="mt-1 text-xs text-muted-foreground">{row.stakeholderGroups}/{CORPUS_PILOT_TARGETS.stakeholderGroups} stakeholder groups</p>
                 </td>
                 <td className="px-4 py-4 align-top">
-                  <p>{row.acceptedClaims} accepted · {row.corroboratedClaims} corroborated</p>
+                  <p>{row.acceptedClaims} reviewed findings · {row.corroboratedClaims} corroborated</p>
                   <p className="mt-1 text-xs text-muted-foreground">{row.criteriaCovered}/{CORPUS_PILOT_TARGETS.criteriaCovered} methodology criteria</p>
                 </td>
                 <td className="max-w-64 px-4 py-4 align-top">
                   <p className="text-sm">{row.nextAction}</p>
-                  <p className={`mt-1 text-xs ${row.overdueFollowUps ? 'text-destructive' : 'text-muted-foreground'}`}>{row.overdueFollowUps ? `${row.overdueFollowUps} overdue` : `${row.openCampaignContacts} campaign sources open`}</p>
+                  <p className={`mt-1 text-xs ${row.overdueFollowUps ? 'text-destructive' : 'text-muted-foreground'}`}>{row.overdueFollowUps ? `${row.overdueFollowUps} overdue` : `${row.openCampaignContacts} reference sources open`}</p>
                 </td>
                 <td className="px-4 py-4 align-top">
                   <div className="flex items-center gap-1">
                     <Link href={`/intelligence/conversations?coach=${row.coach.id}`} title="Capture conversation" className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-secondary/50"><MessageSquarePlus className="h-4 w-4" /><span className="sr-only">Capture conversation</span></Link>
-                    <Link href="/network/campaigns" title="Open reference campaigns" className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-secondary/50"><ClipboardList className="h-4 w-4" /><span className="sr-only">Open reference campaigns</span></Link>
+                    <Link href="/network/campaigns" title="Open reference rounds" className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-secondary/50"><ClipboardList className="h-4 w-4" /><span className="sr-only">Open reference rounds</span></Link>
                     <Link href={`/coaches/${row.coach.id}/intelligence`} title="Open coach intelligence" className="inline-flex h-9 w-9 items-center justify-center rounded-lg hover:bg-secondary/50"><ArrowRight className="h-4 w-4" /><span className="sr-only">Open coach intelligence</span></Link>
                   </div>
                 </td>
               </tr>
             ))}
             {!rows.length && (
-              <tr><td colSpan={7} className="px-4 py-14 text-center"><p className="text-sm text-muted-foreground">No coaches are in the corpus pilot pool.</p><Link href="/coaches/bench" className="mt-3 inline-flex items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-surface-raised"><Plus className="mr-2 h-4 w-4" />Nominate a coach</Link></td></tr>
+              <tr><td colSpan={7} className="px-4 py-14 text-center"><p className="text-sm text-muted-foreground">No coaches are in the research programme.</p><Link href="/coaches/bench" className="mt-3 inline-flex items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-surface-raised"><Plus className="mr-2 h-4 w-4" />Nominate a coach</Link></td></tr>
             )}
           </tbody>
         </table>

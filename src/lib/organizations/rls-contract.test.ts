@@ -19,6 +19,10 @@ const trustedIntelligenceMigration = readFileSync(
   resolve('supabase/migrations/20260714174946_trusted_intelligence_vertical.sql'),
   'utf8'
 )
+const archiveAuditMigration = readFileSync(
+  resolve('supabase/migrations/20260715125923_intelligence_item_archive_audit.sql'),
+  'utf8'
+)
 
 test('club invitation schema stores only hashed single-use tokens', () => {
   assert.match(identityMigration, /token_hash text not null unique/)
@@ -56,6 +60,9 @@ test('production RLS suite covers internal leakage, privileged RPCs, and revocat
     'football_contacts', 'contact_coach_relationships', 'intelligence_sessions',
     'claim_relationships', 'reference_campaigns', 'reference_campaign_contacts',
     'trusted_bench_entries', 'appointment_outcomes',
+    'coach_derived_metrics', 'watchlist_coaches', 'coach_similarity',
+    'scoring_models', 'coach_scores', 'coach_recruitment_history',
+    'coach_media_events', 'coach_due_diligence_items', 'evidence_items',
   ]) assert.match(productionRlsSuite, new RegExp(`public\\.${table}`))
   assert.match(productionRlsSuite, /approve_dossier_order/)
   assert.match(productionRlsSuite, /revoke_dossier_access/)
@@ -79,4 +86,13 @@ test('trusted intelligence migration enforces internal roles and immutable promo
   assert.match(trustedIntelligenceMigration, /intelligence_audit_tombstones/)
   assert.match(trustedIntelligenceMigration, /allowed_mime_types/)
   assert.doesNotMatch(trustedIntelligenceMigration, /audio\/(mpeg|mp4|wav)/)
+})
+
+test('legacy intelligence archives preserve an honest audit trail', () => {
+  assert.match(archiveAuditMigration, /archive_recorded_at timestamptz/)
+  assert.match(archiveAuditMigration, /archived_by uuid references auth\.users\(id\)/)
+  assert.match(archiveAuditMigration, /exact archive timestamp unavailable/)
+  assert.match(archiveAuditMigration, /before insert or update of is_deleted/)
+  assert.match(productionRlsSuite, /Second internal organisation leaked/)
+  assert.match(productionRlsSuite, /Archive transition without metadata was accepted/)
 })

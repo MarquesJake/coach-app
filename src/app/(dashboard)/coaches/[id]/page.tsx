@@ -456,7 +456,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
               </p>
               <h2 className="mt-1 text-base font-semibold text-foreground">What our network says has changed</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Agent calls, references and analyst notes become reviewable profile claims before they influence a pack.
+                Agent calls, references and analyst notes become reviewable findings before they influence a pack.
               </p>
             </div>
             <div className="text-right text-2xs text-muted-foreground">
@@ -466,7 +466,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
           </div>
           {profileClaims.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
-              No profile claims captured yet. Log agent conversations or references to build private intelligence over time.
+              No findings captured yet. Log agent conversations or references to build private intelligence over time.
             </div>
           ) : (
             <div className="space-y-2">

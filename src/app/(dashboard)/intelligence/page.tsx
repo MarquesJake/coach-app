@@ -177,9 +177,9 @@ export default async function IntelligencePage() {
 
       <section className="grid border border-border bg-card sm:grid-cols-2 xl:grid-cols-4">
         <WorkCard icon={Inbox} eyebrow="Intake" value={inboxCount} label="items to triage" detail="Raw material stays outside recommendations until reviewed." href="/intelligence/inbox" />
-        <WorkCard icon={MessageSquarePlus} eyebrow="Conversations" value={openSessions} label="sessions in review" detail="Turn notes or transcripts into narrow, reviewable claims." href="/intelligence/conversations" />
-        <WorkCard icon={ClipboardCheck} eyebrow="Claims" value={pendingClaims} label="claims awaiting sign-off" detail="Only accepted claims strengthen a profile or assessment." href="/intelligence/review" />
-        <WorkCard icon={Clock3} eyebrow="Network" value={overdueFollowUps} label="overdue follow-ups" detail={nextCampaign ?? `${activeCampaigns} active reference campaign${activeCampaigns === 1 ? '' : 's'}.`} href="/network/campaigns" />
+        <WorkCard icon={MessageSquarePlus} eyebrow="Conversations" value={openSessions} label="sessions in review" detail="Turn notes or transcripts into narrow, reviewable findings." href="/intelligence/conversations" />
+        <WorkCard icon={ClipboardCheck} eyebrow="Findings" value={pendingClaims} label="findings awaiting sign-off" detail="Only reviewed findings strengthen a profile or assessment." href="/intelligence/review" />
+        <WorkCard icon={Clock3} eyebrow="Network" value={overdueFollowUps} label="overdue follow-ups" detail={nextCampaign ?? `${activeCampaigns} active reference round${activeCampaigns === 1 ? '' : 's'}.`} href="/network/campaigns" />
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -233,7 +233,7 @@ export default async function IntelligencePage() {
           <section className="border border-border bg-card p-5">
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Evidence rule</p></div>
             <p className="mt-3 text-sm font-semibold leading-6 text-foreground">A signal is not a recommendation.</p>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">Raw notes are captured first. An analyst reviews claims, records confidence and provenance, then explicitly promotes approved evidence into a mandate.</p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Raw notes are captured first. An analyst reviews findings, records confidence and provenance, then explicitly uses approved evidence in a mandate.</p>
           </section>
           <section className="border border-border bg-card p-5">
             <div className="flex items-center gap-2"><Network className="h-4 w-4 text-primary" /><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Next network move</p></div>

@@ -488,7 +488,7 @@ export default async function DashboardPage() {
           <div className="mt-4 grid gap-2 md:grid-cols-4">
             {[
               { label: 'Raw football intelligence', value: openInboxCount, href: '/intelligence/inbox', icon: Radio, detail: 'Calls, transcripts, uploads, media' },
-              { label: 'Profile claims', value: profileClaimsCount, href: '/intelligence/inbox?destination=profile_claim', icon: ShieldCheck, detail: 'Contract, staff, family, risk' },
+              { label: 'Findings', value: profileClaimsCount, href: '/intelligence/inbox?destination=profile_claim', icon: ShieldCheck, detail: 'Contract, staff, family, risk' },
               { label: 'Assessment evidence', value: assessmentEvidenceCount, href: '/intelligence', icon: FileText, detail: '9-criteria methodology proof' },
               { label: 'Confidential material', value: privateMaterialsCount, href: '/coach-portal', icon: LockKeyhole, detail: 'Coach uploads and data-room assets' },
             ].map(({ label, value, href, icon: Icon, detail }) => (

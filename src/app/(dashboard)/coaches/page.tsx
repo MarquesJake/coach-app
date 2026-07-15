@@ -307,7 +307,7 @@ export default function CoachesPage() {
 
   return (
     <div>
-      <h1 className="text-lg font-medium text-foreground mb-4">Coach Inventory</h1>
+      <h1 className="text-lg font-medium text-foreground mb-4">All coaches</h1>
       <details className="mb-4 rounded-lg border border-border/70 bg-card/70">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
           <div>
