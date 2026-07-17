@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/theme-toggle'
 
 const primaryNav = [
-  { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Today', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Succession', href: '/succession', icon: Activity },
   { label: 'Mandates', href: '/mandates', icon: Briefcase },
   { label: 'Coaches', href: '/coaches', icon: Users },
