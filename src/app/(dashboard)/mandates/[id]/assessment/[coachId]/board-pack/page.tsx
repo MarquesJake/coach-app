@@ -16,6 +16,7 @@ import {
   formatEnumLabel,
   stakeholderGroupLabel,
 } from '@/lib/intelligence/display'
+import { canStaffMemberAppearInPack } from '@/lib/coach-appointment'
 
 // Board-ready Head Coach Assessment Pack: structured HTML print view.
 // Section order mirrors the club-leadership assessment deck format.
@@ -78,7 +79,7 @@ export default async function BoardPackPage({
 
   const { data: coach } = await supabase
     .from('coaches')
-    .select('id, name, club_current, nationality, date_of_birth, languages, coaching_licence, agent_name, agent_contact, wage_expectation, compensation_expectation, staff_cost_estimate, contract_expiry, release_clause, contract_notes, availability_status, market_status, tactical_identity, preferred_style, family_context, relocation_flexibility, due_diligence_summary, compliance_notes')
+    .select('id, name, club_current, nationality, date_of_birth, languages, coaching_licence, agent_name, agent_contact, current_salary, wage_expectation, compensation_expectation, staff_cost_estimate, contract_expiry, release_clause, contract_notes, availability_status, availability_timeline, appointment_conditions, market_status, tactical_identity, preferred_style, family_context, relocation_flexibility, feasibility_reviewed_at, due_diligence_summary, compliance_notes')
     .eq('id', coachId)
     .eq('user_id', user.id)
     .single()
@@ -91,6 +92,7 @@ export default async function BoardPackPage({
     privateMaterials,
     accessRequests,
     portalProfile,
+    portalStaff,
     profileClaims,
     stints,
     tacticalReports,
@@ -131,10 +133,16 @@ export default async function BoardPackPage({
         .limit(5),
       supabase
         .from('coach_portal_profiles')
-        .select('portal_status, visibility_status, football_identity, training_week, session_design_principles, staff_network, key_staff_likely_to_follow, reference_permissions, sensitive_notes')
+        .select('portal_status, visibility_status, circumstances_visibility, feasibility_review_status, football_identity, training_week, session_design_principles, staff_network, key_staff_likely_to_follow, reference_permissions')
         .eq('coach_id', coachId)
         .eq('user_id', user.id)
         .maybeSingle(),
+      supabase
+        .from('coach_portal_staff_members')
+        .select('id, full_name, role_title, current_club, essentiality, likely_to_follow, availability, expected_salary, compensation_terms, confidentiality_status, review_status')
+        .eq('coach_id', coachId)
+        .eq('user_id', user.id)
+        .order('created_at'),
       (supabase as any)
         .from('profile_claims')
         .select('id, claim_type, profile_field, claimed_value, evidence_summary, source_type, source_tier, confidence, sensitivity, verification_status, review_status, occurred_at, used_in_recommendation, statement_type, fact_check_status, external_visibility')
@@ -201,7 +209,10 @@ export default async function BoardPackPage({
   const materialRows = privateMaterials.data ?? []
   const requestRows = accessRequests.data ?? []
   const claimRows = (profileClaims.data ?? []) as Array<Record<string, any>>
+  const shareableStaffRows = (portalStaff.data ?? []).filter(canStaffMemberAppearInPack)
   const latestAccessRequest = requestRows[0]
+  const portalCanBeShared = portalProfile.data?.portal_status === 'approved'
+    && ['clubs_on_request', 'shareable'].includes(portalProfile.data.visibility_status)
 
   return (
     <div id="board-pack-root" className="max-w-[860px] mx-auto pb-16 print:max-w-none print:pb-0">
@@ -346,10 +357,12 @@ export default async function BoardPackPage({
           {[
             { label: 'Contract expiry', value: formatDate(coach.contract_expiry) },
             { label: 'Release / compensation clause', value: display(coach.release_clause) },
-            { label: 'Wage expectation', value: display(coach.wage_expectation) },
-            { label: 'Compensation expectation', value: display(coach.compensation_expectation) },
+            { label: 'Current / last salary', value: display(coach.current_salary) },
+            { label: 'Expected salary', value: display(coach.wage_expectation) },
+            { label: 'Estimated club compensation', value: display(coach.compensation_expectation) },
             { label: 'Staff cost estimate', value: display(coach.staff_cost_estimate) },
             { label: 'Agent contact', value: display(coach.agent_contact) },
+            { label: 'Availability timeline', value: display(coach.availability_timeline) },
             { label: 'Family situation', value: display(coach.family_context) },
             { label: 'Relocation', value: display(coach.relocation_flexibility) },
           ].map((item) => (
@@ -373,6 +386,49 @@ export default async function BoardPackPage({
             ))}
           </div>
         )}
+        {coach.appointment_conditions && (
+          <div className="mt-4 border-l-2 border-emerald-500/50 pl-3">
+            <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
+              Appointment conditions and practical obstacles
+            </p>
+            <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">
+              {coach.appointment_conditions}
+            </p>
+          </div>
+        )}
+        {shareableStaffRows.length > 0 && (
+          <div className="mt-5">
+            <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
+              Verified proposed staff package
+            </p>
+            <div className="mt-2 divide-y divide-border border-y border-border">
+              {shareableStaffRows.map((member) => (
+                <div key={member.id} className="grid grid-cols-[1.15fr_0.85fr_1fr] gap-4 py-2 text-2xs">
+                  <div>
+                    <p className="font-semibold text-foreground">{member.full_name}</p>
+                    <p className="text-muted-foreground">
+                      {member.role_title}
+                      {member.current_club ? ` · ${member.current_club}` : ''}
+                    </p>
+                  </div>
+                  <p className="text-muted-foreground">
+                    {formatEnumLabel(member.essentiality)}
+                    {` · ${member.likely_to_follow === 'unknown' ? 'Follow status unconfirmed' : `Likely to follow: ${member.likely_to_follow}`}`}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {[member.availability, member.expected_salary, member.compensation_terms].filter(Boolean).join(' · ') || 'Commercial details not released'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <p className="mt-3 text-[10px] text-muted-foreground/75">
+          {coach.feasibility_reviewed_at
+            ? `Appointment feasibility verified ${formatDate(coach.feasibility_reviewed_at)}.`
+            : 'Appointment feasibility review date not recorded.'}
+          {' '}Commercial terms remain indicative until confirmed with the coach, representative and current club.
+        </p>
       </section>
 
       {/* Coach-submitted material */}
@@ -392,21 +448,26 @@ export default async function BoardPackPage({
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          {[
-            { label: 'Football identity', value: portalProfile.data?.football_identity },
-            { label: 'Training week', value: portalProfile.data?.training_week },
-            { label: 'Session design', value: portalProfile.data?.session_design_principles },
-            { label: 'Staff network', value: portalProfile.data?.staff_network ?? portalProfile.data?.key_staff_likely_to_follow },
-            { label: 'Reference permissions', value: portalProfile.data?.reference_permissions },
-            { label: 'Sensitive context', value: portalProfile.data?.sensitive_notes },
-          ].map((item) => (
-            <div key={item.label} className="border-l border-border pl-3">
-              <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
-              <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">{display(item.value)}</p>
-            </div>
-          ))}
-        </div>
+        {portalCanBeShared ? (
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            {[
+              { label: 'Football identity', value: portalProfile.data?.football_identity },
+              { label: 'Training week', value: portalProfile.data?.training_week },
+              { label: 'Session design', value: portalProfile.data?.session_design_principles },
+              { label: 'Staff network', value: portalProfile.data?.staff_network ?? portalProfile.data?.key_staff_likely_to_follow },
+              { label: 'Reference permissions', value: portalProfile.data?.reference_permissions },
+            ].map((item) => (
+              <div key={item.label} className="border-l border-border pl-3">
+                <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
+                <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">{display(item.value)}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-2xs text-muted-foreground">
+            Coach-submitted football detail is held by Coach First but has not been approved for this club-facing pack.
+          </p>
+        )}
       </section>
 
       {/* Source-backed private claims */}

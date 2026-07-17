@@ -163,34 +163,51 @@ export default async function CoachPortalDetailPage({
   const hasMaterialType = (type: string) => materials.some((item) => item.material_type === type)
   const intakeChecklist = [
     {
+      label: 'Career circumstances',
+      done: Boolean(
+        profile?.salary_expectation?.trim()
+        && profile?.availability_timeline?.trim()
+        && profile?.family_situation?.trim()
+        && profile?.relocation_requirements?.trim()
+      ),
+      detail: 'contract, pay, family, relocation and proposed staff',
+      href: `/coach-portal/${coach.id}/circumstances`,
+    },
+    {
       label: 'Football identity',
       done: Boolean(profile?.football_identity?.trim()),
       detail: 'coach-owned game model and appointment fit',
+      href: null,
     },
     {
       label: 'Methodology / presentation',
       done: hasMaterialType('presentation') || hasMaterialType('methodology'),
       detail: 'deck or methodology file a board can understand',
+      href: null,
     },
     {
       label: 'Training proof',
       done: hasMaterialType('training_video') || Boolean(profile?.training_week?.trim()),
       detail: 'how the work looks on the grass',
+      href: null,
     },
     {
       label: 'Match proof',
       done: hasMaterialType('match_video') || hasMaterialType('analysis'),
       detail: 'match plan, adaptation, or analyst evidence',
+      href: null,
     },
     {
       label: 'People network',
       done: Boolean(profile?.staff_network?.trim() || profile?.key_staff_likely_to_follow?.trim()),
       detail: 'staff who may follow and operating model',
+      href: null,
     },
     {
       label: 'Reference permissions',
       done: Boolean(profile?.reference_permissions?.trim()) || hasMaterialType('reference_pack'),
       detail: 'who can be called, and when',
+      href: null,
     },
   ]
 
@@ -206,12 +223,20 @@ export default async function CoachPortalDetailPage({
             {[coach.club_current, coach.nationality, coach.availability_status ?? coach.available_status].filter(Boolean).join(' · ') || 'Coach profile'}
           </p>
         </div>
-        <Link
-          href={`/coaches/${coach.id}`}
-          className="rounded-md border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:border-primary/40 transition-colors"
-        >
-          Internal coach record →
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/coach-portal/${coach.id}/circumstances`}
+            className="rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Career circumstances
+          </Link>
+          <Link
+            href={`/coaches/${coach.id}`}
+            className="rounded-md border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:border-primary/40 transition-colors"
+          >
+            Internal coach record →
+          </Link>
+        </div>
       </div>
 
       <section className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
@@ -258,8 +283,8 @@ export default async function CoachPortalDetailPage({
           )}
         </div>
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {intakeChecklist.map((item) => (
-            <div key={item.label} className="rounded-md border border-border/60 bg-surface/35 p-3">
+          {intakeChecklist.map((item) => {
+            const content = (
               <div className="flex items-start gap-2">
                 <span
                   className={[
@@ -276,8 +301,21 @@ export default async function CoachPortalDetailPage({
                   <p className="mt-1 text-2xs leading-relaxed text-muted-foreground">{item.detail}</p>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+            return item.href ? (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="rounded-md border border-border/60 bg-surface/35 p-3 transition-colors hover:border-primary/35 hover:bg-surface/60"
+              >
+                {content}
+              </Link>
+            ) : (
+              <div key={item.label} className="rounded-md border border-border/60 bg-surface/35 p-3">
+                {content}
+              </div>
+            )
+          })}
         </div>
       </section>
 

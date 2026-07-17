@@ -218,6 +218,8 @@ begin
     (select count(*) from public.candidate_interview_answers) +
     (select count(*) from public.candidate_reference_answers) +
     (select count(*) from public.coach_references) +
+    (select count(*) from public.coach_portal_profiles) +
+    (select count(*) from public.coach_portal_staff_members) +
     (select count(*) from public.profile_claims) +
     (select count(*) from public.mandates) +
     (select count(*) from public.succession_plans) +
@@ -351,6 +353,8 @@ begin
     (select count(*) from public.football_contacts) +
     (select count(*) from public.contact_coach_relationships) +
     (select count(*) from public.intelligence_sessions) +
+    (select count(*) from public.coach_portal_profiles) +
+    (select count(*) from public.coach_portal_staff_members) +
     (select count(*) from public.profile_claims) +
     (select count(*) from public.claim_relationships) +
     (select count(*) from public.reference_campaigns) +

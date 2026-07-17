@@ -15,7 +15,8 @@ type CoachUpdate = Database['public']['Tables']['coaches']['Update']
 
 const COACH_UPDATE_WHITELIST: Set<string> = new Set([
   'preferred_name', 'date_of_birth', 'languages', 'base_location', 'relocation_flexibility', 'family_context',
-  'agent_name', 'agent_contact', 'compensation_expectation', 'contract_expiry', 'release_clause', 'contract_notes', 'availability_status', 'market_status',
+  'agent_name', 'agent_contact', 'current_salary', 'wage_expectation', 'compensation_expectation', 'staff_cost_estimate',
+  'contract_expiry', 'release_clause', 'contract_notes', 'availability_status', 'availability_timeline', 'appointment_conditions', 'market_status',
   'tactical_identity', 'preferred_systems', 'transition_model', 'rest_defence_model', 'set_piece_approach', 'training_methodology',
   'pressing_intensity', 'build_preference', 'recruitment_collaboration', 'staff_management_style', 'player_development_model',
   'academy_integration', 'comms_profile', 'media_style', 'conflict_history', 'leadership_style',

@@ -24,11 +24,16 @@ const OVERVIEW_FIELDS: EditCoachField[] = [
   { key: 'family_context', label: 'Family context', type: 'textarea' },
   { key: 'agent_name', label: 'Agent name', type: 'text' },
   { key: 'agent_contact', label: 'Agent contact', type: 'text' },
-  { key: 'compensation_expectation', label: 'Compensation expectation', type: 'text' },
+  { key: 'current_salary', label: 'Current / last salary', type: 'text', helperText: 'Include currency, gross/net, base, bonus and benefits.' },
+  { key: 'wage_expectation', label: 'Expected salary', type: 'text', helperText: 'Include currency, gross/net, base, bonus and benefits.' },
+  { key: 'compensation_expectation', label: 'Estimated compensation to current club', type: 'text' },
+  { key: 'staff_cost_estimate', label: 'Estimated staff package cost', type: 'text' },
   { key: 'contract_expiry', label: 'Contract expiry', type: 'text', placeholder: 'YYYY-MM-DD' },
   { key: 'release_clause', label: 'Release / compensation clause', type: 'text' },
   { key: 'contract_notes', label: 'Contract context notes', type: 'textarea' },
   { key: 'availability_status', label: 'Availability status', type: 'text' },
+  { key: 'availability_timeline', label: 'Availability / permission timeline', type: 'textarea' },
+  { key: 'appointment_conditions', label: 'Appointment conditions', type: 'textarea' },
   { key: 'market_status', label: 'Market status', type: 'text' },
 ]
 
@@ -55,11 +60,16 @@ export function OverviewSnapshot({ coachId, coach }: { coachId: string; coach: C
     family_context: coach.family_context ?? '',
     agent_name: coach.agent_name ?? '',
     agent_contact: coach.agent_contact ?? '',
+    current_salary: coach.current_salary ?? '',
+    wage_expectation: coach.wage_expectation ?? '',
     compensation_expectation: coach.compensation_expectation ?? '',
+    staff_cost_estimate: coach.staff_cost_estimate ?? '',
     contract_expiry: coach.contract_expiry ?? '',
     release_clause: coach.release_clause ?? '',
     contract_notes: coach.contract_notes ?? '',
     availability_status: coach.availability_status ?? '',
+    availability_timeline: coach.availability_timeline ?? '',
+    appointment_conditions: coach.appointment_conditions ?? '',
     market_status: coach.market_status ?? '',
   }
 
@@ -131,6 +141,7 @@ export function OverviewSnapshot({ coachId, coach }: { coachId: string; coach: C
           </div>
         </div>
       </section>
+      <AppointmentFeasibility coach={coach} coachId={coachId} />
       {/* ── Quick Profile ────────────────────────────────────────────────── */}
       <QuickProfile coach={coach} coachId={coachId} />
 
@@ -138,6 +149,69 @@ export function OverviewSnapshot({ coachId, coach }: { coachId: string; coach: C
         Use the tabs above to view Tactical, Leadership, Career, Staff Network, Data, Risk &amp; Intelligence, and Scoring.
       </p>
     </div>
+  )
+}
+
+function AppointmentFeasibility({ coach, coachId }: { coach: CoachRecord; coachId: string }) {
+  const fields = [
+    ['Current / last salary', coach.current_salary],
+    ['Expected salary', coach.wage_expectation],
+    ['Contract expiry', coach.contract_expiry],
+    ['Club compensation', coach.compensation_expectation],
+    ['Staff package', coach.staff_cost_estimate],
+    ['Availability timeline', coach.availability_timeline],
+  ]
+  const reviewedAt = typeof coach.feasibility_reviewed_at === 'string'
+    ? new Date(coach.feasibility_reviewed_at)
+    : null
+
+  return (
+    <section className="rounded-lg border border-border bg-card p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-lg font-medium text-foreground">Appointment feasibility</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Verified contract, financial, family and staff context used in club assessments.
+          </p>
+        </div>
+        <Link
+          href={`/coach-portal/${coachId}/circumstances`}
+          className="self-start rounded-md border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:border-primary/40"
+        >
+          Review career circumstances
+        </Link>
+      </div>
+      <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+        {fields.map(([label, rawValue]) => {
+          const value = typeof rawValue === 'string' && rawValue.trim() ? rawValue : 'Not verified'
+          return (
+            <div key={String(label)} className="border-t border-border pt-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{String(label)}</p>
+              <p className="mt-1 text-sm font-medium text-foreground">{value}</p>
+            </div>
+          )
+        })}
+      </div>
+      <div className="mt-5 grid grid-cols-1 gap-4 border-t border-border pt-4 md:grid-cols-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Family context</p>
+          <p className="mt-1 text-sm text-foreground">{String(coach.family_context || 'Not verified')}</p>
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Relocation</p>
+          <p className="mt-1 text-sm text-foreground">{String(coach.relocation_flexibility || 'Not verified')}</p>
+        </div>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Appointment conditions</p>
+          <p className="mt-1 text-sm text-foreground">{String(coach.appointment_conditions || 'Not verified')}</p>
+        </div>
+      </div>
+      <p className="mt-4 text-[10px] font-medium text-muted-foreground">
+        {reviewedAt && !Number.isNaN(reviewedAt.getTime())
+          ? `Verified ${reviewedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+          : 'Not yet verified by Coach First'}
+      </p>
+    </section>
   )
 }
 

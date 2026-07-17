@@ -2032,11 +2032,20 @@ export type Database = {
       coach_portal_profiles: {
         Row: {
           academy_integration: string | null
+          appointment_conditions: string | null
           base_location: string | null
+          availability_timeline: string | null
           coach_email: string | null
           coach_id: string
           coach_phone: string | null
+          circumstances_visibility: string
+          contract_expiry: string | null
           created_at: string
+          current_salary: string | null
+          family_situation: string | null
+          feasibility_review_status: string
+          feasibility_reviewed_at: string | null
+          feasibility_reviewed_by: string | null
           football_identity: string | null
           id: string
           in_possession_model: string | null
@@ -2050,14 +2059,18 @@ export type Database = {
           presentation_summary: string | null
           recruitment_preferences: string | null
           reference_permissions: string | null
+          release_compensation: string | null
           release_notes: string | null
+          relocation_requirements: string | null
           representative_email: string | null
           representative_name: string | null
           reviewed_at: string | null
+          salary_expectation: string | null
           sensitive_notes: string | null
           session_design_principles: string | null
           set_piece_model: string | null
           short_bio: string | null
+          staff_cost_expectation: string | null
           staff_network: string | null
           submitted_at: string | null
           training_week: string | null
@@ -2069,11 +2082,20 @@ export type Database = {
         }
         Insert: {
           academy_integration?: string | null
+          appointment_conditions?: string | null
           base_location?: string | null
+          availability_timeline?: string | null
           coach_email?: string | null
           coach_id: string
           coach_phone?: string | null
+          circumstances_visibility?: string
+          contract_expiry?: string | null
           created_at?: string
+          current_salary?: string | null
+          family_situation?: string | null
+          feasibility_review_status?: string
+          feasibility_reviewed_at?: string | null
+          feasibility_reviewed_by?: string | null
           football_identity?: string | null
           id?: string
           in_possession_model?: string | null
@@ -2087,14 +2109,18 @@ export type Database = {
           presentation_summary?: string | null
           recruitment_preferences?: string | null
           reference_permissions?: string | null
+          release_compensation?: string | null
           release_notes?: string | null
+          relocation_requirements?: string | null
           representative_email?: string | null
           representative_name?: string | null
           reviewed_at?: string | null
+          salary_expectation?: string | null
           sensitive_notes?: string | null
           session_design_principles?: string | null
           set_piece_model?: string | null
           short_bio?: string | null
+          staff_cost_expectation?: string | null
           staff_network?: string | null
           submitted_at?: string | null
           training_week?: string | null
@@ -2106,11 +2132,20 @@ export type Database = {
         }
         Update: {
           academy_integration?: string | null
+          appointment_conditions?: string | null
           base_location?: string | null
+          availability_timeline?: string | null
           coach_email?: string | null
           coach_id?: string
           coach_phone?: string | null
+          circumstances_visibility?: string
+          contract_expiry?: string | null
           created_at?: string
+          current_salary?: string | null
+          family_situation?: string | null
+          feasibility_review_status?: string
+          feasibility_reviewed_at?: string | null
+          feasibility_reviewed_by?: string | null
           football_identity?: string | null
           id?: string
           in_possession_model?: string | null
@@ -2124,14 +2159,18 @@ export type Database = {
           presentation_summary?: string | null
           recruitment_preferences?: string | null
           reference_permissions?: string | null
+          release_compensation?: string | null
           release_notes?: string | null
+          relocation_requirements?: string | null
           representative_email?: string | null
           representative_name?: string | null
           reviewed_at?: string | null
+          salary_expectation?: string | null
           sensitive_notes?: string | null
           session_design_principles?: string | null
           set_piece_model?: string | null
           short_bio?: string | null
+          staff_cost_expectation?: string | null
           staff_network?: string | null
           submitted_at?: string | null
           training_week?: string | null
@@ -2146,6 +2185,83 @@ export type Database = {
             foreignKeyName: "coach_portal_profiles_coach_id_fkey"
             columns: ["coach_id"]
             isOneToOne: true
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_portal_staff_members: {
+        Row: {
+          availability: string | null
+          coach_id: string
+          compensation_terms: string | null
+          confidentiality_status: string
+          created_at: string
+          current_club: string | null
+          current_salary: string | null
+          essentiality: string
+          expected_salary: string | null
+          full_name: string
+          id: string
+          likely_to_follow: string
+          relationship_context: string | null
+          relocation_notes: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role_title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability?: string | null
+          coach_id: string
+          compensation_terms?: string | null
+          confidentiality_status?: string
+          created_at?: string
+          current_club?: string | null
+          current_salary?: string | null
+          essentiality?: string
+          expected_salary?: string | null
+          full_name: string
+          id?: string
+          likely_to_follow?: string
+          relationship_context?: string | null
+          relocation_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role_title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability?: string | null
+          coach_id?: string
+          compensation_terms?: string | null
+          confidentiality_status?: string
+          created_at?: string
+          current_club?: string | null
+          current_salary?: string | null
+          essentiality?: string
+          expected_salary?: string | null
+          full_name?: string
+          id?: string
+          likely_to_follow?: string
+          relationship_context?: string | null
+          relocation_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role_title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_portal_staff_members_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
             referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
@@ -2823,6 +2939,8 @@ export type Database = {
           agent_contact: string | null
           agent_name: string | null
           agent_relationship: number | null
+          appointment_conditions: string | null
+          availability_timeline: string | null
           availability_status: string | null
           available_status: string
           base_location: string | null
@@ -2838,6 +2956,7 @@ export type Database = {
           contract_expiry: string | null
           contract_notes: string | null
           created_at: string
+          current_salary: string | null
           cultural_alignment_score: number | null
           cultural_risk: number | null
           date_of_birth: string | null
@@ -2845,6 +2964,8 @@ export type Database = {
           dressing_room_risk_score: number | null
           due_diligence_summary: string | null
           family_context: string | null
+          feasibility_reviewed_at: string | null
+          feasibility_reviewed_by: string | null
           financial_feasibility: number | null
           financial_risk_score: number | null
           id: string
@@ -2898,6 +3019,8 @@ export type Database = {
           agent_contact?: string | null
           agent_name?: string | null
           agent_relationship?: number | null
+          appointment_conditions?: string | null
+          availability_timeline?: string | null
           availability_status?: string | null
           available_status?: string
           base_location?: string | null
@@ -2913,6 +3036,7 @@ export type Database = {
           contract_expiry?: string | null
           contract_notes?: string | null
           created_at?: string
+          current_salary?: string | null
           cultural_alignment_score?: number | null
           cultural_risk?: number | null
           date_of_birth?: string | null
@@ -2920,6 +3044,8 @@ export type Database = {
           dressing_room_risk_score?: number | null
           due_diligence_summary?: string | null
           family_context?: string | null
+          feasibility_reviewed_at?: string | null
+          feasibility_reviewed_by?: string | null
           financial_feasibility?: number | null
           financial_risk_score?: number | null
           id?: string
@@ -2973,6 +3099,8 @@ export type Database = {
           agent_contact?: string | null
           agent_name?: string | null
           agent_relationship?: number | null
+          appointment_conditions?: string | null
+          availability_timeline?: string | null
           availability_status?: string | null
           available_status?: string
           base_location?: string | null
@@ -2988,6 +3116,7 @@ export type Database = {
           contract_expiry?: string | null
           contract_notes?: string | null
           created_at?: string
+          current_salary?: string | null
           cultural_alignment_score?: number | null
           cultural_risk?: number | null
           date_of_birth?: string | null
@@ -2995,6 +3124,8 @@ export type Database = {
           dressing_room_risk_score?: number | null
           due_diligence_summary?: string | null
           family_context?: string | null
+          feasibility_reviewed_at?: string | null
+          feasibility_reviewed_by?: string | null
           financial_feasibility?: number | null
           financial_risk_score?: number | null
           id?: string
@@ -5981,6 +6112,10 @@ export type Database = {
           target_offer_id: string
         }
         Returns: string
+      }
+      verify_coach_career_circumstances: {
+        Args: { p_coach_id: string }
+        Returns: boolean
       }
     }
     Enums: {

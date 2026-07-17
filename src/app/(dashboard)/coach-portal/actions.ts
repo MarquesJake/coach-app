@@ -1,7 +1,15 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import {
+  CIRCUMSTANCES_VISIBILITIES,
+  FEASIBILITY_REVIEW_STATUSES,
+  STAFF_ESSENTIALITY,
+  STAFF_FOLLOW_STATUSES,
+  STAFF_REVIEW_STATUSES,
+} from '@/lib/coach-appointment'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -33,6 +41,13 @@ function enumValue<T extends readonly string[]>(value: string | null, allowed: T
   return allowed.includes(value as T[number]) ? (value as T[number]) : fallback
 }
 
+function dateValue(formData: FormData, key: string): string | null {
+  const value = text(formData, key)
+  if (!value) return null
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10)
+}
+
 async function requireUser() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -51,6 +66,20 @@ async function ownsCoach(
     .eq('user_id', userId)
     .maybeSingle()
   return Boolean(data)
+}
+
+function revalidateCoachWorkspace(coachId: string) {
+  revalidatePath('/coach-portal')
+  revalidatePath(`/coach-portal/${coachId}`)
+  revalidatePath(`/coach-portal/${coachId}/circumstances`)
+  revalidatePath(`/coaches/${coachId}`)
+}
+
+function circumstancesRedirect(coachId: string, result: ActionResult, success: string): never {
+  const params = result.ok
+    ? `saved=${encodeURIComponent(success)}`
+    : `error=${encodeURIComponent(result.error)}`
+  redirect(`/coach-portal/${coachId}/circumstances?${params}`)
 }
 
 export async function saveCoachPortalProfileAction(formData: FormData): Promise<ActionResult> {
@@ -118,6 +147,164 @@ export async function saveCoachPortalProfileAction(formData: FormData): Promise<
 
 export async function saveCoachPortalProfileFormAction(formData: FormData): Promise<void> {
   await saveCoachPortalProfileAction(formData)
+}
+
+export async function saveCoachCareerCircumstancesAction(formData: FormData): Promise<ActionResult> {
+  const { supabase, user } = await requireUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const coachId = text(formData, 'coach_id') ?? ''
+  if (!coachId) return { ok: false, error: 'Missing coach context' }
+  if (!(await ownsCoach(supabase, user.id, coachId))) return { ok: false, error: 'Coach not found' }
+
+  const reviewStatus = enumValue(
+    text(formData, 'feasibility_review_status'),
+    FEASIBILITY_REVIEW_STATUSES,
+    'draft'
+  )
+  const visibility = enumValue(
+    text(formData, 'circumstances_visibility'),
+    CIRCUMSTANCES_VISIBILITIES,
+    'coach_first_only'
+  )
+  const now = new Date().toISOString()
+
+  const { error } = await supabase.from('coach_portal_profiles').upsert({
+    user_id: user.id,
+    coach_id: coachId,
+    feasibility_review_status: reviewStatus === 'verified' ? 'in_review' : reviewStatus,
+    circumstances_visibility: visibility,
+    current_salary: text(formData, 'current_salary'),
+    salary_expectation: text(formData, 'salary_expectation'),
+    contract_expiry: dateValue(formData, 'contract_expiry'),
+    release_compensation: text(formData, 'release_compensation'),
+    availability_timeline: text(formData, 'availability_timeline'),
+    family_situation: text(formData, 'family_situation'),
+    relocation_requirements: text(formData, 'relocation_requirements'),
+    staff_cost_expectation: text(formData, 'staff_cost_expectation'),
+    appointment_conditions: text(formData, 'appointment_conditions'),
+    updated_at: now,
+  }, { onConflict: 'coach_id' })
+
+  if (error) return { ok: false, error: 'Failed to save career circumstances' }
+  revalidateCoachWorkspace(coachId)
+  return { ok: true }
+}
+
+export async function saveCoachCareerCircumstancesFormAction(formData: FormData): Promise<void> {
+  const coachId = text(formData, 'coach_id') ?? ''
+  const result = await saveCoachCareerCircumstancesAction(formData)
+  circumstancesRedirect(coachId, result, 'Career circumstances saved')
+}
+
+export async function saveCoachPortalStaffMemberAction(formData: FormData): Promise<ActionResult> {
+  const { supabase, user } = await requireUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const coachId = text(formData, 'coach_id') ?? ''
+  const staffMemberId = text(formData, 'staff_member_id')
+  const fullName = text(formData, 'full_name')
+  const roleTitle = text(formData, 'role_title')
+  if (!coachId) return { ok: false, error: 'Missing coach context' }
+  if (!fullName || !roleTitle) return { ok: false, error: 'Staff name and role are required' }
+  if (!(await ownsCoach(supabase, user.id, coachId))) return { ok: false, error: 'Coach not found' }
+
+  const reviewStatus = enumValue(text(formData, 'review_status'), STAFF_REVIEW_STATUSES, 'unreviewed')
+  const now = new Date().toISOString()
+  const payload = {
+    user_id: user.id,
+    coach_id: coachId,
+    full_name: fullName,
+    role_title: roleTitle,
+    current_club: text(formData, 'current_club'),
+    relationship_context: text(formData, 'relationship_context'),
+    essentiality: enumValue(text(formData, 'essentiality'), STAFF_ESSENTIALITY, 'preferred'),
+    likely_to_follow: enumValue(text(formData, 'likely_to_follow'), STAFF_FOLLOW_STATUSES, 'unknown'),
+    availability: text(formData, 'availability'),
+    current_salary: text(formData, 'current_salary'),
+    expected_salary: text(formData, 'expected_salary'),
+    compensation_terms: text(formData, 'compensation_terms'),
+    relocation_notes: text(formData, 'relocation_notes'),
+    confidentiality_status: enumValue(
+      text(formData, 'confidentiality_status'),
+      CIRCUMSTANCES_VISIBILITIES,
+      'coach_first_only'
+    ),
+    review_status: reviewStatus,
+    reviewed_at: reviewStatus === 'verified' || reviewStatus === 'disputed' ? now : null,
+    reviewed_by: reviewStatus === 'verified' || reviewStatus === 'disputed' ? user.id : null,
+    updated_at: now,
+  }
+
+  const query = staffMemberId
+    ? supabase
+        .from('coach_portal_staff_members')
+        .update(payload)
+        .eq('id', staffMemberId)
+        .eq('coach_id', coachId)
+        .eq('user_id', user.id)
+    : supabase.from('coach_portal_staff_members').insert(payload)
+  const { error } = await query
+
+  if (error) return { ok: false, error: 'Failed to save staff package member' }
+  revalidateCoachWorkspace(coachId)
+  return { ok: true }
+}
+
+export async function saveCoachPortalStaffMemberFormAction(formData: FormData): Promise<void> {
+  const coachId = text(formData, 'coach_id') ?? ''
+  const result = await saveCoachPortalStaffMemberAction(formData)
+  circumstancesRedirect(coachId, result, 'Staff package updated')
+}
+
+export async function deleteCoachPortalStaffMemberAction(formData: FormData): Promise<ActionResult> {
+  const { supabase, user } = await requireUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const coachId = text(formData, 'coach_id') ?? ''
+  const staffMemberId = text(formData, 'staff_member_id') ?? ''
+  if (!coachId || !staffMemberId) return { ok: false, error: 'Missing staff context' }
+  if (!(await ownsCoach(supabase, user.id, coachId))) return { ok: false, error: 'Coach not found' }
+
+  const { error } = await supabase
+    .from('coach_portal_staff_members')
+    .delete()
+    .eq('id', staffMemberId)
+    .eq('coach_id', coachId)
+    .eq('user_id', user.id)
+
+  if (error) return { ok: false, error: 'Failed to remove staff package member' }
+  revalidateCoachWorkspace(coachId)
+  return { ok: true }
+}
+
+export async function deleteCoachPortalStaffMemberFormAction(formData: FormData): Promise<void> {
+  const coachId = text(formData, 'coach_id') ?? ''
+  const result = await deleteCoachPortalStaffMemberAction(formData)
+  circumstancesRedirect(coachId, result, 'Staff package member removed')
+}
+
+export async function verifyCoachCareerCircumstancesAction(formData: FormData): Promise<ActionResult> {
+  const { supabase, user } = await requireUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const coachId = text(formData, 'coach_id') ?? ''
+  if (!coachId) return { ok: false, error: 'Missing coach context' }
+  if (!(await ownsCoach(supabase, user.id, coachId))) return { ok: false, error: 'Coach not found' }
+
+  const { error } = await supabase.rpc('verify_coach_career_circumstances', {
+    p_coach_id: coachId,
+  })
+  if (error) return { ok: false, error: 'Failed to verify career circumstances' }
+
+  revalidateCoachWorkspace(coachId)
+  return { ok: true }
+}
+
+export async function verifyCoachCareerCircumstancesFormAction(formData: FormData): Promise<void> {
+  const coachId = text(formData, 'coach_id') ?? ''
+  const result = await verifyCoachCareerCircumstancesAction(formData)
+  circumstancesRedirect(coachId, result, 'Verified details now feed the internal record and assessment packs')
 }
 
 export async function addCoachPortalMaterialAction(formData: FormData): Promise<ActionResult> {

@@ -27,23 +27,26 @@ export function SectionShell({
   const showSubnav = subnav.length > 0
 
   const wrapperClass = sticky
-    ? 'sticky top-0 z-20 bg-background border-b border-border pb-0 -mx-6 px-6 pt-0 -mt-6'
+    ? 'sticky top-0 z-20 bg-background border-b border-border pb-0 -mx-4 px-4 pt-0 -mt-5 sm:-mx-6 sm:px-6 sm:-mt-6'
     : 'border-b border-border pb-4'
 
   return (
     <div className={wrapperClass}>
       <div className="flex flex-col gap-3 py-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
+          <div className="min-w-0">
             <h1 className="text-2xl font-semibold text-foreground tracking-tight">{title}</h1>
             {description && (
               <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
             )}
           </div>
-          {actions && <div className="shrink-0">{actions}</div>}
+          {actions && <div className="shrink-0 self-start">{actions}</div>}
         </div>
         {showSubnav && (
-          <nav className="flex items-center gap-0.5 -mb-px" aria-label="Section navigation">
+          <nav
+            className="-mb-px flex max-w-full items-center gap-0.5 overflow-x-auto"
+            aria-label="Section navigation"
+          >
             {subnav.map((item) => {
               const isExactOnly = ['/coaches', '/agents', '/mandates', '/coach-portal', '/intelligence', '/staff', '/clubs', '/matches'].includes(item.href)
               const isActive =
@@ -54,7 +57,7 @@ export function SectionShell({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'px-3 py-2 text-sm font-medium rounded-t-md transition-colors border-b-2',
+                    'shrink-0 px-3 py-2 text-sm font-medium rounded-t-md transition-colors border-b-2',
                     isActive
                       ? 'text-primary border-primary bg-primary/[0.06]'
                       : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/50'
