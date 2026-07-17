@@ -337,24 +337,74 @@ insert into auth.users (
   '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now()
 );
 
-insert into public.organizations (name, slug, organization_type, status, created_by)
-values ('RLS Coach Business', 'rls-coach-business', 'coach_business', 'active', '33333333-3333-4333-8333-333333333333');
-insert into public.organization_memberships (organization_id, user_id, role, status, accepted_at)
-select id, '33333333-3333-4333-8333-333333333333', 'coach', 'active', now()
-from public.organizations where slug = 'rls-coach-business';
+insert into public.coaches (
+  id, user_id, name, preferred_style, pressing_intensity, build_preference,
+  leadership_style, wage_expectation, staff_cost_estimate
+)
+select
+  '44444444-4444-4444-8444-444444444444',
+  membership.user_id,
+  'RLS Coach Profile',
+  'Flexible', 'Context dependent', 'Balanced',
+  'Collaborative', 'Not disclosed', 'Not disclosed'
+from public.organization_memberships membership
+join public.organizations organization on organization.id = membership.organization_id
+where organization.slug = 'coach-first'
+  and membership.status = 'active'
+  and membership.role in ('owner', 'admin')
+limit 1;
+
+select set_config(
+  'request.jwt.claim.sub',
+  (
+    select user_id::text from public.coaches
+    where id = '44444444-4444-4444-8444-444444444444'
+  ),
+  true
+);
+set local role authenticated;
+select public.issue_coach_invitation(
+  '44444444-4444-4444-8444-444444444444',
+  'rls-coach-test@coachfirst.invalid',
+  'coach',
+  repeat('c', 64),
+  now() + interval '7 days'
+);
+reset role;
+
+insert into public.coach_portal_profiles (user_id, coach_id, portal_status)
+select user_id, id, 'in_progress'
+from public.coaches where id = '44444444-4444-4444-8444-444444444444';
+insert into public.coach_private_materials (
+  user_id, coach_id, title, material_type, description, source_label, uploaded_by
+)
+select user_id, id, 'RLS private work', 'methodology', 'Coach-owned test material', 'RLS fixture', 'coach'
+from public.coaches where id = '44444444-4444-4444-8444-444444444444';
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
 select set_config('request.jwt.claims', '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}', true);
+select public.claim_coach_invitation(repeat('c', 64));
+select public.record_coach_first_login();
+select public.record_coach_first_login();
 
 do $$
-declare leaked_rows bigint;
+declare
+  leaked_rows bigint;
+  visible_coaches bigint;
+  visible_profiles bigint;
+  visible_materials bigint;
 begin
+  select count(*) into visible_coaches from public.coaches;
+  select count(*) into visible_profiles from public.coach_portal_profiles;
+  select count(*) into visible_materials from public.coach_private_materials;
+  if visible_coaches <> 1 or visible_profiles <> 1 or visible_materials <> 1 then
+    raise exception 'Coach identity could not read exactly its own profile and submitted material';
+  end if;
   select
     (select count(*) from public.football_contacts) +
     (select count(*) from public.contact_coach_relationships) +
     (select count(*) from public.intelligence_sessions) +
-    (select count(*) from public.coach_portal_profiles) +
     (select count(*) from public.coach_portal_staff_members) +
     (select count(*) from public.profile_claims) +
     (select count(*) from public.claim_relationships) +

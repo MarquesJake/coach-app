@@ -1,223 +1,271 @@
-import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import {
-  ArrowLeft,
+  BriefcaseBusiness,
   CheckCircle2,
   FileText,
   LockKeyhole,
-  PlaySquare,
+  LogOut,
   ShieldCheck,
-  UploadCloud,
-  Users,
 } from 'lucide-react'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { getCoachPortalContext } from '@/lib/organizations/context'
+import { MaterialUploadForm } from './_components/material-upload-form'
+import { saveOwnCoachProfileAction, signOutCoachAction } from './actions'
 
-const sections = [
-  {
-    title: 'Football identity',
-    detail: 'Game model, in-possession principles, out-of-possession behaviours, transition rules and set-piece approach.',
-    status: 'Complete',
-  },
-  {
-    title: 'Training week',
-    detail: 'Typical match-week rhythm, session design, unit work, individual development and load management.',
-    status: 'Needs video',
-  },
-  {
-    title: 'Staff network',
-    detail: 'Assistant coach, analyst, goalkeeper coach, S&C, recruitment preferences and likely staff to follow.',
-    status: 'Draft',
-  },
-  {
-    title: 'References',
-    detail: 'Who Coach First can contact, who should stay confidential, and the right timing for each call.',
-    status: 'Complete',
-  },
-]
+const inputClass =
+  'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 placeholder:text-slate-400 focus:border-emerald-800 focus:outline-none'
+const textAreaClass = `${inputClass} min-h-[108px] resize-y leading-6`
 
-const materials = [
-  {
-    icon: FileText,
-    title: 'Head coach presentation',
-    meta: 'PDF / PowerPoint - visible to Coach First',
-    status: 'Verified',
-  },
-  {
-    icon: PlaySquare,
-    title: 'Training session: build-out under pressure',
-    meta: 'Video link - club access requires approval',
-    status: 'Private',
-  },
-  {
-    icon: FileText,
-    title: 'Game model methodology',
-    meta: 'PDF - pending analyst review',
-    status: 'Review',
-  },
-]
+type PortalProfile = Record<string, string | null>
 
-const requests = [
-  {
-    club: 'QPR head coach process',
-    requester: 'Sporting director request',
-    reason: 'Review training footage and presentation before final interview stage.',
-    status: 'Awaiting approval',
-  },
-]
+function value(profile: PortalProfile | null, key: string) {
+  return profile?.[key] ?? ''
+}
 
-function StatusPill({ status }: { status: string }) {
-  const tone = status === 'Verified' || status === 'Complete'
-    ? 'border-emerald-700/25 bg-emerald-50 text-emerald-800'
-    : status === 'Private' || status === 'Awaiting approval'
-      ? 'border-slate-300 bg-slate-100 text-slate-700'
-      : 'border-amber-500/30 bg-amber-50 text-amber-800'
-
+function Field({ profile, name, label, type = 'text', placeholder }: {
+  profile: PortalProfile | null
+  name: string
+  label: string
+  type?: string
+  placeholder?: string
+}) {
   return (
-    <span className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${tone}`}>
-      {status}
-    </span>
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-semibold text-slate-700">{label}</span>
+      <input name={name} type={type} defaultValue={value(profile, name)} placeholder={placeholder} className={inputClass} />
+    </label>
   )
 }
 
-export default function CoachProfilePreviewPage() {
+function TextArea({ profile, name, label, placeholder }: {
+  profile: PortalProfile | null
+  name: string
+  label: string
+  placeholder?: string
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-semibold text-slate-700">{label}</span>
+      <textarea name={name} defaultValue={value(profile, name)} placeholder={placeholder} className={textAreaClass} />
+    </label>
+  )
+}
+
+export default async function CoachProfilePage({
+  searchParams,
+}: {
+  searchParams: { saved?: string; error?: string }
+}) {
+  const supabase = createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/coach/login')
+  const context = await getCoachPortalContext()
+  if (!context) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f6f4ef] px-6">
+        <div className="max-w-md rounded-md border border-slate-200 bg-white p-6 text-slate-950">
+          <LockKeyhole className="h-6 w-6 text-slate-500" />
+          <h1 className="mt-4 text-lg font-semibold">Coach access is not active</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            This account is signed in but is not linked to an active coach invitation.
+            Ask Coach First to check the email and access status.
+          </p>
+          <form action={signOutCoachAction}>
+            <button className="mt-5 inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold">
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </button>
+          </form>
+        </div>
+      </main>
+    )
+  }
+
+  const [{ data: coach }, { data: profileData }, { data: materialsData }] = await Promise.all([
+    supabase.from('coaches').select('id, name, club_current, nationality, role_current').eq('id', context.coachId).single(),
+    supabase.from('coach_portal_profiles').select('*').eq('coach_id', context.coachId).maybeSingle(),
+    supabase.from('coach_private_materials').select('id, title, material_type, verification_status, created_at, storage_path, external_url').eq('coach_id', context.coachId).order('created_at', { ascending: false }),
+  ])
+  if (!coach) redirect('/coach/login')
+  const profile = profileData as PortalProfile | null
+  const materials = materialsData ?? []
+  const status = profile?.portal_status ?? 'invited'
+  const completionFields = [
+    'short_bio', 'football_identity', 'in_possession_model', 'out_of_possession_model',
+    'training_week', 'player_development_proof', 'staff_network', 'reference_permissions',
+    'salary_expectation', 'availability_timeline', 'family_situation', 'relocation_requirements',
+  ]
+  const completed = completionFields.filter((field) => value(profile, field).trim()).length
+  const readiness = Math.min(100, Math.round(((completed + Math.min(3, materials.length)) / 15) * 100))
+
   return (
     <main className="min-h-screen bg-[#f6f4ef] text-slate-950">
-      <header className="border-b border-slate-200 bg-white/80">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <div>
-            <Link href="/coach/login" className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-900">
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Coach access
-            </Link>
-            <h1 className="mt-1 font-serif text-2xl font-semibold">Brian Barry-Murphy</h1>
+            <p className="text-xs font-semibold text-emerald-900">COACH FIRST · PRIVATE COACH PROFILE</p>
+            <h1 className="mt-1 font-serif text-2xl font-semibold">{coach.name}</h1>
+            <p className="mt-1 text-xs text-slate-500">
+              {[coach.club_current, coach.role_current, coach.nationality].filter(Boolean).join(' · ')}
+            </p>
           </div>
-          <div className="flex items-center gap-2 rounded-md border border-emerald-900/15 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-900">
-            <ShieldCheck className="h-4 w-4" />
-            Coach First verified profile
-          </div>
+          <form action={signOutCoachAction}>
+            <button title="Sign out" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:text-slate-950">
+              <LogOut className="h-4 w-4" />
+            </button>
+          </form>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="space-y-4">
           <section className="rounded-md border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Profile readiness</p>
-            <p className="mt-2 text-4xl font-semibold tabular-nums">82%</p>
+            <p className="text-xs font-semibold text-slate-600">Profile readiness</p>
+            <div className="mt-3 flex items-end justify-between">
+              <p className="text-3xl font-semibold tabular-nums">{readiness}%</p>
+              <span className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] capitalize text-slate-600">
+                {status.replaceAll('_', ' ')}
+              </span>
+            </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full w-[82%] rounded-full bg-emerald-800" />
+              <div className="h-full rounded-full bg-emerald-800" style={{ width: `${readiness}%` }} />
             </div>
             <p className="mt-3 text-xs leading-5 text-slate-500">
-              Strong enough for Coach First review. Add match analysis and one more training video before club release.
+              Readiness reflects depth, not approval. Coach First reviews every declaration and file separately.
             </p>
           </section>
-
           <section className="rounded-md border border-slate-200 bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Release control</p>
-            <div className="mt-3 space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span>Coach First</span>
-                <CheckCircle2 className="h-4 w-4 text-emerald-700" />
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Clubs on request</span>
-                <LockKeyhole className="h-4 w-4 text-slate-500" />
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Public profile</span>
-                <LockKeyhole className="h-4 w-4 text-slate-500" />
-              </div>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-800" />
+              <p className="text-xs font-semibold text-slate-700">Clear separation</p>
             </div>
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              You can see your own submissions. Independent references, source identities,
+              assessment scoring and club recommendations remain private to Coach First.
+            </p>
           </section>
         </aside>
 
-        <div className="space-y-6">
-          <section className="rounded-md border border-slate-200 bg-white p-5">
-            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-800">
-                  Coach-owned profile
-                </p>
-                <h2 className="mt-2 text-xl font-semibold">Keep the football detail current</h2>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                  This is the coach-side version of the profile. The coach supplies the material;
-                  Coach First verifies it, challenges it and decides what enters a club assessment.
-                </p>
+        <div className="space-y-5">
+          {searchParams.saved && (
+            <p className="rounded-md border border-emerald-700/20 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+              {searchParams.saved}
+            </p>
+          )}
+          {searchParams.error && (
+            <p className="rounded-md border border-red-700/20 bg-red-50 px-4 py-3 text-sm text-red-900">
+              {searchParams.error}
+            </p>
+          )}
+
+          <form action={saveOwnCoachProfileAction} className="space-y-5">
+            <section className="rounded-md border border-slate-200 bg-white p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase text-emerald-800">Coach-owned information</p>
+                  <h2 className="mt-1 text-lg font-semibold">Identity and contact</h2>
+                </div>
+                <BriefcaseBusiness className="h-5 w-5 text-slate-400" />
               </div>
-              <button className="inline-flex items-center justify-center gap-2 rounded-md bg-emerald-900 px-3 py-2 text-sm font-semibold text-white">
-                <UploadCloud className="h-4 w-4" />
-                Upload material
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <Field profile={profile} name="coach_email" label="Coach email" type="email" />
+                <Field profile={profile} name="coach_phone" label="Coach phone" />
+                <Field profile={profile} name="representative_name" label="Representative" />
+                <Field profile={profile} name="representative_email" label="Representative email" type="email" />
+                <Field profile={profile} name="base_location" label="Current base" />
+                <Field profile={profile} name="preferred_contact_method" label="Preferred contact method" />
+                <div className="sm:col-span-2"><TextArea profile={profile} name="short_bio" label="Career summary" placeholder="A concise, factual coaching overview." /></div>
+                <div className="sm:col-span-2"><TextArea profile={profile} name="personal_statement" label="What you want a club to understand" placeholder="The appointment context in which you do your best work." /></div>
+              </div>
+            </section>
+
+            <section className="rounded-md border border-slate-200 bg-white p-5">
+              <h2 className="text-lg font-semibold">Football identity</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                Describe the work in football language. Use examples, trade-offs and adaptations rather than slogans.
+              </p>
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <TextArea profile={profile} name="football_identity" label="Overall game model" />
+                <TextArea profile={profile} name="in_possession_model" label="In possession" />
+                <TextArea profile={profile} name="out_of_possession_model" label="Out of possession" />
+                <TextArea profile={profile} name="transition_model" label="Transitions" />
+                <TextArea profile={profile} name="set_piece_model" label="Set pieces" />
+                <TextArea profile={profile} name="media_and_communication" label="Media and communication" />
+              </div>
+            </section>
+
+            <section className="rounded-md border border-slate-200 bg-white p-5">
+              <h2 className="text-lg font-semibold">How you work</h2>
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <TextArea profile={profile} name="training_week" label="Typical training week" />
+                <TextArea profile={profile} name="session_design_principles" label="Session design principles" />
+                <TextArea profile={profile} name="player_development_proof" label="Player-development evidence" />
+                <TextArea profile={profile} name="academy_integration" label="Academy integration" />
+                <TextArea profile={profile} name="recruitment_preferences" label="Recruitment and squad-building preferences" />
+                <TextArea profile={profile} name="reference_permissions" label="Reference permissions" placeholder="Who Coach First may contact, when, and any confidentiality considerations." />
+              </div>
+            </section>
+
+            <section className="rounded-md border border-slate-200 bg-white p-5">
+              <h2 className="text-lg font-semibold">Appointment circumstances</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                These are private declarations for Coach First review. They are not automatically shown to a club.
+              </p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <Field profile={profile} name="current_salary" label="Current / most recent salary" />
+                <Field profile={profile} name="salary_expectation" label="Expected package" />
+                <Field profile={profile} name="contract_expiry" label="Contract expiry" type="date" />
+                <Field profile={profile} name="release_compensation" label="Estimated release compensation" />
+                <Field profile={profile} name="availability_timeline" label="Availability / notice period" />
+                <Field profile={profile} name="staff_cost_expectation" label="Expected staff-package cost" />
+                <div className="sm:col-span-2"><TextArea profile={profile} name="family_situation" label="Family and personal context" /></div>
+                <div className="sm:col-span-2"><TextArea profile={profile} name="relocation_requirements" label="Relocation requirements" /></div>
+                <div className="sm:col-span-2"><TextArea profile={profile} name="staff_network" label="Preferred staff structure" /></div>
+                <div className="sm:col-span-2"><TextArea profile={profile} name="key_staff_likely_to_follow" label="Staff likely to follow" /></div>
+                <div className="sm:col-span-2"><TextArea profile={profile} name="appointment_conditions" label="Non-negotiables and appointment conditions" /></div>
+              </div>
+            </section>
+
+            <div className="sticky bottom-4 flex flex-wrap justify-end gap-2 rounded-md border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur">
+              <button name="intent" value="save" className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+                Save private progress
+              </button>
+              <button name="intent" value="submit" className="inline-flex items-center gap-2 rounded-md bg-emerald-950 px-4 py-2 text-sm font-semibold text-white">
+                <CheckCircle2 className="h-4 w-4" />
+                Submit for Coach First review
               </button>
             </div>
-          </section>
-
-          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {sections.map((section) => (
-              <div key={section.title} className="rounded-md border border-slate-200 bg-white p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-sm font-semibold">{section.title}</h3>
-                  <StatusPill status={section.status} />
-                </div>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{section.detail}</p>
-                <button className="mt-4 text-xs font-semibold text-emerald-800 hover:text-emerald-950">
-                  Edit section
-                </button>
-              </div>
-            ))}
-          </section>
-
-          <section className="rounded-md border border-slate-200 bg-white p-5">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-sm font-semibold">Private material library</h2>
-                <p className="mt-1 text-xs text-slate-500">
-                  Presentations, methodology, training sessions, match clips and reference packs.
-                </p>
-              </div>
-              <StatusPill status="Controlled access" />
-            </div>
-            <div className="mt-4 divide-y divide-slate-100">
-              {materials.map((item) => {
-                const Icon = item.icon
-                return (
-                  <div key={item.title} className="flex items-start justify-between gap-4 py-3">
-                    <div className="flex min-w-0 gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-700">
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium">{item.title}</p>
-                        <p className="mt-0.5 text-xs text-slate-500">{item.meta}</p>
-                      </div>
-                    </div>
-                    <StatusPill status={item.status} />
-                  </div>
-                )
-              })}
-            </div>
-          </section>
+          </form>
 
           <section className="rounded-md border border-slate-200 bg-white p-5">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-emerald-800" />
-              <h2 className="text-sm font-semibold">Club access requests</h2>
+              <FileText className="h-5 w-5 text-emerald-800" />
+              <div>
+                <h2 className="text-lg font-semibold">Private football material</h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Presentations, methodology, training sessions, match analysis and communication samples.
+                </p>
+              </div>
             </div>
-            <div className="mt-4 space-y-3">
-              {requests.map((request) => (
-                <div key={request.club} className="rounded-md border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold">{request.club}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{request.requester}</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-600">{request.reason}</p>
-                    </div>
-                    <StatusPill status={request.status} />
+            <div className="mt-5"><MaterialUploadForm coachId={context.coachId} /></div>
+            <div className="mt-5 divide-y divide-slate-100 border-t border-slate-200">
+              {materials.length === 0 ? (
+                <p className="py-6 text-sm text-slate-500">No private material submitted yet.</p>
+              ) : materials.map((material) => (
+                <div key={material.id} className="flex items-start justify-between gap-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium">{material.title}</p>
+                    <p className="mt-1 text-xs capitalize text-slate-500">
+                      {material.material_type.replaceAll('_', ' ')} · submitted {new Date(material.created_at).toLocaleDateString('en-GB')}
+                    </p>
                   </div>
-                  <div className="mt-4 flex gap-2">
-                    <button className="rounded-md bg-emerald-900 px-3 py-1.5 text-xs font-semibold text-white">
-                      Approve selected files
-                    </button>
-                    <button className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">
-                      Ask Coach First first
-                    </button>
-                  </div>
+                  <span className={`rounded border px-2 py-1 text-[11px] capitalize ${
+                    material.verification_status === 'verified'
+                      ? 'border-emerald-700/20 bg-emerald-50 text-emerald-900'
+                      : 'border-amber-700/20 bg-amber-50 text-amber-900'
+                  }`}>
+                    {material.verification_status === 'verified' ? 'Coach First reviewed' : 'Awaiting review'}
+                  </span>
                 </div>
               ))}
             </div>

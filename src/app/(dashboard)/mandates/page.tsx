@@ -9,7 +9,6 @@ import { RealtimeMandatesListSubscriber } from './_components/realtime-mandates-
 import { getMandatesForUser, getMandateBoardSignals } from '@/lib/db/mandate'
 import type { BoardSignal } from '@/lib/db/mandate'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { createDemoMandateAction } from './actions'
 import { displayClubName } from '@/lib/display-names'
 
 type MandatesForUserRow = NonNullable<Awaited<ReturnType<typeof getMandatesForUser>>['data']>[number]
@@ -98,16 +97,6 @@ export default async function MandatesPage() {
             actionLabel="Add mandate"
             actionHref="/mandates/new"
           />
-          {process.env.NODE_ENV !== 'production' && (
-            <form action={createDemoMandateAction}>
-              <button
-                type="submit"
-                className="inline-flex items-center gap-2 px-3 h-9 bg-surface border border-border rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-surface-overlay/30 transition-colors"
-              >
-                Create demo mandate
-              </button>
-            </form>
-          )}
         </div>
       ) : (
         <div className="flex-1 min-h-0 flex flex-col">

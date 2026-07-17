@@ -8,8 +8,8 @@ const TABS = [
   { label: 'Overview', href: '' },
   { label: 'Coaches', href: '/coaches' },
   { label: 'Clubs', href: '/clubs' },
-  { label: 'Interactions', href: '/interactions' },
-  { label: 'Deals', href: '/deals' },
+  { label: 'Conversations', href: '/interactions' },
+  { label: 'Placements', href: '/deals' },
 ] as const
 
 export function AgentTabNav({ agentId }: { agentId: string }) {

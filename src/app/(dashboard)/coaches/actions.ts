@@ -108,7 +108,7 @@ export async function createCoachAction(formData: FormData) {
 
 /** Stint and intelligence counts per coach for completeness. */
 export async function getCoachStintAndIntelCountsAction(): Promise<
-  Record<string, { stintCount: number; intelligenceCount: number }>
+  Record<string, { stintCount: number; intelligenceCount: number; researchCount: number }>
 > {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -116,17 +116,29 @@ export async function getCoachStintAndIntelCountsAction(): Promise<
   const { data: coaches } = await supabase.from('coaches').select('id').eq('user_id', user.id)
   const ids = (coaches ?? []).map((c) => c.id)
   if (ids.length === 0) return {}
-  const out: Record<string, { stintCount: number; intelligenceCount: number }> = {}
-  ids.forEach((id) => { out[id] = { stintCount: 0, intelligenceCount: 0 } })
-  const [stintsRes, intelRes] = await Promise.all([
+  const out: Record<string, { stintCount: number; intelligenceCount: number; researchCount: number }> = {}
+  ids.forEach((id) => { out[id] = { stintCount: 0, intelligenceCount: 0, researchCount: 0 } })
+  const [stintsRes, intelRes, assessmentsRes, findingsRes, materialsRes] = await Promise.all([
     supabase.from('coach_stints').select('coach_id').in('coach_id', ids),
     supabase.from('intelligence_items').select('entity_id').eq('entity_type', 'coach').in('entity_id', ids),
+    supabase.from('candidate_assessments').select('coach_id').in('coach_id', ids),
+    supabase.from('profile_claims').select('coach_id').in('coach_id', ids).in('review_status', ['accepted', 'applied']),
+    supabase.from('coach_private_materials').select('coach_id').in('coach_id', ids),
   ])
   ;(stintsRes.data ?? []).forEach((r: { coach_id: string }) => {
     if (out[r.coach_id]) out[r.coach_id].stintCount++
   })
   ;(intelRes.data ?? []).forEach((r: { entity_id: string }) => {
     if (out[r.entity_id]) out[r.entity_id].intelligenceCount++
+  })
+  ;(assessmentsRes.data ?? []).forEach((r: { coach_id: string }) => {
+    if (out[r.coach_id]) out[r.coach_id].researchCount++
+  })
+  ;(findingsRes.data ?? []).forEach((r: { coach_id: string | null }) => {
+    if (r.coach_id && out[r.coach_id]) out[r.coach_id].researchCount++
+  })
+  ;(materialsRes.data ?? []).forEach((r: { coach_id: string }) => {
+    if (out[r.coach_id]) out[r.coach_id].researchCount++
   })
   return out
 }

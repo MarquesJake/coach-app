@@ -9,10 +9,8 @@ import { ThemeToggle } from '@/components/theme-toggle'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -20,32 +18,15 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    setMessage(null)
-
-    if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-      if (error) {
-        setError(error.message)
-      } else {
-        setMessage('Check your email for a confirmation link.')
-      }
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (error) {
+      setError(error.message)
     } else {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) {
-        setError(error.message)
-      } else {
-        router.push('/dashboard')
-        router.refresh()
-      }
+      router.push('/dashboard')
+      router.refresh()
     }
 
     setLoading(false)
@@ -61,13 +42,13 @@ export default function LoginPage() {
             <Zap className="h-6 w-6 text-primary" />
           </div>
           <h1 className="text-2xl font-semibold text-foreground">Coach First</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Intelligence OS</p>
+          <p className="mt-1 text-sm text-muted-foreground">Internal team access</p>
         </div>
 
         {/* Card */}
         <div className="rounded-lg border border-border bg-card p-8 shadow-[var(--shadow-md)]">
           <h2 className="mb-6 text-xl font-semibold text-foreground">
-            {isSignUp ? 'Create your account' : 'Sign in to your account'}
+            Sign in
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,7 +63,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full rounded-md border border-input bg-surface-raised px-4 py-2.5 text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder="you@club.com"
+                placeholder="name@coachfirst.com"
               />
             </div>
 
@@ -108,12 +89,6 @@ export default function LoginPage() {
               </div>
             )}
 
-            {message && (
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-sm">
-                {message}
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
@@ -124,23 +99,14 @@ export default function LoginPage() {
                   <LoaderCircle className="h-4 w-4 animate-spin" />
                   Processing...
                 </span>
-              ) : isSignUp ? 'Create Account' : 'Sign In'}
+              ) : 'Sign In'}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp)
-                setError(null)
-                setMessage(null)
-              }}
-              className="text-sm text-muted-foreground transition-colors hover:text-primary"
-            >
-              {isSignUp
-                ? 'Already have an account? Sign in'
-                : "Don't have an account? Sign up"}
-            </button>
+          <div className="mt-6 border-t border-border pt-5 text-center">
+            <p className="text-xs leading-5 text-muted-foreground">
+              Club and coach accounts use their private invitation and dedicated sign-in page.
+            </p>
           </div>
         </div>
       </div>

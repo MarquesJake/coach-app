@@ -21,9 +21,7 @@ import {
   deleteInteraction,
 } from '@/lib/db/agentInteractions'
 import {
-  CLAIM_REVIEW_STATUSES,
   CLAIM_SENSITIVITIES,
-  CLAIM_VERIFICATION_STATUSES,
   PROFILE_CLAIM_TYPES,
   isClaimProfileField,
 } from '@/lib/profile-claims'
@@ -51,20 +49,25 @@ async function requireUser() {
 
 export async function createAgentAction(formData: FormData): Promise<Result> {
   try {
-    const { user } = await requireUser()
+    const { supabase, user } = await requireUser()
     const full_name = (formData.get('full_name') as string)?.trim()
     if (!full_name) return { ok: false, error: 'Name is required' }
     const agency_name = (formData.get('agency_name') as string)?.trim() || null
     const base_location = (formData.get('base_location') as string)?.trim() || null
     const marketsStr = (formData.get('markets') as string)?.trim()
-    const markets = marketsStr ? marketsStr.split(/[\s,]+/).filter(Boolean) : []
+    const markets = marketsStr ? marketsStr.split(',').map((value) => value.trim()).filter(Boolean) : []
     const languagesStr = (formData.get('languages') as string)?.trim()
-    const languages = languagesStr ? languagesStr.split(/[\s,]+/).filter(Boolean) : []
+    const languages = languagesStr ? languagesStr.split(',').map((value) => value.trim()).filter(Boolean) : []
     const phone = (formData.get('phone') as string)?.trim() || null
     const email = (formData.get('email') as string)?.trim() || null
     const whatsapp = (formData.get('whatsapp') as string)?.trim() || null
     const preferred_contact_channel = (formData.get('preferred_contact_channel') as string)?.trim() || null
     const notes = (formData.get('notes') as string)?.trim() || null
+    if (!email && !phone && !whatsapp) {
+      return { ok: false, error: 'Add at least one real contact route: email, phone or WhatsApp.' }
+    }
+    const organizationId = await getInternalOrganizationId(user.id)
+    if (!organizationId) return { ok: false, error: 'Internal organisation access is required' }
     const { data, error } = await dbCreateAgent(user.id, {
       full_name,
       agency_name,
@@ -80,7 +83,52 @@ export async function createAgentAction(formData: FormData): Promise<Result> {
     if (error) return { ok: false, error: error.message ?? 'Failed to create agent' }
     const id = (data as { id: string })?.id
     if (!id) return { ok: false, error: 'No id returned' }
+    let contactId: string | null = null
+    if (email) {
+      const { data: existingContact } = await supabase
+        .from('football_contacts')
+        .select('id')
+        .eq('org_id', organizationId)
+        .eq('email', email.toLowerCase())
+        .maybeSingle()
+      contactId = existingContact?.id ?? null
+    }
+    if (!contactId) {
+      const { data: contact, error: contactError } = await supabase
+        .from('football_contacts')
+        .insert({
+          org_id: organizationId,
+          created_by: user.id,
+          relationship_owner_id: user.id,
+          full_name,
+          current_role_title: 'Agent / intermediary',
+          current_organization: agency_name,
+          email: email?.toLowerCase() ?? null,
+          phone: whatsapp ?? phone,
+          preferred_channel: preferred_contact_channel,
+          stakeholder_group: 'agents',
+          expertise: markets,
+          default_attribution_permission: 'anonymised_external',
+        })
+        .select('id')
+        .single()
+      if (contactError || !contact) {
+        await dbDeleteAgent(user.id, id)
+        return { ok: false, error: contactError?.message ?? 'Could not create the linked football-network contact' }
+      }
+      contactId = contact.id
+    }
+    const { error: linkError } = await supabase
+      .from('agents')
+      .update({ football_contact_id: contactId })
+      .eq('id', id)
+      .eq('user_id', user.id)
+    if (linkError) {
+      await dbDeleteAgent(user.id, id)
+      return { ok: false, error: 'Could not connect the agent to the football network' }
+    }
     revalidatePath('/agents')
+    revalidatePath('/network')
     return { ok: true, data: { id } }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
@@ -89,15 +137,15 @@ export async function createAgentAction(formData: FormData): Promise<Result> {
 
 export async function updateAgentAction(agentId: string, formData: FormData): Promise<Result> {
   try {
-    const { user } = await requireUser()
+    const { supabase, user } = await requireUser()
     const full_name = (formData.get('full_name') as string)?.trim()
     if (!full_name) return { ok: false, error: 'Name is required' }
     const agency_name = (formData.get('agency_name') as string)?.trim() || null
     const base_location = (formData.get('base_location') as string)?.trim() || null
     const marketsStr = (formData.get('markets') as string)?.trim()
-    const markets = marketsStr ? marketsStr.split(/[\s,]+/).filter(Boolean) : []
+    const markets = marketsStr ? marketsStr.split(',').map((value) => value.trim()).filter(Boolean) : []
     const languagesStr = (formData.get('languages') as string)?.trim()
-    const languages = languagesStr ? languagesStr.split(/[\s,]+/).filter(Boolean) : []
+    const languages = languagesStr ? languagesStr.split(',').map((value) => value.trim()).filter(Boolean) : []
     const phone = (formData.get('phone') as string)?.trim() || null
     const email = (formData.get('email') as string)?.trim() || null
     const whatsapp = (formData.get('whatsapp') as string)?.trim() || null
@@ -126,12 +174,33 @@ export async function updateAgentAction(agentId: string, formData: FormData): Pr
       risk_notes,
     })
     if (error) return { ok: false, error: error.message ?? 'Failed to update agent' }
+    const { data: linkedAgent } = await supabase
+      .from('agents')
+      .select('football_contact_id')
+      .eq('id', agentId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (linkedAgent?.football_contact_id) {
+      await supabase
+        .from('football_contacts')
+        .update({
+          full_name,
+          current_organization: agency_name,
+          email: email?.toLowerCase() ?? null,
+          phone: whatsapp ?? phone,
+          preferred_channel: preferred_contact_channel,
+          expertise: markets,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', linkedAgent.football_contact_id)
+    }
     revalidatePath('/agents')
     revalidatePath(`/agents/${agentId}`)
     revalidatePath(`/agents/${agentId}/coaches`)
     revalidatePath(`/agents/${agentId}/clubs`)
     revalidatePath(`/agents/${agentId}/interactions`)
     revalidatePath(`/agents/${agentId}/deals`)
+    revalidatePath('/network')
     return { ok: true }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
@@ -261,14 +330,31 @@ export async function createAgentInteractionAction(payload: {
   try {
     const { supabase, user } = await requireUser()
     const coachId = payload.coach_id ?? null
+    const claims = (payload.claims ?? [])
+      .map((claim) => ({
+        ...claim,
+        claimed_value: claim.claimed_value.trim(),
+        evidence_summary: claim.evidence_summary.trim(),
+      }))
+      .filter((claim) => claim.claimed_value && claim.evidence_summary)
+
+    if (claims.some((claim) => claim.confidence != null && (claim.confidence < 0 || claim.confidence > 100))) {
+      return { ok: false, error: 'Finding confidence must be between 0 and 100' }
+    }
+    if (claims.length > 0 && !coachId) {
+      return { ok: false, error: 'Link a coach before adding findings' }
+    }
+
     const agent = await supabase
       .from('agents')
-      .select('id, full_name, agency_name')
+      .select('id, full_name, agency_name, football_contact_id')
       .eq('id', payload.agent_id)
       .eq('user_id', user.id)
       .maybeSingle()
     if (!agent.data) return { ok: false, error: 'Agent not found' }
     const agentData = agent.data
+    const organizationId = await getInternalOrganizationId(user.id)
+    if (!organizationId) return { ok: false, error: 'Internal organisation access is required' }
 
     let currentCoach: Record<string, unknown> | null = null
     if (coachId) {
@@ -280,6 +366,34 @@ export async function createAgentInteractionAction(payload: {
         .maybeSingle()
       if (!coach.data) return { ok: false, error: 'Coach not found' }
       currentCoach = coach.data as unknown as Record<string, unknown>
+    }
+
+    let contactId = agentData.football_contact_id
+    if (!contactId) {
+      const { data: contact, error: contactError } = await supabase
+        .from('football_contacts')
+        .insert({
+          org_id: organizationId,
+          created_by: user.id,
+          relationship_owner_id: user.id,
+          full_name: agentData.full_name,
+          current_role_title: 'Agent / intermediary',
+          current_organization: agentData.agency_name,
+          stakeholder_group: 'agents',
+          default_attribution_permission: 'anonymised_external',
+        })
+        .select('id')
+        .single()
+      if (contactError || !contact) {
+        return { ok: false, error: contactError?.message ?? 'Could not create the linked football-network contact' }
+      }
+      contactId = contact.id
+      const { error: agentLinkError } = await supabase
+        .from('agents')
+        .update({ football_contact_id: contactId })
+        .eq('id', payload.agent_id)
+        .eq('user_id', user.id)
+      if (agentLinkError) return { ok: false, error: 'Could not link the agent to the football network' }
     }
 
     const { data: interaction, error } = await createInteraction(user.id, {
@@ -301,22 +415,61 @@ export async function createAgentInteractionAction(payload: {
     })
     if (error) return { ok: false, error: error.message ?? 'Failed to add interaction' }
 
-    const claims = (payload.claims ?? [])
-      .map((claim) => ({
-        ...claim,
-        claimed_value: claim.claimed_value.trim(),
-        evidence_summary: claim.evidence_summary.trim(),
-      }))
-      .filter((claim) => claim.claimed_value && claim.evidence_summary)
-
-    if (claims.some((claim) => claim.confidence != null && (claim.confidence < 0 || claim.confidence > 100))) {
-      return { ok: false, error: 'Claim confidence must be between 0 and 100' }
+    const { data: session, error: sessionError } = await supabase
+      .from('intelligence_sessions')
+      .insert({
+        org_id: organizationId,
+        created_by: user.id,
+        contact_id: contactId,
+        coach_id: coachId,
+        title: `${agentData.full_name}: ${payload.topic || payload.interaction_type || 'conversation'}`,
+        intake_method: 'analyst_notes',
+        occurred_at: payload.occurred_at,
+        channel: payload.channel ?? null,
+        career_context: payload.club_id ? 'Club context linked to this conversation' : null,
+        consent_status: 'not_required',
+        analyst_notes: [payload.summary, payload.detail].filter(Boolean).join('\n\n'),
+        sensitivity: 'standard',
+        processing_status: claims.length > 0 ? 'reviewing' : 'captured',
+      })
+      .select('id')
+      .single()
+    if (sessionError || !session) {
+      await deleteInteraction(user.id, (interaction as { id: string }).id)
+      return { ok: false, error: sessionError?.message ?? 'Failed to create the conversation record' }
     }
 
-    if (claims.length > 0) {
-      if (!coachId || !currentCoach) return { ok: false, error: 'Link a coach before adding findings' }
-      const organizationId = await getInternalOrganizationId(user.id)
-      if (!organizationId) return { ok: false, error: 'Internal organisation access is required' }
+    if (coachId) {
+      const { data: existingRelationship } = await supabase
+        .from('contact_coach_relationships')
+        .select('id')
+        .eq('org_id', organizationId)
+        .eq('contact_id', contactId)
+        .eq('coach_id', coachId)
+        .eq('relationship_type', 'representative_or_intermediary')
+        .maybeSingle()
+      if (!existingRelationship) {
+        await supabase.from('contact_coach_relationships').insert({
+          org_id: organizationId,
+          created_by: user.id,
+          contact_id: contactId,
+          coach_id: coachId,
+          club_id: payload.club_id ?? null,
+          club_context: payload.club_id ? 'Conversation linked to club context' : 'General representation context',
+          role_at_time: agentData.agency_name ? `Agent at ${agentData.agency_name}` : 'Agent / intermediary',
+          relationship_type: 'representative_or_intermediary',
+          stakeholder_group: 'agents',
+          first_hand: true,
+          independence_confirmed: false,
+          proximity: 'direct',
+          topic_credibility: payload.topic ? [payload.topic] : [],
+          confidence: payload.reliability_score ?? payload.confidence ?? null,
+          notes: 'Relationship captured from an agent interaction. Independence must be assessed during review.',
+        })
+      }
+    }
+
+    if (claims.length > 0 && coachId && currentCoach) {
       const rows: ProfileClaimInsert[] = claims.slice(0, 4).map((claim) => {
         const profileField = isClaimProfileField(claim.profile_field) ? claim.profile_field : null
         const claimType = PROFILE_CLAIM_TYPES.includes(claim.claim_type as (typeof PROFILE_CLAIM_TYPES)[number])
@@ -325,11 +478,6 @@ export async function createAgentInteractionAction(payload: {
         const sensitivity = CLAIM_SENSITIVITIES.includes(claim.sensitivity as (typeof CLAIM_SENSITIVITIES)[number])
           ? claim.sensitivity ?? 'standard'
           : 'standard'
-        const verificationStatus = CLAIM_VERIFICATION_STATUSES.includes(
-          claim.verification_status as (typeof CLAIM_VERIFICATION_STATUSES)[number]
-        )
-          ? claim.verification_status ?? 'unverified'
-          : 'unverified'
         const sourceName = [
           agentData.full_name,
           agentData.agency_name ? `(${agentData.agency_name})` : null,
@@ -344,6 +492,8 @@ export async function createAgentInteractionAction(payload: {
           coach_id: coachId,
           agent_id: payload.agent_id,
           interaction_id: (interaction as { id: string }).id,
+          contact_id: contactId,
+          session_id: session.id,
           claim_type: claimType,
           profile_field: profileField,
           current_value: profileField && currentCoach[profileField] != null ? String(currentCoach[profileField]) : null,
@@ -352,90 +502,34 @@ export async function createAgentInteractionAction(payload: {
           source_type: 'agent_conversation',
           source_name: sourceName || null,
           source_notes: payload.summary,
-          source_tier: claim.verification_status === 'verified' ? '1' : '2',
+          source_tier: '2',
           confidence: claim.confidence ?? payload.confidence ?? null,
           sensitivity,
-          verification_status: verificationStatus,
+          verification_status: 'unverified',
           statement_type: 'opinion',
-          evidence_strength: verificationStatus === 'disputed' ? 'disputed' : 'single_source',
+          evidence_strength: 'single_source',
           fact_check_status: 'not_applicable',
           external_visibility: 'anonymised_external',
-          used_in_recommendation: claim.used_in_recommendation !== false,
+          used_in_recommendation: false,
+          review_status: 'pending',
           occurred_at: payload.occurred_at,
         }
       })
       const { error: claimError } = await supabase.from('profile_claims').insert(rows)
-      if (claimError) return { ok: false, error: claimError.message ?? 'Failed to add findings' }
+      if (claimError) {
+        await supabase.from('intelligence_sessions').delete().eq('id', session.id)
+        await deleteInteraction(user.id, (interaction as { id: string }).id)
+        return { ok: false, error: claimError.message ?? 'Failed to add findings' }
+      }
     }
 
     revalidatePath(`/agents/${payload.agent_id}`)
     revalidatePath(`/agents/${payload.agent_id}/interactions`)
     if (coachId) revalidatePath(`/coaches/${coachId}`)
     revalidatePath('/intelligence')
-    return { ok: true }
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
-  }
-}
-
-export async function reviewProfileClaimAction(payload: {
-  id: string
-  agent_id?: string | null
-  coach_id?: string | null
-  review_status: string
-  apply_to_profile?: boolean
-}): Promise<Result> {
-  try {
-    const { supabase, user } = await requireUser()
-    if (!CLAIM_REVIEW_STATUSES.includes(payload.review_status as (typeof CLAIM_REVIEW_STATUSES)[number])) {
-      return { ok: false, error: 'Unknown claim review status' }
-    }
-
-    const { data: claim, error: claimError } = await supabase
-      .from('profile_claims')
-      .select('*')
-      .eq('id', payload.id)
-      .eq('user_id', user.id)
-      .maybeSingle()
-    if (claimError || !claim) return { ok: false, error: 'Claim not found' }
-
-    const profileField = isClaimProfileField(claim.profile_field) ? claim.profile_field : null
-    const targetCoachId = claim.coach_id
-    const shouldApply = Boolean(payload.apply_to_profile && targetCoachId && profileField)
-    const nextStatus = shouldApply ? 'applied' : payload.review_status
-    const now = new Date().toISOString()
-
-    if (shouldApply) {
-      const { error: coachError } = await supabase
-        .from('coaches')
-        .update({
-          [profileField as string]: claim.claimed_value,
-          last_updated: now,
-        })
-        .eq('id', targetCoachId as string)
-        .eq('user_id', user.id)
-      if (coachError) return { ok: false, error: coachError.message ?? 'Failed to update coach profile' }
-    }
-
-    const { error } = await supabase
-      .from('profile_claims')
-      .update({
-        review_status: nextStatus,
-        reviewed_at: now,
-        reviewed_by: user.email ?? user.id,
-        applied_at: shouldApply ? now : null,
-        updated_at: now,
-      })
-      .eq('id', payload.id)
-      .eq('user_id', user.id)
-    if (error) return { ok: false, error: error.message ?? 'Failed to review claim' }
-
-    if (payload.agent_id) {
-      revalidatePath(`/agents/${payload.agent_id}`)
-      revalidatePath(`/agents/${payload.agent_id}/interactions`)
-    }
-    if (claim.coach_id) revalidatePath(`/coaches/${claim.coach_id}`)
-    revalidatePath('/intelligence')
+    revalidatePath('/intelligence/conversations')
+    revalidatePath('/intelligence/review')
+    revalidatePath('/network')
     return { ok: true }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }

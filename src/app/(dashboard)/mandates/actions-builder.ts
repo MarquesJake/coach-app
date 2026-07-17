@@ -13,7 +13,7 @@ function toText(value: FormDataEntryValue | null): string {
 function toList(value: FormDataEntryValue | null): string[] {
   return typeof value === 'string'
     ? value
-        .split(',')
+        .split(/[\n,]/)
         .map((item) => item.trim())
         .filter(Boolean)
     : []
@@ -49,11 +49,21 @@ export async function createMandateBuilderAction(formData: FormData) {
   const serviceModelInput = toText(formData.get('service_model'))
   const serviceModel = isServiceModel(serviceModelInput) ? serviceModelInput : null
   const engagementOwner = toText(formData.get('engagement_owner'))
+  const engagementDate = toText(formData.get('engagement_date'))
+  const targetCompletionDate = toText(formData.get('target_completion_date'))
+  const appointmentSituation = toText(formData.get('ownership_structure'))
+  const keyStakeholders = toList(formData.get('key_stakeholders'))
+  const confidentialityLevel = toText(formData.get('confidentiality_level'))
 
   if (!clubIdOrName || !strategicObjective || !tacticalModel || !pressingIntensity ||
       !buildPreference || !leadershipProfile || !budgetBand || !successionTimeline ||
-      !serviceModel || !engagementOwner) {
+      !serviceModel || !engagementOwner || !engagementDate || !targetCompletionDate ||
+      !appointmentSituation || keyStakeholders.length === 0 ||
+      !['Standard', 'High', 'Board Only'].includes(confidentialityLevel)) {
     redirect('/mandates/new?error=Please+complete+all+required+fields')
+  }
+  if (new Date(engagementDate).getTime() > new Date(targetCompletionDate).getTime()) {
+    redirect('/mandates/new?error=Target+date+must+be+on+or+after+the+engagement+date')
   }
 
   // ── Resolve club ──────────────────────────────────────────────────────────
@@ -75,9 +85,6 @@ export async function createMandateBuilderAction(formData: FormData) {
     if (newClub) clubId = newClub.id
   }
 
-  const today = new Date().toISOString().slice(0, 10)
-  const in90days = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10)
-
   const { data: mandate, error } = await supabase
     .from('mandates')
     .insert({
@@ -87,11 +94,11 @@ export async function createMandateBuilderAction(formData: FormData) {
       pipeline_stage: 'identified',
       status: 'Active',
       priority: 'High',
-      engagement_date: today,
-      target_completion_date: in90days,
-      ownership_structure: '—',
-      key_stakeholders: [],
-      confidentiality_level: 'Standard',
+      engagement_date: engagementDate,
+      target_completion_date: targetCompletionDate,
+      ownership_structure: appointmentSituation,
+      key_stakeholders: keyStakeholders,
+      confidentiality_level: confidentialityLevel,
       strategic_objective: strategicObjective,
       tactical_model_required: tacticalModel,
       pressing_intensity_required: pressingIntensity,
@@ -148,8 +155,22 @@ export async function updateMandateBuilderAction(formData: FormData) {
   const serviceModelInput = toText(formData.get('service_model'))
   const serviceModel = isServiceModel(serviceModelInput) ? serviceModelInput : null
   const engagementOwner = toText(formData.get('engagement_owner'))
+  const engagementDate = toText(formData.get('engagement_date'))
+  const targetCompletionDate = toText(formData.get('target_completion_date'))
+  const appointmentSituation = toText(formData.get('ownership_structure'))
+  const keyStakeholders = toList(formData.get('key_stakeholders'))
+  const confidentialityLevel = toText(formData.get('confidentiality_level'))
   if (!serviceModel) redirect(`/mandates/${mandateId}/edit?error=Choose+a+valid+service+model`)
   if (!engagementOwner) redirect(`/mandates/${mandateId}/edit?error=Add+an+internal+owner`)
+  if (!engagementDate || !targetCompletionDate || !appointmentSituation || keyStakeholders.length === 0) {
+    redirect(`/mandates/${mandateId}/edit?error=Complete+the+appointment+context+and+decision+makers`)
+  }
+  if (new Date(engagementDate).getTime() > new Date(targetCompletionDate).getTime()) {
+    redirect(`/mandates/${mandateId}/edit?error=Target+date+must+follow+the+engagement+date`)
+  }
+  if (!['Standard', 'High', 'Board Only'].includes(confidentialityLevel)) {
+    redirect(`/mandates/${mandateId}/edit?error=Choose+a+valid+confidentiality+level`)
+  }
 
   const { error } = await supabase
     .from('mandates')
@@ -166,6 +187,11 @@ export async function updateMandateBuilderAction(formData: FormData) {
       relocation_required: relocationRequired,
       service_model: serviceModel,
       engagement_owner: engagementOwner,
+      engagement_date: engagementDate,
+      target_completion_date: targetCompletionDate,
+      ownership_structure: appointmentSituation,
+      key_stakeholders: keyStakeholders,
+      confidentiality_level: confidentialityLevel,
     })
     .eq('id', mandateId)
     .eq('user_id', user.id)

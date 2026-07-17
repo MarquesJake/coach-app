@@ -12,8 +12,11 @@ test('active club-only members are identified and kept out of analyst routes', (
   assert.deepEqual(access, {
     hasActiveInternalAccess: false,
     hasActiveClubAccess: true,
+    hasActiveCoachAccess: false,
     hasClubIdentity: true,
+    hasCoachIdentity: false,
     isClubOnlyIdentity: true,
+    isCoachOnlyIdentity: false,
   })
   for (const route of ANALYST_ROUTE_PREFIXES) assert.equal(isAnalystRoute(route), true)
   assert.equal(isAnalystRoute('/club'), false)
@@ -43,4 +46,26 @@ test('fresh accounts without memberships are not misclassified as club users', (
   const access = classifyOrganizationAccess([])
   assert.equal(access.hasClubIdentity, false)
   assert.equal(access.isClubOnlyIdentity, false)
+  assert.equal(access.hasCoachIdentity, false)
+  assert.equal(access.isCoachOnlyIdentity, false)
+})
+
+test('active coach-only members are routed away from analyst and club workspaces', () => {
+  const access = classifyOrganizationAccess([{ role: 'coach', status: 'active' }])
+  assert.deepEqual(access, {
+    hasActiveInternalAccess: false,
+    hasActiveClubAccess: false,
+    hasActiveCoachAccess: true,
+    hasClubIdentity: false,
+    hasCoachIdentity: true,
+    isClubOnlyIdentity: false,
+    isCoachOnlyIdentity: true,
+  })
+})
+
+test('revoked coach membership preserves identity without granting access', () => {
+  const access = classifyOrganizationAccess([{ role: 'coach_representative', status: 'revoked' }])
+  assert.equal(access.hasCoachIdentity, true)
+  assert.equal(access.hasActiveCoachAccess, false)
+  assert.equal(access.isCoachOnlyIdentity, true)
 })

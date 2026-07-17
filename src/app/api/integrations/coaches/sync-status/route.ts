@@ -36,7 +36,7 @@ interface WikiSummary {
 async function getWikipediaPage(title: string): Promise<WikiSummary> {
   const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'CoachApp/1.0 (football intelligence demo)' },
+    headers: { 'User-Agent': 'CoachFirst/1.0 (football intelligence platform)' },
     signal: AbortSignal.timeout(8000),
   })
   if (!res.ok) return { description: null, extract: null }

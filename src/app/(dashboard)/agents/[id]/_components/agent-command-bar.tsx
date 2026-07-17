@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { MessageSquareText, Network } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type Agent = {
@@ -11,6 +13,7 @@ type Agent = {
   responsiveness_score: number | null
   risk_flag: boolean
   risk_notes: string | null
+  football_contact_id?: string | null
 }
 
 export function AgentCommandBar({
@@ -66,6 +69,24 @@ export function AgentCommandBar({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Link
+              href={agent.football_contact_id ? `/intelligence/conversations?contact=${agent.football_contact_id}` : '/intelligence/conversations'}
+              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              <MessageSquareText className="h-4 w-4" />
+              Log conversation
+            </Link>
+            {agent.football_contact_id && (
+              <Link
+                href={`/network/${agent.football_contact_id}`}
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-muted"
+              >
+                <Network className="h-4 w-4" />
+                Network record
+              </Link>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {influence != null && (
               <span className="rounded-md border border-border bg-surface px-3 py-1 text-sm font-medium tabular-nums text-foreground" title="Influence">

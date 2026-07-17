@@ -24,6 +24,19 @@ export async function GET(request: Request) {
           }
         }
       }
+      const coachInvitationMatch = next.match(/^\/coach\/invite\/([0-9a-f]{64})$/)
+      if (coachInvitationMatch) {
+        const tokenHash = hashInvitationToken(coachInvitationMatch[1])
+        if (tokenHash) {
+          const { error: claimError } = await supabase.rpc('claim_coach_invitation', {
+            invitation_token_hash: tokenHash,
+          })
+          if (!claimError) {
+            await supabase.rpc('record_coach_first_login')
+            return NextResponse.redirect(`${origin}/coach/profile`)
+          }
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`)
     }
   }

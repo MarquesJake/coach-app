@@ -32,6 +32,10 @@ export function NewAgentForm() {
       toastError('Name is required')
       return
     }
+    if (!form.email.trim() && !form.whatsapp.trim() && !form.phone.trim()) {
+      toastError('Add at least one contact route')
+      return
+    }
     setLoading(true)
     const fd = new FormData()
     fd.set('full_name', name)
@@ -122,17 +126,25 @@ export function NewAgentForm() {
           <option value="In person">In person</option>
         </select>
       </div>
-      <div>
-        <label className={LABEL_CLASS}>Email</label>
-        <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className={INPUT_CLASS} placeholder="Optional" />
-      </div>
-      <div>
-        <label className={LABEL_CLASS}>WhatsApp</label>
-        <input type="text" value={form.whatsapp} onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value }))} className={INPUT_CLASS} placeholder="Optional" />
-      </div>
-      <div>
-        <label className={LABEL_CLASS}>Phone</label>
-        <input type="text" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} className={INPUT_CLASS} placeholder="Optional" />
+      <div className="rounded-md border border-border bg-muted/20 p-4">
+        <p className="text-xs font-semibold text-foreground">Contact route *</p>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          Add at least one route you can genuinely use for calls, follow-ups and permissions.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <label>
+            <span className={LABEL_CLASS}>Email</span>
+            <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className={INPUT_CLASS} placeholder="name@agency.com" />
+          </label>
+          <label>
+            <span className={LABEL_CLASS}>WhatsApp</span>
+            <input type="text" value={form.whatsapp} onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value }))} className={INPUT_CLASS} placeholder="+44…" />
+          </label>
+          <label>
+            <span className={LABEL_CLASS}>Phone</span>
+            <input type="text" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} className={INPUT_CLASS} placeholder="+44…" />
+          </label>
+        </div>
       </div>
       <div>
         <label className={LABEL_CLASS}>Notes</label>

@@ -9,7 +9,7 @@ export default function AgentsLayout({
   return (
     <SectionShell
       title="Agents"
-      description="Agent inventory and relationships"
+      description="Agent relationships, conversations and coach links"
       subnav={AGENTS_SUBNAV}
       sticky
     >

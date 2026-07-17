@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
-import { createAgentInteractionAction, deleteAgentInteractionAction, reviewProfileClaimAction } from '../../actions'
+import { createAgentInteractionAction, deleteAgentInteractionAction } from '../../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { cn } from '@/lib/utils'
 import type { InteractionRow } from '@/lib/db/agentInteractions'
@@ -15,7 +15,6 @@ import {
   CLAIM_PROFILE_FIELD_LABELS,
   CLAIM_PROFILE_FIELDS,
   CLAIM_SENSITIVITIES,
-  CLAIM_VERIFICATION_STATUSES,
   PROFILE_CLAIM_LABELS,
   PROFILE_CLAIM_TYPES,
   claimFieldLabel,
@@ -102,9 +101,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
     claim_evidence_summary: '',
     claim_confidence: '',
     claim_sensitivity: 'standard',
-    claim_verification_status: 'unverified',
   })
-  const [reviewingClaimId, setReviewingClaimId] = useState<string | null>(null)
 
   let filtered = interactions
   if (channelFilter) filtered = filtered.filter((i) => i.channel === channelFilter)
@@ -152,8 +149,8 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
         evidence_summary: claimEvidence,
         confidence: form.claim_confidence ? parseInt(form.claim_confidence, 10) : form.confidence ? parseInt(form.confidence, 10) : null,
         sensitivity: form.claim_sensitivity || 'standard',
-        verification_status: form.claim_verification_status || 'unverified',
-        used_in_recommendation: true,
+        verification_status: 'unverified',
+        used_in_recommendation: false,
       }] : [],
     })
     setSubmitting(false)
@@ -171,7 +168,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
       coach_id: '', club_id: '',
       claim_type: '', claim_profile_field: '', claim_value: '',
       claim_evidence_summary: '', claim_confidence: '',
-      claim_sensitivity: 'standard', claim_verification_status: 'unverified',
+      claim_sensitivity: 'standard',
     })
     router.refresh()
   }
@@ -184,24 +181,6 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
       toastSuccess('Interaction deleted')
       router.refresh()
     }
-  }
-
-  async function handleReviewClaim(claim: ProfileClaimRow, reviewStatus: 'accepted' | 'rejected', applyToProfile = false) {
-    setReviewingClaimId(claim.id)
-    const result = await reviewProfileClaimAction({
-      id: claim.id,
-      agent_id: agentId,
-      coach_id: claim.coach_id,
-      review_status: reviewStatus,
-      apply_to_profile: applyToProfile,
-    })
-    setReviewingClaimId(null)
-    if (!result.ok) {
-      toastError(result.error)
-      return
-    }
-    toastSuccess(applyToProfile ? 'Claim applied to coach profile' : 'Claim reviewed')
-    router.refresh()
   }
 
   return (
@@ -226,7 +205,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
         </div>
         <Button variant="outline" className="text-xs" onClick={() => setDrawerOpen(true)}>
           <Plus className="w-4 h-4 mr-1" />
-          Add interaction
+          Log agent conversation
         </Button>
       </div>
 
@@ -308,7 +287,6 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
                     {itemClaims.length > 0 && (
                       <div className="mt-3 space-y-2">
                         {itemClaims.map((claim) => {
-                          const canApply = claim.review_status !== 'applied' && claim.review_status !== 'rejected' && Boolean(claim.profile_field)
                           return (
                             <div key={claim.id} className="rounded-md border border-border bg-surface/70 p-3">
                               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -335,28 +313,14 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
                                     </p>
                                   )}
                                 </div>
-                                <div className="flex shrink-0 flex-wrap gap-2">
-                                  {canApply && (
-                                    <button
-                                      type="button"
-                                      disabled={reviewingClaimId === claim.id}
-                                      onClick={() => handleReviewClaim(claim, 'accepted', true)}
-                                      className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-300 disabled:opacity-50"
-                                    >
-                                      Apply
-                                    </button>
-                                  )}
-                                  {claim.review_status === 'pending' && (
-                                    <button
-                                      type="button"
-                                      disabled={reviewingClaimId === claim.id}
-                                      onClick={() => handleReviewClaim(claim, 'rejected')}
-                                      className="rounded border border-red-500/30 bg-red-500/10 px-2 py-1 text-[10px] font-medium text-red-300 disabled:opacity-50"
-                                    >
-                                      Reject
-                                    </button>
-                                  )}
-                                </div>
+                                {claim.session_id && (
+                                  <Link
+                                    href={`/intelligence/review?session=${claim.session_id}`}
+                                    className="shrink-0 rounded border border-border bg-background px-2 py-1 text-[10px] font-medium text-primary hover:bg-muted"
+                                  >
+                                    Review finding
+                                  </Link>
+                                )}
                               </div>
                             </div>
                           )
@@ -378,8 +342,8 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
         )}
       </div>
 
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title="Add interaction" footer={
-        <Button onClick={handleAdd} disabled={submitting}>{submitting ? 'Adding…' : 'Add'}</Button>
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title="Log agent conversation" footer={
+        <Button onClick={handleAdd} disabled={submitting}>{submitting ? 'Saving…' : 'Save conversation'}</Button>
       }>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -513,7 +477,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
                 placeholder="What was said, by whom, and why we trust or challenge it."
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1">Claim confidence</label>
                 <input type="number" min={0} max={100} value={form.claim_confidence} onChange={(e) => setForm((f) => ({ ...f, claim_confidence: e.target.value }))} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" placeholder="0-100" />
@@ -524,13 +488,10 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
                   {CLAIM_SENSITIVITIES.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-foreground mb-1">Verification</label>
-                <select value={form.claim_verification_status} onChange={(e) => setForm((f) => ({ ...f, claim_verification_status: e.target.value }))} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm">
-                  {CLAIM_VERIFICATION_STATUSES.map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
-              </div>
             </div>
+            <p className="text-[10px] leading-4 text-muted-foreground">
+              Agent information is saved as a single-source draft. Review it in Coach research before it can affect a profile or assessment.
+            </p>
           </div>
 
           {clubs.length > 0 && (

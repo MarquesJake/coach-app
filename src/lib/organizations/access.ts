@@ -1,5 +1,6 @@
 export const INTERNAL_ORGANIZATION_ROLES = ['owner', 'admin', 'analyst'] as const
 export const CLUB_ORGANIZATION_ROLES = ['club_owner', 'club_director', 'club_viewer'] as const
+export const COACH_ORGANIZATION_ROLES = ['coach', 'coach_representative'] as const
 
 export type OrganizationMembershipIdentity = {
   role: string
@@ -9,8 +10,11 @@ export type OrganizationMembershipIdentity = {
 export type OrganizationAccessProfile = {
   hasActiveInternalAccess: boolean
   hasActiveClubAccess: boolean
+  hasActiveCoachAccess: boolean
   hasClubIdentity: boolean
+  hasCoachIdentity: boolean
   isClubOnlyIdentity: boolean
+  isCoachOnlyIdentity: boolean
 }
 
 export const ANALYST_ROUTE_PREFIXES = [
@@ -51,12 +55,23 @@ export function classifyOrganizationAccess(
   const hasClubIdentity = rows.some((membership) =>
     (CLUB_ORGANIZATION_ROLES as readonly string[]).includes(membership.role)
   )
+  const hasActiveCoachAccess = rows.some(
+    (membership) =>
+      membership.status === 'active' &&
+      (COACH_ORGANIZATION_ROLES as readonly string[]).includes(membership.role)
+  )
+  const hasCoachIdentity = rows.some((membership) =>
+    (COACH_ORGANIZATION_ROLES as readonly string[]).includes(membership.role)
+  )
 
   return {
     hasActiveInternalAccess,
     hasActiveClubAccess,
+    hasActiveCoachAccess,
     hasClubIdentity,
-    isClubOnlyIdentity: hasClubIdentity && !hasActiveInternalAccess,
+    hasCoachIdentity,
+    isClubOnlyIdentity: hasClubIdentity && !hasActiveInternalAccess && !hasCoachIdentity,
+    isCoachOnlyIdentity: hasCoachIdentity && !hasActiveInternalAccess && !hasClubIdentity,
   }
 }
 

@@ -14,6 +14,8 @@ export default async function MandateEditPage({ params }: { params: { id: string
       build_preference_required, leadership_profile_required, budget_band,
       succession_timeline, board_risk_appetite, language_requirements, relocation_required,
       service_model, engagement_owner,
+      engagement_date, target_completion_date, ownership_structure,
+      key_stakeholders, confidentiality_level,
       custom_club_name,
       clubs ( name )
     `)
@@ -47,6 +49,11 @@ export default async function MandateEditPage({ params }: { params: { id: string
           relocation_required: mandate.relocation_required ?? undefined,
           service_model: mandate.service_model ?? undefined,
           engagement_owner: mandate.engagement_owner ?? undefined,
+          engagement_date: mandate.engagement_date ?? undefined,
+          target_completion_date: mandate.target_completion_date ?? undefined,
+          ownership_structure: mandate.ownership_structure ?? undefined,
+          key_stakeholders: mandate.key_stakeholders ?? undefined,
+          confidentiality_level: mandate.confidentiality_level ?? undefined,
         }}
       />
     </div>

@@ -17,6 +17,14 @@ type AccessRequestRow = Pick<
   Database['public']['Tables']['confidential_access_requests']['Row'],
   'id' | 'coach_id' | 'status'
 >
+type CoachInvitationRow = Pick<
+  Database['public']['Tables']['coach_invitations']['Row'],
+  'id' | 'coach_id' | 'status'
+>
+type AssessmentRow = Pick<
+  Database['public']['Tables']['candidate_assessments']['Row'],
+  'coach_id'
+>
 
 const PROFILE_FIELDS: Array<keyof PortalRow> = [
   'short_bio',
@@ -66,7 +74,7 @@ export default async function CoachPortalPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [coachesRes, profilesRes, materialsRes, accessRequestsRes] = await Promise.all([
+  const [coachesRes, profilesRes, materialsRes, accessRequestsRes, invitationsRes, assessmentsRes] = await Promise.all([
     supabase
       .from('coaches')
       .select('id, name, club_current, nationality, availability_status, available_status, tactical_identity')
@@ -84,9 +92,17 @@ export default async function CoachPortalPage() {
       .from('confidential_access_requests')
       .select('id, coach_id, status')
       .eq('user_id', user.id),
+    supabase
+      .from('coach_invitations')
+      .select('id, coach_id, status')
+      .in('status', ['pending', 'accepted']),
+    supabase
+      .from('candidate_assessments')
+      .select('coach_id')
+      .eq('user_id', user.id),
   ])
 
-  const coaches = (coachesRes.data ?? []) as CoachRow[]
+  const allCoaches = (coachesRes.data ?? []) as CoachRow[]
   const profiles = new Map((profilesRes.data ?? []).map((profile) => [profile.coach_id, profile as PortalRow]))
   const materials = (materialsRes.data ?? []) as MaterialRow[]
   const materialsByCoach = new Map<string, MaterialRow[]>()
@@ -98,6 +114,18 @@ export default async function CoachPortalPage() {
   for (const request of accessRequests) {
     accessRequestsByCoach.set(request.coach_id, [...(accessRequestsByCoach.get(request.coach_id) ?? []), request])
   }
+  const invitations = (invitationsRes.data ?? []) as CoachInvitationRow[]
+  const assessedCoachIds = new Set(
+    ((assessmentsRes.data ?? []) as AssessmentRow[]).map((assessment) => assessment.coach_id)
+  )
+  const activeCoachIds = new Set<string>([
+    ...Array.from(profiles.keys()),
+    ...materials.map((material) => material.coach_id),
+    ...accessRequests.map((request) => request.coach_id),
+    ...invitations.map((invitation) => invitation.coach_id),
+    ...Array.from(assessedCoachIds),
+  ])
+  const coaches = allCoaches.filter((coach) => activeCoachIds.has(coach.id))
 
   const withPortal = coaches.filter((coach) => profiles.has(coach.id)).length
   const approved = (profilesRes.data ?? []).filter((profile) => profile.portal_status === 'approved').length
@@ -111,21 +139,17 @@ export default async function CoachPortalPage() {
     <div className="space-y-6">
       <section className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-4">
         <div className="rounded-lg border border-border bg-card p-5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
-            Supply-side moat
-          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Coach access and submissions</p>
           <h2 className="mt-2 text-xl font-semibold text-foreground">
-            Coach-owned depth before a club ever asks
+            Coach profile and material review
           </h2>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            This is where coaches or their representatives provide the material normal databases do not have:
-            methodology decks, training videos, staff networks, reference permissions, communication style and
-            the private context that makes an appointment decision defensible.
+            Manage invited coaches, review coach-supplied information and control private material before anything is used in a club process.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: 'Coaches', value: coaches.length },
+            { label: 'Active records', value: coaches.length },
             { label: 'Portal profiles', value: withPortal },
             { label: 'Club-ready', value: readyForClub },
             { label: 'Live requests', value: liveAccessRequests },
@@ -156,7 +180,7 @@ export default async function CoachPortalPage() {
         <div className="divide-y divide-border/60">
           {coaches.length === 0 ? (
             <div className="px-5 py-10 text-sm text-muted-foreground">
-              Add coaches first, then open their portal profiles here.
+              No coaches are in an active assessment, invitation or material-review workflow yet.
             </div>
           ) : (
             coaches.map((coach) => {

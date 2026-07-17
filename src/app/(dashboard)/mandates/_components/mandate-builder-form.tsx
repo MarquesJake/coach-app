@@ -175,6 +175,11 @@ export type MandateBuilderInitialValues = Partial<ScoringFields> & {
   language_requirements?: string | null
   relocation_required?: boolean | null
   service_model?: string | null
+  engagement_date?: string | null
+  target_completion_date?: string | null
+  ownership_structure?: string | null
+  key_stakeholders?: string[] | null
+  confidentiality_level?: string | null
 }
 
 type ClubOption = { id: string; label: string }
@@ -229,6 +234,8 @@ export function MandateBuilderForm({
       ? initialValues.service_model
       : 'full_service_search'
   )
+  const today = new Date().toISOString().slice(0, 10)
+  const defaultTarget = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10)
 
   function set(key: keyof ScoringFields, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
@@ -318,7 +325,7 @@ export function MandateBuilderForm({
 
       {/* Presets */}
       <div className="rounded-lg border border-border bg-card p-4 space-y-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Quick start — apply a preset</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Starting point</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {(Object.keys(PRESETS) as PresetKey[]).map((key) => (
             <button
@@ -336,7 +343,7 @@ export function MandateBuilderForm({
             </button>
           ))}
         </div>
-        <p className="text-[9px] text-muted-foreground/60">All fields can be overridden after applying a preset.</p>
+        <p className="text-[9px] text-muted-foreground/60">Use only as a first pass, then replace assumptions with the club conversation.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -404,6 +411,67 @@ export function MandateBuilderForm({
               className="h-10 w-full rounded border border-border bg-surface px-3 text-sm text-foreground"
             />
           </label>
+
+          <label className="space-y-1 block">
+            <FieldLabel required>Appointment situation and trigger</FieldLabel>
+            <textarea
+              name="ownership_structure"
+              required
+              rows={4}
+              defaultValue={initialValues.ownership_structure ?? ''}
+              placeholder="Why the club is considering change, whether the incumbent knows, what has triggered the work, and what decision must be made."
+              className="w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm leading-6 text-foreground"
+            />
+          </label>
+
+          <label className="space-y-1 block">
+            <FieldLabel required>Decision makers</FieldLabel>
+            <textarea
+              name="key_stakeholders"
+              required
+              rows={2}
+              defaultValue={(initialValues.key_stakeholders ?? []).join(', ')}
+              placeholder="Chair, owner, CEO, sporting director, board member"
+              className="w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm leading-6 text-foreground"
+            />
+            <p className="text-[10px] text-muted-foreground">Comma or line separated. These people shape the brief and sign off the appointment.</p>
+          </label>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <label className="space-y-1 block">
+              <FieldLabel required>Engagement date</FieldLabel>
+              <input
+                name="engagement_date"
+                type="date"
+                required
+                defaultValue={initialValues.engagement_date ?? today}
+                className="h-10 w-full rounded border border-border bg-surface px-3 text-sm text-foreground"
+              />
+            </label>
+            <label className="space-y-1 block">
+              <FieldLabel required>Decision target</FieldLabel>
+              <input
+                name="target_completion_date"
+                type="date"
+                required
+                defaultValue={initialValues.target_completion_date ?? defaultTarget}
+                className="h-10 w-full rounded border border-border bg-surface px-3 text-sm text-foreground"
+              />
+            </label>
+            <label className="space-y-1 block">
+              <FieldLabel required>Confidentiality</FieldLabel>
+              <select
+                name="confidentiality_level"
+                required
+                defaultValue={initialValues.confidentiality_level ?? 'High'}
+                className="h-10 w-full rounded border border-border bg-surface px-3 text-sm text-foreground"
+              >
+                <option value="Standard">Standard</option>
+                <option value="High">High</option>
+                <option value="Board Only">Board only</option>
+              </select>
+            </label>
+          </div>
 
           <div className="space-y-1">
             <FieldLabel required>Strategic objective</FieldLabel>

@@ -82,11 +82,12 @@ const BASE_FILTERS = {
 export default function CoachesPage() {
   const router = useRouter()
   const [coaches, setCoaches] = useState<Coach[]>([])
-  const [counts, setCounts] = useState<Record<string, { stintCount: number; intelligenceCount: number }>>({})
+  const [counts, setCounts] = useState<Record<string, { stintCount: number; intelligenceCount: number; researchCount: number }>>({})
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('name')
+  const [profileScope, setProfileScope] = useState<'researched' | 'all'>('researched')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [syncingEngland, setSyncingEngland] = useState(false)
@@ -168,6 +169,8 @@ export default function CoachesPage() {
         (Array.isArray(c.league_experience) && c.league_experience.some((l: string) => l.toLowerCase().includes(searchLower)))
       const matchStatus = statusFilter === 'all' || c.available_status === statusFilter
       if (!matchSearch || !matchStatus) return false
+      const hasResearch = (counts[c.id]?.researchCount ?? 0) > 0
+      if (profileScope === 'researched' && !searchLower && !hasResearch) return false
       if (filters.pressing_intensity && (c.pressing_intensity || '') !== filters.pressing_intensity) return false
       if (filters.build_preference && (c.build_preference || '') !== filters.build_preference) return false
       if (filters.preferred_systems && !(Array.isArray(c.preferred_systems) && c.preferred_systems.includes(filters.preferred_systems))) return false
@@ -224,8 +227,9 @@ export default function CoachesPage() {
       return (a.name || '').localeCompare(b.name || '')
     })
 
-  const availableCount = coaches.filter(c => c.available_status === 'Available').length
-  const interestedCount = coaches.filter(c => c.available_status === 'Open to offers' || c.available_status === 'Under contract - interested').length
+  const researchedCount = coaches.filter((coach) => (counts[coach.id]?.researchCount ?? 0) > 0).length
+  const availableCount = filtered.filter(c => c.available_status === 'Available').length
+  const interestedCount = filtered.filter(c => c.available_status === 'Open to offers' || c.available_status === 'Under contract - interested').length
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -307,7 +311,7 @@ export default function CoachesPage() {
 
   return (
     <div>
-      <h1 className="text-lg font-medium text-foreground mb-4">All coaches</h1>
+      <h1 className="text-lg font-medium text-foreground mb-4">Coach profiles</h1>
       <details className="mb-4 rounded-lg border border-border/70 bg-card/70">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
           <div>
@@ -325,7 +329,7 @@ export default function CoachesPage() {
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <p className="text-xs text-muted-foreground">
-                Use this only when refreshing demo data from API-Football. It can update existing coach records.
+                Refresh source data from API-Football only when the provider mapping has been reviewed. Existing coach records may be updated.
               </p>
               {syncMessage ? <p className="text-xs text-amber-600 mt-1">{syncMessage}</p> : null}
             </div>
@@ -384,7 +388,7 @@ export default function CoachesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-sm text-muted-foreground">
-            {coaches.length} profiles &middot; {availableCount} available &middot; {interestedCount} open to offers
+            {researchedCount} researched profiles &middot; {availableCount} available &middot; {interestedCount} open to offers
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -411,6 +415,22 @@ export default function CoachesPage() {
 
       {/* Search & Filters */}
       <div className="rounded-lg border border-border bg-card p-3 mb-4">
+        <div className="mb-3 inline-flex rounded-md border border-border bg-muted/40 p-1">
+          <button
+            type="button"
+            onClick={() => setProfileScope('researched')}
+            className={cn('rounded px-3 py-1.5 text-xs font-medium', profileScope === 'researched' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground')}
+          >
+            Researched
+          </button>
+          <button
+            type="button"
+            onClick={() => setProfileScope('all')}
+            className={cn('rounded px-3 py-1.5 text-xs font-medium', profileScope === 'all' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground')}
+          >
+            Source index ({coaches.length})
+          </button>
+        </div>
         <div className="mb-3 flex items-center gap-2 flex-wrap">
           <span className="text-2xs uppercase tracking-wide text-muted-foreground">Presets</span>
           <button onClick={() => applyFilterPreset('recruiting-now')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">Recruiting now</button>

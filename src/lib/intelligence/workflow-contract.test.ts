@@ -7,6 +7,8 @@ const inboxContract = readFileSync(resolve('src/lib/intelligence/inbox.ts'), 'ut
 const inboxActions = readFileSync(resolve('src/app/(dashboard)/intelligence/actions.ts'), 'utf8')
 const trustedActions = readFileSync(resolve('src/app/(dashboard)/intelligence/trusted-actions.ts'), 'utf8')
 const coachCommandBar = readFileSync(resolve('src/app/(dashboard)/coaches/[id]/_components/coach-command-bar.tsx'), 'utf8')
+const agentActions = readFileSync(resolve('src/app/(dashboard)/agents/actions.ts'), 'utf8')
+const agentConversation = readFileSync(resolve('src/app/(dashboard)/agents/[id]/_components/agent-interactions-client.tsx'), 'utf8')
 const archiveMigration = readFileSync(resolve('supabase/migrations/20260715125923_intelligence_item_archive_audit.sql'), 'utf8')
 
 test('Inbox cannot bypass finding review and write assessment evidence', () => {
@@ -37,6 +39,21 @@ test('coach intelligence entry points use the two canonical preselected lanes', 
   assert.match(coachCommandBar, /href=\{`\/intelligence\/inbox\?coach=\$\{coachId\}`\}/)
   assert.doesNotMatch(coachCommandBar, /AddIntelligenceDrawer/)
   assert.equal(existsSync(resolve('src/app/(dashboard)/coaches/[id]/_actions/intelligence-actions.ts')), false)
+})
+
+test('agent conversations create reviewable single-source findings, never trusted evidence', () => {
+  const interactionAction = agentActions.slice(
+    agentActions.indexOf('export async function createAgentInteractionAction'),
+    agentActions.indexOf('export async function deleteAgentInteractionAction')
+  )
+  assert.match(interactionAction, /\.from\('intelligence_sessions'\)/)
+  assert.match(interactionAction, /review_status:\s*'pending'/)
+  assert.match(interactionAction, /verification_status:\s*'unverified'/)
+  assert.match(interactionAction, /evidence_strength:\s*'single_source'/)
+  assert.match(interactionAction, /used_in_recommendation:\s*false/)
+  assert.doesNotMatch(interactionAction, /\.from\('assessment_evidence'\)/)
+  assert.doesNotMatch(agentActions, /reviewProfileClaimAction/)
+  assert.match(agentConversation, /href=\{`\/intelligence\/review\?session=\$\{claim\.session_id\}`\}/)
 })
 
 test('archive migration records an honest legacy backfill and enforces future metadata', () => {

@@ -262,6 +262,7 @@ export type Database = {
           base_location: string | null
           created_at: string | null
           email: string | null
+          football_contact_id: string | null
           full_name: string
           id: string
           influence_score: number | null
@@ -283,6 +284,7 @@ export type Database = {
           base_location?: string | null
           created_at?: string | null
           email?: string | null
+          football_contact_id?: string | null
           full_name: string
           id?: string
           influence_score?: number | null
@@ -304,6 +306,7 @@ export type Database = {
           base_location?: string | null
           created_at?: string | null
           email?: string | null
+          football_contact_id?: string | null
           full_name?: string
           id?: string
           influence_score?: number | null
@@ -320,7 +323,15 @@ export type Database = {
           user_id?: string
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agents_football_contact_id_fkey"
+            columns: ["football_contact_id"]
+            isOneToOne: false
+            referencedRelation: "football_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       alerts: {
         Row: {
@@ -1494,6 +1505,64 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_access_events: {
+        Row: {
+          actor_user_id: string | null
+          coach_id: string
+          event_type: string
+          id: string
+          invitation_id: string | null
+          metadata: Json
+          occurred_at: string
+          organization_id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          coach_id: string
+          event_type: string
+          id?: string
+          invitation_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          organization_id: string
+          target_user_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          coach_id?: string
+          event_type?: string
+          id?: string
+          invitation_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          organization_id?: string
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_access_events_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_access_events_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "coach_invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_access_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_agents: {
         Row: {
           agent_id: string
@@ -1961,6 +2030,72 @@ export type Database = {
           },
         ]
       }
+      coach_invitations: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          coach_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          organization_id: string
+          revoked_at: string | null
+          role: string
+          status: string
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          coach_id: string
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          organization_id: string
+          revoked_at?: string | null
+          role: string
+          status?: string
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          coach_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          organization_id?: string
+          revoked_at?: string | null
+          role?: string
+          status?: string
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_invitations_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_media_events: {
         Row: {
           category: string | null
@@ -2033,12 +2168,12 @@ export type Database = {
         Row: {
           academy_integration: string | null
           appointment_conditions: string | null
-          base_location: string | null
           availability_timeline: string | null
+          base_location: string | null
+          circumstances_visibility: string
           coach_email: string | null
           coach_id: string
           coach_phone: string | null
-          circumstances_visibility: string
           contract_expiry: string | null
           created_at: string
           current_salary: string | null
@@ -2083,12 +2218,12 @@ export type Database = {
         Insert: {
           academy_integration?: string | null
           appointment_conditions?: string | null
-          base_location?: string | null
           availability_timeline?: string | null
+          base_location?: string | null
+          circumstances_visibility?: string
           coach_email?: string | null
           coach_id: string
           coach_phone?: string | null
-          circumstances_visibility?: string
           contract_expiry?: string | null
           created_at?: string
           current_salary?: string | null
@@ -2133,12 +2268,12 @@ export type Database = {
         Update: {
           academy_integration?: string | null
           appointment_conditions?: string | null
-          base_location?: string | null
           availability_timeline?: string | null
+          base_location?: string | null
+          circumstances_visibility?: string
           coach_email?: string | null
           coach_id?: string
           coach_phone?: string | null
-          circumstances_visibility?: string
           contract_expiry?: string | null
           created_at?: string
           current_salary?: string | null
@@ -2940,8 +3075,8 @@ export type Database = {
           agent_name: string | null
           agent_relationship: number | null
           appointment_conditions: string | null
-          availability_timeline: string | null
           availability_status: string | null
+          availability_timeline: string | null
           available_status: string
           base_location: string | null
           board_compatibility: number | null
@@ -2956,9 +3091,9 @@ export type Database = {
           contract_expiry: string | null
           contract_notes: string | null
           created_at: string
-          current_salary: string | null
           cultural_alignment_score: number | null
           cultural_risk: number | null
+          current_salary: string | null
           date_of_birth: string | null
           development_score: number | null
           dressing_room_risk_score: number | null
@@ -3020,8 +3155,8 @@ export type Database = {
           agent_name?: string | null
           agent_relationship?: number | null
           appointment_conditions?: string | null
-          availability_timeline?: string | null
           availability_status?: string | null
+          availability_timeline?: string | null
           available_status?: string
           base_location?: string | null
           board_compatibility?: number | null
@@ -3036,9 +3171,9 @@ export type Database = {
           contract_expiry?: string | null
           contract_notes?: string | null
           created_at?: string
-          current_salary?: string | null
           cultural_alignment_score?: number | null
           cultural_risk?: number | null
+          current_salary?: string | null
           date_of_birth?: string | null
           development_score?: number | null
           dressing_room_risk_score?: number | null
@@ -3100,8 +3235,8 @@ export type Database = {
           agent_name?: string | null
           agent_relationship?: number | null
           appointment_conditions?: string | null
-          availability_timeline?: string | null
           availability_status?: string | null
+          availability_timeline?: string | null
           available_status?: string
           base_location?: string | null
           board_compatibility?: number | null
@@ -3116,9 +3251,9 @@ export type Database = {
           contract_expiry?: string | null
           contract_notes?: string | null
           created_at?: string
-          current_salary?: string | null
           cultural_alignment_score?: number | null
           cultural_risk?: number | null
+          current_salary?: string | null
           date_of_birth?: string | null
           development_score?: number | null
           dressing_room_risk_score?: number | null
@@ -5326,6 +5461,7 @@ export type Database = {
       organizations: {
         Row: {
           club_id: string | null
+          coach_id: string | null
           created_at: string
           created_by: string
           id: string
@@ -5337,6 +5473,7 @@ export type Database = {
         }
         Insert: {
           club_id?: string | null
+          coach_id?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -5348,6 +5485,7 @@ export type Database = {
         }
         Update: {
           club_id?: string | null
+          coach_id?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -5363,6 +5501,13 @@ export type Database = {
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organizations_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
             referencedColumns: ["id"]
           },
         ]
@@ -6078,6 +6223,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_own_coach_material: {
+        Args: {
+          material_description?: string
+          material_external_url?: string
+          material_kind: string
+          material_storage_path?: string
+          material_title: string
+          target_coach_id: string
+        }
+        Returns: string
+      }
       approve_dossier_order: {
         Args: {
           access_days?: number
@@ -6092,12 +6248,24 @@ export type Database = {
         Args: { invitation_token_hash: string }
         Returns: string
       }
+      claim_coach_invitation: {
+        Args: { invitation_token_hash: string }
+        Returns: string
+      }
       claim_unowned_rows: { Args: never; Returns: Json }
       club_invitation_email_matches: {
         Args: { candidate_email: string; invitation_token_hash: string }
         Returns: boolean
       }
+      coach_invitation_email_matches: {
+        Args: { candidate_email: string; invitation_token_hash: string }
+        Returns: boolean
+      }
       get_unowned_counts: { Args: never; Returns: Json }
+      is_coach_portal_member: {
+        Args: { allowed_roles?: string[]; target_coach_id: string }
+        Returns: boolean
+      }
       is_internal_operator: {
         Args: { allowed_roles?: string[] }
         Returns: boolean
@@ -6116,6 +6284,16 @@ export type Database = {
         }
         Returns: string
       }
+      issue_coach_invitation: {
+        Args: {
+          intended_email: string
+          invitation_expires_at: string
+          invitation_token_hash: string
+          invited_role: string
+          target_coach_id: string
+        }
+        Returns: string
+      }
       preview_club_invitation: {
         Args: { invitation_token_hash: string }
         Returns: {
@@ -6126,7 +6304,18 @@ export type Database = {
           organization_name: string
         }[]
       }
+      preview_coach_invitation: {
+        Args: { invitation_token_hash: string }
+        Returns: {
+          coach_name: string
+          email_hint: string
+          expires_at: string
+          invitation_status: string
+          invited_role: string
+        }[]
+      }
       record_club_first_login: { Args: never; Returns: boolean }
+      record_coach_first_login: { Args: never; Returns: boolean }
       revoke_club_invitation: {
         Args: { target_invitation_id: string }
         Returns: undefined
@@ -6135,9 +6324,21 @@ export type Database = {
         Args: { target_membership_id: string }
         Returns: undefined
       }
+      revoke_coach_invitation: {
+        Args: { target_invitation_id: string }
+        Returns: undefined
+      }
       revoke_dossier_access: {
         Args: { target_order_id: string }
         Returns: undefined
+      }
+      save_own_coach_portal_profile: {
+        Args: {
+          profile: Json
+          submit_for_review?: boolean
+          target_coach_id: string
+        }
+        Returns: string
       }
       submit_dossier_order: {
         Args: {

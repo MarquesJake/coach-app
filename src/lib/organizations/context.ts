@@ -14,6 +14,14 @@ export type OrganizationContext = {
   userId: string
 }
 
+export type CoachPortalContext = {
+  organizationId: string
+  organizationName: string
+  coachId: string
+  membershipRole: 'coach' | 'coach_representative'
+  userId: string
+}
+
 export async function getClubPortalContext(): Promise<OrganizationContext | null> {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -66,6 +74,44 @@ export async function getInternalOrganizationId(userId: string): Promise<string 
     .eq('status', 'active')
     .limit(1)
   return organizations?.[0]?.id ?? null
+}
+
+export async function getCoachPortalContext(): Promise<CoachPortalContext | null> {
+  const supabase = createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: memberships } = await supabase
+    .from('organization_memberships')
+    .select('organization_id, role')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .in('role', ['coach', 'coach_representative'])
+
+  if (!memberships?.length) return null
+  const roleByOrganization = new Map(memberships.map((membership) => [membership.organization_id, membership.role]))
+  const { data: organizations } = await supabase
+    .from('organizations')
+    .select('id, name, coach_id')
+    .in('id', memberships.map((membership) => membership.organization_id))
+    .eq('organization_type', 'coach_business')
+    .eq('status', 'active')
+    .not('coach_id', 'is', null)
+    .order('created_at')
+    .limit(1)
+
+  const organization = organizations?.[0]
+  if (!organization?.coach_id) return null
+  const role = roleByOrganization.get(organization.id)
+  if (role !== 'coach' && role !== 'coach_representative') return null
+
+  return {
+    organizationId: organization.id,
+    organizationName: organization.name,
+    coachId: organization.coach_id,
+    membershipRole: role,
+    userId: user.id,
+  }
 }
 
 export async function getOrganizationAccessProfile(

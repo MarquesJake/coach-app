@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/db'
 import { validateClearConfirmation } from './clear-my-data'
-import { runDemoSeed } from './seed-demo-impl'
 
 type TableName = keyof Database['public']['Tables']
 
@@ -24,58 +23,6 @@ export async function claimUnownedRowsAction(): Promise<ClaimResult> {
   if (error) return { error: error.message ?? 'Claim failed' }
   if (data && 'error' in data && data.error) return { error: String(data.error) }
   return (data ?? {}) as ClaimResult
-}
-
-export type SeedDemoResult = {
-  ok: true
-  counts: {
-    clubs: number
-    coaches: number
-    staff: number
-    coach_stints: number
-    coach_staff_history: number
-    staff_created: number
-    staff_links_created: number
-    intelligence_items: number
-    scoring_models: number
-    coach_scores: number
-    coach_derived_metrics: number
-    coach_similarity: number
-    mandates: number
-    mandate_longlist: number
-    mandate_shortlist: number
-    mandate_deliverables: number
-    coach_tactical_reports: number
-    coach_data_profiles: number
-    coach_due_diligence_items: number
-    coach_background_checks: number
-    coach_recruitment_history: number
-    alerts?: number
-    agents?: number
-    coach_agents?: number
-    agent_club_relationships?: number
-    agent_interactions?: number
-    agent_deals?: number
-  }
-} | { ok: false; error: string }
-
-export async function seedDemoDataAction(): Promise<SeedDemoResult> {
-  const supabase = createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false, error: 'Not authenticated' }
-
-  const { counts, coachIds, error } = await runDemoSeed(user.id)
-  if (error) return { ok: false, error }
-
-  revalidatePath('/admin/data-tools')
-  revalidatePath('/coaches')
-  revalidatePath('/agents')
-  revalidatePath('/mandates')
-  for (const id of coachIds) {
-    revalidatePath(`/coaches/${id}`)
-  }
-
-  return { ok: true, counts }
 }
 
 /** Result of clear-my-data: counts per table, any skipped tables, and non-fatal errors. */

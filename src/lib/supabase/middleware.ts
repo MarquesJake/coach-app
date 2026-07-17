@@ -50,11 +50,14 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
   const isClubInvite = pathname.startsWith('/club/invite/')
+  const isCoachInvite = pathname.startsWith('/coach/invite/')
   const isPublicPath =
     pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/club/login') ||
+    pathname.startsWith('/coach/login') ||
     isClubInvite ||
+    isCoachInvite ||
     pathname.startsWith('/auth')
 
   // Protected routes - redirect to the correct login if not authenticated.
@@ -63,7 +66,11 @@ export async function updateSession(request: NextRequest) {
     !isPublicPath
   ) {
     const url = request.nextUrl.clone()
-    url.pathname = pathname.startsWith('/club') ? '/club/login' : '/login'
+    url.pathname = pathname.startsWith('/club')
+      ? '/club/login'
+      : pathname.startsWith('/coach')
+        ? '/coach/login'
+        : '/login'
     return NextResponse.redirect(url)
   }
 
@@ -78,6 +85,9 @@ export async function updateSession(request: NextRequest) {
   if (access.isClubOnlyIdentity && isAnalystApiRoute(pathname)) {
     return NextResponse.json({ error: 'Analyst API access is not available to club accounts.' }, { status: 403 })
   }
+  if (access.isCoachOnlyIdentity && isAnalystApiRoute(pathname)) {
+    return NextResponse.json({ error: 'Analyst API access is not available to coach accounts.' }, { status: 403 })
+  }
 
   // Club identities never enter the analyst application, including after
   // membership revocation. The club layout then renders the inactive state.
@@ -87,10 +97,20 @@ export async function updateSession(request: NextRequest) {
     url.search = ''
     return NextResponse.redirect(url)
   }
+  if (access.isCoachOnlyIdentity && isAnalystRoute(pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/coach/profile'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
 
   if (pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = access.isClubOnlyIdentity ? '/club' : '/dashboard/overview'
+    url.pathname = access.isClubOnlyIdentity
+      ? '/club'
+      : access.isCoachOnlyIdentity
+        ? '/coach/profile'
+        : '/dashboard/overview'
     url.search = ''
     return NextResponse.redirect(url)
   }
@@ -98,6 +118,17 @@ export async function updateSession(request: NextRequest) {
   if (pathname === '/club/login') {
     const url = request.nextUrl.clone()
     url.pathname = access.hasActiveClubAccess ? '/club' : access.hasActiveInternalAccess ? '/dashboard/overview' : '/club'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+
+  if (pathname === '/coach/login') {
+    const url = request.nextUrl.clone()
+    url.pathname = access.hasActiveCoachAccess
+      ? '/coach/profile'
+      : access.hasActiveInternalAccess
+        ? '/dashboard'
+        : '/coach/profile'
     url.search = ''
     return NextResponse.redirect(url)
   }

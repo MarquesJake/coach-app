@@ -120,7 +120,7 @@ export function ClubBrowserPanel() {
           <div className="border-t border-border px-2.5 py-2 space-y-2">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-300">Internal sync</p>
             <p className="text-[10px] leading-relaxed text-muted-foreground">
-              Refresh English clubs from API-Football. Use only when preparing or repairing demo data.
+              Refresh English clubs from API-Football when preparing or repairing the internal club database.
             </p>
             <button
               type="button"

@@ -5,14 +5,17 @@ import type { Database } from '@/lib/types/db'
 import { displayClubName } from '@/lib/display-names'
 import {
   addCoachPortalMaterialFormAction,
+  revokeCoachInvitationAction,
   saveCoachPortalProfileFormAction,
   updateCoachPortalAccessStatusFormAction,
   updateCoachPortalMaterialVerificationFormAction,
 } from '../actions'
+import { InviteCoachUserForm } from './_components/invite-coach-user-form'
 
 type CoachRow = Database['public']['Tables']['coaches']['Row']
 type PortalRow = Database['public']['Tables']['coach_portal_profiles']['Row']
 type MaterialRow = Database['public']['Tables']['coach_private_materials']['Row']
+type CoachInvitationRow = Database['public']['Tables']['coach_invitations']['Row']
 type AccessRequestRow = Database['public']['Tables']['confidential_access_requests']['Row'] & {
   mandates?: {
     id: string
@@ -123,7 +126,7 @@ export default async function CoachPortalDetailPage({
   if (!user) redirect('/login')
 
   const coachId = params.coachId
-  const [coachRes, profileRes, materialsRes, accessRequestsRes] = await Promise.all([
+  const [coachRes, profileRes, materialsRes, accessRequestsRes, invitationsRes] = await Promise.all([
     supabase
       .from('coaches')
       .select('*')
@@ -148,6 +151,11 @@ export default async function CoachPortalDetailPage({
       .eq('coach_id', coachId)
       .eq('user_id', user.id)
       .order('requested_at', { ascending: false }),
+    supabase
+      .from('coach_invitations')
+      .select('*')
+      .eq('coach_id', coachId)
+      .order('created_at', { ascending: false }),
   ])
 
   if (coachRes.error || !coachRes.data) notFound()
@@ -156,6 +164,7 @@ export default async function CoachPortalDetailPage({
   const profile = (profileRes.data ?? null) as PortalRow | null
   const materials = (materialsRes.data ?? []) as MaterialRow[]
   const accessRequests = (accessRequestsRes.data ?? []) as AccessRequestRow[]
+  const invitations = (invitationsRes.data ?? []) as CoachInvitationRow[]
   const score = readiness(profile, materials)
   const verifiedMaterials = materials.filter((item) => item.verification_status === 'verified').length
   const requestedMaterials = materials.filter((item) => ['requested', 'missing'].includes(item.confidentiality_status)).length
@@ -266,6 +275,48 @@ export default async function CoachPortalDetailPage({
             <div className="h-full rounded-full bg-primary" style={{ width: `${score}%` }} />
           </div>
         </div>
+      </section>
+
+      <section className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="border-b border-border px-5 py-4">
+          <h3 className="text-sm font-semibold text-foreground">Coach account access</h3>
+          <p className="mt-0.5 text-2xs text-muted-foreground">
+            Invite the coach or one named representative into the coach-owned profile. This never exposes independent intelligence or assessment conclusions.
+          </p>
+        </div>
+        <div className="px-5 py-4">
+          <InviteCoachUserForm coachId={coach.id} />
+        </div>
+        {invitations.length > 0 && (
+          <div className="divide-y divide-border/60 border-t border-border">
+            {invitations.slice(0, 5).map((invitation) => {
+              const expired = invitation.status === 'pending' && new Date(invitation.expires_at).getTime() <= Date.now()
+              return (
+                <div key={invitation.id} className="grid gap-2 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_150px_120px_auto] sm:items-center">
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-medium text-foreground">{invitation.email}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {invitation.role === 'coach' ? 'Coach' : 'Representative'}
+                    </p>
+                  </div>
+                  <p className="text-xs capitalize text-muted-foreground">{expired ? 'expired' : invitation.status}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {new Date(invitation.created_at).toLocaleDateString('en-GB')}
+                  </p>
+                  {invitation.status === 'pending' && !expired ? (
+                    <form action={revokeCoachInvitationAction}>
+                      <input type="hidden" name="coach_id" value={coach.id} />
+                      <input type="hidden" name="invitation_id" value={invitation.id} />
+                      <button className="rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-red-700">
+                        Revoke
+                      </button>
+                    </form>
+                  ) : <span />}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       <section className="rounded-lg border border-border bg-card p-5">
@@ -421,7 +472,7 @@ export default async function CoachPortalDetailPage({
           <div>
             <h3 className="text-sm font-semibold text-foreground">Add private material</h3>
             <p className="text-2xs text-muted-foreground mt-0.5">
-              Log videos, PowerPoints, PDFs, methodology files and media links. Full upload storage can sit behind this next.
+              Log analyst-, agent- or club-supplied material here. Coach uploads arrive through the secure coach account and remain subject to review.
             </p>
           </div>
           <div className="grid grid-cols-[1fr_160px] gap-3">

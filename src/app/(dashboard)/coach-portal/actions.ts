@@ -1,5 +1,7 @@
 'use server'
 
+import { createHash, randomBytes } from 'node:crypto'
+import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
@@ -12,6 +14,11 @@ import {
 } from '@/lib/coach-appointment'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
+export type InviteCoachUserResult = {
+  ok: boolean
+  error?: string
+  inviteLink?: string
+}
 
 const PORTAL_STATUSES = ['not_invited', 'invited', 'in_progress', 'submitted', 'in_review', 'approved', 'needs_update'] as const
 const VISIBILITY_STATUSES = ['private', 'coach_first_only', 'clubs_on_request', 'shareable'] as const
@@ -419,4 +426,52 @@ export async function updateCoachPortalAccessStatusAction(formData: FormData): P
 
 export async function updateCoachPortalAccessStatusFormAction(formData: FormData): Promise<void> {
   await updateCoachPortalAccessStatusAction(formData)
+}
+
+export async function issueCoachInvitationAction(formData: FormData): Promise<InviteCoachUserResult> {
+  const { supabase, user } = await requireUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+  const coachId = text(formData, 'coach_id') ?? ''
+  const email = (text(formData, 'email') ?? '').toLowerCase()
+  const role = text(formData, 'role') ?? ''
+  if (!coachId || !email || !['coach', 'coach_representative'].includes(role)) {
+    return { ok: false, error: 'Enter an email address and choose coach or representative access.' }
+  }
+  if (!(await ownsCoach(supabase, user.id, coachId))) return { ok: false, error: 'Coach not found' }
+  const { data: isOperator } = await supabase.rpc('is_internal_operator')
+  if (!isOperator) return { ok: false, error: 'Only an internal owner or administrator can invite coach users.' }
+
+  const rawToken = randomBytes(32).toString('hex')
+  const tokenHash = createHash('sha256').update(rawToken).digest('hex')
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { error } = await supabase.rpc('issue_coach_invitation', {
+    target_coach_id: coachId,
+    intended_email: email,
+    invited_role: role,
+    invitation_token_hash: tokenHash,
+    invitation_expires_at: expiresAt,
+  })
+  if (error) return { ok: false, error: error.message }
+
+  const headerStore = headers()
+  const protocol = headerStore.get('x-forwarded-proto') ?? 'http'
+  const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host') ?? 'localhost:3000'
+  revalidateCoachWorkspace(coachId)
+  return { ok: true, inviteLink: `${protocol}://${host}/coach/invite/${rawToken}` }
+}
+
+export async function revokeCoachInvitationAction(formData: FormData) {
+  const { supabase, user } = await requireUser()
+  if (!user) redirect('/login')
+  const coachId = text(formData, 'coach_id') ?? ''
+  const invitationId = text(formData, 'invitation_id') ?? ''
+  if (!coachId || !(await ownsCoach(supabase, user.id, coachId))) {
+    redirect('/coach-portal?error=coach_access')
+  }
+  const { error } = await supabase.rpc('revoke_coach_invitation', {
+    target_invitation_id: invitationId,
+  })
+  if (error) redirect(`/coach-portal/${coachId}?error=coach_invite`)
+  revalidateCoachWorkspace(coachId)
+  redirect(`/coach-portal/${coachId}?revoked=coach_invite`)
 }

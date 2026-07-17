@@ -28,7 +28,11 @@ const careerCircumstancesMigration = readFileSync(
   'utf8'
 )
 const appointmentPlanMigration = readFileSync(
-  resolve('supabase/migrations/20260717110505_appointment_plan_workflow.sql'),
+  resolve('supabase/migrations/20260717111026_appointment_plan_workflow.sql'),
+  'utf8'
+)
+const coachIdentityMigration = readFileSync(
+  resolve('supabase/migrations/20260717114745_coach_identity_and_private_materials.sql'),
   'utf8'
 )
 
@@ -124,4 +128,20 @@ test('appointment plan expands owned mandate work without replacing its RLS cont
   assert.match(appointmentPlanMigration, /status <> 'Blocked'/)
   assert.doesNotMatch(appointmentPlanMigration, /drop policy|disable row level security/)
   assert.match(productionRlsSuite, /public\.mandate_deliverables/)
+})
+
+test('coach identity is invite-only, token-hashed, and isolated from independent intelligence', () => {
+  assert.match(coachIdentityMigration, /token_hash text not null unique/)
+  assert.doesNotMatch(coachIdentityMigration, /raw_token|token_plaintext/)
+  assert.match(coachIdentityMigration, /is_coach_portal_member/)
+  assert.match(coachIdentityMigration, /organization\.organization_type = 'coach_business'/)
+  assert.match(coachIdentityMigration, /Coach members can view their coach identity/)
+  assert.match(coachIdentityMigration, /Coach members can view their portal profile/)
+  assert.match(coachIdentityMigration, /Coach members can view their submitted materials/)
+  assert.match(coachIdentityMigration, /'coach_first_only'/)
+  assert.match(coachIdentityMigration, /verification_status[\s\S]*'unverified'/)
+  assert.match(coachIdentityMigration, /bucket_id = 'coach-private-materials'/)
+  assert.match(coachIdentityMigration, /public\.is_coach_portal_member\(\(\(storage\.foldername\(name\)\)\[1\]\)::uuid\)/)
+  assert.match(productionRlsSuite, /claim_coach_invitation/)
+  assert.match(productionRlsSuite, /Coach identity leaked/)
 })
