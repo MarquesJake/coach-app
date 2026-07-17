@@ -13,6 +13,7 @@ export default async function MandateEditPage({ params }: { params: { id: string
       id, strategic_objective, tactical_model_required, pressing_intensity_required,
       build_preference_required, leadership_profile_required, budget_band,
       succession_timeline, board_risk_appetite, language_requirements, relocation_required,
+      service_model, engagement_owner,
       custom_club_name,
       clubs ( name )
     `)
@@ -32,7 +33,7 @@ export default async function MandateEditPage({ params }: { params: { id: string
         mode="edit"
         mandateId={params.id}
         clubName={clubName}
-        backHref={`/mandates/${params.id}`}
+        backHref={`/mandates/${params.id}/plan`}
         initialValues={{
           strategic_objective: mandate.strategic_objective ?? undefined,
           tactical_model_required: mandate.tactical_model_required ?? undefined,
@@ -44,6 +45,8 @@ export default async function MandateEditPage({ params }: { params: { id: string
           board_risk_appetite: mandate.board_risk_appetite ?? undefined,
           language_requirements: mandate.language_requirements?.join(', ') ?? undefined,
           relocation_required: mandate.relocation_required ?? undefined,
+          service_model: mandate.service_model ?? undefined,
+          engagement_owner: mandate.engagement_owner ?? undefined,
         }}
       />
     </div>

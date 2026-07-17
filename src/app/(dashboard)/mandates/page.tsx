@@ -47,6 +47,7 @@ export default async function MandatesPage() {
     status: m.status,
     priority: m.priority,
     pipeline_stage: m.pipeline_stage ?? null,
+    service_model: m.service_model ?? 'full_service_search',
     budget_band: m.budget_band ?? '',
     strategic_objective: m.strategic_objective ?? null,
     tactical_model_required: m.tactical_model_required ?? null,

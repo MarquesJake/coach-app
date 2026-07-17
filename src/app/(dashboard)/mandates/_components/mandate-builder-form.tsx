@@ -4,6 +4,13 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { FlexibleSelect } from '@/components/ui/flexible-select'
+import {
+  SERVICE_MODELS,
+  SERVICE_MODEL_DESCRIPTIONS,
+  SERVICE_MODEL_LABELS,
+  isServiceModel,
+  type ServiceModel,
+} from '@/lib/mandates/appointment-plan'
 import { createMandateBuilderAction, updateMandateBuilderAction } from '../actions-builder'
 
 // ── Option sets ───────────────────────────────────────────────────────────────
@@ -164,8 +171,10 @@ function completeness(vals: ScoringFields): number {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type MandateBuilderInitialValues = Partial<ScoringFields> & {
+  engagement_owner?: string | null
   language_requirements?: string | null
   relocation_required?: boolean | null
+  service_model?: string | null
 }
 
 type ClubOption = { id: string; label: string }
@@ -215,6 +224,11 @@ export function MandateBuilderForm({
   })
   const [languageRequirements, setLanguageRequirements] = useState(initialValues.language_requirements ?? '')
   const [relocationRequired, setRelocationRequired] = useState(initialValues.relocation_required ?? false)
+  const [serviceModel, setServiceModel] = useState<ServiceModel>(
+    initialValues.service_model && isServiceModel(initialValues.service_model)
+      ? initialValues.service_model
+      : 'full_service_search'
+  )
 
   function set(key: keyof ScoringFields, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
@@ -340,6 +354,7 @@ export function MandateBuilderForm({
         <input type="hidden" name="board_risk_appetite" value={fields.board_risk_appetite} />
         <input type="hidden" name="language_requirements" value={languageRequirements ?? ''} />
         <input type="hidden" name="relocation_required" value={String(relocationRequired)} />
+        <input type="hidden" name="service_model" value={serviceModel} />
 
         {/* ── Section 1: Context ─────────────────────────────────────────── */}
         <section className="rounded-lg border border-border bg-card p-4 space-y-4">
@@ -362,6 +377,33 @@ export function MandateBuilderForm({
               />
             </label>
           )}
+
+          <div className="space-y-1">
+            <FieldLabel required>Coach First service</FieldLabel>
+            <select
+              value={serviceModel}
+              onChange={(event) => setServiceModel(event.target.value as ServiceModel)}
+              className="h-10 w-full rounded border border-border bg-surface px-3 text-sm text-foreground"
+            >
+              {SERVICE_MODELS.map((model) => (
+                <option key={model} value={model}>{SERVICE_MODEL_LABELS[model]}</option>
+              ))}
+            </select>
+            <p className="text-[10px] leading-relaxed text-muted-foreground">
+              {SERVICE_MODEL_DESCRIPTIONS[serviceModel]}
+            </p>
+          </div>
+
+          <label className="space-y-1 block">
+            <FieldLabel required>Internal owner</FieldLabel>
+            <input
+              name="engagement_owner"
+              required
+              defaultValue={initialValues.engagement_owner ?? ''}
+              placeholder="e.g. Jake / Ben"
+              className="h-10 w-full rounded border border-border bg-surface px-3 text-sm text-foreground"
+            />
+          </label>
 
           <div className="space-y-1">
             <FieldLabel required>Strategic objective</FieldLabel>

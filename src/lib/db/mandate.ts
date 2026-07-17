@@ -40,6 +40,7 @@ export async function getMandatesForUser(userId: string) {
       status,
       priority,
       pipeline_stage,
+      service_model,
       engagement_date,
       target_completion_date,
       budget_band,

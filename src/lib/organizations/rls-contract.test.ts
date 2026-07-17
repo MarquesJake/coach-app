@@ -27,6 +27,10 @@ const careerCircumstancesMigration = readFileSync(
   resolve('supabase/migrations/20260717104157_coach_career_circumstances.sql'),
   'utf8'
 )
+const appointmentPlanMigration = readFileSync(
+  resolve('supabase/migrations/20260717110505_appointment_plan_workflow.sql'),
+  'utf8'
+)
 
 test('club invitation schema stores only hashed single-use tokens', () => {
   assert.match(identityMigration, /token_hash text not null unique/)
@@ -58,7 +62,7 @@ test('seller commercial tables remain outside the club-readable base tables', ()
 
 test('production RLS suite covers internal leakage, privileged RPCs, and revocation', () => {
   for (const table of [
-    'coaches', 'candidate_assessments', 'assessment_evidence',
+    'coaches', 'candidate_assessments', 'assessment_evidence', 'mandate_deliverables',
     'candidate_reference_answers', 'profile_claims', 'mandates',
     'succession_plans', 'intelligence_inbox_items',
     'football_contacts', 'contact_coach_relationships', 'intelligence_sessions',
@@ -111,4 +115,13 @@ test('coach career circumstances require ownership and explicit verification', (
   assert.match(careerCircumstancesMigration, /revoke all on function public\.verify_coach_career_circumstances/)
   assert.doesNotMatch(careerCircumstancesMigration, /security definer/)
   assert.match(productionRlsSuite, /public\.coach_portal_staff_members/)
+})
+
+test('appointment plan expands owned mandate work without replacing its RLS contract', () => {
+  assert.match(appointmentPlanMigration, /add column if not exists service_model/)
+  assert.match(appointmentPlanMigration, /add column if not exists engagement_owner/)
+  assert.match(appointmentPlanMigration, /linked_coach_id uuid references public\.coaches/)
+  assert.match(appointmentPlanMigration, /status <> 'Blocked'/)
+  assert.doesNotMatch(appointmentPlanMigration, /drop policy|disable row level security/)
+  assert.match(productionRlsSuite, /public\.mandate_deliverables/)
 })

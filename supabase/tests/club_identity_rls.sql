@@ -222,6 +222,7 @@ begin
     (select count(*) from public.coach_portal_staff_members) +
     (select count(*) from public.profile_claims) +
     (select count(*) from public.mandates) +
+    (select count(*) from public.mandate_deliverables) +
     (select count(*) from public.succession_plans) +
     (select count(*) from public.intelligence_inbox_items) +
     (select count(*) from public.football_contacts) +

@@ -11,6 +11,7 @@ import { updateMandateStageAction } from '../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import type { BoardSignal } from '@/lib/db/mandate'
 import { displayClubName } from '@/lib/display-names'
+import { SERVICE_MODEL_LABELS, isServiceModel } from '@/lib/mandates/appointment-plan'
 
 /** Mandate health: visual only. Green = strong longlist depth, Amber = thin shortlist, Red = low match confidence. */
 function mandateHealth(shortlistCount: number): 'green' | 'amber' | 'red' {
@@ -24,6 +25,7 @@ export type MandateForBoard = {
   status: string
   priority: string
   pipeline_stage: string | null
+  service_model: string
   budget_band: string
   strategic_objective?: string | null
   tactical_model_required?: string | null
@@ -515,14 +517,14 @@ function MandateCard({
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('[data-drag-handle]') || (e.target as HTMLElement).closest('[data-menu-trigger]')) return
-    router.push(`/mandates/${mandate.id}`)
+    router.push(`/mandates/${mandate.id}/plan`)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       if (!(e.target as HTMLElement).closest('[data-drag-handle]') && !(e.target as HTMLElement).closest('[data-menu-trigger]')) {
-        router.push(`/mandates/${mandate.id}`)
+        router.push(`/mandates/${mandate.id}/plan`)
       }
     }
   }
@@ -549,6 +551,9 @@ function MandateCard({
   const strength = shortlistStrength(count, shortlisted)
   const primaryRisk = mainRisk(mandate, count, missing, hasRiskConcern)
   const nextAction = nextActionLabel(mandate, count, shortlisted, missing, topCoach)
+  const serviceLabel = isServiceModel(mandate.service_model)
+    ? SERVICE_MODEL_LABELS[mandate.service_model]
+    : SERVICE_MODEL_LABELS.full_service_search
 
   return (
     <div
@@ -611,7 +616,7 @@ function MandateCard({
           </div>
 
           <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            {roleLabel}
+            {roleLabel} · {serviceLabel}
           </p>
 
           {/* Row 2: top candidate (if scored) */}
@@ -713,12 +718,12 @@ function MandateCard({
               {openMenuId === mandate.id && (
                 <div className="absolute right-0 top-full mt-0.5 py-1 min-w-[140px] rounded-md border border-border bg-card shadow-lg z-[100]">
                   <Link
-                    href={`/mandates/${mandate.id}`}
+                    href={`/mandates/${mandate.id}/plan`}
                     className="flex items-center gap-2 px-3 py-1.5 text-xs text-foreground hover:bg-surface-overlay/50"
                     onClick={() => setOpenMenuId(null)}
                   >
                     <Eye className="w-3 h-3" />
-                    View
+                    Open plan
                   </Link>
                   <Link
                     href={`/mandates/${mandate.id}/edit`}

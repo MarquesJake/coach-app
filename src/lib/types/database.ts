@@ -4851,33 +4851,61 @@ export type Database = {
       }
       mandate_deliverables: {
         Row: {
+          assigned_to: string | null
+          blocked_reason: string | null
+          category: string
+          completed_at: string | null
           created_at: string
           due_date: string
           id: string
           item: string
+          linked_coach_id: string | null
           mandate_id: string
+          notes: string | null
+          priority: string
           status: string
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
+          blocked_reason?: string | null
+          category?: string
+          completed_at?: string | null
           created_at?: string
           due_date: string
           id?: string
           item: string
+          linked_coach_id?: string | null
           mandate_id: string
+          notes?: string | null
+          priority?: string
           status: string
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
+          blocked_reason?: string | null
+          category?: string
+          completed_at?: string | null
           created_at?: string
           due_date?: string
           id?: string
           item?: string
+          linked_coach_id?: string | null
           mandate_id?: string
+          notes?: string | null
+          priority?: string
           status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "mandate_deliverables_linked_coach_id_fkey"
+            columns: ["linked_coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mandate_deliverables_mandate_id_fkey"
             columns: ["mandate_id"]
@@ -5024,6 +5052,7 @@ export type Database = {
           created_at: string
           custom_club_name: string | null
           engagement_date: string
+          engagement_owner: string | null
           id: string
           key_stakeholders: string[]
           language_requirements: string[] | null
@@ -5034,6 +5063,7 @@ export type Database = {
           priority: string
           relocation_required: boolean | null
           risk_tolerance: string | null
+          service_model: string
           status: string
           strategic_objective: string | null
           succession_timeline: string | null
@@ -5052,6 +5082,7 @@ export type Database = {
           created_at?: string
           custom_club_name?: string | null
           engagement_date: string
+          engagement_owner?: string | null
           id?: string
           key_stakeholders?: string[]
           language_requirements?: string[] | null
@@ -5062,6 +5093,7 @@ export type Database = {
           priority: string
           relocation_required?: boolean | null
           risk_tolerance?: string | null
+          service_model?: string
           status: string
           strategic_objective?: string | null
           succession_timeline?: string | null
@@ -5080,6 +5112,7 @@ export type Database = {
           created_at?: string
           custom_club_name?: string | null
           engagement_date?: string
+          engagement_owner?: string | null
           id?: string
           key_stakeholders?: string[]
           language_requirements?: string[] | null
@@ -5090,6 +5123,7 @@ export type Database = {
           priority?: string
           relocation_required?: boolean | null
           risk_tolerance?: string | null
+          service_model?: string
           status?: string
           strategic_objective?: string | null
           succession_timeline?: string | null

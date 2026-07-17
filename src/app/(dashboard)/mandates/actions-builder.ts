@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/db/activity'
+import { isServiceModel } from '@/lib/mandates/appointment-plan'
 
 function toText(value: FormDataEntryValue | null): string {
   return typeof value === 'string' ? value.trim() : ''
@@ -45,9 +46,13 @@ export async function createMandateBuilderAction(formData: FormData) {
   const boardRiskAppetite = toText(formData.get('board_risk_appetite'))
   const languageRequirements = toList(formData.get('language_requirements'))
   const relocationRequired = formData.get('relocation_required') === 'true'
+  const serviceModelInput = toText(formData.get('service_model'))
+  const serviceModel = isServiceModel(serviceModelInput) ? serviceModelInput : null
+  const engagementOwner = toText(formData.get('engagement_owner'))
 
   if (!clubIdOrName || !strategicObjective || !tacticalModel || !pressingIntensity ||
-      !buildPreference || !leadershipProfile || !budgetBand || !successionTimeline) {
+      !buildPreference || !leadershipProfile || !budgetBand || !successionTimeline ||
+      !serviceModel || !engagementOwner) {
     redirect('/mandates/new?error=Please+complete+all+required+fields')
   }
 
@@ -97,6 +102,8 @@ export async function createMandateBuilderAction(formData: FormData) {
       board_risk_appetite: boardRiskAppetite || 'Moderate',
       language_requirements: languageRequirements,
       relocation_required: relocationRequired,
+      service_model: serviceModel,
+      engagement_owner: engagementOwner,
     })
     .select('id').single()
 
@@ -113,7 +120,7 @@ export async function createMandateBuilderAction(formData: FormData) {
   })
 
   revalidatePath('/mandates')
-  redirect(`/mandates/${mandate.id}/workspace?success=Mandate+created`)
+  redirect(`/mandates/${mandate.id}/plan?success=Mandate+created`)
 }
 
 // ── Update ───────────────────────────────────────────────────────────────────
@@ -138,6 +145,11 @@ export async function updateMandateBuilderAction(formData: FormData) {
   const boardRiskAppetite = toText(formData.get('board_risk_appetite'))
   const languageRequirements = toList(formData.get('language_requirements'))
   const relocationRequired = formData.get('relocation_required') === 'true'
+  const serviceModelInput = toText(formData.get('service_model'))
+  const serviceModel = isServiceModel(serviceModelInput) ? serviceModelInput : null
+  const engagementOwner = toText(formData.get('engagement_owner'))
+  if (!serviceModel) redirect(`/mandates/${mandateId}/edit?error=Choose+a+valid+service+model`)
+  if (!engagementOwner) redirect(`/mandates/${mandateId}/edit?error=Add+an+internal+owner`)
 
   const { error } = await supabase
     .from('mandates')
@@ -152,6 +164,8 @@ export async function updateMandateBuilderAction(formData: FormData) {
       board_risk_appetite: boardRiskAppetite || undefined,
       language_requirements: languageRequirements.length > 0 ? languageRequirements : undefined,
       relocation_required: relocationRequired,
+      service_model: serviceModel,
+      engagement_owner: engagementOwner,
     })
     .eq('id', mandateId)
     .eq('user_id', user.id)
@@ -162,7 +176,8 @@ export async function updateMandateBuilderAction(formData: FormData) {
 
   revalidatePath('/mandates')
   revalidatePath(`/mandates/${mandateId}`)
+  revalidatePath(`/mandates/${mandateId}/plan`)
   revalidatePath(`/mandates/${mandateId}/workspace`)
   revalidatePath(`/mandates/${mandateId}/longlist`)
-  redirect(`/mandates/${mandateId}/workspace?success=Mandate+updated`)
+  redirect(`/mandates/${mandateId}/plan?success=Mandate+updated`)
 }
