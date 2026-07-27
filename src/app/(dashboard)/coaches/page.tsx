@@ -10,12 +10,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageState } from '@/components/ui/page-state'
-import { Search, Users, ChevronRight, Filter, GitCompare, Plus, X, RefreshCw } from 'lucide-react'
+import { Search, Users, ChevronRight, Filter, GitCompare, Plus, X, RefreshCw, CopyCheck } from 'lucide-react'
 import { toastError, toastSuccess } from '@/lib/ui/toast'
 
 import { setStoredCompareIds, MAX_COMPARE } from '@/lib/compare'
 import { computeCoachCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-completeness'
 import { getCoachStintAndIntelCountsAction } from './actions'
+import { findCoachDuplicateGroups } from '@/lib/coaches/duplicate-review'
 
 const MIN_COMPARE = 2
 
@@ -87,7 +88,7 @@ export default function CoachesPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('name')
-  const [profileScope, setProfileScope] = useState<'researched' | 'all'>('researched')
+  const [profileScope, setProfileScope] = useState<'researched' | 'duplicates' | 'all'>('researched')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [syncingEngland, setSyncingEngland] = useState(false)
@@ -158,6 +159,16 @@ export default function CoachesPage() {
     setCounts(countData)
   }
 
+  const duplicateGroups = findCoachDuplicateGroups(coaches)
+  const duplicateCoachIds = new Set(
+    duplicateGroups.flatMap((group) => group.coaches.map((coach) => coach.id))
+  )
+  const duplicateReasonByCoach = new Map(
+    duplicateGroups.flatMap((group) =>
+      group.coaches.map((coach) => [coach.id, group.reason] as const)
+    )
+  )
+
   const filtered = coaches
     .filter((c) => {
       const searchLower = search.trim().toLowerCase()
@@ -171,6 +182,7 @@ export default function CoachesPage() {
       if (!matchSearch || !matchStatus) return false
       const hasResearch = (counts[c.id]?.researchCount ?? 0) > 0
       if (profileScope === 'researched' && !searchLower && !hasResearch) return false
+      if (profileScope === 'duplicates' && !duplicateCoachIds.has(c.id)) return false
       if (filters.pressing_intensity && (c.pressing_intensity || '') !== filters.pressing_intensity) return false
       if (filters.build_preference && (c.build_preference || '') !== filters.build_preference) return false
       if (filters.preferred_systems && !(Array.isArray(c.preferred_systems) && c.preferred_systems.includes(filters.preferred_systems))) return false
@@ -425,12 +437,27 @@ export default function CoachesPage() {
           </button>
           <button
             type="button"
+            onClick={() => setProfileScope('duplicates')}
+            className={cn('rounded px-3 py-1.5 text-xs font-medium', profileScope === 'duplicates' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground')}
+          >
+            Duplicate review ({duplicateGroups.length})
+          </button>
+          <button
+            type="button"
             onClick={() => setProfileScope('all')}
             className={cn('rounded px-3 py-1.5 text-xs font-medium', profileScope === 'all' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground')}
           >
             Source index ({coaches.length})
           </button>
         </div>
+        {profileScope === 'duplicates' && (
+          <div className="mb-3 flex items-start gap-2 border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
+            <CopyCheck className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            <p>
+              Review only. Open or compare the records before deciding which is canonical; nothing is merged or deleted automatically because intelligence, assessments and private materials may be linked.
+            </p>
+          </div>
+        )}
         <div className="mb-3 flex items-center gap-2 flex-wrap">
           <span className="text-2xs uppercase tracking-wide text-muted-foreground">Presets</span>
           <button onClick={() => applyFilterPreset('recruiting-now')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">Recruiting now</button>
@@ -609,7 +636,7 @@ export default function CoachesPage() {
       {/* Coach Table/List */}
       <div className="card-surface rounded-lg overflow-hidden">
         {/* Table header */}
-        <div className="grid grid-cols-[32px_1fr_140px_120px_100px_80px_60px_60px_32px] px-5 py-2.5 border-b border-border bg-surface/50">
+        <div className="hidden lg:grid grid-cols-[32px_1fr_140px_120px_100px_80px_60px_60px_32px] px-5 py-2.5 border-b border-border bg-surface/50">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -644,7 +671,7 @@ export default function CoachesPage() {
             return (
             <div
               key={coach.id}
-              className="grid grid-cols-[32px_1fr_140px_120px_100px_80px_60px_60px_32px] px-5 py-3 items-center hover:bg-surface-overlay/30 transition-colors group animate-fade-in"
+              className="grid grid-cols-[28px_1fr] px-4 py-4 items-center hover:bg-surface-overlay/30 transition-colors group animate-fade-in lg:grid-cols-[32px_1fr_140px_120px_100px_80px_60px_60px_32px] lg:px-5 lg:py-3"
               style={{ animationDelay: `${Math.min(i * 20, 400)}ms` }}
             >
               <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
@@ -672,46 +699,60 @@ export default function CoachesPage() {
                 <span className="text-2xs text-muted-foreground truncate block">
                   {coach.role_current}{coach.club_current ? ` · ${coach.club_current}` : ''}
                 </span>
+                <div className="mt-2 flex flex-wrap items-center gap-2 lg:hidden">
+                  <Badge variant={STATUS_VARIANT[coach.available_status] || 'outline'}>
+                    {coach.available_status === 'Under contract - interested' ? 'Interested' : coach.available_status}
+                  </Badge>
+                  <span className={cn('inline-flex rounded-md border px-2 py-0.5 text-2xs font-medium tabular-nums', readinessBadge)}>
+                    Ready {readiness}%
+                  </span>
+                  <span className="text-2xs text-muted-foreground">Profile {completeness}%</span>
+                </div>
+                {duplicateReasonByCoach.has(coach.id) && (
+                  <span className="mt-1 text-[10px] font-medium text-amber-600">
+                    Potential duplicate · {duplicateReasonByCoach.get(coach.id)}
+                  </span>
+                )}
               </Link>
 
               {/* Style */}
-              <div>
+              <div className="hidden lg:block">
                 <span className="text-2xs text-muted-foreground">{coach.preferred_style}</span>
               </div>
 
               {/* Status */}
-              <div>
+              <div className="hidden lg:block">
                 <Badge variant={STATUS_VARIANT[coach.available_status] || 'outline'}>
                   {coach.available_status === 'Under contract - interested' ? 'Interested' : coach.available_status}
                 </Badge>
               </div>
 
               {/* Reputation */}
-              <div>
+              <div className="hidden lg:block">
                 <Badge variant={REPUTATION_VARIANT[coach.reputation_tier] || 'outline'}>
                   {coach.reputation_tier}
                 </Badge>
               </div>
 
               {/* Wage */}
-              <div>
+              <div className="hidden lg:block">
                 <span className="text-2xs text-muted-foreground tabular-nums">{coach.wage_expectation}</span>
               </div>
 
               {/* Completeness */}
-              <div className="tabular-nums text-2xs font-medium text-muted-foreground">
+              <div className="hidden tabular-nums text-2xs font-medium text-muted-foreground lg:block">
                 {completeness}%
               </div>
 
               {/* Readiness */}
-              <div>
+              <div className="hidden lg:block">
                 <span className={cn('inline-flex rounded-md border px-2 py-0.5 text-2xs font-medium tabular-nums', readinessBadge)}>
                   {readiness}%
                 </span>
               </div>
 
               {/* Arrow */}
-              <div className="flex justify-end">
+              <div className="hidden justify-end lg:flex">
                 <Link href={`/coaches/${coach.id}`} className="inline-flex">
                   <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary/50 transition-colors" />
                 </Link>

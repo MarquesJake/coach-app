@@ -34,6 +34,27 @@ test('assessment promotion remains idempotent on the existing claim origin', () 
   assert.match(trustedActions, /review_status:\s*'applied'/)
 })
 
+test('conversation findings are validated before the session insert and remain pending', () => {
+  const sessionAction = trustedActions.slice(
+    trustedActions.indexOf('export async function createIntelligenceSessionAction'),
+    trustedActions.indexOf('export async function createSessionFindingAction')
+  )
+  assert.ok(
+    sessionAction.indexOf("if (validClaims.length && !input.coachId)") <
+      sessionAction.indexOf(".from('intelligence_sessions').insert"),
+    'coach validation must happen before creating the session'
+  )
+
+  const addFindingAction = trustedActions.slice(
+    trustedActions.indexOf('export async function createSessionFindingAction'),
+    trustedActions.indexOf('export async function reviewTrustedClaimAction')
+  )
+  assert.match(addFindingAction, /review_status:\s*'pending'/)
+  assert.match(addFindingAction, /verification_status:\s*'unverified'/)
+  assert.match(addFindingAction, /used_in_recommendation:\s*false/)
+  assert.match(addFindingAction, /\.eq\('org_id', organizationId\)/)
+})
+
 test('coach intelligence entry points use the two canonical preselected lanes', () => {
   assert.match(coachCommandBar, /href=\{`\/intelligence\/conversations\?coach=\$\{coachId\}`\}/)
   assert.match(coachCommandBar, /href=\{`\/intelligence\/inbox\?coach=\$\{coachId\}`\}/)

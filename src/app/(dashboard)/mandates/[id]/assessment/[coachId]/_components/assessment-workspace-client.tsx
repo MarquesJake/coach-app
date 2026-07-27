@@ -613,6 +613,15 @@ export function AssessmentWorkspaceClient({
   const highlightedReferenceId = searchParams.get('reference')
   const highlightedEvidenceRef = useRef<HTMLDivElement | null>(null)
   const [selected, setSelected] = useState<CriterionKey>(initialCriterion)
+  const [workspaceSection, setWorkspaceSection] = useState<
+    'criteria' | 'human' | 'materials' | 'recommendation'
+  >(
+    highlightedInterviewId || highlightedReferenceId
+      ? 'human'
+      : highlightedEvidenceId || queryCriterion
+        ? 'criteria'
+        : 'criteria'
+  )
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -681,7 +690,7 @@ export function AssessmentWorkspaceClient({
   return (
     <div className="mt-5 space-y-5">
       {/* Summary strip */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="card-surface rounded-lg px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Evidence coverage</p>
           <p className="text-lg font-semibold text-foreground mt-0.5 tabular-nums">
@@ -741,6 +750,39 @@ export function AssessmentWorkspaceClient({
         </p>
       </div>
 
+      <div className="flex flex-col gap-3 border-y border-border py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
+          {[
+            { key: 'criteria', label: 'Criteria & evidence' },
+            { key: 'human', label: `Interviews & references (${interviewAnswers.length + referenceAnswers.length})` },
+            { key: 'materials', label: `Private materials (${privateMaterials.length})` },
+            { key: 'recommendation', label: 'Recommendation' },
+          ].map((section) => (
+            <button
+              key={section.key}
+              type="button"
+              onClick={() => setWorkspaceSection(section.key as typeof workspaceSection)}
+              className={cn(
+                'h-8 shrink-0 rounded px-3 text-xs font-medium',
+                workspaceSection === section.key
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              {section.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {gapCriteria.length > 0
+            ? `Next: close ${gapCriteria[0].label}`
+            : recommendation?.verdict
+              ? 'Next: review and issue the assessment pack'
+              : 'Next: record the final recommendation'}
+        </p>
+      </div>
+
+      <div className={workspaceSection === 'criteria' ? 'space-y-5' : 'hidden'}>
       {/* Coverage matrix */}
       <div className="card-surface rounded-lg overflow-hidden">
         <div className="px-5 py-3 border-b border-border">
@@ -828,7 +870,7 @@ export function AssessmentWorkspaceClient({
             <input type="hidden" name="mandate_id" value={mandateId} />
             <input type="hidden" name="coach_id" value={coachId} />
             <input type="hidden" name="criterion" value={selected} />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Status</label>
                 <select name="status" defaultValue={selectedAssessment?.status ?? 'not_started'} className={inputClass} key={`status-${selected}`}>
@@ -984,7 +1026,7 @@ export function AssessmentWorkspaceClient({
             <input type="hidden" name="mandate_id" value={mandateId} />
             <input type="hidden" name="coach_id" value={coachId} />
             <input type="hidden" name="criterion" value={selected} />
-            <div className="grid grid-cols-[1fr_130px] gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_160px]">
               <input name="title" required placeholder="Add evidence — what did you learn?" className={inputClass} key={`ev-title-${selected}`} />
               <select name="method" className={inputClass} defaultValue="desktop_research">
                 {EVIDENCE_METHODS.map((m) => (
@@ -992,7 +1034,7 @@ export function AssessmentWorkspaceClient({
                 ))}
               </select>
             </div>
-            <div className="grid grid-cols-[1fr_130px_90px] gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_160px_90px]">
               <input name="source" placeholder="Source (person, publication, dataset…)" className={inputClass} key={`ev-source-${selected}`} />
               <input name="detail" placeholder="Detail (optional)" className={inputClass} key={`ev-detail-${selected}`} />
               <input name="confidence" type="number" min={0} max={100} placeholder="Conf." className={inputClass} key={`ev-conf-${selected}`} />
@@ -1011,9 +1053,10 @@ export function AssessmentWorkspaceClient({
           </form>
         </div>
       </div>
+      </div>
 
       {/* Structured human evidence */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className={cn('grid grid-cols-1 lg:grid-cols-2 gap-5', workspaceSection !== 'human' && 'hidden')}>
         <StructuredInterviewPanel
           mandateId={mandateId}
           coachId={coachId}
@@ -1032,17 +1075,19 @@ export function AssessmentWorkspaceClient({
         />
       </div>
 
-      <ConfidentialDataRoomPanel
-        mandateId={mandateId}
-        coachId={coachId}
-        materials={privateMaterials}
-        accessRequests={accessRequests}
-        submit={submit}
-        isPending={isPending}
-      />
+      {workspaceSection === 'materials' && (
+        <ConfidentialDataRoomPanel
+          mandateId={mandateId}
+          coachId={coachId}
+          materials={privateMaterials}
+          accessRequests={accessRequests}
+          submit={submit}
+          isPending={isPending}
+        />
+      )}
 
       {/* Final recommendation */}
-      <div className="card-surface rounded-lg p-5">
+      <div className={cn('card-surface rounded-lg p-5', workspaceSection !== 'recommendation' && 'hidden')}>
         <h3 className="text-sm font-semibold text-foreground">Final recommendation</h3>
         <p className="text-2xs text-muted-foreground mt-0.5 mb-3">
           Analyst conclusion — structured by the 9-criteria methodology and supported by the evidence above. This is what the Head Coach Assessment Pack is built around.
@@ -1050,7 +1095,7 @@ export function AssessmentWorkspaceClient({
         <form action={submit(saveRecommendationAction)} className="space-y-3">
           <input type="hidden" name="mandate_id" value={mandateId} />
           <input type="hidden" name="coach_id" value={coachId} />
-          <div className="grid grid-cols-[180px_120px_1fr] gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_120px_1fr]">
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Verdict</label>
               <select name="verdict" defaultValue={recommendation?.verdict ?? ''} className={inputClass}>
@@ -1069,7 +1114,7 @@ export function AssessmentWorkspaceClient({
               <input name="summary" defaultValue={recommendation?.summary ?? ''} placeholder="Overall assessment in one or two sentences" className={inputClass} />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Key strengths</label>
               <textarea name="key_strengths" rows={2} defaultValue={recommendation?.key_strengths ?? ''} className={inputClass} />

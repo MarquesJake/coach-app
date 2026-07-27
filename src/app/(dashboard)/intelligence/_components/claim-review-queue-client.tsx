@@ -4,33 +4,37 @@
 
 import Link from 'next/link'
 import { useMemo, useState, useTransition } from 'react'
-import { Check, GitBranch, Scissors, X } from 'lucide-react'
+import { Check, GitBranch, Plus, Scissors, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { evidenceStrengthLabel, externalVisibilityLabel, factCheckStatusLabel, reviewStatusLabel, statementTypeLabel } from '@/lib/intelligence/display'
 import {
+  createSessionFindingAction,
   createClaimRelationshipAction,
   mergeTrustedClaimsAction,
   reviewTrustedClaimAction,
   splitTrustedClaimAction,
 } from '../trusted-actions'
+import { ASSESSMENT_CRITERIA } from '@/lib/assessment/criteria'
 
 type ClaimRow = Record<string, any>
 const inputClass = 'w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary'
 
-export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, relationships }: {
+export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, relationships, selectedSessionId }: {
   claims: ClaimRow[]
   contacts: ClaimRow[]
   coaches: ClaimRow[]
   sessions: ClaimRow[]
   relationships: ClaimRow[]
+  selectedSessionId?: string
 }) {
   const [filter, setFilter] = useState('pending')
   const [pending, startTransition] = useTransition()
   const contactMap = useMemo(() => new Map(contacts.map((row) => [row.id, row])), [contacts])
   const coachMap = useMemo(() => new Map(coaches.map((row) => [row.id, row.name])), [coaches])
   const sessionMap = useMemo(() => new Map(sessions.map((row) => [row.id, row])), [sessions])
+  const selectedSession = selectedSessionId ? sessionMap.get(selectedSessionId) : null
   const filtered = filter === 'all' ? claims : claims.filter((claim) => claim.review_status === filter)
 
   function review(claim: ClaimRow, reviewStatus: string) {
@@ -47,6 +51,57 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
 
   return (
     <div className="space-y-4">
+      {selectedSession && (
+        <details className="border border-border bg-card p-4" open={claims.length === 0}>
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-primary">
+            <Plus className="h-4 w-4" />
+            Draft finding from this conversation
+          </summary>
+          <form
+            className="mt-4 grid gap-3 sm:grid-cols-2"
+            action={(formData) =>
+              startTransition(async () => {
+                const result = await createSessionFindingAction(formData)
+                if (!result.ok) {
+                  toast.error(result.error)
+                  return
+                }
+                toast.success('Finding added to review')
+                window.location.reload()
+              })
+            }
+          >
+            <input type="hidden" name="session_id" value={selectedSession.id} />
+            <div className="sm:col-span-2">
+              <p className="text-xs text-muted-foreground">Conversation</p>
+              <p className="mt-1 text-sm font-medium">{selectedSession.title}</p>
+            </div>
+            <textarea
+              name="claimed_value"
+              required
+              rows={3}
+              placeholder="What did we learn?"
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+            <textarea
+              name="evidence_summary"
+              required
+              rows={3}
+              placeholder="What supports it, and what context or follow-up matters?"
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            />
+            <select name="criteria" className={inputClass}>
+              <option value="">Assessment area (optional)</option>
+              {ASSESSMENT_CRITERIA.map((criterion) => (
+                <option key={criterion.key} value={criterion.key}>{criterion.label}</option>
+              ))}
+            </select>
+            <div className="flex items-center justify-end sm:col-span-2">
+              <Button disabled={pending}>Add pending finding</Button>
+            </div>
+          </form>
+        </details>
+      )}
       <div className="flex flex-wrap gap-2">
         {['pending', 'accepted', 'rejected', 'applied', 'all'].map((value) => (
           <button key={value} onClick={() => setFilter(value)} className={`rounded-md px-3 py-1.5 text-xs font-medium ${filter === value ? 'bg-primary text-primary-foreground' : 'border border-border text-muted-foreground'}`}>

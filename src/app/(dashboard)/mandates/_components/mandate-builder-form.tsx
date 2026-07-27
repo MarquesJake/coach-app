@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { FlexibleSelect } from '@/components/ui/flexible-select'
 import {
@@ -208,6 +209,11 @@ export function MandateBuilderForm({
   const [isPending, startTransition] = useTransition()
   const [activePreset, setActivePreset] = useState<PresetKey | null>(null)
   const [touched, setTouched] = useState(false)
+  const [activeSection, setActiveSection] = useState(1)
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null)
+  const formRef = useRef<HTMLFormElement | null>(null)
+  const saveTimerRef = useRef<number | null>(null)
+  const draftKey = 'coach-first:mandate-brief-draft'
 
   // Only pre-fill values that match the standardised option sets — non-standard
   // free-text values from the old flow show as empty, accurately reflecting that
@@ -234,8 +240,86 @@ export function MandateBuilderForm({
       ? initialValues.service_model
       : 'full_service_search'
   )
+  const [clubValue, setClubValue] = useState(prefilledClubId ?? '')
   const today = new Date().toISOString().slice(0, 10)
   const defaultTarget = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10)
+
+  useEffect(() => {
+    if (mode !== 'create') return
+    const rawDraft = window.localStorage.getItem(draftKey)
+    if (!rawDraft) return
+    try {
+      const saved = JSON.parse(rawDraft) as Record<string, string>
+      setFields((current) => ({
+        ...current,
+        strategic_objective: saved.strategic_objective ?? current.strategic_objective,
+        tactical_model_required: saved.tactical_model_required ?? current.tactical_model_required,
+        pressing_intensity_required: saved.pressing_intensity_required ?? current.pressing_intensity_required,
+        build_preference_required: saved.build_preference_required ?? current.build_preference_required,
+        leadership_profile_required: saved.leadership_profile_required ?? current.leadership_profile_required,
+        budget_band: saved.budget_band ?? current.budget_band,
+        succession_timeline: saved.succession_timeline ?? current.succession_timeline,
+        board_risk_appetite: saved.board_risk_appetite ?? current.board_risk_appetite,
+      }))
+      if (isServiceModel(saved.service_model)) setServiceModel(saved.service_model)
+      setLanguageRequirements(saved.language_requirements ?? '')
+      setRelocationRequired(saved.relocation_required === 'true')
+      setClubValue(saved.club_id_or_name ?? prefilledClubId ?? '')
+      window.requestAnimationFrame(() => {
+        const form = formRef.current
+        if (!form) return
+        for (const [name, value] of Object.entries(saved)) {
+          if (
+            [
+              'strategic_objective',
+              'tactical_model_required',
+              'pressing_intensity_required',
+              'build_preference_required',
+              'leadership_profile_required',
+              'budget_band',
+              'succession_timeline',
+              'board_risk_appetite',
+              'language_requirements',
+              'relocation_required',
+              'service_model',
+              'club_id_or_name',
+            ].includes(name)
+          ) continue
+          const field = form.elements.namedItem(name)
+          if (
+            field instanceof HTMLInputElement ||
+            field instanceof HTMLTextAreaElement ||
+            field instanceof HTMLSelectElement
+          ) {
+            field.value = value
+          }
+        }
+      })
+      setDraftSavedAt('restored')
+    } catch {
+      window.localStorage.removeItem(draftKey)
+    }
+  }, [draftKey, mode, prefilledClubId])
+
+  function saveDraft() {
+    if (mode !== 'create' || !formRef.current) return
+    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = window.setTimeout(() => {
+      if (!formRef.current) return
+      const data = new FormData(formRef.current)
+      const saved: Record<string, string> = {}
+      data.forEach((value, key) => {
+        if (typeof value === 'string') saved[key] = value
+      })
+      window.localStorage.setItem(draftKey, JSON.stringify(saved))
+      setDraftSavedAt(
+        new Intl.DateTimeFormat('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date())
+      )
+    }, 400)
+  }
 
   function set(key: keyof ScoringFields, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
@@ -257,6 +341,7 @@ export function MandateBuilderForm({
     e.preventDefault()
     if (!allRequired) { setTouched(true); return }
     const formData = new FormData(e.currentTarget)
+    if (mode === 'create') window.localStorage.removeItem(draftKey)
     startTransition(async () => {
       if (mode === 'create') {
         await createMandateBuilderAction(formData)
@@ -296,7 +381,7 @@ export function MandateBuilderForm({
             ← {mode === 'create' ? 'Back to mandates' : 'Back to mandate'}
           </Link>
           <h1 className="text-lg font-semibold text-foreground mt-2">
-            {mode === 'create' ? 'New mandate' : 'Edit mandate'}
+            {mode === 'create' ? 'New appointment brief' : 'Edit appointment brief'}
           </h1>
           {mode === 'edit' && clubName && (
             <p className="text-xs text-muted-foreground mt-0.5">{clubName}</p>
@@ -323,6 +408,30 @@ export function MandateBuilderForm({
         </div>
       </div>
 
+      <div className="overflow-x-auto border-y border-border py-2">
+        <div className="flex min-w-max items-center gap-1">
+          {['Appointment', 'Football brief', 'Leadership', 'Constraints'].map((label, index) => {
+            const section = index + 1
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setActiveSection(section)}
+                className={cn(
+                  'inline-flex h-8 items-center gap-2 rounded px-3 text-xs font-medium',
+                  activeSection === section
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <span className="tabular-nums">{section}</span>
+                {label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Presets */}
       <div className="rounded-lg border border-border bg-card p-4 space-y-2">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Starting point</p>
@@ -346,7 +455,7 @@ export function MandateBuilderForm({
         <p className="text-[9px] text-muted-foreground/60">Use only as a first pass, then replace assumptions with the club conversation.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form ref={formRef} onSubmit={handleSubmit} onInput={saveDraft} className="space-y-4">
         {mode === 'edit' && mandateId && (
           <input type="hidden" name="mandate_id" value={mandateId} />
         )}
@@ -364,8 +473,11 @@ export function MandateBuilderForm({
         <input type="hidden" name="service_model" value={serviceModel} />
 
         {/* ── Section 1: Context ─────────────────────────────────────────── */}
-        <section className="rounded-lg border border-border bg-card p-4 space-y-4">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">1 — Context</h2>
+        <section className={cn('rounded-lg border border-border bg-card p-4 space-y-4', activeSection !== 1 && 'hidden')}>
+          <div>
+            <h2 className="text-sm font-semibold">Appointment context</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Define the decision and the people responsible for it. Candidate management begins after this brief is created.</p>
+          </div>
 
           {mode === 'create' && (
             <label className="space-y-1 block">
@@ -379,7 +491,8 @@ export function MandateBuilderForm({
                 allowCustomOnly
                 required
                 aria-label="Club"
-                defaultValue={prefilledClubId}
+                value={clubValue}
+                onChange={setClubValue}
                 defaultDisplay={prefilledClubDisplay}
               />
             </label>
@@ -497,8 +610,11 @@ export function MandateBuilderForm({
         </section>
 
         {/* ── Section 2: Tactical Identity ──────────────────────────────── */}
-        <section className="rounded-lg border border-border bg-card p-4 space-y-4">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">2 — Tactical identity</h2>
+        <section className={cn('rounded-lg border border-border bg-card p-4 space-y-4', activeSection !== 2 && 'hidden')}>
+          <div>
+            <h2 className="text-sm font-semibold">Football brief</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Describe the game model the appointment must deliver, not a generic coaching preference.</p>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1">
@@ -549,8 +665,11 @@ export function MandateBuilderForm({
         </section>
 
         {/* ── Section 3: Leadership & Culture ───────────────────────────── */}
-        <section className="rounded-lg border border-border bg-card p-4 space-y-4">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">3 — Leadership & culture</h2>
+        <section className={cn('rounded-lg border border-border bg-card p-4 space-y-4', activeSection !== 3 && 'hidden')}>
+          <div>
+            <h2 className="text-sm font-semibold">Leadership and culture</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Set the human requirements that will be tested through interviews and trusted references.</p>
+          </div>
 
           <div className="space-y-1">
             <FieldLabel required>Leadership profile required</FieldLabel>
@@ -603,8 +722,11 @@ export function MandateBuilderForm({
         </section>
 
         {/* ── Section 4: Constraints ────────────────────────────────────── */}
-        <section className="rounded-lg border border-border bg-card p-4 space-y-4">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">4 — Constraints</h2>
+        <section className={cn('rounded-lg border border-border bg-card p-4 space-y-4', activeSection !== 4 && 'hidden')}>
+          <div>
+            <h2 className="text-sm font-semibold">Appointment constraints</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Capture the practical boundaries before the market and candidate work starts.</p>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
@@ -657,7 +779,7 @@ export function MandateBuilderForm({
         </section>
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-1.5">
             {!allRequired && touched && (
               <p className="text-[10px] text-red-400">Complete all required fields to save.</p>
@@ -665,27 +787,47 @@ export function MandateBuilderForm({
             {allRequired && (
               <p className="text-[10px] text-emerald-400">All required fields complete.</p>
             )}
+            {mode === 'create' && draftSavedAt && (
+              <p className="text-[10px] text-muted-foreground">
+                {draftSavedAt === 'restored' ? 'Unfinished brief restored.' : `Draft saved ${draftSavedAt}.`}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href={backHref}
-              className="inline-flex items-center px-4 h-9 bg-surface border border-border rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={isPending}
-              className={cn(
-                'inline-flex items-center px-5 h-9 rounded-lg font-medium text-xs transition-colors',
-                allRequired || !touched
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  : 'bg-primary/40 text-primary-foreground/50 cursor-not-allowed',
-                isPending && 'opacity-70 cursor-not-allowed'
-              )}
-            >
-              {isPending ? 'Saving…' : mode === 'create' ? 'Create mandate' : 'Save changes'}
-            </button>
+            {activeSection > 1 && (
+              <button
+                type="button"
+                onClick={() => setActiveSection((section) => Math.max(1, section - 1))}
+                className="inline-flex h-9 items-center rounded-lg border border-border bg-surface px-4 text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back
+              </button>
+            )}
+            {activeSection < 4 ? (
+              <button
+                type="button"
+                onClick={() => setActiveSection((section) => Math.min(4, section + 1))}
+                className="inline-flex h-9 items-center rounded-lg bg-primary px-5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Continue
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isPending}
+                className={cn(
+                  'inline-flex items-center px-5 h-9 rounded-lg font-medium text-xs transition-colors',
+                  allRequired || !touched
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    : 'bg-primary/40 text-primary-foreground/50 cursor-not-allowed',
+                  isPending && 'opacity-70 cursor-not-allowed'
+                )}
+              >
+                {isPending ? 'Saving…' : mode === 'create' ? 'Create brief' : 'Save brief'}
+              </button>
+            )}
           </div>
         </div>
       </form>

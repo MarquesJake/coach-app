@@ -21,5 +21,5 @@ export default async function ClaimReviewPage({ searchParams }: { searchParams: 
     db.from('intelligence_sessions').select('id, title, occurred_at').eq('org_id', organizationId),
     db.from('claim_relationships').select('*').eq('org_id', organizationId),
   ])
-  return <ClaimReviewQueueClient claims={claims ?? []} contacts={contacts ?? []} coaches={coaches ?? []} sessions={sessions ?? []} relationships={relationships ?? []} />
+  return <ClaimReviewQueueClient claims={claims ?? []} contacts={contacts ?? []} coaches={coaches ?? []} sessions={sessions ?? []} relationships={relationships ?? []} selectedSessionId={searchParams.session} />
 }

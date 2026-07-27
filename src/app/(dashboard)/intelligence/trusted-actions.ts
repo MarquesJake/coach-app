@@ -202,6 +202,8 @@ export async function createIntelligenceSessionAction(input: {
       const { data: contact } = await db.from('football_contacts').select('id').eq('id', input.contactId).eq('org_id', organizationId).maybeSingle()
       if (!contact) return { ok: false, error: 'Contact not found.' }
     }
+    const validClaims = input.claims.filter((claim) => claim.claimedValue.trim() && claim.evidenceSummary.trim())
+    if (validClaims.length && !input.coachId) return { ok: false, error: 'Link a coach before creating draft findings.' }
     const { data: session, error: sessionError } = await db.from('intelligence_sessions').insert({
       org_id: organizationId,
       created_by: user.id,
@@ -221,8 +223,6 @@ export async function createIntelligenceSessionAction(input: {
     }).select('id').single()
     if (sessionError) return { ok: false, error: sessionError.message }
 
-    const validClaims = input.claims.filter((claim) => claim.claimedValue.trim() && claim.evidenceSummary.trim())
-    if (validClaims.length && !input.coachId) return { ok: false, error: 'Link a coach before creating draft findings.' }
     if (validClaims.length) {
       const rows = validClaims.map((claim) => {
         const safety = normalizeClaimSafety({
@@ -273,6 +273,67 @@ export async function createIntelligenceSessionAction(input: {
     return { ok: true, id: session.id }
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unable to save conversation.' }
+  }
+}
+
+export async function createSessionFindingAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const { db, user, organizationId } = await requireInternalContext()
+    const sessionId = text(formData.get('session_id'))
+    const claimedValue = text(formData.get('claimed_value'))
+    const evidenceSummary = text(formData.get('evidence_summary'))
+    if (!sessionId || !claimedValue || !evidenceSummary) {
+      return { ok: false, error: 'Conversation, finding and evidence summary are required.' }
+    }
+    const { data: session } = await db
+      .from('intelligence_sessions')
+      .select('id, coach_id, contact_id, career_context, sensitivity, occurred_at')
+      .eq('id', sessionId)
+      .eq('org_id', organizationId)
+      .maybeSingle()
+    if (!session) return { ok: false, error: 'Conversation not found.' }
+    if (!session.coach_id || !(await ownsCoach(db, user.id, session.coach_id))) {
+      return { ok: false, error: 'Link an owned coach to the conversation before drafting findings.' }
+    }
+    const criteria = stringArray(formData.get('criteria')).filter((criterion) =>
+      isAllowedValue(METHODOLOGY_CRITERIA, criterion)
+    )
+    const { data, error } = await db
+      .from('profile_claims')
+      .insert({
+        user_id: user.id,
+        org_id: organizationId,
+        created_by: user.id,
+        entity_type: 'coach',
+        entity_id: session.coach_id,
+        coach_id: session.coach_id,
+        contact_id: session.contact_id,
+        session_id: session.id,
+        claim_type: 'trusted_network',
+        claimed_value: claimedValue,
+        evidence_summary: evidenceSummary,
+        source_type: 'trusted_network_conversation',
+        source_notes: session.career_context,
+        sensitivity: session.sensitivity === 'legal_review' ? 'confidential' : session.sensitivity || 'standard',
+        verification_status: 'unverified',
+        review_status: 'pending',
+        statement_type: 'opinion',
+        evidence_strength: 'single_source',
+        fact_check_status: 'not_applicable',
+        external_visibility: 'anonymised_external',
+        methodology_criteria: criteria,
+        used_in_recommendation: false,
+        occurred_at: session.occurred_at,
+      })
+      .select('id')
+      .single()
+    if (error) return { ok: false, error: error.message }
+    revalidatePath('/intelligence/review')
+    revalidatePath('/intelligence/conversations')
+    revalidateCoach(session.coach_id)
+    return { ok: true, id: data.id }
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unable to create finding.' }
   }
 }
 
