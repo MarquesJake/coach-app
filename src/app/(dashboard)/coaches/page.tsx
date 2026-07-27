@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/db'
@@ -10,17 +10,36 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageState } from '@/components/ui/page-state'
-import { Search, Users, ChevronRight, Filter, GitCompare, Plus, X, RefreshCw, CopyCheck } from 'lucide-react'
+import { Search, Users, ChevronRight, Filter, GitCompare, Plus, X, RefreshCw, CopyCheck, Check, CircleSlash } from 'lucide-react'
 import { toastError, toastSuccess } from '@/lib/ui/toast'
 
 import { setStoredCompareIds, MAX_COMPARE } from '@/lib/compare'
 import { computeCoachCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-completeness'
-import { getCoachStintAndIntelCountsAction } from './actions'
+import {
+  getCoachDuplicateReviewsAction,
+  getCoachStintAndIntelCountsAction,
+  saveCoachDuplicateReviewAction,
+  type CoachDuplicateReviewDecision,
+} from './actions'
 import { findCoachDuplicateGroups } from '@/lib/coaches/duplicate-review'
 
 const MIN_COMPARE = 2
 
 type Coach = Database['public']['Tables']['coaches']['Row']
+
+function duplicatePairKey(coachAId: string, coachBId: string) {
+  return [coachAId, coachBId].sort().join(':')
+}
+
+function duplicatePairs<T extends { id: string }>(coaches: T[]) {
+  const pairs: [T, T][] = []
+  for (let first = 0; first < coaches.length; first += 1) {
+    for (let second = first + 1; second < coaches.length; second += 1) {
+      pairs.push([coaches[first], coaches[second]])
+    }
+  }
+  return pairs
+}
 
 const SORT_OPTIONS = [
   { value: 'name', label: 'Name' },
@@ -84,6 +103,8 @@ export default function CoachesPage() {
   const router = useRouter()
   const [coaches, setCoaches] = useState<Coach[]>([])
   const [counts, setCounts] = useState<Record<string, { stintCount: number; intelligenceCount: number; researchCount: number }>>({})
+  const [duplicateReviews, setDuplicateReviews] = useState<CoachDuplicateReviewDecision[]>([])
+  const [reviewingDuplicate, startDuplicateReview] = useTransition()
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -104,19 +125,22 @@ export default function CoachesPage() {
       if (!user) {
         setCoaches([])
         setCounts({})
+        setDuplicateReviews([])
         setLoading(false)
         return
       }
-      const [coachRes, countData] = await Promise.all([
+      const [coachRes, countData, reviewData] = await Promise.all([
         supabase
           .from('coaches')
           .select('id, user_id, name, age, nationality, role_current, club_current, preferred_style, pressing_intensity, build_preference, leadership_style, wage_expectation, staff_cost_estimate, available_status, reputation_tier, league_experience, last_updated, placement_score, board_compatibility, ownership_fit, cultural_risk, agent_relationship, media_risk, overall_fit, tactical_fit, financial_feasibility, overall_manual_score, intelligence_confidence, media_style, preferred_systems')
           .eq('user_id', user.id)
           .order('name'),
         getCoachStintAndIntelCountsAction(),
+        getCoachDuplicateReviewsAction(),
       ])
       setCoaches((coachRes.data || []) as Coach[])
       setCounts(countData)
+      setDuplicateReviews(reviewData)
       setLoading(false)
     }
     loadCoaches()
@@ -147,19 +171,33 @@ export default function CoachesPage() {
   async function refreshCoaches() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const [coachRes, countData] = await Promise.all([
+    const [coachRes, countData, reviewData] = await Promise.all([
       supabase
         .from('coaches')
         .select('id, user_id, name, age, nationality, role_current, club_current, preferred_style, pressing_intensity, build_preference, leadership_style, wage_expectation, staff_cost_estimate, available_status, reputation_tier, league_experience, last_updated, placement_score, board_compatibility, ownership_fit, cultural_risk, agent_relationship, media_risk, overall_fit, tactical_fit, financial_feasibility, overall_manual_score, intelligence_confidence, media_style, preferred_systems')
         .eq('user_id', user.id)
         .order('name'),
       getCoachStintAndIntelCountsAction(),
+      getCoachDuplicateReviewsAction(),
     ])
     setCoaches((coachRes.data || []) as Coach[])
     setCounts(countData)
+    setDuplicateReviews(reviewData)
   }
 
   const duplicateGroups = findCoachDuplicateGroups(coaches)
+  const duplicateReviewByPair = new Map(
+    duplicateReviews.map((review) => [
+      duplicatePairKey(review.coach_a_id, review.coach_b_id),
+      review,
+    ])
+  )
+  const unresolvedDuplicateCount = duplicateGroups.reduce(
+    (count, group) => count + duplicatePairs(group.coaches).filter(
+      ([coachA, coachB]) => !duplicateReviewByPair.has(duplicatePairKey(coachA.id, coachB.id))
+    ).length,
+    0
+  )
   const duplicateCoachIds = new Set(
     duplicateGroups.flatMap((group) => group.coaches.map((coach) => coach.id))
   )
@@ -292,6 +330,38 @@ export default function CoachesPage() {
       overall_min: '70',
     })
     setSortBy('overall_score')
+  }
+
+  function recordDuplicateDecision(
+    coachA: Coach,
+    coachB: Coach,
+    decision: 'keep_separate' | 'canonical_selected',
+    canonicalCoachId?: string
+  ) {
+    startDuplicateReview(async () => {
+      const reason = duplicateReasonByCoach.get(coachA.id) ?? 'Potential duplicate records'
+      const result = await saveCoachDuplicateReviewAction({
+        coachAId: coachA.id,
+        coachBId: coachB.id,
+        decision,
+        canonicalCoachId,
+        reason,
+      })
+      if (!result.ok) {
+        toastError(result.error)
+        return
+      }
+      setDuplicateReviews((current) => [
+        result.review,
+        ...current.filter((review) =>
+          duplicatePairKey(review.coach_a_id, review.coach_b_id) !==
+          duplicatePairKey(result.review.coach_a_id, result.review.coach_b_id)
+        ),
+      ])
+      toastSuccess(decision === 'keep_separate'
+        ? 'Records marked as different people'
+        : 'Canonical record noted without merging data')
+    })
   }
 
   if (loading) {
@@ -440,7 +510,7 @@ export default function CoachesPage() {
             onClick={() => setProfileScope('duplicates')}
             className={cn('rounded px-3 py-1.5 text-xs font-medium', profileScope === 'duplicates' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground')}
           >
-            Duplicate review ({duplicateGroups.length})
+            Duplicate review ({unresolvedDuplicateCount})
           </button>
           <button
             type="button"
@@ -451,11 +521,74 @@ export default function CoachesPage() {
           </button>
         </div>
         {profileScope === 'duplicates' && (
-          <div className="mb-3 flex items-start gap-2 border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
-            <CopyCheck className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-            <p>
-              Review only. Open or compare the records before deciding which is canonical; nothing is merged or deleted automatically because intelligence, assessments and private materials may be linked.
-            </p>
+          <div className="mb-3 space-y-3">
+            <div className="flex items-start gap-2 border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
+              <CopyCheck className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <p>
+                Review and record a decision. Canonical selection never merges or deletes records; linked intelligence, assessments and private materials remain untouched.
+              </p>
+            </div>
+            {duplicateGroups.length === 0 ? (
+              <p className="border border-border bg-background px-4 py-5 text-sm text-muted-foreground">
+                No potential duplicates need review.
+              </p>
+            ) : duplicateGroups.map((group) => (
+              <section key={group.id} className="border border-border bg-background p-3">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs font-semibold text-foreground">{group.coaches.map((coach) => coach.name).join(' / ')}</p>
+                  <p className="text-2xs text-muted-foreground">{group.reason}</p>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {duplicatePairs(group.coaches).map(([coachA, coachB]) => {
+                    const review = duplicateReviewByPair.get(duplicatePairKey(coachA.id, coachB.id))
+                    const canonical = review?.canonical_coach_id
+                    return (
+                      <div key={duplicatePairKey(coachA.id, coachB.id)} className="grid gap-2 border-t border-border/60 pt-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                        <div>
+                          <p className="text-xs font-medium text-foreground">{coachA.name} ↔ {coachB.name}</p>
+                          <p className="mt-0.5 text-2xs text-muted-foreground">
+                            {review
+                              ? review.decision === 'keep_separate'
+                                ? 'Reviewed: different people'
+                                : `Reviewed: ${canonical === coachA.id ? coachA.name : coachB.name} is the canonical record`
+                              : 'Decision pending'}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+                          <button
+                            type="button"
+                            disabled={reviewingDuplicate}
+                            onClick={() => recordDuplicateDecision(coachA, coachB, 'keep_separate')}
+                            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded border border-border px-2.5 text-xs font-medium text-foreground disabled:opacity-50"
+                          >
+                            <CircleSlash className="h-3.5 w-3.5" />
+                            Keep separate
+                          </button>
+                          {[coachA, coachB].map((coach) => (
+                            <button
+                              key={coach.id}
+                              type="button"
+                              disabled={reviewingDuplicate}
+                              onClick={() => recordDuplicateDecision(coachA, coachB, 'canonical_selected', coach.id)}
+                              className={cn(
+                                'inline-flex min-h-9 items-center justify-center gap-1.5 rounded border px-2.5 text-xs font-medium disabled:opacity-50',
+                                canonical === coach.id
+                                  ? 'border-primary bg-primary/10 text-primary'
+                                  : 'border-border text-foreground'
+                              )}
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                              Keep {coach.name}
+                              {coachA.name === coachB.name ? ` · ${coach.id.slice(0, 4)}` : ''}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            ))}
           </div>
         )}
         <div className="mb-3 flex items-center gap-2 flex-wrap">
@@ -634,7 +767,7 @@ export default function CoachesPage() {
       )}
 
       {/* Coach Table/List */}
-      <div className="card-surface rounded-lg overflow-hidden">
+      <div className={cn('card-surface rounded-lg overflow-hidden', profileScope === 'duplicates' && 'hidden')}>
         {/* Table header */}
         <div className="hidden lg:grid grid-cols-[32px_1fr_140px_120px_100px_80px_60px_60px_32px] px-5 py-2.5 border-b border-border bg-surface/50">
           <div className="flex items-center">

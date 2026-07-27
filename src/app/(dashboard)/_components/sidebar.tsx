@@ -44,7 +44,7 @@ const networkNav = [
 
 const internalNav = [
   { label: 'Dossiers', href: '/dossier-orders', icon: PackageCheck },
-  { label: 'Coach portal', href: '/coach-portal', icon: ShieldCheck },
+  { label: 'Coach access', href: '/coach-portal', icon: ShieldCheck },
   { label: 'Alerts', href: '/alerts', icon: Bell },
   { label: 'Matches', href: '/matches', icon: GitCompare },
   { label: 'Staff', href: '/staff', icon: Users },

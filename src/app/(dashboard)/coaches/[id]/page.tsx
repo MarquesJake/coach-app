@@ -421,7 +421,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
               </p>
             </div>
             <Link href={`/coach-portal/${params.id}`} className="shrink-0 text-xs text-primary hover:underline">
-              Coach portal
+              Coach access
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -549,7 +549,7 @@ export default async function CoachOverviewPage({ params }: { params: { id: stri
           </div>
           {privateMaterials.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
-              No private materials logged yet. Add coach presentations, training video and methodology in the coach portal.
+              No private materials logged yet. Add coach presentations, training video and methodology through Coach access.
             </div>
           ) : (
             <div className="space-y-2">

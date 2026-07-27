@@ -1941,6 +1941,83 @@ export type Database = {
           },
         ]
       }
+      coach_duplicate_reviews: {
+        Row: {
+          canonical_coach_id: string | null
+          coach_a_id: string
+          coach_b_id: string
+          created_at: string
+          created_by: string
+          decision: string
+          id: string
+          org_id: string
+          reason: string
+          review_note: string | null
+          reviewed_at: string
+          reviewed_by: string
+          updated_at: string
+        }
+        Insert: {
+          canonical_coach_id?: string | null
+          coach_a_id: string
+          coach_b_id: string
+          created_at?: string
+          created_by: string
+          decision: string
+          id?: string
+          org_id: string
+          reason: string
+          review_note?: string | null
+          reviewed_at?: string
+          reviewed_by: string
+          updated_at?: string
+        }
+        Update: {
+          canonical_coach_id?: string | null
+          coach_a_id?: string
+          coach_b_id?: string
+          created_at?: string
+          created_by?: string
+          decision?: string
+          id?: string
+          org_id?: string
+          reason?: string
+          review_note?: string | null
+          reviewed_at?: string
+          reviewed_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_duplicate_reviews_canonical_coach_id_fkey"
+            columns: ["canonical_coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_duplicate_reviews_coach_a_id_fkey"
+            columns: ["coach_a_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_duplicate_reviews_coach_b_id_fkey"
+            columns: ["coach_b_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_duplicate_reviews_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_external_profiles: {
         Row: {
           api_coach_id: string | null

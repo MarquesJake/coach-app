@@ -10,6 +10,11 @@ const coachCommandBar = readFileSync(resolve('src/app/(dashboard)/coaches/[id]/_
 const agentActions = readFileSync(resolve('src/app/(dashboard)/agents/actions.ts'), 'utf8')
 const agentConversation = readFileSync(resolve('src/app/(dashboard)/agents/[id]/_components/agent-interactions-client.tsx'), 'utf8')
 const archiveMigration = readFileSync(resolve('supabase/migrations/20260715125923_intelligence_item_archive_audit.sql'), 'utf8')
+const assessmentActions = readFileSync(resolve('src/app/(dashboard)/mandates/[id]/assessment/actions.ts'), 'utf8')
+const assessmentWorkspace = readFileSync(resolve('src/app/(dashboard)/mandates/[id]/assessment/[coachId]/_components/assessment-workspace-client.tsx'), 'utf8')
+const clubBrief = readFileSync(resolve('src/app/(club)/club/brief/page.tsx'), 'utf8')
+const coachProfile = readFileSync(resolve('src/app/coach/profile/page.tsx'), 'utf8')
+const legacyVacancy = readFileSync(resolve('src/app/(dashboard)/vacancies/new/page.tsx'), 'utf8')
 
 test('Inbox cannot bypass finding review and write assessment evidence', () => {
   assert.doesNotMatch(inboxContract, /key:\s*['"]assessment_evidence['"]/)
@@ -85,4 +90,23 @@ test('archive migration records an honest legacy backfill and enforces future me
   assert.match(archiveMigration, /require_intelligence_item_archive_metadata/)
   assert.match(archiveMigration, /new\.archived_at is null/)
   assert.doesNotMatch(archiveMigration, /set\s+archived_at\s*=\s*coalesce/i)
+})
+
+test('generic assessment evidence cannot impersonate governed human evidence', () => {
+  assert.match(assessmentActions, /canAddEvidenceDirectly\(method\)/)
+  assert.match(assessmentActions, /Interviews and references must use their structured/)
+  assert.match(assessmentWorkspace, /DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS/)
+  assert.match(assessmentWorkspace, /log conversation/)
+})
+
+test('long external-role forms are staged and preserve unfinished browser drafts', () => {
+  assert.match(clubBrief, /StagedAutosaveForm/)
+  assert.match(clubBrief, /coach-first:club-brief:/)
+  assert.match(coachProfile, /StagedAutosaveForm/)
+  assert.match(coachProfile, /coach-first:coach-profile:/)
+})
+
+test('legacy vacancy creation redirects into the mandate workflow', () => {
+  assert.match(legacyVacancy, /redirect\('\/mandates\/new'\)/)
+  assert.doesNotMatch(legacyVacancy, /\.from\('vacancies'\)/)
 })

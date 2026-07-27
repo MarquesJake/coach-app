@@ -157,27 +157,27 @@ function MatchesContent() {
   return (
     <div className="animate-fade-in space-y-5">
       <div>
-        <h1 className="text-lg font-semibold text-foreground tracking-tight">Matches</h1>
+        <h1 className="text-lg font-semibold text-foreground tracking-tight">Legacy match lab</h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Select a vacancy and run matching to build a ranked shortlist
+          Review historical vacancy-based matching. Start all live appointment work from Mandates.
         </p>
       </div>
 
       {vacancies.length === 0 && !vacancyId && (
         <EmptyState
-          title="No vacancies yet"
-          description="Create a vacancy to run matching and build shortlists."
-          actionLabel="Go to Vacancies"
-          actionHref="/vacancies"
+          title="No historical match briefs"
+          description="Create a mandate to run the current appointment workflow."
+          actionLabel="Create mandate"
+          actionHref="/mandates/new"
         />
       )}
 
       {vacancies.length > 0 && !vacancyId && (
         <EmptyState
-          title="Select a vacancy"
-          description="Choose a vacancy from the dropdown or create a new one."
-          actionLabel="New vacancy"
-          actionHref="/vacancies/new"
+          title="Select a historical brief"
+          description="Choose an existing record, or start new work in Mandates."
+          actionLabel="Create mandate"
+          actionHref="/mandates/new"
         />
       )}
 
@@ -407,4 +407,3 @@ function MatchesContent() {
     </div>
   )
 }
-

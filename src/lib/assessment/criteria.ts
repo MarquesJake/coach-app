@@ -28,6 +28,19 @@ export const EVIDENCE_METHODS = [
 
 export type EvidenceMethodKey = (typeof EVIDENCE_METHODS)[number]['key']
 
+export const DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS = [
+  'desktop_research',
+  'data_analysis',
+  'ai_generated',
+  'media_review',
+  'match_analysis',
+  'training_observation',
+] as const satisfies readonly EvidenceMethodKey[]
+
+export function canAddEvidenceDirectly(method: string): method is (typeof DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS)[number] {
+  return (DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS as readonly string[]).includes(method)
+}
+
 export const ASSESSMENT_STATUSES = ['not_started', 'in_progress', 'complete'] as const
 export type AssessmentStatus = (typeof ASSESSMENT_STATUSES)[number]
 

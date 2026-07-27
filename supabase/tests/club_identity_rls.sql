@@ -167,7 +167,8 @@ begin
     (select count(*) from public.reference_campaigns) +
     (select count(*) from public.reference_campaign_contacts) +
     (select count(*) from public.trusted_bench_entries) +
-    (select count(*) from public.appointment_outcomes)
+    (select count(*) from public.appointment_outcomes) +
+    (select count(*) from public.coach_duplicate_reviews)
   into leaked_rows;
   if leaked_rows <> 0 then
     raise exception 'Second internal organisation leaked % trusted-intelligence rows', leaked_rows;
@@ -233,6 +234,7 @@ begin
     (select count(*) from public.reference_campaign_contacts) +
     (select count(*) from public.trusted_bench_entries) +
     (select count(*) from public.appointment_outcomes) +
+    (select count(*) from public.coach_duplicate_reviews) +
     (select count(*) from public.intelligence_audit_tombstones) +
     (select count(*) from public.coach_derived_metrics) +
     (select count(*) from public.watchlist_coaches) +
@@ -412,6 +414,7 @@ begin
     (select count(*) from public.reference_campaign_contacts) +
     (select count(*) from public.trusted_bench_entries) +
     (select count(*) from public.appointment_outcomes) +
+    (select count(*) from public.coach_duplicate_reviews) +
     (select count(*) from public.intelligence_audit_tombstones) +
     (select count(*) from public.coach_derived_metrics) +
     (select count(*) from public.watchlist_coaches) +

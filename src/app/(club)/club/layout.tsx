@@ -33,8 +33,8 @@ export default async function ClubLayout({ children }: { children: React.ReactNo
         organizationName={context.organizationName}
         showInternalWorkspaceLink={organizationAccess.hasActiveInternalAccess}
       />
-      <div className="pl-[220px]">
-        <main className="mx-auto min-h-screen max-w-[1280px] px-7 py-7">{children}</main>
+      <div className="pt-14 md:pl-[220px] md:pt-0">
+        <main className="mx-auto min-h-screen max-w-[1280px] px-4 py-5 sm:px-6 md:px-7 md:py-7">{children}</main>
       </div>
     </div>
   )

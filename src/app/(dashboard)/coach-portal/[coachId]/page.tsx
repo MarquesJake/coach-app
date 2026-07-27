@@ -225,7 +225,7 @@ export default async function CoachPortalDetailPage({
       <div className="flex items-center justify-between gap-4">
         <div>
           <Link href="/coach-portal" className="text-xs text-muted-foreground hover:text-foreground">
-            ← Coach Portal
+            ← Coach access
           </Link>
           <h2 className="mt-1 text-xl font-semibold text-foreground">{coach.name}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">

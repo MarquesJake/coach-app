@@ -8,6 +8,7 @@ import {
   ASSESSMENT_STATUSES,
   VERIFICATION_STATUSES,
   RECOMMENDATION_VERDICTS,
+  canAddEvidenceDirectly,
 } from '@/lib/assessment/criteria'
 import { canAssessCandidate, type AssessmentAccessClient } from '@/lib/assessment/access'
 import {
@@ -127,6 +128,12 @@ export async function addEvidenceAction(formData: FormData): Promise<ActionResul
   if (!mandateId || !coachId) return { ok: false, error: 'Missing candidate context' }
   if (!CRITERION_KEYS.includes(criterion)) return { ok: false, error: 'Unknown criterion' }
   if (!METHOD_KEYS.includes(method)) return { ok: false, error: 'Unknown evidence method' }
+  if (!canAddEvidenceDirectly(method)) {
+    return {
+      ok: false,
+      error: 'Interviews and references must use their structured, traceable capture workflow',
+    }
+  }
   if (!title) return { ok: false, error: 'Evidence needs a title' }
   if (!(await assessGuard(supabase, user.id, mandateId, coachId))) {
     return { ok: false, error: 'Candidate is not on this mandate shortlist' }

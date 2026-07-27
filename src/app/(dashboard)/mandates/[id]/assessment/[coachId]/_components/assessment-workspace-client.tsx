@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   ASSESSMENT_CRITERIA,
+  DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS,
   EVIDENCE_METHODS,
   RECOMMENDATION_VERDICTS,
   methodLabel,
@@ -1029,13 +1031,15 @@ export function AssessmentWorkspaceClient({
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_160px]">
               <input name="title" required placeholder="Add evidence — what did you learn?" className={inputClass} key={`ev-title-${selected}`} />
               <select name="method" className={inputClass} defaultValue="desktop_research">
-                {EVIDENCE_METHODS.map((m) => (
+                {EVIDENCE_METHODS.filter((method) =>
+                  (DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS as readonly string[]).includes(method.key)
+                ).map((m) => (
                   <option key={m.key} value={m.key}>{m.label}</option>
                 ))}
               </select>
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_160px_90px]">
-              <input name="source" placeholder="Source (person, publication, dataset…)" className={inputClass} key={`ev-source-${selected}`} />
+              <input name="source" placeholder="Publication, dataset or observed material" className={inputClass} key={`ev-source-${selected}`} />
               <input name="detail" placeholder="Detail (optional)" className={inputClass} key={`ev-detail-${selected}`} />
               <input name="confidence" type="number" min={0} max={100} placeholder="Conf." className={inputClass} key={`ev-conf-${selected}`} />
             </div>
@@ -1050,6 +1054,14 @@ export function AssessmentWorkspaceClient({
             >
               Add evidence
             </button>
+            <p className="text-2xs leading-5 text-muted-foreground">
+              Human-source information follows the governed path:
+              {' '}
+              <Link href={`/intelligence/conversations?coach=${coachId}`} className="font-medium text-primary hover:underline">
+                log conversation
+              </Link>
+              {' → '}review the finding{' → '}use it in this assessment. Candidate interviews and formal references have dedicated sections.
+            </p>
           </form>
         </div>
       </div>

@@ -35,6 +35,10 @@ const coachIdentityMigration = readFileSync(
   resolve('supabase/migrations/20260717114745_coach_identity_and_private_materials.sql'),
   'utf8'
 )
+const duplicateReviewMigration = readFileSync(
+  resolve('supabase/migrations/20260727185300_coach_duplicate_review_decisions.sql'),
+  'utf8'
+)
 
 test('club invitation schema stores only hashed single-use tokens', () => {
   assert.match(identityMigration, /token_hash text not null unique/)
@@ -76,6 +80,7 @@ test('production RLS suite covers internal leakage, privileged RPCs, and revocat
     'coach_derived_metrics', 'watchlist_coaches', 'coach_similarity',
     'scoring_models', 'coach_scores', 'coach_recruitment_history',
     'coach_media_events', 'coach_due_diligence_items', 'evidence_items',
+    'coach_duplicate_reviews',
   ]) assert.match(productionRlsSuite, new RegExp(`public\\.${table}`))
   assert.match(productionRlsSuite, /approve_dossier_order/)
   assert.match(productionRlsSuite, /revoke_dossier_access/)
@@ -144,4 +149,15 @@ test('coach identity is invite-only, token-hashed, and isolated from independent
   assert.match(coachIdentityMigration, /public\.is_coach_portal_member\(\(\(storage\.foldername\(name\)\)\[1\]\)::uuid\)/)
   assert.match(productionRlsSuite, /claim_coach_invitation/)
   assert.match(productionRlsSuite, /Coach identity leaked/)
+})
+
+test('duplicate review decisions are internal, constrained and non-destructive', () => {
+  assert.match(duplicateReviewMigration, /coach_duplicate_reviews/)
+  assert.match(duplicateReviewMigration, /enable row level security/)
+  assert.match(duplicateReviewMigration, /array\['owner', 'admin', 'analyst'\]/)
+  assert.match(duplicateReviewMigration, /created_by = \(select auth\.uid\(\)\)/)
+  assert.match(duplicateReviewMigration, /reviewed_by = \(select auth\.uid\(\)\)/)
+  assert.match(duplicateReviewMigration, /coach_a_id < coach_b_id/)
+  assert.match(duplicateReviewMigration, /decision in \('keep_separate', 'canonical_selected'\)/)
+  assert.doesNotMatch(duplicateReviewMigration, /delete from public\.coaches|update public\.coaches/)
 })

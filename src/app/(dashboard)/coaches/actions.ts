@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createCoach, createCoachFull } from '@/lib/db/coaches'
 import { logActivity } from '@/lib/db/activity'
+import { getInternalOrganizationId } from '@/lib/organizations/context'
 
 function toText(value: FormDataEntryValue | null) {
   return typeof value === 'string' ? value.trim() : ''
@@ -141,4 +142,90 @@ export async function getCoachStintAndIntelCountsAction(): Promise<
     if (out[r.coach_id]) out[r.coach_id].researchCount++
   })
   return out
+}
+
+export type CoachDuplicateReviewDecision = {
+  id: string
+  coach_a_id: string
+  coach_b_id: string
+  decision: 'keep_separate' | 'canonical_selected'
+  canonical_coach_id: string | null
+  reason: string
+  review_note: string | null
+  reviewed_at: string
+}
+
+export async function getCoachDuplicateReviewsAction(): Promise<CoachDuplicateReviewDecision[]> {
+  const supabase = createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+  const organizationId = await getInternalOrganizationId(user.id)
+  if (!organizationId) return []
+
+  const { data, error } = await supabase
+    .from('coach_duplicate_reviews')
+    .select('id, coach_a_id, coach_b_id, decision, canonical_coach_id, reason, review_note, reviewed_at')
+    .eq('org_id', organizationId)
+    .order('reviewed_at', { ascending: false })
+  if (error) return []
+  return (data ?? []) as CoachDuplicateReviewDecision[]
+}
+
+export async function saveCoachDuplicateReviewAction(input: {
+  coachAId: string
+  coachBId: string
+  decision: 'keep_separate' | 'canonical_selected'
+  canonicalCoachId?: string | null
+  reason: string
+  reviewNote?: string | null
+}): Promise<{ ok: true; review: CoachDuplicateReviewDecision } | { ok: false; error: string }> {
+  const supabase = createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+  const organizationId = await getInternalOrganizationId(user.id)
+  if (!organizationId) return { ok: false, error: 'Internal organisation access is required' }
+
+  const pair = [input.coachAId, input.coachBId].sort()
+  if (!pair[0] || !pair[1] || pair[0] === pair[1]) {
+    return { ok: false, error: 'Choose two different coach records' }
+  }
+  if (!['keep_separate', 'canonical_selected'].includes(input.decision)) {
+    return { ok: false, error: 'Unknown duplicate-review decision' }
+  }
+  const canonicalCoachId = input.decision === 'canonical_selected'
+    ? input.canonicalCoachId ?? null
+    : null
+  if (input.decision === 'canonical_selected' && !pair.includes(canonicalCoachId ?? '')) {
+    return { ok: false, error: 'The canonical record must be one of the reviewed coaches' }
+  }
+
+  const { data: ownedCoaches } = await supabase
+    .from('coaches')
+    .select('id')
+    .eq('user_id', user.id)
+    .in('id', pair)
+  if ((ownedCoaches ?? []).length !== 2) {
+    return { ok: false, error: 'Both coach records must belong to your workspace' }
+  }
+
+  const reviewedAt = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('coach_duplicate_reviews')
+    .upsert({
+      org_id: organizationId,
+      created_by: user.id,
+      coach_a_id: pair[0],
+      coach_b_id: pair[1],
+      decision: input.decision,
+      canonical_coach_id: canonicalCoachId,
+      reason: input.reason.trim() || 'Potential duplicate records',
+      review_note: input.reviewNote?.trim() || null,
+      reviewed_by: user.id,
+      reviewed_at: reviewedAt,
+      updated_at: reviewedAt,
+    }, { onConflict: 'org_id,coach_a_id,coach_b_id' })
+    .select('id, coach_a_id, coach_b_id, decision, canonical_coach_id, reason, review_note, reviewed_at')
+    .single()
+  if (error || !data) return { ok: false, error: 'Could not save the duplicate review' }
+  return { ok: true, review: data as CoachDuplicateReviewDecision }
 }

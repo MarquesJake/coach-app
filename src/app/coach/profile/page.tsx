@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation'
 import {
   BriefcaseBusiness,
-  CheckCircle2,
   FileText,
   LockKeyhole,
   LogOut,
   ShieldCheck,
 } from 'lucide-react'
+import { StagedAutosaveForm } from '@/components/workflow/staged-autosave-form'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachPortalContext } from '@/lib/organizations/context'
 import { MaterialUploadForm } from './_components/material-upload-form'
@@ -17,6 +17,29 @@ const inputClass =
 const textAreaClass = `${inputClass} min-h-[108px] resize-y leading-6`
 
 type PortalProfile = Record<string, string | null>
+
+const profileStages = [
+  {
+    key: 'identity',
+    label: 'Identity & career',
+    description: 'Your factual career position, contact route and preferred appointment context.',
+  },
+  {
+    key: 'football',
+    label: 'Football model',
+    description: 'Explain the game model through behaviours, adaptations and evidence.',
+  },
+  {
+    key: 'practice',
+    label: 'Coaching practice',
+    description: 'Show how the football idea lives in training, development and recruitment.',
+  },
+  {
+    key: 'circumstances',
+    label: 'Appointment circumstances',
+    description: 'Privately declare the practical conditions around a potential move.',
+  },
+] as const
 
 function value(profile: PortalProfile | null, key: string) {
   return profile?.[key] ?? ''
@@ -158,7 +181,14 @@ export default async function CoachProfilePage({
             </p>
           )}
 
-          <form action={saveOwnCoachProfileAction} className="space-y-5">
+          <StagedAutosaveForm
+            action={saveOwnCoachProfileAction}
+            stages={profileStages}
+            draftKey={`coach-first:coach-profile:${context.coachId}`}
+            saved={Boolean(searchParams.saved)}
+            saveLabel="Save private progress"
+            submitLabel="Submit for Coach First review"
+          >
             <section className="rounded-md border border-slate-200 bg-white p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -226,16 +256,7 @@ export default async function CoachProfilePage({
               </div>
             </section>
 
-            <div className="sticky bottom-4 flex flex-wrap justify-end gap-2 rounded-md border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur">
-              <button name="intent" value="save" className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-                Save private progress
-              </button>
-              <button name="intent" value="submit" className="inline-flex items-center gap-2 rounded-md bg-emerald-950 px-4 py-2 text-sm font-semibold text-white">
-                <CheckCircle2 className="h-4 w-4" />
-                Submit for Coach First review
-              </button>
-            </div>
-          </form>
+          </StagedAutosaveForm>
 
           <section className="rounded-md border border-slate-200 bg-white p-5">
             <div className="flex items-center gap-2">

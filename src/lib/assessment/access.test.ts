@@ -7,6 +7,8 @@ import {
   ASSESSMENT_STATUSES,
   VERIFICATION_STATUSES,
   RECOMMENDATION_VERDICTS,
+  DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS,
+  canAddEvidenceDirectly,
 } from './criteria.ts'
 
 // Minimal stub matching the query chain canAssessCandidate uses. Each table
@@ -72,6 +74,16 @@ test('assessment enums match the methodology and reject unknowns', () => {
   assert.deepEqual([...ASSESSMENT_STATUSES], ['not_started', 'in_progress', 'complete'])
   assert.deepEqual([...VERIFICATION_STATUSES], ['unverified', 'verified', 'disputed'])
   assert.deepEqual([...RECOMMENDATION_VERDICTS], ['Proceed', 'Shortlist', 'Target', 'Monitor', 'Dismiss'])
+  assert.deepEqual(
+    [...DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS],
+    [
+      'desktop_research', 'data_analysis', 'ai_generated', 'media_review',
+      'match_analysis', 'training_observation',
+    ]
+  )
+  assert.equal(canAddEvidenceDirectly('desktop_research'), true)
+  assert.equal(canAddEvidenceDirectly('candidate_interview'), false)
+  assert.equal(canAddEvidenceDirectly('references'), false)
 
   const criterionKeys = ASSESSMENT_CRITERIA.map((c) => c.key as string)
   assert.equal(criterionKeys.includes('bogus'), false)
