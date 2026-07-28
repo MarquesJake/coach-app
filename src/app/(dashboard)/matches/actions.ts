@@ -10,7 +10,7 @@ type MatchRow = Database['public']['Tables']['matches']['Row']
 type CoachRow = Database['public']['Tables']['coaches']['Row']
 
 async function requireUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   return { supabase, user }

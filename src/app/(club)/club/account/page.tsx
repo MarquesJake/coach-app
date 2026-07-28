@@ -5,7 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 export default async function ClubAccountPage() {
   const context = await getClubPortalContext()
   if (!context) return null
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const [{ data: memberships }, { data: identities }, { data: { user } }, organizationAccess] = await Promise.all([
     supabase.from('organization_memberships').select('id, user_id, role, status, accepted_at').eq('organization_id', context.organizationId).order('created_at'),
     supabase.rpc('get_external_identity_directory', { target_organization_id: context.organizationId }),

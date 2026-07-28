@@ -19,7 +19,7 @@ function clubForMandate(clubs: MandatesForUserRow['clubs']): { name: string | nu
 }
 
 export default async function MandatesPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

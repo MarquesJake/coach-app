@@ -2,8 +2,9 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
-export default async function MandateShortlistPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function MandateShortlistPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

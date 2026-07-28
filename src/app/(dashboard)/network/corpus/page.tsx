@@ -24,7 +24,7 @@ function formatDate(value: string | null) {
 }
 
 export default async function CorpusOperationsPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const organizationId = await getInternalOrganizationId(user.id)

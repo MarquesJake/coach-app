@@ -57,12 +57,13 @@ function FitBar({ label, value }: { label: string; value: number }) {
   )
 }
 
-export default async function SuccessionPlanPage({
-  params,
-}: {
-  params: { clubId: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function SuccessionPlanPage(
+  props: {
+    params: Promise<{ clubId: string }>
+  }
+) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

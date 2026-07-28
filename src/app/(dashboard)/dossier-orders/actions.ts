@@ -7,7 +7,7 @@ import { getInternalOrganizationId } from '@/lib/organizations/context'
 type ActionResult = { ok: true } | { ok: false; error: string }
 
 async function requireUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   return { supabase, user }
 }
@@ -108,7 +108,7 @@ export async function approveDossierOrderAction(formData: FormData): Promise<Act
     permit_download: permitDownload,
     release_note: releaseNote || undefined,
   })
-  if (error) return { ok: false, error: 'Failed to approve the dossier release' }
+  if (error) return { ok: false, error: error.message }
   revalidatePath('/dossier-orders')
   revalidatePath('/club')
   revalidatePath('/club/dossiers')

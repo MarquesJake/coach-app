@@ -9,7 +9,7 @@ import { getMandateFitFields } from '@/lib/db/mandate'
 import { getEvidenceCountForCoach, upsertLonglistEntry, insertShortlistEntry } from '@/lib/db/fit'
 
 async function requireUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   return { user }

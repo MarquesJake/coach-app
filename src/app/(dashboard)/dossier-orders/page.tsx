@@ -9,7 +9,7 @@ import { RevokeOrderButton } from './_components/revoke-order-button'
 function formatPrice(amount: number, currency: string) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount / 100) }
 
 export default async function DossierOrdersPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const sellerOrganizationId = await getInternalOrganizationId(user.id)
@@ -26,7 +26,7 @@ export default async function DossierOrdersPage() {
   const { data: buyers } = buyerIds.length ? await supabase.from('organizations').select('id, name').in('id', buyerIds) : { data: [] }
   const buyerMap = new Map((buyers ?? []).map((buyer) => [buyer.id, buyer.name]))
   const coachIds = Array.from(new Set((orders ?? []).map((order) => order.coach_id)))
-  const { data: materials } = coachIds.length ? await supabase.from('coach_private_materials').select('id, coach_id, title, material_type, verification_status').in('coach_id', coachIds).eq('user_id', user.id).order('created_at') : { data: [] }
+  const { data: materials } = coachIds.length ? await supabase.from('coach_private_materials').select('id, coach_id, title, material_type, verification_status, upload_status, storage_path, confidentiality_status').in('coach_id', coachIds).eq('verification_status', 'verified').eq('upload_status', 'uploaded').eq('confidentiality_status', 'available').not('storage_path', 'is', null).order('created_at') : { data: [] }
 
   return (
     <div className="mx-auto max-w-[1200px]">

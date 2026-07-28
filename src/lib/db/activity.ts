@@ -17,7 +17,7 @@ export type LogActivityParams = {
  * use a server action that calls this.
  */
 export async function logActivity(params: LogActivityParams): Promise<{ error?: string }> {
-  const supabase = db()
+  const supabase = await db()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -69,7 +69,7 @@ export async function getActivityForEntity(
   entityType: string,
   entityId: string
 ): Promise<{ data: ActivityLogRow[] | null; error?: string }> {
-  const supabase = db()
+  const supabase = await db()
   const {
     data: { user },
   } = await supabase.auth.getUser()

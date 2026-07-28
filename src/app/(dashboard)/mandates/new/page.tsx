@@ -2,12 +2,13 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MandateBuilderForm } from '../_components/mandate-builder-form'
 
-export default async function NewMandatePage({
-  searchParams,
-}: {
-  searchParams: { club_id?: string; club_name?: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function NewMandatePage(
+  props: {
+    searchParams: Promise<{ club_id?: string; club_name?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

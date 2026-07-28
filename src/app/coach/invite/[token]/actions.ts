@@ -10,15 +10,15 @@ export type CompleteCoachInvitationResult = {
   checkEmail?: boolean
 }
 
-function siteOrigin() {
-  const headerStore = headers()
+async function siteOrigin() {
+  const headerStore = await headers()
   const protocol = headerStore.get('x-forwarded-proto') ?? 'http'
   const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host') ?? 'localhost:3000'
   return `${protocol}://${host}`
 }
 
 async function claimInvitation(tokenHash: string): Promise<CompleteCoachInvitationResult> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { error } = await supabase.rpc('claim_coach_invitation', {
     invitation_token_hash: tokenHash,
   })
@@ -38,7 +38,7 @@ export async function completeCoachInvitationAction(
   if (!tokenHash) return { ok: false, error: 'This invitation link is invalid.' }
 
   const mode = String(formData.get('mode') ?? 'claim')
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   if (mode === 'claim') return claimInvitation(tokenHash)
 
   const email = String(formData.get('email') ?? '').trim().toLowerCase()
@@ -63,7 +63,7 @@ export async function completeCoachInvitationAction(
       email,
       password,
       options: {
-        emailRedirectTo: `${siteOrigin()}/auth/callback?next=${encodeURIComponent(`/coach/invite/${rawToken}`)}`,
+        emailRedirectTo: `${await siteOrigin()}/auth/callback?next=${encodeURIComponent(`/coach/invite/${rawToken}`)}`,
       },
     })
     if (error) return { ok: false, error: error.message }
@@ -81,6 +81,6 @@ export async function completeCoachInvitationAction(
 }
 
 export async function signOutFromCoachInvitationAction() {
-  await createServerSupabaseClient().auth.signOut()
+  await (await createServerSupabaseClient()).auth.signOut()
   return { ok: true }
 }

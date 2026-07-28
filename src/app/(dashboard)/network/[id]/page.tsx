@@ -7,13 +7,13 @@ import { ContactDetailClient } from '../_components/contact-detail-client'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export default async function ContactDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function ContactDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const organizationId = await getInternalOrganizationId(user.id)
   if (!organizationId) notFound()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
   const [{ data: contact }, { data: relationships }, { data: sessions }, { data: claims }, { data: coaches }] = await Promise.all([
     db.from('football_contacts').select('*').eq('id', params.id).eq('org_id', organizationId).maybeSingle(),

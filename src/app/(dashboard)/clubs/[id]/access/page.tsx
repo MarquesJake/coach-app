@@ -14,10 +14,11 @@ function roleLabel(role: string) {
   return role.replace('club_', '').replaceAll('_', ' ')
 }
 
-export default async function ClubAccessPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function ClubAccessPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !await getInternalOrganizationId(user.id)) notFound()
+  if (!user || !(await getInternalOrganizationId(user.id))) notFound()
   const { data: isOperator } = await supabase.rpc('is_internal_operator')
   if (!isOperator) notFound()
 

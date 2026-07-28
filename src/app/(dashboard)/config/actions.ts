@@ -11,7 +11,7 @@ import {
 } from '@/lib/db/config'
 
 async function requireUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
   return { userId: user.id }

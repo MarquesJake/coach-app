@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 const SYNC_KEY = 'coaches-english-api-football'
 
 export async function GET() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

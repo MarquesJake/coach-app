@@ -7,25 +7,27 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { CLUB_ORGANIZATION_ROLES } from '@/lib/organizations/access'
+import { sendInvitationEmail } from '@/lib/email/invitations'
 
 export type InviteClubUserResult = {
   ok: boolean
   error?: string
   inviteLink?: string
+  emailStatus?: 'sent' | 'not_configured' | 'failed'
 }
 
 function slugify(value: string) {
   return value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
+    .replace(/^-|-$/g, '');
 }
 
 async function requireInternalUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  if (!await getInternalOrganizationId(user.id)) redirect('/dashboard')
+  if (!(await getInternalOrganizationId(user.id))) redirect('/dashboard')
   const { data: isOperator } = await supabase.rpc('is_internal_operator')
   if (!isOperator) redirect('/dashboard')
   return { supabase, user }
@@ -72,11 +74,24 @@ export async function issueClubInvitationAction(formData: FormData): Promise<Inv
   })
   if (error) return { ok: false, error: error.message }
 
-  const headerStore = headers()
+  const headerStore = await headers()
   const protocol = headerStore.get('x-forwarded-proto') ?? 'http'
   const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host') ?? 'localhost:3000'
   const inviteLink = `${protocol}://${host}/club/invite/${rawToken}`
-  return { ok: true, inviteLink }
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('id', organizationId)
+    .maybeSingle()
+  const emailResult = await sendInvitationEmail({
+    audience: 'club',
+    recipientEmail: email,
+    inviteLink,
+    invitedRole: role,
+    organizationName: organization?.name ?? 'your club',
+    idempotencyKey: `club-invite-${tokenHash}`,
+  })
+  return { ok: true, inviteLink, emailStatus: emailResult.status }
 }
 
 export async function revokeClubInvitationAction(formData: FormData) {

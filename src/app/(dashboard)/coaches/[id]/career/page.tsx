@@ -57,8 +57,9 @@ type MandateEntry = {
   } | null
 }
 
-export default async function CoachCareerPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachCareerPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

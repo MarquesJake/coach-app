@@ -74,12 +74,13 @@ function TextArea({ profile, name, label, placeholder }: {
   )
 }
 
-export default async function CoachProfilePage({
-  searchParams,
-}: {
-  searchParams: { saved?: string; error?: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachProfilePage(
+  props: {
+    searchParams: Promise<{ saved?: string; error?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/coach/login')
   const context = await getCoachPortalContext()
@@ -107,7 +108,7 @@ export default async function CoachProfilePage({
   const [{ data: coach }, { data: profileData }, { data: materialsData }] = await Promise.all([
     supabase.from('coaches').select('id, name, club_current, nationality, role_current').eq('id', context.coachId).single(),
     supabase.from('coach_portal_profiles').select('*').eq('coach_id', context.coachId).maybeSingle(),
-    supabase.from('coach_private_materials').select('id, title, material_type, verification_status, created_at, storage_path, external_url').eq('coach_id', context.coachId).order('created_at', { ascending: false }),
+    supabase.from('coach_private_materials').select('id, title, material_type, verification_status, created_at, storage_path, external_url, upload_status').eq('coach_id', context.coachId).order('created_at', { ascending: false }),
   ])
   if (!coach) redirect('/coach/login')
   const profile = profileData as PortalProfile | null
@@ -280,13 +281,20 @@ export default async function CoachProfilePage({
                       {material.material_type.replaceAll('_', ' ')} · submitted {new Date(material.created_at).toLocaleDateString('en-GB')}
                     </p>
                   </div>
-                  <span className={`rounded border px-2 py-1 text-[11px] capitalize ${
-                    material.verification_status === 'verified'
-                      ? 'border-emerald-700/20 bg-emerald-50 text-emerald-900'
-                      : 'border-amber-700/20 bg-amber-50 text-amber-900'
-                  }`}>
-                    {material.verification_status === 'verified' ? 'Coach First reviewed' : 'Awaiting review'}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {material.storage_path && material.upload_status === 'uploaded' && (
+                      <a href={`/api/private-materials/${material.id}`} target="_blank" rel="noreferrer" className="rounded border border-slate-300 px-2 py-1 text-[11px] font-medium text-slate-700">
+                        Open file
+                      </a>
+                    )}
+                    <span className={`rounded border px-2 py-1 text-[11px] capitalize ${
+                      material.verification_status === 'verified'
+                        ? 'border-emerald-700/20 bg-emerald-50 text-emerald-900'
+                        : 'border-amber-700/20 bg-amber-50 text-amber-900'
+                    }`}>
+                      {material.verification_status === 'verified' ? 'Coach First reviewed' : 'Awaiting review'}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

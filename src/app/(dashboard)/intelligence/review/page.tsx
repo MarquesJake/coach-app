@@ -3,8 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { ClaimReviewQueueClient } from '../_components/claim-review-queue-client'
 
-export default async function ClaimReviewPage({ searchParams }: { searchParams: { session?: string; claim?: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function ClaimReviewPage(props: { searchParams: Promise<{ session?: string; claim?: string }> }) {
+  const searchParams = await props.searchParams;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const organizationId = await getInternalOrganizationId(user.id)

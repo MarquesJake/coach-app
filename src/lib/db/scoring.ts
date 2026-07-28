@@ -29,7 +29,7 @@ export async function getLatestCoachScore(
   _userId: string,
   coachId: string
 ): Promise<{ data: CoachScoreRow | null; error: string | null }> {
-  const supabase = db()
+  const supabase = await db()
   const { data: scoreRow, error: scoreErr } = await supabase
     .from('coach_scores')
     .select('id, coach_id, scoring_model_id, overall_score, tactical_score, leadership_score, recruitment_score, risk_score, media_score, confidence_score, computed_at')

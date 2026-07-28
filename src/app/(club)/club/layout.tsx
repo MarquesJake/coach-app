@@ -6,7 +6,7 @@ import { ClubSidebar } from './_components/club-sidebar'
 import { InactiveClubSignOut } from './_components/inactive-club-sign-out'
 
 export default async function ClubLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/club/login')
   const [context, organizationAccess] = await Promise.all([

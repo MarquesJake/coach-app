@@ -2,6 +2,7 @@
 
 import { createHash, randomBytes } from 'node:crypto'
 import { headers } from 'next/headers'
+import { sendInvitationEmail } from '@/lib/email/invitations'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
@@ -18,6 +19,7 @@ export type InviteCoachUserResult = {
   ok: boolean
   error?: string
   inviteLink?: string
+  emailStatus?: 'sent' | 'not_configured' | 'failed'
 }
 
 const PORTAL_STATUSES = ['not_invited', 'invited', 'in_progress', 'submitted', 'in_review', 'approved', 'needs_update'] as const
@@ -56,13 +58,13 @@ function dateValue(formData: FormData, key: string): string | null {
 }
 
 async function requireUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   return { supabase, user }
 }
 
 async function ownsCoach(
-  supabase: ReturnType<typeof createServerSupabaseClient>,
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   userId: string,
   coachId: string
 ): Promise<boolean> {
@@ -453,11 +455,25 @@ export async function issueCoachInvitationAction(formData: FormData): Promise<In
   })
   if (error) return { ok: false, error: error.message }
 
-  const headerStore = headers()
+  const headerStore = await headers()
   const protocol = headerStore.get('x-forwarded-proto') ?? 'http'
   const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host') ?? 'localhost:3000'
+  const inviteLink = `${protocol}://${host}/coach/invite/${rawToken}`
+  const { data: coach } = await supabase
+    .from('coaches')
+    .select('name')
+    .eq('id', coachId)
+    .maybeSingle()
+  const emailResult = await sendInvitationEmail({
+    audience: 'coach',
+    recipientEmail: email,
+    inviteLink,
+    invitedRole: role,
+    organizationName: coach?.name ?? 'your coach profile',
+    idempotencyKey: `coach-invite-${tokenHash}`,
+  })
   revalidateCoachWorkspace(coachId)
-  return { ok: true, inviteLink: `${protocol}://${host}/coach/invite/${rawToken}` }
+  return { ok: true, inviteLink, emailStatus: emailResult.status }
 }
 
 export async function revokeCoachInvitationAction(formData: FormData) {

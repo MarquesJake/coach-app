@@ -31,7 +31,7 @@ type DeliverableInsert = {
 }
 
 export async function getMandatesForUser(userId: string) {
-  const supabase = db()
+  const supabase = await db()
   return supabase
     .from('mandates')
     .select(
@@ -85,7 +85,7 @@ export async function getMandateBoardSignals(
   mandateIds: string[]
 ): Promise<BoardSignal[]> {
   if (mandateIds.length === 0) return []
-  const supabase = db()
+  const supabase = await db()
 
   const { data } = await supabase
     .from('mandate_longlist')
@@ -156,7 +156,7 @@ export async function getMandateBoardSignals(
 
 /** Fetch mandate row with all fields required by mandateToContext() and the scoring engine. */
 export async function getMandateFitFields(userId: string, mandateId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('mandates')
     .select(
@@ -172,7 +172,7 @@ export async function getMandateFitFields(userId: string, mandateId: string) {
 }
 
 export async function getMandateDetailForUser(userId: string, mandateId: string) {
-  const supabase = db()
+  const supabase = await db()
 
   const mandateResult = await supabase
     .from('mandates')
@@ -236,7 +236,7 @@ export async function getMandateDetailForUser(userId: string, mandateId: string)
 }
 
 export async function createMandateForUser(userId: string, input: MandateInsert) {
-  const supabase = db()
+  const supabase = await db()
   return supabase
     .from('mandates')
     .insert({
@@ -252,7 +252,7 @@ export async function addShortlistForUser(
   mandateId: string,
   input: ShortlistInsert
 ) {
-  const supabase = db()
+  const supabase = await db()
 
   const mandateCheck = await supabase
     .from('mandates')
@@ -278,7 +278,7 @@ export async function addDeliverableForUser(
   mandateId: string,
   input: DeliverableInsert
 ) {
-  const supabase = db()
+  const supabase = await db()
 
   const mandateCheck = await supabase
     .from('mandates')

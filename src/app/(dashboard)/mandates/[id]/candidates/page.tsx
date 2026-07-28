@@ -5,8 +5,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { displayClubName } from '@/lib/display-names'
 
-export default async function MandateCandidatesPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function MandateCandidatesPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

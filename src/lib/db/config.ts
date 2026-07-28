@@ -42,7 +42,7 @@ export async function getConfigList<T extends ConfigRow>(
   userId: string,
   table: ConfigTableName
 ): Promise<{ data: T[]; error: unknown }> {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from(table)
     .select('*')
@@ -57,7 +57,7 @@ export async function createConfigItem(
   table: ConfigTableName,
   payload: Record<string, unknown>
 ): Promise<{ data: ConfigRow | null; error: unknown }> {
-  const supabase = db()
+  const supabase = await db()
   const { data: existing } = await supabase.from(table).select('sort_order').eq('user_id', userId)
   const sort_order = nextSortOrder((existing ?? []) as { sort_order: number }[])
   const row = {
@@ -78,7 +78,7 @@ export async function updateConfigItem(
   id: string,
   payload: Record<string, unknown>
 ): Promise<{ data: ConfigRow | null; error: unknown }> {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from(table)
     .update({ ...payload, updated_at: new Date().toISOString() } as never)
@@ -94,7 +94,7 @@ export async function deleteConfigItem(
   table: ConfigTableName,
   id: string
 ): Promise<{ error: unknown }> {
-  const supabase = db()
+  const supabase = await db()
   const { error } = await supabase.from(table).delete().eq('id', id).eq('user_id', userId)
   return { error }
 }
@@ -105,7 +105,7 @@ export async function reorderConfigItems(
   id: string,
   newSortOrder: number
 ): Promise<{ error: unknown }> {
-  const supabase = db()
+  const supabase = await db()
   const { error } = await supabase
     .from(table)
     .update({ sort_order: newSortOrder, updated_at: new Date().toISOString() } as never)

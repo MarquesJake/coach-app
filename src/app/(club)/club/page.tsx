@@ -6,7 +6,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 export default async function ClubHomePage() {
   const context = await getClubPortalContext()
   if (!context) return null
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const [{ data: briefs }, { data: offers }, { data: orders }] = await Promise.all([
     supabase.from('club_briefs').select('id, title, status, updated_at').eq('buyer_organization_id', context.organizationId).order('updated_at', { ascending: false }).limit(1),
     supabase.from('dossier_offers').select('id, coach_name, headline, verdict, confidence, status').eq('buyer_organization_id', context.organizationId).in('status', ['published', 'purchased']).order('published_at', { ascending: false }),

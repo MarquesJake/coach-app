@@ -5,7 +5,7 @@ import { listAgentClubRelationshipsForAgent } from '@/lib/db/agentLinks'
 import { AgentClubsClient } from '../_components/agent-clubs-client'
 
 export default async function AgentClubsPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

@@ -5,10 +5,14 @@ import { getClubPortalContext } from '@/lib/organizations/context'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { submitDossierOrderAction } from '../../actions'
 
-export default async function ClubDossierDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { ordered?: string; error?: string } }) {
+export default async function ClubDossierDetailPage(
+  props: { params: Promise<{ id: string }>; searchParams: Promise<{ ordered?: string; error?: string }> }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const context = await getClubPortalContext()
   if (!context) return null
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: offer } = await supabase.from('dossier_offers').select('id, coach_name, coach_current_role, coach_nationality, verdict, confidence, private_material_count, preview_summary, fit_summary, key_strengths, key_risks, included_sections').eq('id', params.id).eq('buyer_organization_id', context.organizationId).single()
   if (!offer) notFound()
   const { data: orders } = await supabase.from('dossier_orders').select('id, status').eq('offer_id', offer.id).eq('buyer_organization_id', context.organizationId).limit(1)
@@ -16,9 +20,9 @@ export default async function ClubDossierDetailPage({ params, searchParams }: { 
   const { data: grants } = order ? await supabase.from('confidential_access_grants').select('id, status, expires_at, allow_download').eq('order_id', order.id).limit(1) : { data: [] }
   const grant = grants?.[0]
   const grantIsActive = grant?.status === 'active' && new Date(grant.expires_at).getTime() > Date.now()
-  const { data: releasedRows } = grantIsActive ? await supabase.from('confidential_access_grant_materials').select('material_id').eq('grant_id', grant.id) : { data: [] }
-  const materialIds = (releasedRows ?? []).map((row) => row.material_id)
-  const { data: materials } = materialIds.length ? await supabase.from('coach_private_materials').select('id, title, material_type, description, external_url, source_label, verification_status').in('id', materialIds) : { data: [] }
+  const { data: materials } = grantIsActive
+    ? await supabase.rpc('list_released_private_materials', { target_order_id: order!.id })
+    : { data: [] }
   const sections = Array.isArray(offer.included_sections) ? offer.included_sections.filter((item): item is string => typeof item === 'string') : []
 
   return (
@@ -45,7 +49,7 @@ export default async function ClubDossierDetailPage({ params, searchParams }: { 
           <div className="grid gap-4 md:grid-cols-2"><section className="rounded-md border border-border bg-card p-5"><h2 className="text-sm font-semibold text-foreground">What stands up</h2><p className="mt-3 whitespace-pre-line text-sm leading-7 text-muted-foreground">{offer.key_strengths ?? 'Strengths are detailed in the full assessment.'}</p></section><section className="rounded-md border border-border bg-card p-5"><h2 className="text-sm font-semibold text-foreground">What must be tested</h2><p className="mt-3 whitespace-pre-line text-sm leading-7 text-muted-foreground">{offer.key_risks ?? 'Risks and mitigations are detailed in the full assessment.'}</p></section></div>
           <section className="rounded-md border border-border bg-card p-5"><h2 className="text-sm font-semibold text-foreground">Included in the assessment dossier</h2><div className="mt-4 grid gap-2 sm:grid-cols-2">{sections.map((section) => <div key={section} className="flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" />{section}</div>)}</div></section>
 
-          {grantIsActive && <section className="rounded-md border border-emerald-700/25 bg-card p-5"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-700" /><h2 className="text-sm font-semibold text-foreground">Released confidential materials</h2></div><p className="mt-1 text-xs text-muted-foreground">Access expires {new Date(grant.expires_at).toLocaleDateString('en-GB')}. {grant.allow_download ? 'Downloads are permitted.' : 'View-only access.'}</p><div className="mt-4 divide-y divide-border/60">{(materials ?? []).map((material) => <div key={material.id} className="flex items-start justify-between gap-4 py-3"><div className="flex min-w-0 gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><FileText className="h-4 w-4 text-foreground" /></div><div><p className="text-sm font-medium text-foreground">{material.title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{material.description ?? material.source_label ?? material.material_type}</p><p className="mt-1 text-[10px] uppercase text-muted-foreground">{material.verification_status} · {material.material_type.replace('_', ' ')}</p></div></div>{material.external_url && <a href={material.external_url} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-foreground">Open<ExternalLink className="h-3.5 w-3.5" /></a>}</div>)}</div></section>}
+          {grantIsActive && <section className="rounded-md border border-emerald-700/25 bg-card p-5"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-700" /><h2 className="text-sm font-semibold text-foreground">Released confidential materials</h2></div><p className="mt-1 text-xs text-muted-foreground">Access expires {new Date(grant.expires_at).toLocaleDateString('en-GB')}. {grant.allow_download ? 'Downloads are permitted.' : 'Files open through short-lived controlled access.'}</p><div className="mt-4 divide-y divide-border/60">{(materials ?? []).map((material) => <div key={material.material_id} className="flex items-start justify-between gap-4 py-3"><div className="flex min-w-0 gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><FileText className="h-4 w-4 text-foreground" /></div><div><p className="text-sm font-medium text-foreground">{material.title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{material.description ?? material.material_type}</p><p className="mt-1 text-[10px] uppercase text-muted-foreground">{material.verification_status} · {material.material_type.replace('_', ' ')}</p></div></div><a href={`/api/private-materials/${material.material_id}?order=${order!.id}`} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-foreground">Open securely<ExternalLink className="h-3.5 w-3.5" /></a></div>)}</div></section>}
         </div>
 
         <aside>

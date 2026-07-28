@@ -28,8 +28,9 @@ function formatDate(value: string | null) {
   return new Date(value).toLocaleDateString('en-GB')
 }
 
-export default async function CoachIntelligencePage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachIntelligencePage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

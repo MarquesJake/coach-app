@@ -55,12 +55,13 @@ function formatDate(value: string) {
   })
 }
 
-export default async function MandateDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function MandateDetailPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

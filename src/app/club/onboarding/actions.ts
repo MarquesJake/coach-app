@@ -22,7 +22,7 @@ export async function completeClubOnboardingAction(
   })
   if (!validation.ok) return { error: validation.error }
 
-  const { error } = await createServerSupabaseClient().rpc(
+  const { error } = await (await createServerSupabaseClient()).rpc(
     'complete_external_identity_onboarding',
     {
       target_organization_id: context.organizationId,

@@ -6,8 +6,9 @@ import { RefreshSimilarButton } from './_components/refresh-similar-button'
 
 const TOP_N = 15
 
-export default async function CoachSimilarPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachSimilarPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

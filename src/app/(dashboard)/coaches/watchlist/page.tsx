@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Badge } from '@/components/ui/badge'
 
 export default async function CoachesWatchlistPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

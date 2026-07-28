@@ -5,7 +5,7 @@ import { listAgentDealsForAgent } from '@/lib/db/agents'
 import { AgentDealsClient } from '../_components/agent-deals-client'
 
 export default async function AgentDealsPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

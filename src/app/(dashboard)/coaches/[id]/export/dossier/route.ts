@@ -9,7 +9,7 @@ function escapeHtml(s: string | null | undefined): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+    .replace(/"/g, '&quot;');
 }
 
 function formatNum(v: number | null | undefined): string {
@@ -18,11 +18,9 @@ function formatNum(v: number | null | undefined): string {
   return Number.isNaN(n) ? '—' : String(Math.round(n))
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const supabase = createServerSupabaseClient()
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return new Response('Unauthorized', { status: 401 })

@@ -7,13 +7,13 @@ import { ConversationCaptureClient } from '../_components/conversation-capture-c
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export default async function ConversationsPage({ searchParams }: { searchParams?: { coach?: string; contact?: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function ConversationsPage(props: { searchParams?: Promise<{ coach?: string; contact?: string }> }) {
+  const searchParams = await props.searchParams;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const organizationId = await getInternalOrganizationId(user.id)
   if (!organizationId) return <p className="text-sm text-destructive">Internal analyst access is required.</p>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
   const [{ data: sessions }, { data: contacts }, { data: coaches }, { data: claims }] = await Promise.all([
     db.from('intelligence_sessions').select('*').eq('org_id', organizationId).order('occurred_at', { ascending: false }).limit(200),

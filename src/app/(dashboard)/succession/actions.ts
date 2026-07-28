@@ -33,7 +33,7 @@ export async function saveSuccessionPlanAction(formData: FormData) {
   const clubId = toText(formData.get('club_id'))
   if (!clubId) redirect('/succession?error=Missing+club')
 
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -90,7 +90,7 @@ export async function convertSuccessionPlanToMandateAction(formData: FormData) {
   const clubId = toText(formData.get('club_id'))
   if (!clubId) redirect('/succession?error=Missing+club')
 
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

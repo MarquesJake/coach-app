@@ -9,7 +9,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -30,7 +30,7 @@ export default async function DashboardLayout({
   const hasClub = clubs && clubs.length > 0
 
   // Read current pathname from headers (set by Next.js middleware)
-  const headersList = headers()
+  const headersList = await headers()
   const pathname = headersList.get('x-pathname') || ''
   const isSetupPage = pathname === '/dashboard/setup'
 

@@ -8,7 +8,7 @@ import { completeCoachOnboardingAction } from './actions'
 export default async function CoachOnboardingPage() {
   const context = await getCoachPortalContext()
   if (!context) redirect('/coach/login')
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const [{ data: identity }, { data: coach }] = await Promise.all([
     supabase
       .from('external_identity_profiles')

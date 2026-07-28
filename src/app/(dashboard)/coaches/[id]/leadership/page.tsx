@@ -3,8 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { LeadershipSection } from '../_components/leadership-section'
 
-export default async function CoachLeadershipPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachLeadershipPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

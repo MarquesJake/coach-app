@@ -3,8 +3,9 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MandateLonglistClient } from './_components/mandate-longlist-client'
 
-export default async function MandateLonglistPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function MandateLonglistPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

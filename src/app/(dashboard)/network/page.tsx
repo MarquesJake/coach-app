@@ -4,7 +4,7 @@ import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { NetworkDirectoryClient } from './_components/network-directory-client'
 
 export default async function NetworkPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const organizationId = await getInternalOrganizationId(user.id)

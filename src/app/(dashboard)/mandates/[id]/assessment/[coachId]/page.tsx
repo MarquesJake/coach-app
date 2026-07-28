@@ -18,12 +18,13 @@ import {
   type ReferenceAnswerRow,
 } from './_components/assessment-workspace-client'
 
-export default async function CandidateAssessmentPage({
-  params,
-}: {
-  params: { id: string; coachId: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function CandidateAssessmentPage(
+  props: {
+    params: Promise<{ id: string; coachId: string }>
+  }
+) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const organizationId = await getInternalOrganizationId(user.id)

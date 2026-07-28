@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { Upload } from 'tus-js-client'
 import { FileUp, Link2, LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -9,10 +10,69 @@ import { addOwnCoachMaterialAction } from '../actions'
 const inputClass =
   'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 placeholder:text-slate-400 focus:border-emerald-800 focus:outline-none'
 
+const ALLOWED_FILE_TYPES = new Set([
+  'application/pdf',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+])
+
+async function uploadPrivateMaterial(
+  coachId: string,
+  file: File,
+  onProgress: (percent: number) => void
+): Promise<string> {
+  const supabase = createClient()
+  const { data: { session }, error } = await supabase.auth.getSession()
+  if (error || !session) throw new Error('Your session expired. Sign in again before uploading.')
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-')
+  const objectName = `${coachId}/${crypto.randomUUID()}-${safeName}`
+  const projectUrl = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!)
+  const storageHost = projectUrl.hostname.endsWith('.supabase.co')
+    ? projectUrl.hostname.replace('.supabase.co', '.storage.supabase.co')
+    : projectUrl.hostname
+  const endpoint = `${projectUrl.protocol}//${storageHost}/storage/v1/upload/resumable`
+
+  await new Promise<void>((resolve, reject) => {
+    const upload = new Upload(file, {
+      endpoint,
+      retryDelays: [0, 1000, 3000, 5000, 10000],
+      headers: {
+        authorization: `Bearer ${session.access_token}`,
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      },
+      metadata: {
+        bucketName: 'coach-private-materials',
+        objectName,
+        contentType: file.type,
+        cacheControl: '3600',
+      },
+      uploadSize: file.size,
+      uploadDataDuringCreation: true,
+      chunkSize: 6 * 1024 * 1024,
+      removeFingerprintOnSuccess: true,
+      onError: reject,
+      onProgress: (uploaded, total) => onProgress(Math.round((uploaded / total) * 100)),
+      onSuccess: () => resolve(),
+    })
+
+    upload.findPreviousUploads().then((previousUploads) => {
+      if (previousUploads.length) upload.resumeFromPreviousUpload(previousUploads[0])
+      upload.start()
+    }).catch(reject)
+  })
+
+  return objectName
+}
+
 export function MaterialUploadForm({ coachId }: { coachId: string }) {
   const [file, setFile] = useState<File | null>(null)
   const [pending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   async function submit(formData: FormData) {
     const title = String(formData.get('title') ?? '').trim()
@@ -25,22 +85,24 @@ export function MaterialUploadForm({ coachId }: { coachId: string }) {
 
     let storagePath: string | null = null
     if (file) {
+      if (!ALLOWED_FILE_TYPES.has(file.type)) {
+        toast.error('Use a PDF, PowerPoint, MP4, MOV or WebM file.')
+        return
+      }
       if (file.size > 100 * 1024 * 1024) {
         toast.error('Files must be 100 MB or smaller. Use a secure video link for larger files.')
         return
       }
       setUploading(true)
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-')
-      storagePath = `${coachId}/${crypto.randomUUID()}-${safeName}`
-      const { error } = await createClient()
-        .storage
-        .from('coach-private-materials')
-        .upload(storagePath, file, { upsert: false })
-      setUploading(false)
-      if (error) {
-        toast.error(error.message)
+      setUploadProgress(0)
+      try {
+        storagePath = await uploadPrivateMaterial(coachId, file, setUploadProgress)
+      } catch (error) {
+        setUploading(false)
+        toast.error(error instanceof Error ? error.message : 'The upload could not be completed.')
         return
       }
+      setUploading(false)
     }
 
     startTransition(async () => {
@@ -50,6 +112,9 @@ export function MaterialUploadForm({ coachId }: { coachId: string }) {
         description: description || null,
         externalUrl: externalUrl || null,
         storagePath,
+        originalFileName: file?.name ?? null,
+        mimeType: file?.type ?? null,
+        fileSizeBytes: file?.size ?? null,
       })
       if (!result.ok) {
         if (storagePath) {
@@ -79,7 +144,7 @@ export function MaterialUploadForm({ coachId }: { coachId: string }) {
       <textarea name="description" rows={3} placeholder="What this shows, the context, and why it matters" className={`${inputClass} sm:col-span-2`} />
       <label className="flex min-h-20 cursor-pointer items-center gap-3 rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600">
         <FileUp className="h-4 w-4 shrink-0 text-emerald-800" />
-        <span>{file ? file.name : 'Private PDF, PowerPoint or video up to 100 MB'}</span>
+        <span>{file ? `${file.name}${uploading ? ` · ${uploadProgress}%` : ''}` : 'Private PDF, PowerPoint or video up to 100 MB'}</span>
         <input
           type="file"
           accept=".pdf,.ppt,.pptx,.mp4,.mov,.webm"

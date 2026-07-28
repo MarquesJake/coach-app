@@ -116,12 +116,13 @@ function TextAreaField({
   )
 }
 
-export default async function CoachPortalDetailPage({
-  params,
-}: {
-  params: { coachId: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachPortalDetailPage(
+  props: {
+    params: Promise<{ coachId: string }>
+  }
+) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -578,6 +579,11 @@ export default async function CoachPortalDetailPage({
                     </div>
                   </div>
                   {item.description && <p className="mt-2 text-2xs text-muted-foreground leading-relaxed">{item.description}</p>}
+                  {item.storage_path && item.upload_status === 'uploaded' && (
+                    <a href={`/api/private-materials/${item.id}`} target="_blank" rel="noreferrer" className="mt-2 inline-block text-2xs font-medium text-primary hover:underline">
+                      Review uploaded file →
+                    </a>
+                  )}
                   {item.external_url && (
                     <a href={item.external_url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-2xs font-medium text-primary hover:underline">
                       Open linked material →

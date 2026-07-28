@@ -49,12 +49,13 @@ function evidenceReviewLabel(item: {
   return ''
 }
 
-export default async function BoardPackPage({
-  params,
-}: {
-  params: { id: string; coachId: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function BoardPackPage(
+  props: {
+    params: Promise<{ id: string; coachId: string }>
+  }
+) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

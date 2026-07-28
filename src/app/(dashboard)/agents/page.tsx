@@ -11,7 +11,7 @@ export default async function AgentsPage({
 }: {
   searchParams: Promise<{ q?: string; market?: string; risk?: string; min_influence?: string; channel?: string; sort?: string }>
 }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

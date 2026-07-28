@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { NewAgentForm } from '../_components/new-agent-form'
 
 export default async function NewAgentPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

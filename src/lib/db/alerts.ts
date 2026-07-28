@@ -23,7 +23,7 @@ export async function createAlert(params: {
   title: string
   detail?: string | null
 }): Promise<{ error?: string }> {
-  const supabase = db()
+  const supabase = await db()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || user.id !== params.userId) return { error: 'Unauthorized' }
 
@@ -46,7 +46,7 @@ export async function getAlertsForUser(
   userId: string,
   options: { unseenOnly?: boolean } = {}
 ): Promise<{ data: AlertRow[]; error?: string }> {
-  const supabase = db()
+  const supabase = await db()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || user.id !== userId) return { data: [], error: 'Unauthorized' }
 
@@ -66,7 +66,7 @@ export async function getAlertsForUser(
  * Mark a single alert as seen. Ownership enforced: only the alert owner can mark.
  */
 export async function markAlertSeen(userId: string, alertId: string): Promise<{ error?: string }> {
-  const supabase = db()
+  const supabase = await db()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || user.id !== userId) return { error: 'Unauthorized' }
 

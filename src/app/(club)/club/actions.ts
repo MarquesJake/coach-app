@@ -16,7 +16,7 @@ const BRIEF_FIELDS = [
 export async function saveClubBriefAction(formData: FormData) {
   const context = await getClubPortalContext()
   if (!context || !['owner', 'admin', 'club_owner', 'club_director'].includes(context.membershipRole)) redirect('/club/brief?error=permission')
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const serviceOrganizationId = await getInternalOrganizationId(context.userId)
   if (!serviceOrganizationId) redirect('/club/brief?error=service')
 
@@ -56,7 +56,7 @@ export async function submitDossierOrderAction(formData: FormData) {
   const buyerReference = String(formData.get('buyer_reference') ?? '').trim()
   if (!offerId || !intendedUse) redirect(`/club/dossiers/${offerId}?error=required`)
 
-  const { data, error } = await createServerSupabaseClient().rpc('submit_dossier_order', {
+  const { data, error } = await (await createServerSupabaseClient()).rpc('submit_dossier_order', {
     target_offer_id: offerId,
     intended_use_text: intendedUse,
     buyer_reference_text: buyerReference || undefined,

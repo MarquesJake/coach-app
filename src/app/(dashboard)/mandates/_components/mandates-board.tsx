@@ -485,7 +485,7 @@ function MandateCard({
   onMoveToNextStage: (mandate: MandateForBoard) => void
   openMenuId: string | null
   setOpenMenuId: (id: string | null) => void
-  menuRef: React.RefObject<HTMLDivElement>
+  menuRef: React.RefObject<HTMLDivElement | null>
   showHealth?: boolean
   compact?: boolean
 }) {

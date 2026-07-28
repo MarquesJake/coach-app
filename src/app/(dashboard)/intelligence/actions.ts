@@ -115,7 +115,7 @@ function materialTypeFromInbox(item: { intake_type: string; headline: string }) 
 }
 
 async function ownsEntity(
-  supabase: ReturnType<typeof createServerSupabaseClient>,
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   userId: string,
   table: 'coaches' | 'clubs' | 'mandates' | 'agents',
   id: string | null | undefined
@@ -126,7 +126,7 @@ async function ownsEntity(
 }
 
 async function requireUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   return { supabase, user }

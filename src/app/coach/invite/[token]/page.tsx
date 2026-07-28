@@ -4,8 +4,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { hashInvitationToken } from '@/lib/organizations/invitations'
 import { CoachInvitationForm } from './_components/coach-invitation-form'
 
-export default async function CoachInvitationPage({ params }: { params: { token: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachInvitationPage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const tokenHash = hashInvitationToken(params.token)
   const [{ data: { user } }, previewResult] = await Promise.all([
     supabase.auth.getUser(),

@@ -7,8 +7,9 @@ import { computeCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-c
 import { FitClient } from './_components/fit-client'
 import { displayClubName } from '@/lib/display-names'
 
-export default async function CoachFitPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachFitPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

@@ -6,8 +6,9 @@ import type { Database } from '@/lib/types/db'
 
 type DerivedMetricsRow = Database['public']['Tables']['coach_derived_metrics']['Row']
 
-export default async function CoachCoachingModelPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachCoachingModelPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

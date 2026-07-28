@@ -194,12 +194,13 @@ function OperationsRow({
   )
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams?: { filter?: string; success?: string; error?: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function DashboardPage(
+  props: {
+    searchParams?: Promise<{ filter?: string; success?: string; error?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const db = supabase as any

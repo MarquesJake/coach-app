@@ -11,7 +11,7 @@ type AgentClubUpdate = Database['public']['Tables']['agent_club_relationships'][
 export type { CoachAgentRow, CoachAgentInsert, CoachAgentUpdate, AgentClubRow, AgentClubInsert, AgentClubUpdate }
 
 export async function listCoachAgentsForCoach(userId: string, coachId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('coach_agents')
     .select(`
@@ -34,7 +34,7 @@ export async function listCoachAgentsForCoach(userId: string, coachId: string) {
 }
 
 export async function listCoachAgentsForAgent(userId: string, agentId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('coach_agents')
     .select(`
@@ -57,7 +57,7 @@ export async function listCoachAgentsForAgent(userId: string, agentId: string) {
 }
 
 export async function upsertCoachAgent(userId: string, payload: CoachAgentInsert) {
-  const supabase = db()
+  const supabase = await db()
   return supabase
     .from('coach_agents')
     .upsert({ ...payload, user_id: userId }, { onConflict: 'coach_id,agent_id' })
@@ -66,12 +66,12 @@ export async function upsertCoachAgent(userId: string, payload: CoachAgentInsert
 }
 
 export async function deleteCoachAgent(userId: string, id: string) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('coach_agents').delete().eq('id', id).eq('user_id', userId)
 }
 
 export async function listAgentClubRelationshipsForAgent(userId: string, agentId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('agent_club_relationships')
     .select(`
@@ -92,7 +92,7 @@ export async function listAgentClubRelationshipsForAgent(userId: string, agentId
 }
 
 export async function upsertAgentClubRelationship(userId: string, payload: AgentClubInsert) {
-  const supabase = db()
+  const supabase = await db()
   return supabase
     .from('agent_club_relationships')
     .upsert({ ...payload, user_id: userId }, { onConflict: 'agent_id,club_id' })
@@ -101,6 +101,6 @@ export async function upsertAgentClubRelationship(userId: string, payload: Agent
 }
 
 export async function deleteAgentClubRelationship(userId: string, id: string) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('agent_club_relationships').delete().eq('id', id).eq('user_id', userId)
 }

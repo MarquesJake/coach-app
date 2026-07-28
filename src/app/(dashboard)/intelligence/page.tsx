@@ -98,7 +98,7 @@ function WorkCard({
 }
 
 export default async function IntelligencePage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

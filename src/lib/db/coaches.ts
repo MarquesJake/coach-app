@@ -10,7 +10,7 @@ type CoachUpdate = Database['public']['Tables']['coaches']['Update']
 export type { CoachRow, CoachInsert, CoachUpdate }
 
 export async function getCoachesForUser(userId: string) {
-  const supabase = db()
+  const supabase = await db()
   return supabase
     .from('coaches')
     .select('*')
@@ -19,7 +19,7 @@ export async function getCoachesForUser(userId: string) {
 }
 
 export async function getCoachById(userId: string, coachId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('coaches')
     .select('*')
@@ -31,7 +31,7 @@ export async function getCoachById(userId: string, coachId: string) {
 
 export async function getCoachesByIds(userId: string, ids: string[]) {
   if (ids.length === 0) return { data: [] as CoachRow[], error: null }
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('coaches')
     .select('*')
@@ -64,7 +64,7 @@ export async function createCoachFull(
   userId: string,
   payload: Record<string, unknown>
 ): Promise<{ data: { id: string } | null; error: Error | null }> {
-  const supabase = db()
+  const supabase = await db()
   const now = new Date().toISOString()
   const name = str(payload.name)
   if (!name) return { data: null, error: new Error('Name is required') }
@@ -127,7 +127,7 @@ export async function createCoachFull(
 }
 
 export async function createCoach(userId: string, input: Partial<CoachInsert> & { name: string }) {
-  const supabase = db()
+  const supabase = await db()
   const now = new Date().toISOString()
   const row: CoachInsert = {
     ...input,
@@ -153,6 +153,6 @@ export async function createCoach(userId: string, input: Partial<CoachInsert> & 
 }
 
 export async function updateCoach(userId: string, coachId: string, input: CoachUpdate) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('coaches').update(input).eq('id', coachId).eq('user_id', userId).select().single()
 }

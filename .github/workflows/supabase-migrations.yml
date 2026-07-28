@@ -43,7 +43,7 @@ jobs:
         if: env.SUPABASE_DB_PASSWORD != ''
         run: |
           export SUPABASE_DB_URL="postgresql://postgres:${SUPABASE_DB_PASSWORD}@db.${SUPABASE_PROJECT_REF}.supabase.co:5432/postgres"
-          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/club_identity_rls.sql
+          npm run test:rls
 
       - name: Note live RLS test configuration
         if: env.SUPABASE_DB_PASSWORD == ''

@@ -3,8 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { getStaffById } from '@/lib/db/staff'
 
-export default async function StaffDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function StaffDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

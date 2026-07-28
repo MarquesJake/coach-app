@@ -58,7 +58,7 @@ type CoachStaffHistoryInsert = Database['public']['Tables']['coach_staff_history
 type CoachStaffHistoryUpdate = Database['public']['Tables']['coach_staff_history']['Update']
 
 async function assertCoachOwnership(coachId: string): Promise<string> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const { data: coach } = await getCoachById(user.id, coachId)
@@ -68,7 +68,7 @@ async function assertCoachOwnership(coachId: string): Promise<string> {
 
 /** Fetch mandate fit fields for the current user (for mandate-fit page). */
 export async function getMandateFitAction(mandateId: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const { data, error } = await getMandateFitFields(user.id, mandateId)
@@ -199,7 +199,7 @@ export async function updateCoachCoreAction(coachId: string, payload: Record<str
     const marketKeys = ['market_status', 'availability_status'] as const
     const marketChanged = marketKeys.some((key) => key in update && (beforeCoach as Record<string, unknown>)?.[key] !== update[key])
 
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     const { data: onWatchlist } = await supabase.from('watchlist_coaches').select('coach_id').eq('user_id', userId).eq('coach_id', coachId).maybeSingle()
 
     if (onWatchlist) {
@@ -258,7 +258,7 @@ export async function refreshSimilarityForCoachAction(coachId: string): Promise<
       return { ok: true }
     }
 
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     const main = mainCoach as Record<string, unknown>
     for (const other of others) {
       const { score, breakdown } = computeSimilarity(main, other as Record<string, unknown>)
@@ -277,7 +277,7 @@ export async function refreshSimilarityForCoachAction(coachId: string): Promise<
 /** Upsert a coach stint (create or update). */
 export async function upsertStintAction(coachId: string, formData: FormData) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const id = toStr(formData.get('id'))
   const clubName = toStr(formData.get('club_name')) ?? ''
   const roleTitle = toStr(formData.get('role_title')) ?? ''
@@ -326,7 +326,7 @@ export async function upsertStintAction(coachId: string, formData: FormData) {
 /** Delete a coach stint. */
 export async function deleteStintAction(coachId: string, stintId: string) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { error } = await supabase.from('coach_stints').delete().eq('id', stintId).eq('coach_id', coachId)
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
@@ -337,7 +337,7 @@ export async function deleteStintAction(coachId: string, stintId: string) {
 /** Upsert coach data profile (one per coach). */
 export async function upsertDataProfileAction(coachId: string, formData: FormData) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const clamp = (n: number | null, lo: number, hi: number) =>
     n == null ? null : Math.min(hi, Math.max(lo, n))
 
@@ -408,7 +408,7 @@ export async function upsertDataProfileAction(coachId: string, formData: FormDat
 /** Create or update a recruitment history row. */
 export async function upsertRecruitmentAction(coachId: string, formData: FormData) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const id = toStr(formData.get('id'))
   const playerName = toStr(formData.get('player_name'))
   const clubName = toStr(formData.get('club_name'))
@@ -472,7 +472,7 @@ export async function upsertRecruitmentAction(coachId: string, formData: FormDat
 /** Delete a recruitment history row. */
 export async function deleteRecruitmentAction(coachId: string, recruitmentId: string) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { error } = await supabase.from('coach_recruitment_history').delete().eq('id', recruitmentId).eq('coach_id', coachId)
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
@@ -483,7 +483,7 @@ export async function deleteRecruitmentAction(coachId: string, recruitmentId: st
 /** Create or update a media event. */
 export async function upsertMediaEventAction(coachId: string, formData: FormData) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const clamp = (n: number | null, lo: number, hi: number) =>
     n == null ? null : Math.min(hi, Math.max(lo, n))
   const id = toStr(formData.get('id'))
@@ -549,7 +549,7 @@ export async function upsertMediaEventAction(coachId: string, formData: FormData
 /** Delete a media event. */
 export async function deleteMediaEventAction(coachId: string, eventId: string) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { error } = await supabase.from('coach_media_events').delete().eq('id', eventId).eq('coach_id', coachId)
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
@@ -560,7 +560,7 @@ export async function deleteMediaEventAction(coachId: string, eventId: string) {
 /** Create or update a due diligence item. */
 export async function upsertDueDiligenceItemAction(coachId: string, formData: FormData) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const id = toStr(formData.get('id'))
   const title = toStr(formData.get('title')) ?? ''
   const detail = toStr(formData.get('detail'))
@@ -608,7 +608,7 @@ export async function upsertDueDiligenceItemAction(coachId: string, formData: Fo
 /** Delete a due diligence item. */
 export async function deleteDueDiligenceItemAction(coachId: string, itemId: string) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { error } = await supabase.from('coach_due_diligence_items').delete().eq('id', itemId).eq('coach_id', coachId)
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
@@ -619,7 +619,7 @@ export async function deleteDueDiligenceItemAction(coachId: string, itemId: stri
 /** Create or update a staff history row (staff network). */
 export async function upsertStaffHistoryAction(coachId: string, formData: FormData) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const id = toStr(formData.get('id'))
   const staffId = toStr(formData.get('staff_id'))
   const clubName = toStr(formData.get('club_name')) ?? ''
@@ -704,7 +704,7 @@ export async function getStaffLinkAutofillAction(coachId: string, staffId: strin
 } | null> {
   if (!staffId || !coachId) return null
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
@@ -782,7 +782,7 @@ export async function getStaffLinkAutofillAction(coachId: string, staffId: strin
 /** Delete a staff history row. */
 export async function deleteStaffHistoryAction(coachId: string, historyId: string) {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { error } = await supabase.from('coach_staff_history').delete().eq('id', historyId).eq('coach_id', coachId)
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
@@ -793,7 +793,7 @@ export async function deleteStaffHistoryAction(coachId: string, historyId: strin
 /** Evidence coverage: count of linked records with confidence set. Verified coverage: count with verified = true. */
 export async function getCoachCoverageAction(coachId: string): Promise<{ evidenceCoverage: number; verifiedCoverage: number }> {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   let evidenceCoverage = 0
   let verifiedCoverage = 0
 
@@ -847,7 +847,7 @@ export async function upsertCoachDerivedMetricsAction(
   }
 ): Promise<{ error: string | null }> {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const now = new Date().toISOString()
   const row = {
     coach_id: coachId,
@@ -869,7 +869,7 @@ export async function upsertCoachDerivedMetricsAction(
 }
 
 export async function getWatchlistStatusAction(coachId: string): Promise<{ onWatchlist: boolean }> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { onWatchlist: false }
   const { data } = await supabase.from('watchlist_coaches').select('coach_id').eq('coach_id', coachId).eq('user_id', user.id).maybeSingle()
@@ -878,7 +878,7 @@ export async function getWatchlistStatusAction(coachId: string): Promise<{ onWat
 
 export async function addToWatchlistAction(coachId: string): Promise<{ error: string | null }> {
   await assertCoachOwnership(coachId)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
   const { error } = await supabase.from('watchlist_coaches').upsert({ coach_id: coachId, user_id: user.id }, { onConflict: 'coach_id,user_id' })
@@ -887,7 +887,7 @@ export async function addToWatchlistAction(coachId: string): Promise<{ error: st
 }
 
 export async function removeFromWatchlistAction(coachId: string): Promise<{ error: string | null }> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
   const { error } = await supabase.from('watchlist_coaches').delete().eq('coach_id', coachId).eq('user_id', user.id)

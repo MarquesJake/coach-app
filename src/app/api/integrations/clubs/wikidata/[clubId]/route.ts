@@ -121,12 +121,10 @@ ORDER BY ASC(?startTime)
 
 // ── Route handler ─────────────────────────────────────────────────────────────
 
-export async function POST(
-  _req: NextRequest,
-  { params }: { params: { clubId: string } }
-) {
+export async function POST(_req: NextRequest, props: { params: Promise<{ clubId: string }> }) {
+  const params = await props.params;
   const { clubId } = params
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

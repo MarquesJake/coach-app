@@ -2,7 +2,7 @@ import { db } from './client'
 
 /** Fetch coach row with scoring and fit-relevant fields for mandate fit. */
 export async function getCoachForFit(userId: string, coachId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('coaches')
     .select(
@@ -16,7 +16,7 @@ export async function getCoachForFit(userId: string, coachId: string) {
 
 /** Evidence (intelligence) count for a coach. */
 export async function getEvidenceCountForCoach(userId: string, coachId: string): Promise<number> {
-  const supabase = db()
+  const supabase = await db()
   const { count, error } = await supabase
     .from('intelligence_items')
     .select('id', { count: 'exact', head: true })
@@ -35,7 +35,7 @@ export async function upsertLonglistEntry(
   rankingScore: number | null,
   fitExplanation: string | null
 ): Promise<string | null> {
-  const supabase = db()
+  const supabase = await db()
   const { data: mandate } = await supabase
     .from('mandates')
     .select('id')
@@ -64,7 +64,7 @@ export async function insertShortlistEntry(
   notes: string | null,
   status: string = 'Under Review'
 ): Promise<string | null> {
-  const supabase = db()
+  const supabase = await db()
   const { data: mandate } = await supabase
     .from('mandates')
     .select('id')

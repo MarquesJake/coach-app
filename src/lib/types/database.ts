@@ -2486,12 +2486,16 @@ export type Database = {
           created_at: string
           description: string | null
           external_url: string | null
+          file_size_bytes: number | null
           id: string
           material_type: string
+          mime_type: string | null
+          original_file_name: string | null
           source_label: string | null
           storage_path: string | null
           title: string
           updated_at: string
+          upload_status: string
           uploaded_by: string
           user_id: string
           verification_status: string
@@ -2502,12 +2506,16 @@ export type Database = {
           created_at?: string
           description?: string | null
           external_url?: string | null
+          file_size_bytes?: number | null
           id?: string
           material_type?: string
+          mime_type?: string | null
+          original_file_name?: string | null
           source_label?: string | null
           storage_path?: string | null
           title: string
           updated_at?: string
+          upload_status?: string
           uploaded_by?: string
           user_id: string
           verification_status?: string
@@ -2518,12 +2526,16 @@ export type Database = {
           created_at?: string
           description?: string | null
           external_url?: string | null
+          file_size_bytes?: number | null
           id?: string
           material_type?: string
+          mime_type?: string | null
+          original_file_name?: string | null
           source_label?: string | null
           storage_path?: string | null
           title?: string
           updated_at?: string
+          upload_status?: string
           uploaded_by?: string
           user_id?: string
           verification_status?: string
@@ -6377,6 +6389,20 @@ export type Database = {
         }
         Returns: string
       }
+      add_own_coach_material_v2: {
+        Args: {
+          material_description?: string
+          material_external_url?: string
+          material_file_size_bytes?: number
+          material_kind: string
+          material_mime_type?: string
+          material_original_file_name?: string
+          material_storage_path?: string
+          material_title: string
+          target_coach_id: string
+        }
+        Returns: string
+      }
       approve_dossier_order: {
         Args: {
           access_days?: number
@@ -6386,6 +6412,10 @@ export type Database = {
           target_order_id: string
         }
         Returns: string
+      }
+      can_read_released_material_object: {
+        Args: { object_name: string }
+        Returns: boolean
       }
       claim_club_invitation: {
         Args: { invitation_token_hash: string }
@@ -6458,6 +6488,17 @@ export type Database = {
         }
         Returns: string
       }
+      list_released_private_materials: {
+        Args: { target_order_id: string }
+        Returns: {
+          description: string
+          material_id: string
+          material_type: string
+          title: string
+          upload_status: string
+          verification_status: string
+        }[]
+      }
       preview_club_invitation: {
         Args: { invitation_token_hash: string }
         Returns: {
@@ -6480,6 +6521,14 @@ export type Database = {
       }
       record_club_first_login: { Args: never; Returns: boolean }
       record_coach_first_login: { Args: never; Returns: boolean }
+      record_private_material_access: {
+        Args: { target_material_id: string; target_order_id: string }
+        Returns: {
+          allow_download: boolean
+          storage_path: string
+          watermark_label: string
+        }[]
+      }
       revoke_club_invitation: {
         Args: { target_invitation_id: string }
         Returns: undefined

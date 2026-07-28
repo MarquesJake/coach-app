@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const next = safeAuthRedirectPath(searchParams.get('next'))
 
   if (code) {
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       const invitationMatch = next.match(/^\/club\/invite\/([0-9a-f]{64})$/)

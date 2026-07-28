@@ -51,7 +51,7 @@ export async function saveOwnCoachProfileAction(formData: FormData) {
   const context = await getCoachPortalContext()
   if (!context) redirect('/coach/login')
   const submitForReview = String(formData.get('intent') ?? '') === 'submit'
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { error } = await supabase.rpc('save_own_coach_portal_profile', {
     target_coach_id: context.coachId,
     profile: formProfile(formData),
@@ -70,17 +70,23 @@ export async function addOwnCoachMaterialAction(input: {
   description: string | null
   externalUrl: string | null
   storagePath: string | null
+  originalFileName: string | null
+  mimeType: string | null
+  fileSizeBytes: number | null
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const context = await getCoachPortalContext()
   if (!context) return { ok: false, error: 'Coach access is not available.' }
-  const supabase = createServerSupabaseClient()
-  const { error } = await supabase.rpc('add_own_coach_material', {
+  const supabase = await createServerSupabaseClient()
+  const { error } = await supabase.rpc('add_own_coach_material_v2', {
     target_coach_id: context.coachId,
     material_title: input.title.trim(),
     material_kind: input.materialType,
     material_description: input.description?.trim() || undefined,
     material_external_url: input.externalUrl?.trim() || undefined,
     material_storage_path: input.storagePath || undefined,
+    material_original_file_name: input.originalFileName?.trim() || undefined,
+    material_mime_type: input.mimeType?.trim() || undefined,
+    material_file_size_bytes: input.fileSizeBytes || undefined,
   })
   if (error) return { ok: false, error: error.message }
   revalidatePath('/coach/profile')
@@ -89,6 +95,6 @@ export async function addOwnCoachMaterialAction(input: {
 }
 
 export async function signOutCoachAction() {
-  await createServerSupabaseClient().auth.signOut()
+  await (await createServerSupabaseClient()).auth.signOut()
   redirect('/coach/login')
 }

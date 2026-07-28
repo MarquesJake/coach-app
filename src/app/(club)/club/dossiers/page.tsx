@@ -3,10 +3,11 @@ import { ArrowRight, CheckCircle2, FileLock2, LockKeyhole } from 'lucide-react'
 import { getClubPortalContext } from '@/lib/organizations/context'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
-export default async function ClubDossiersPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function ClubDossiersPage(props: { searchParams: Promise<{ error?: string }> }) {
+  const searchParams = await props.searchParams;
   const context = await getClubPortalContext()
   if (!context) return null
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const [{ data: offers }, { data: orders }] = await Promise.all([
     supabase.from('dossier_offers').select('id, coach_name, verdict, confidence, preview_summary, private_material_count').eq('buyer_organization_id', context.organizationId).in('status', ['published', 'purchased']).order('published_at', { ascending: false }),
     supabase.from('dossier_orders').select('id, offer_id, status, expires_at').eq('buyer_organization_id', context.organizationId),

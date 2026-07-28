@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { CreateStaffForm } from '../_components/create-staff-form'
 
 export default async function NewStaffPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

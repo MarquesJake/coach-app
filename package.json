@@ -7,9 +7,11 @@
     "prebuild": "node scripts/validate-build-env.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
-    "test:rls": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/club_identity_rls.sql",
+    "test:rls": "npm run test:rls:roles && npm run test:rls:onboarding",
+    "test:rls:roles": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/club_identity_rls.sql",
+    "test:rls:onboarding": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/external_identity_onboarding_rls.sql",
     "db:types": "supabase gen types typescript --linked --schema public > src/lib/types/database.ts",
     "db:types:project": "supabase gen types typescript --project-id $SUPABASE_PROJECT_REF --schema public > src/lib/types/database.ts",
     "db:types:db-url": "supabase gen types typescript --db-url $SUPABASE_DB_URL --schema public > src/lib/types/database.ts",
@@ -29,21 +31,30 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.564.0",
-    "next": "14.2.35",
-    "react": "^18",
-    "react-dom": "^18",
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "resend": "6.18.1",
+    "sharp": "^0.35.3",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "tus-js-client": "^4.3.1"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.35",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.12",
     "postcss": "^8",
     "supabase": "^2.76.9",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "postcss": "$postcss",
+    "sharp": "$sharp"
   }
 }

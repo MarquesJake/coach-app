@@ -30,7 +30,7 @@ type CoachEnrichmentResult = {
 }
 
 function normaliseKey(value: string | null | undefined): string {
-  return (value ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim()
+  return (value ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
 function nonEmptyString(value: string | null | undefined): string | null {
@@ -54,7 +54,7 @@ function isCurrentCoachForClub(coach: APICoach, apiTeamId: string): boolean {
 }
 
 async function enrichClubCoachProfile(params: {
-  supabase: ReturnType<typeof createServerSupabaseClient>
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>
   userId: string
   clubId: string
   clubName: string
@@ -230,14 +230,12 @@ async function enrichClubCoachProfile(params: {
 }
 
 
-export async function POST(
-  _req: NextRequest,
-  { params }: { params: { clubId: string } }
-) {
+export async function POST(_req: NextRequest, props: { params: Promise<{ clubId: string }> }) {
+  const params = await props.params;
   if (!getApiFootballKey()) return NextResponse.json({ error: 'API_FOOTBALL_KEY not configured' }, { status: 500 })
 
   const { clubId } = params
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

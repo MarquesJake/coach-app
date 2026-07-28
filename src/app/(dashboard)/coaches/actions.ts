@@ -42,7 +42,7 @@ export type CreateCoachResult = { data: { id: string } } | { error: string }
 
 /** Quick add: name only. Returns id for client to redirect to /coaches/[id]. */
 export async function createCoachQuickAction(formData: FormData): Promise<CreateCoachResult> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
@@ -63,7 +63,7 @@ export async function createCoachQuickAction(formData: FormData): Promise<Create
 
 /** Full create: all optional fields from form. Returns id for client to redirect to /coaches/[id]. */
 export async function createCoachFullAction(formData: FormData): Promise<CreateCoachResult> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
@@ -81,7 +81,7 @@ export async function createCoachFullAction(formData: FormData): Promise<CreateC
 }
 
 export async function createCoachAction(formData: FormData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -111,7 +111,7 @@ export async function createCoachAction(formData: FormData) {
 export async function getCoachStintAndIntelCountsAction(): Promise<
   Record<string, { stintCount: number; intelligenceCount: number; researchCount: number }>
 > {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return {}
   const { data: coaches } = await supabase.from('coaches').select('id').eq('user_id', user.id)
@@ -156,7 +156,7 @@ export type CoachDuplicateReviewDecision = {
 }
 
 export async function getCoachDuplicateReviewsAction(): Promise<CoachDuplicateReviewDecision[]> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
   const organizationId = await getInternalOrganizationId(user.id)
@@ -179,7 +179,7 @@ export async function saveCoachDuplicateReviewAction(input: {
   reason: string
   reviewNote?: string | null
 }): Promise<{ ok: true; review: CoachDuplicateReviewDecision } | { ok: false; error: string }> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Not authenticated' }
   const organizationId = await getInternalOrganizationId(user.id)

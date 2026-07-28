@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { coachId: string } }
-) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ coachId: string }> }) {
+  const params = await props.params;
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ items: [] }, { status: 401 })

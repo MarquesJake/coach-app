@@ -7,12 +7,11 @@ import { ReferenceCampaignClient } from '../_components/reference-campaign-clien
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default async function ReferenceCampaignsPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const organizationId = await getInternalOrganizationId(user.id)
   if (!organizationId) return <p className="text-sm text-destructive">Internal analyst access is required.</p>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
   const [{ data: campaigns }, { data: targets }, { data: coaches }, { data: contacts }, { data: mandates }] = await Promise.all([
     db.from('reference_campaigns').select('*').eq('org_id', organizationId).order('created_at', { ascending: false }),

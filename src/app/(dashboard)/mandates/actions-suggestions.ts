@@ -48,7 +48,7 @@ type SuggestionWithCoach = SuggestionRow & {
 }
 
 async function requireUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   return { supabase, user }

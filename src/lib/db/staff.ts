@@ -8,7 +8,7 @@ type StaffUpdate = Database['public']['Tables']['staff']['Update']
 export type { StaffRow, StaffInsert, StaffUpdate }
 
 export async function getStaffForUser(userId: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('staff')
     .select('*')
@@ -18,7 +18,7 @@ export async function getStaffForUser(userId: string) {
 }
 
 export async function getStaffById(userId: string, staffId: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('staff')
     .select('*')
@@ -29,7 +29,7 @@ export async function getStaffById(userId: string, staffId: string) {
 }
 
 export async function createStaff(userId: string, input: { full_name: string; primary_role?: string | null; specialties?: string[]; notes?: string | null }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   return supabase
     .from('staff')
     .insert({ ...input, user_id: userId })
@@ -38,6 +38,6 @@ export async function createStaff(userId: string, input: { full_name: string; pr
 }
 
 export async function updateStaff(userId: string, staffId: string, input: StaffUpdate) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   return supabase.from('staff').update(input).eq('id', staffId).eq('user_id', userId).select().single()
 }

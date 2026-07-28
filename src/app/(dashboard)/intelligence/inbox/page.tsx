@@ -4,7 +4,7 @@ import { IntelligenceInboxClient, type IntelligenceInboxItem } from '../_compone
 import { displayClubName } from '@/lib/display-names'
 
 export default async function IntelligenceInboxPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

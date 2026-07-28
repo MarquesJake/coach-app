@@ -6,7 +6,7 @@ import { getAgentById, getAgentCounts } from '@/lib/db/agents'
 import { listCoachAgentsForAgent, listAgentClubRelationshipsForAgent } from '@/lib/db/agentLinks'
 
 export default async function AgentOverviewPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

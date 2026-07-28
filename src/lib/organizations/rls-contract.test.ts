@@ -47,6 +47,14 @@ const externalDirectoryMigration = readFileSync(
   resolve('supabase/migrations/20260728095531_external_identity_directory_privacy.sql'),
   'utf8'
 )
+const materialDeliveryMigration = readFileSync(
+  resolve('supabase/migrations/20260728122916_private_material_delivery_hardening.sql'),
+  'utf8'
+)
+const releasedMaterialBoundaryMigration = readFileSync(
+  resolve('supabase/migrations/20260728124243_released_material_metadata_boundary.sql'),
+  'utf8'
+)
 
 test('club invitation schema stores only hashed single-use tokens', () => {
   assert.match(identityMigration, /token_hash text not null unique/)
@@ -158,6 +166,42 @@ test('coach identity is invite-only, token-hashed, and isolated from independent
   assert.match(coachIdentityMigration, /public\.is_coach_portal_member\(\(\(storage\.foldername\(name\)\)\[1\]\)::uuid\)/)
   assert.match(productionRlsSuite, /claim_coach_invitation/)
   assert.match(productionRlsSuite, /Coach identity leaked/)
+})
+
+test('private material delivery requires a reviewed file and an active club grant', () => {
+  assert.match(materialDeliveryMigration, /storage_path is not null/)
+  assert.match(materialDeliveryMigration, /upload_status = 'uploaded'/)
+  assert.match(materialDeliveryMigration, /verification_status = 'verified'/)
+  assert.match(materialDeliveryMigration, /confidentiality_status = 'available'/)
+  assert.match(materialDeliveryMigration, /grant_record\.status = 'active'/)
+  assert.match(materialDeliveryMigration, /grant_record\.revoked_at is null/)
+  assert.match(materialDeliveryMigration, /grant_record\.expires_at > now\(\)/)
+  assert.match(materialDeliveryMigration, /record_private_material_access/)
+  assert.match(materialDeliveryMigration, /'material_viewed'/)
+  assert.match(materialDeliveryMigration, /'expires_in_seconds', 60/)
+  assert.doesNotMatch(
+    materialDeliveryMigration.match(/create or replace function public\.approve_dossier_order[\s\S]*?return grant_uuid;/)?.[0] ?? '',
+    /payment_status = 'paid'/
+  )
+})
+
+test('club material lists expose reviewed metadata without underlying storage details', () => {
+  assert.match(
+    releasedMaterialBoundaryMigration,
+    /drop policy if exists "Active grants reveal selected private materials"/
+  )
+  assert.match(releasedMaterialBoundaryMigration, /list_released_private_materials/)
+  const returnContract = releasedMaterialBoundaryMigration.match(
+    /returns table \([\s\S]*?\)\nlanguage sql/
+  )?.[0] ?? ''
+  assert.match(returnContract, /material_id uuid/)
+  assert.match(returnContract, /verification_status text/)
+  assert.doesNotMatch(
+    returnContract,
+    /storage_path|external_url|source_label|original_file_name/
+  )
+  assert.match(releasedMaterialBoundaryMigration, /grant_record\.expires_at > now\(\)/)
+  assert.match(releasedMaterialBoundaryMigration, /revoke all on function public\.add_own_coach_material/)
 })
 
 test('duplicate review decisions are internal, constrained and non-destructive', () => {

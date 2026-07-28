@@ -38,7 +38,7 @@ export async function computeIntelligenceConfidence(
   userId: string,
   coachId: string
 ): Promise<IntelligenceConfidenceResult> {
-  const supabase = db()
+  const supabase = await db()
   const { data: items } = await supabase
     .from('intelligence_items')
     .select('confidence, source_tier, occurred_at')

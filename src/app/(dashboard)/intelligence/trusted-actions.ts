@@ -52,7 +52,7 @@ function optionalNumber(value: FormDataEntryValue | null) {
 }
 
 async function requireInternalContext() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
   const organizationId = await getInternalOrganizationId(user.id)

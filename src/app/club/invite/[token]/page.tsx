@@ -9,9 +9,10 @@ function roleLabel(role: string) {
   if (role === 'club_director') return 'Club director'
   return 'Board viewer'
 }
-export default async function ClubInvitationPage({ params }: { params: { token: string } }) {
+export default async function ClubInvitationPage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const tokenHash = hashInvitationToken(params.token)
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const [{ data: previewRows }, { data: { user } }] = await Promise.all([
     tokenHash
       ? supabase.rpc('preview_club_invitation', { invitation_token_hash: tokenHash })

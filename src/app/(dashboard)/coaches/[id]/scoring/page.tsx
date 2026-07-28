@@ -7,8 +7,9 @@ import { computeCompleteness } from '../_lib/coach-completeness'
 import { getCoachCoverageAction } from '../actions'
 import { computeIntelligenceConfidence } from '@/lib/intelligence-confidence'
 
-export default async function CoachScoringPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachScoringPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

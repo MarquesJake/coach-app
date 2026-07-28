@@ -34,7 +34,7 @@ function profileValue(profile: PortalProfile | null, key: keyof PortalProfile) {
 }
 
 function statusLabel(value: string) {
-  return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+  return value.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function TextField({
@@ -181,14 +181,15 @@ function StaffMemberForm({
   )
 }
 
-export default async function CoachCareerCircumstancesPage({
-  params,
-  searchParams,
-}: {
-  params: { coachId: string }
-  searchParams: { saved?: string; error?: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachCareerCircumstancesPage(
+  props: {
+    params: Promise<{ coachId: string }>
+    searchParams: Promise<{ saved?: string; error?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

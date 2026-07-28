@@ -18,14 +18,19 @@ import { getAgentsForUser } from '@/lib/db/agents'
 import { CoachAgentsSection } from './_components/coach-agents-section'
 import { CoachAgentInteractions } from './_components/coach-agent-interactions'
 
-export default async function CoachDetailLayout({
-  children,
-  params,
-}: {
-  children: React.ReactNode
-  params: { id: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachDetailLayout(
+  props: {
+    children: React.ReactNode
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

@@ -205,7 +205,7 @@ function clampScore(value: number, min = 0, max = 100): number {
 }
 
 async function insertCoachStintsResilient(
-  supabase: ReturnType<typeof createServerSupabaseClient>,
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   rows: CoachStintInsert[]
 ): Promise<{ ok: boolean; error?: string; inserted: number }> {
   if (rows.length === 0) return { ok: true, inserted: 0 }
@@ -251,7 +251,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'API_FOOTBALL_KEY not configured' }, { status: 500 })
   }
 
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const url = new URL(request.url)

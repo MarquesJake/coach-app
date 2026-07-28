@@ -14,7 +14,7 @@ type ClaimResult = {
 }
 
 export async function claimUnownedRowsAction(): Promise<ClaimResult> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
@@ -40,7 +40,7 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
     return { ok: false, error: 'Confirmation text did not match. Type CLEAR to proceed.' }
   }
 
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

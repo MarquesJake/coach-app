@@ -25,7 +25,7 @@ function resultPath(path: string, kind: 'success' | 'error', message: string): s
 }
 
 export async function completeDeskItemAction(formData: FormData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

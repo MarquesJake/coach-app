@@ -177,8 +177,9 @@ function profileValue(value: unknown): string {
   return 'Not captured'
 }
 
-export default async function CoachOverviewPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function CoachOverviewPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

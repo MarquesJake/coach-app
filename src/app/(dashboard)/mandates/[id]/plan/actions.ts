@@ -32,7 +32,7 @@ function isAllowed<T extends string>(values: readonly T[], value: string): value
 }
 
 async function requireOwnedMandate(mandateId: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   if (!isUuid(mandateId)) redirect('/mandates?error=Invalid+mandate')

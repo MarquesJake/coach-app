@@ -31,12 +31,10 @@ type TableEntry = {
   loss: string
 }
 
-export async function POST(
-  _req: NextRequest,
-  { params }: { params: { clubId: string } }
-) {
+export async function POST(_req: NextRequest, props: { params: Promise<{ clubId: string }> }) {
+  const params = await props.params;
   const { clubId } = params
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // 1. Verify session
   const { data: { user } } = await supabase.auth.getUser()

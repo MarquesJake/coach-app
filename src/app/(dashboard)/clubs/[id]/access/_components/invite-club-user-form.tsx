@@ -14,11 +14,13 @@ export function InviteClubUserForm({
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [emailStatus, setEmailStatus] = useState<'sent' | 'not_configured' | 'failed' | null>(null)
   const [copied, setCopied] = useState(false)
 
   function submit(formData: FormData) {
     setError(null)
     setInviteLink(null)
+    setEmailStatus(null)
     startTransition(async () => {
       const result = await issueClubInvitationAction(formData)
       if (!result.ok) {
@@ -26,6 +28,7 @@ export function InviteClubUserForm({
         return
       }
       setInviteLink(result.inviteLink ?? null)
+      setEmailStatus(result.emailStatus ?? null)
     })
   }
 
@@ -67,14 +70,20 @@ export function InviteClubUserForm({
       {error && <p className="mt-3 rounded-md border border-red-700/20 bg-red-50 px-3 py-2 text-xs text-red-900">{error}</p>}
       {inviteLink && (
         <div className="mt-4 rounded-md border border-emerald-700/20 bg-emerald-50 p-3">
-          <p className="text-xs font-semibold text-emerald-950">Single-use link created</p>
+          <p className="text-xs font-semibold text-emerald-950">
+            {emailStatus === 'sent' ? 'Invitation emailed and single-use link created' : 'Single-use link created'}
+          </p>
           <div className="mt-2 flex items-center gap-2">
             <input readOnly value={inviteLink} className="h-9 min-w-0 flex-1 rounded-md border border-emerald-900/15 bg-white px-3 text-xs text-emerald-950" />
             <button type="button" onClick={copyLink} title="Copy invitation link" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-emerald-900/15 bg-white text-emerald-950">
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
-          <p className="mt-2 text-[11px] leading-5 text-emerald-900/75">Send this link to the intended recipient. It expires in seven days and cannot be recovered after leaving this screen.</p>
+          <p className="mt-2 text-[11px] leading-5 text-emerald-900/75">
+            {emailStatus === 'sent'
+              ? 'The invitation was sent to the intended recipient. The link expires in seven days.'
+              : 'Email delivery is not configured or did not complete. Send this link to the intended recipient; it expires in seven days.'}
+          </p>
         </div>
       )}
     </div>

@@ -4,7 +4,7 @@ import { getConfigList } from '@/lib/db/config'
 import { ConfigCrud } from '../_components/ConfigCrud'
 
 export default async function ConfigScoringWeightsPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

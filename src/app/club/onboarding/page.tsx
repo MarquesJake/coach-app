@@ -14,7 +14,7 @@ function roleLabel(role: string) {
 export default async function ClubOnboardingPage() {
   const context = await getClubPortalContext()
   if (!context) redirect('/club/login')
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: identity } = await supabase
     .from('external_identity_profiles')
     .select('id')

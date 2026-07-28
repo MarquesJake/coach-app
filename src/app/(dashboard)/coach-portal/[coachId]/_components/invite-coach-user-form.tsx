@@ -8,11 +8,13 @@ export function InviteCoachUserForm({ coachId }: { coachId: string }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [emailStatus, setEmailStatus] = useState<'sent' | 'not_configured' | 'failed' | null>(null)
   const [copied, setCopied] = useState(false)
 
   function submit(formData: FormData) {
     setError(null)
     setInviteLink(null)
+    setEmailStatus(null)
     startTransition(async () => {
       const result = await issueCoachInvitationAction(formData)
       if (!result.ok) {
@@ -20,6 +22,7 @@ export function InviteCoachUserForm({ coachId }: { coachId: string }) {
         return
       }
       setInviteLink(result.inviteLink ?? null)
+      setEmailStatus(result.emailStatus ?? null)
     })
   }
 
@@ -52,11 +55,16 @@ export function InviteCoachUserForm({ coachId }: { coachId: string }) {
       </form>
       {error && <p className="mt-3 rounded-md border border-red-700/20 bg-red-50 px-3 py-2 text-xs text-red-900">{error}</p>}
       {inviteLink && (
-        <div className="mt-3 flex items-center gap-2 rounded-md border border-emerald-700/20 bg-emerald-50 p-2">
-          <input readOnly value={inviteLink} className="min-w-0 flex-1 bg-transparent px-2 text-xs text-emerald-950 outline-none" />
-          <button type="button" onClick={copyLink} title="Copy invitation link" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-emerald-900/15 bg-white text-emerald-950">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          </button>
+        <div className="mt-3 rounded-md border border-emerald-700/20 bg-emerald-50 p-2">
+          <p className="px-2 pb-1 text-[11px] font-semibold text-emerald-950">
+            {emailStatus === 'sent' ? 'Invitation emailed' : 'Email not sent; share this secure link'}
+          </p>
+          <div className="flex items-center gap-2">
+            <input readOnly value={inviteLink} className="min-w-0 flex-1 bg-transparent px-2 text-xs text-emerald-950 outline-none" />
+            <button type="button" onClick={copyLink} title="Copy invitation link" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-emerald-900/15 bg-white text-emerald-950">
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       )}
       <p className="mt-2 text-[11px] leading-5 text-muted-foreground">

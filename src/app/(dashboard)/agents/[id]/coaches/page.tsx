@@ -5,7 +5,7 @@ import { listCoachAgentsForAgent } from '@/lib/db/agentLinks'
 import { AgentCoachesClient } from '../_components/agent-coaches-client'
 
 export default async function AgentCoachesPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

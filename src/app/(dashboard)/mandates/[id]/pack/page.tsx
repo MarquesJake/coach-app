@@ -6,8 +6,9 @@ import { displayClubName } from '@/lib/display-names'
 import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { PublishOfferForm } from './_components/publish-offer-form'
 
-export default async function MandatePackPage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function MandatePackPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

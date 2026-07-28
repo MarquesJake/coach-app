@@ -45,7 +45,7 @@ function clampScore(value: FormDataEntryValue | null): number | null {
 }
 
 async function requireUser() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   return { supabase, user }
 }
@@ -55,7 +55,7 @@ async function requireUser() {
 // the surface consistent with the overview ("runs on shortlisted candidates").
 // The rule itself lives in @/lib/assessment/access so it can be unit-tested.
 function assessGuard(
-  supabase: ReturnType<typeof createServerSupabaseClient>,
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   userId: string,
   mandateId: string,
   coachId: string
@@ -64,7 +64,7 @@ function assessGuard(
 }
 
 async function ownsCoach(
-  supabase: ReturnType<typeof createServerSupabaseClient>,
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
   userId: string,
   coachId: string
 ): Promise<boolean> {

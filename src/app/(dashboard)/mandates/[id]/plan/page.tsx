@@ -78,14 +78,15 @@ function isPastDue(item: WorkItemRow): boolean {
   return item.due_date < new Date().toISOString().slice(0, 10)
 }
 
-export default async function MandatePlanPage({
-  params,
-  searchParams,
-}: {
-  params: { id: string }
-  searchParams: { success?: string; error?: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function MandatePlanPage(
+  props: {
+    params: Promise<{ id: string }>
+    searchParams: Promise<{ success?: string; error?: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

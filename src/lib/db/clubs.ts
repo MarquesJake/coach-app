@@ -12,7 +12,7 @@ type SeasonResultInsert = Database['public']['Tables']['club_season_results']['I
 export type { ClubRow, ClubInsert, ClubUpdate, CoachingHistoryRow, CoachingHistoryInsert, SeasonResultRow, SeasonResultInsert }
 
 export async function getClubsForUser(userId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('clubs')
     .select('id, name, league, country, tier, notes')
@@ -22,7 +22,7 @@ export async function getClubsForUser(userId: string) {
 }
 
 export async function getClubById(userId: string, clubId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('clubs')
     .select('*')
@@ -33,24 +33,24 @@ export async function getClubById(userId: string, clubId: string) {
 }
 
 export async function createClub(userId: string, input: Omit<ClubInsert, 'user_id'>) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('clubs').insert({ ...input, user_id: userId }).select('id').single()
 }
 
 export async function updateClub(userId: string, clubId: string, input: ClubUpdate) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('clubs').update(input).eq('id', clubId).eq('user_id', userId).select('id').single()
 }
 
 export async function deleteClub(userId: string, clubId: string) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('clubs').delete().eq('id', clubId).eq('user_id', userId)
 }
 
 // ── Coaching history ─────────────────────────────────────────────────────────
 
 export async function listClubCoachingHistory(userId: string, clubId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('club_coaching_history')
     .select('*')
@@ -61,19 +61,19 @@ export async function listClubCoachingHistory(userId: string, clubId: string) {
 }
 
 export async function createClubCoachingHistoryEntry(userId: string, input: Omit<CoachingHistoryInsert, 'user_id'>) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('club_coaching_history').insert({ ...input, user_id: userId }).select('id').single()
 }
 
 export async function deleteClubCoachingHistoryEntry(userId: string, entryId: string) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('club_coaching_history').delete().eq('id', entryId).eq('user_id', userId)
 }
 
 // ── Season results ───────────────────────────────────────────────────────────
 
 export async function listClubSeasonResults(userId: string, clubId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data, error } = await supabase
     .from('club_season_results')
     .select('*')
@@ -84,11 +84,11 @@ export async function listClubSeasonResults(userId: string, clubId: string) {
 }
 
 export async function createClubSeasonResult(userId: string, input: Omit<SeasonResultInsert, 'user_id'>) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('club_season_results').insert({ ...input, user_id: userId }).select('id').single()
 }
 
 export async function deleteClubSeasonResult(userId: string, resultId: string) {
-  const supabase = db()
+  const supabase = await db()
   return supabase.from('club_season_results').delete().eq('id', resultId).eq('user_id', userId)
 }

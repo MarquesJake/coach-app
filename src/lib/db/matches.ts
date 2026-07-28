@@ -7,7 +7,7 @@ type MatchInsert = Database['public']['Tables']['matches']['Insert']
 export type { MatchRow, MatchInsert }
 
 export async function getMatchesForVacancy(vacancyId: string) {
-  const supabase = db()
+  const supabase = await db()
   return supabase
     .from('matches')
     .select('*, coaches(id, name, role_current, club_current, available_status)')
@@ -16,7 +16,7 @@ export async function getMatchesForVacancy(vacancyId: string) {
 }
 
 export async function getVacancyById(userId: string, vacancyId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data: clubs } = await supabase.from('clubs').select('id').eq('user_id', userId)
   const clubIds = (clubs ?? []).map((c) => c.id)
   const { data, error } = await supabase
@@ -30,7 +30,7 @@ export async function getVacancyById(userId: string, vacancyId: string) {
 }
 
 export async function getVacanciesForUser(userId: string) {
-  const supabase = db()
+  const supabase = await db()
   const { data: clubs } = await supabase.from('clubs').select('id').eq('user_id', userId)
   const clubIds = (clubs ?? []).map((c) => c.id)
   if (clubIds.length === 0) return { data: [] as Database['public']['Tables']['vacancies']['Row'][], error: null }

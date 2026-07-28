@@ -84,10 +84,11 @@ function FieldRows({
   )
 }
 
-export default async function ClubBriefPage({ searchParams }: { searchParams: { saved?: string; error?: string } }) {
+export default async function ClubBriefPage(props: { searchParams: Promise<{ saved?: string; error?: string }> }) {
+  const searchParams = await props.searchParams;
   const context = await getClubPortalContext()
   if (!context) return null
-  const { data: briefs } = await createServerSupabaseClient().from('club_briefs').select('*').eq('buyer_organization_id', context.organizationId).order('updated_at', { ascending: false }).limit(1)
+  const { data: briefs } = await (await createServerSupabaseClient()).from('club_briefs').select('*').eq('buyer_organization_id', context.organizationId).order('updated_at', { ascending: false }).limit(1)
   const brief = briefs?.[0]
   const canEdit = ['owner', 'admin', 'club_owner', 'club_director'].includes(context.membershipRole)
 

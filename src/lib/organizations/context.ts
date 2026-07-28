@@ -23,7 +23,7 @@ export type CoachPortalContext = {
 }
 
 export async function getClubPortalContext(): Promise<OrganizationContext | null> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
@@ -58,7 +58,7 @@ export async function getClubPortalContext(): Promise<OrganizationContext | null
 }
 
 export async function getInternalOrganizationId(userId: string): Promise<string | null> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: memberships } = await supabase
     .from('organization_memberships')
     .select('organization_id')
@@ -77,7 +77,7 @@ export async function getInternalOrganizationId(userId: string): Promise<string 
 }
 
 export async function getCoachPortalContext(): Promise<CoachPortalContext | null> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
@@ -117,7 +117,7 @@ export async function getCoachPortalContext(): Promise<CoachPortalContext | null
 export async function getOrganizationAccessProfile(
   userId: string
 ): Promise<OrganizationAccessProfile> {
-  const { data: memberships } = await createServerSupabaseClient()
+  const { data: memberships } = await (await createServerSupabaseClient())
     .from('organization_memberships')
     .select('role, status')
     .eq('user_id', userId)

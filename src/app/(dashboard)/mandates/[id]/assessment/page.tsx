@@ -7,12 +7,13 @@ import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { cn } from '@/lib/utils'
 import { displayClubName } from '@/lib/display-names'
 
-export default async function MandateAssessmentIndexPage({
-  params,
-}: {
-  params: { id: string }
-}) {
-  const supabase = createServerSupabaseClient()
+export default async function MandateAssessmentIndexPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

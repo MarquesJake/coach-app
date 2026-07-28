@@ -16,8 +16,9 @@ function toStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
 }
 
-export default async function MandateWorkspacePage({ params }: { params: { id: string } }) {
-  const supabase = createServerSupabaseClient()
+export default async function MandateWorkspacePage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

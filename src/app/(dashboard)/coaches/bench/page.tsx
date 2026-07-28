@@ -8,12 +8,11 @@ import { TrustedBenchClient } from '../_components/trusted-bench-client'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default async function TrustedBenchPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const organizationId = await getInternalOrganizationId(user.id)
   if (!organizationId) return <p className="text-sm text-destructive">Internal analyst access is required.</p>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
   const [{ data: entries }, { data: coaches }, { data: claims }, { data: sourceRelationships }, { data: contacts }] = await Promise.all([
     db.from('trusted_bench_entries').select('*').eq('org_id', organizationId).order('updated_at', { ascending: false }),
