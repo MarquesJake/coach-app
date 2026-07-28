@@ -110,6 +110,7 @@ export default function CoachesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('name')
   const [profileScope, setProfileScope] = useState<'researched' | 'duplicates' | 'all'>('researched')
+  const [showReviewedDuplicates, setShowReviewedDuplicates] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [syncingEngland, setSyncingEngland] = useState(false)
@@ -198,6 +199,21 @@ export default function CoachesPage() {
     ).length,
     0
   )
+  const reviewedDuplicateCount = duplicateGroups.reduce(
+    (count, group) => count + duplicatePairs(group.coaches).filter(
+      ([coachA, coachB]) => duplicateReviewByPair.has(duplicatePairKey(coachA.id, coachB.id))
+    ).length,
+    0
+  )
+  const visibleDuplicateGroups = duplicateGroups
+    .map((group) => ({
+      ...group,
+      pairs: duplicatePairs(group.coaches).filter(
+        ([coachA, coachB]) => showReviewedDuplicates ||
+          !duplicateReviewByPair.has(duplicatePairKey(coachA.id, coachB.id))
+      ),
+    }))
+    .filter((group) => group.pairs.length > 0)
   const duplicateCoachIds = new Set(
     duplicateGroups.flatMap((group) => group.coaches.map((coach) => coach.id))
   )
@@ -206,6 +222,56 @@ export default function CoachesPage() {
       group.coaches.map((coach) => [coach.id, group.reason] as const)
     )
   )
+  const duplicateDisplayByCoach = new Map<string, {
+    label: string
+    className: string
+    priority: number
+  }>()
+  const setDuplicateDisplay = (
+    coachId: string,
+    display: { label: string; className: string; priority: number }
+  ) => {
+    if ((duplicateDisplayByCoach.get(coachId)?.priority ?? -1) < display.priority) {
+      duplicateDisplayByCoach.set(coachId, display)
+    }
+  }
+  for (const group of duplicateGroups) {
+    for (const [coachA, coachB] of duplicatePairs(group.coaches)) {
+      const review = duplicateReviewByPair.get(duplicatePairKey(coachA.id, coachB.id))
+      if (!review) {
+        for (const coach of [coachA, coachB]) {
+          setDuplicateDisplay(coach.id, {
+            label: `Potential duplicate · ${group.reason}`,
+            className: 'text-amber-600',
+            priority: 4,
+          })
+        }
+      } else if (review.decision === 'keep_separate') {
+        for (const coach of [coachA, coachB]) {
+          setDuplicateDisplay(coach.id, {
+            label: 'Reviewed as a distinct coach',
+            className: 'text-sky-600',
+            priority: 1,
+          })
+        }
+      } else {
+        const canonicalId = review.canonical_coach_id
+        for (const coach of [coachA, coachB]) {
+          setDuplicateDisplay(coach.id, coach.id === canonicalId
+            ? {
+                label: 'Canonical profile',
+                className: 'text-emerald-600',
+                priority: 3,
+              }
+            : {
+                label: 'Linked duplicate source record',
+                className: 'text-muted-foreground',
+                priority: 2,
+              })
+        }
+      }
+    }
+  }
 
   const filtered = coaches
     .filter((c) => {
@@ -528,18 +594,33 @@ export default function CoachesPage() {
                 Review and record a decision. Canonical selection never merges or deletes records; linked intelligence, assessments and private materials remain untouched.
               </p>
             </div>
-            {duplicateGroups.length === 0 ? (
+            {reviewedDuplicateCount > 0 && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewedDuplicates((current) => !current)}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  {showReviewedDuplicates
+                    ? 'Hide reviewed decisions'
+                    : `Show reviewed decisions (${reviewedDuplicateCount})`}
+                </button>
+              </div>
+            )}
+            {visibleDuplicateGroups.length === 0 ? (
               <p className="border border-border bg-background px-4 py-5 text-sm text-muted-foreground">
-                No potential duplicates need review.
+                {showReviewedDuplicates
+                  ? 'No duplicate decisions have been recorded.'
+                  : 'No potential duplicates need review.'}
               </p>
-            ) : duplicateGroups.map((group) => (
+            ) : visibleDuplicateGroups.map((group) => (
               <section key={group.id} className="border border-border bg-background p-3">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs font-semibold text-foreground">{group.coaches.map((coach) => coach.name).join(' / ')}</p>
                   <p className="text-2xs text-muted-foreground">{group.reason}</p>
                 </div>
                 <div className="mt-3 space-y-2">
-                  {duplicatePairs(group.coaches).map(([coachA, coachB]) => {
+                  {group.pairs.map(([coachA, coachB]) => {
                     const review = duplicateReviewByPair.get(duplicatePairKey(coachA.id, coachB.id))
                     const canonical = review?.canonical_coach_id
                     return (
@@ -841,9 +922,12 @@ export default function CoachesPage() {
                   </span>
                   <span className="text-2xs text-muted-foreground">Profile {completeness}%</span>
                 </div>
-                {duplicateReasonByCoach.has(coach.id) && (
-                  <span className="mt-1 text-[10px] font-medium text-amber-600">
-                    Potential duplicate · {duplicateReasonByCoach.get(coach.id)}
+                {duplicateDisplayByCoach.has(coach.id) && (
+                  <span className={cn(
+                    'mt-1 text-[10px] font-medium',
+                    duplicateDisplayByCoach.get(coach.id)?.className
+                  )}>
+                    {duplicateDisplayByCoach.get(coach.id)?.label}
                   </span>
                 )}
               </Link>
