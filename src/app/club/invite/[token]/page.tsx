@@ -36,7 +36,7 @@ export default async function ClubInvitationPage({ params }: { params: { token: 
             <div>
               <div className="mb-6 flex items-start gap-3 border-b border-border pb-5"><div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground"><Building2 className="h-5 w-5" /></div><div><h2 className="text-lg font-semibold text-foreground">{preview.organization_name}</h2><p className="mt-1 text-sm text-muted-foreground">{roleLabel(preview.invited_role)} · {preview.email_hint}</p></div></div>
               <ClubInvitationForm token={params.token} hasSession={Boolean(user)} currentEmail={user?.email ?? null} />
-              <p className="mt-5 text-[11px] leading-5 text-muted-foreground">By accepting, you agree to handle club and coach information as confidential and only for the appointment process shown in the room.</p>
+              <p className="mt-5 text-[11px] leading-5 text-muted-foreground">After accepting the invitation, you will confirm your identity, club role and confidential-use acknowledgements before entering the room.</p>
             </div>
           )}
         </div>

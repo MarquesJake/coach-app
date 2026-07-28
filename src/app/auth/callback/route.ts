@@ -20,7 +20,7 @@ export async function GET(request: Request) {
           })
           if (!claimError) {
             await supabase.rpc('record_club_first_login')
-            return NextResponse.redirect(`${origin}/club`)
+            return NextResponse.redirect(`${origin}/club/onboarding`)
           }
         }
       }
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
           })
           if (!claimError) {
             await supabase.rpc('record_coach_first_login')
-            return NextResponse.redirect(`${origin}/coach/profile`)
+            return NextResponse.redirect(`${origin}/coach/onboarding`)
           }
         }
       }

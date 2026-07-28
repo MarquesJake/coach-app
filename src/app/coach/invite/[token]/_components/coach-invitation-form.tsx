@@ -35,7 +35,7 @@ export function CoachInvitationForm({
         setCheckEmail(true)
         return
       }
-      router.push('/coach/profile')
+      router.push('/coach/onboarding')
       router.refresh()
     })
   }

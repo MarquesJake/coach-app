@@ -35,7 +35,7 @@ export function ClubInvitationForm({
         setCheckEmail(true)
         return
       }
-      router.push('/club')
+      router.push('/club/onboarding')
       router.refresh()
     })
   }

@@ -78,9 +78,36 @@ export async function updateSession(request: NextRequest) {
 
   const { data: memberships } = await supabase
     .from('organization_memberships')
-    .select('role, status')
+    .select('organization_id, role, status')
     .eq('user_id', user.id)
   const access = classifyOrganizationAccess(memberships)
+  const activeClubOrganizationId = memberships?.find(
+    (membership) =>
+      membership.status === 'active' &&
+      ['club_owner', 'club_director', 'club_viewer'].includes(membership.role)
+  )?.organization_id
+  const activeCoachOrganizationId = memberships?.find(
+    (membership) =>
+      membership.status === 'active' &&
+      ['coach', 'coach_representative'].includes(membership.role)
+  )?.organization_id
+
+  let hasCompletedExternalOnboarding = true
+  const externalOrganizationId = access.isClubOnlyIdentity
+    ? activeClubOrganizationId
+    : access.isCoachOnlyIdentity
+      ? activeCoachOrganizationId
+      : null
+  if (externalOrganizationId) {
+    const { data: identity } = await supabase
+      .from('external_identity_profiles')
+      .select('id')
+      .eq('organization_id', externalOrganizationId)
+      .eq('user_id', user.id)
+      .not('onboarding_completed_at', 'is', null)
+      .maybeSingle()
+    hasCompletedExternalOnboarding = Boolean(identity)
+  }
 
   if (access.isClubOnlyIdentity && isAnalystApiRoute(pathname)) {
     return NextResponse.json({ error: 'Analyst API access is not available to club accounts.' }, { status: 403 })
@@ -98,6 +125,59 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
   if (access.isCoachOnlyIdentity && isAnalystRoute(pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/coach/profile'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+
+  const isClubOnboarding = pathname === '/club/onboarding'
+  const isCoachOnboarding = pathname === '/coach/onboarding'
+  if (
+    access.isClubOnlyIdentity &&
+    access.hasActiveClubAccess &&
+    !hasCompletedExternalOnboarding &&
+    pathname.startsWith('/club') &&
+    !isClubInvite &&
+    pathname !== '/club/login' &&
+    !isClubOnboarding
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/club/onboarding'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+  if (
+    access.isCoachOnlyIdentity &&
+    access.hasActiveCoachAccess &&
+    !hasCompletedExternalOnboarding &&
+    pathname.startsWith('/coach') &&
+    !isCoachInvite &&
+    pathname !== '/coach/login' &&
+    !isCoachOnboarding
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/coach/onboarding'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+  if (
+    access.isClubOnlyIdentity &&
+    access.hasActiveClubAccess &&
+    hasCompletedExternalOnboarding &&
+    isClubOnboarding
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/club'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+  if (
+    access.isCoachOnlyIdentity &&
+    access.hasActiveCoachAccess &&
+    hasCompletedExternalOnboarding &&
+    isCoachOnboarding
+  ) {
     const url = request.nextUrl.clone()
     url.pathname = '/coach/profile'
     url.search = ''

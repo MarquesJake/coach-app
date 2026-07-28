@@ -47,10 +47,23 @@ select set_config('request.jwt.claims', '{"sub":"22222222-2222-4222-8222-2222222
 select public.claim_club_invitation(repeat('a', 64));
 select public.record_club_first_login();
 select public.record_club_first_login();
+select public.complete_external_identity_onboarding(
+  (select organization_id from public.organization_memberships
+    where user_id = '22222222-2222-4222-8222-222222222222' and status = 'active' limit 1),
+  'club',
+  'RLS Club User',
+  'Board Viewer',
+  '',
+  true,
+  true
+);
 
 do $$
 declare membership_count bigint;
 declare first_login_count bigint;
+declare identity_count bigint;
+declare directory_count bigint;
+declare direct_insert_denied boolean := false;
 begin
   select count(*) into membership_count
   from public.organization_memberships
@@ -58,6 +71,34 @@ begin
     and role = 'club_viewer'
     and status = 'active';
   if membership_count <> 1 then raise exception 'Invitation claim did not create one active club membership'; end if;
+
+  select count(*) into identity_count
+  from public.external_identity_profiles
+  where user_id = '22222222-2222-4222-8222-222222222222'
+    and account_type = 'club'
+    and onboarding_completed_at is not null;
+  if identity_count <> 1 then raise exception 'Club onboarding did not create one completed identity'; end if;
+  select count(*) into directory_count
+  from public.get_external_identity_directory(
+    (select organization_id from public.organization_memberships
+      where user_id = '22222222-2222-4222-8222-222222222222' and status = 'active' limit 1)
+  );
+  if directory_count <> 1 then raise exception 'Club identity directory did not expose the safe completed seat'; end if;
+
+  begin
+    insert into public.external_identity_profiles (
+      organization_id, membership_id, user_id, account_type,
+      display_name, position_title, confidentiality_acknowledged_at,
+      intended_use_acknowledged_at, onboarding_completed_at
+    )
+    select organization_id, id, user_id, 'club', 'Direct insert', 'Viewer', now(), now(), now()
+    from public.organization_memberships
+    where user_id = '22222222-2222-4222-8222-222222222222'
+    limit 1;
+  exception when others then
+    direct_insert_denied := true;
+  end;
+  if not direct_insert_denied then raise exception 'Direct external identity insert was accepted'; end if;
 
   -- Access events are seller-only, so verify idempotency after returning to the internal role below.
 end;
@@ -80,12 +121,18 @@ select set_config(
 set local role authenticated;
 do $$
 declare first_login_count bigint;
+declare onboarding_count bigint;
 begin
   select count(*) into first_login_count
   from public.organization_access_events
   where target_user_id = '22222222-2222-4222-8222-222222222222'
     and event_type = 'club_first_login';
   if first_login_count <> 1 then raise exception 'First club login audit was not idempotent'; end if;
+  select count(*) into onboarding_count
+  from public.organization_access_events
+  where target_user_id = '22222222-2222-4222-8222-222222222222'
+    and event_type = 'club_onboarding_completed';
+  if onboarding_count <> 1 then raise exception 'Club onboarding audit was not idempotent'; end if;
 end;
 $$;
 
@@ -157,6 +204,7 @@ do $$
 declare
   leaked_rows bigint;
   cross_org_insert_denied boolean := false;
+  cross_org_directory_denied boolean := false;
 begin
   select
     (select count(*) from public.football_contacts) +
@@ -186,6 +234,17 @@ begin
   end;
   if not cross_org_insert_denied then
     raise exception 'Second internal organisation could write into Coach First';
+  end if;
+
+  begin
+    perform user_id from public.get_external_identity_directory(
+      (select id from public.organizations where slug = 'west-ham-united')
+    );
+  exception when others then
+    cross_org_directory_denied := true;
+  end;
+  if not cross_org_directory_denied then
+    raise exception 'Second internal organisation could read a club identity directory';
   end if;
 end;
 $$;
@@ -389,6 +448,16 @@ select set_config('request.jwt.claims', '{"sub":"33333333-3333-4333-8333-3333333
 select public.claim_coach_invitation(repeat('c', 64));
 select public.record_coach_first_login();
 select public.record_coach_first_login();
+select public.complete_external_identity_onboarding(
+  (select organization_id from public.organization_memberships
+    where user_id = '33333333-3333-4333-8333-333333333333' and status = 'active' limit 1),
+  'coach',
+  'RLS Coach User',
+  'Head Coach',
+  '',
+  true,
+  true
+);
 
 do $$
 declare
@@ -396,12 +465,14 @@ declare
   visible_coaches bigint;
   visible_profiles bigint;
   visible_materials bigint;
+  visible_identity_profiles bigint;
 begin
   select count(*) into visible_coaches from public.coaches;
   select count(*) into visible_profiles from public.coach_portal_profiles;
   select count(*) into visible_materials from public.coach_private_materials;
-  if visible_coaches <> 1 or visible_profiles <> 1 or visible_materials <> 1 then
-    raise exception 'Coach identity could not read exactly its own profile and submitted material';
+  select count(*) into visible_identity_profiles from public.external_identity_profiles;
+  if visible_coaches <> 1 or visible_profiles <> 1 or visible_materials <> 1 or visible_identity_profiles <> 1 then
+    raise exception 'Coach identity could not read exactly its own profile, identity and submitted material';
   end if;
   select
     (select count(*) from public.football_contacts) +

@@ -4446,6 +4446,72 @@ export type Database = {
         }
         Relationships: []
       }
+      external_identity_profiles: {
+        Row: {
+          account_type: string
+          confidentiality_acknowledged_at: string
+          contact_phone: string | null
+          created_at: string
+          display_name: string
+          id: string
+          intended_use_acknowledged_at: string
+          membership_id: string
+          onboarding_completed_at: string
+          organization_id: string
+          position_title: string
+          terms_version: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_type: string
+          confidentiality_acknowledged_at: string
+          contact_phone?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          intended_use_acknowledged_at: string
+          membership_id: string
+          onboarding_completed_at: string
+          organization_id: string
+          position_title: string
+          terms_version?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_type?: string
+          confidentiality_acknowledged_at?: string
+          contact_phone?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          intended_use_acknowledged_at?: string
+          membership_id?: string
+          onboarding_completed_at?: string
+          organization_id?: string
+          position_title?: string
+          terms_version?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_identity_profiles_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: true
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_identity_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       football_contacts: {
         Row: {
           conflicts: string | null
@@ -6337,6 +6403,27 @@ export type Database = {
       coach_invitation_email_matches: {
         Args: { candidate_email: string; invitation_token_hash: string }
         Returns: boolean
+      }
+      complete_external_identity_onboarding: {
+        Args: {
+          accepted_confidentiality: boolean
+          accepted_intended_use: boolean
+          person_contact_phone: string
+          person_display_name: string
+          person_position_title: string
+          target_account_type: string
+          target_organization_id: string
+        }
+        Returns: string
+      }
+      get_external_identity_directory: {
+        Args: { target_organization_id: string }
+        Returns: {
+          display_name: string
+          onboarding_completed_at: string
+          position_title: string
+          user_id: string
+        }[]
       }
       get_unowned_counts: { Args: never; Returns: Json }
       is_coach_portal_member: {

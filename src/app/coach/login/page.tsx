@@ -133,6 +133,11 @@ export default function CoachLoginPage() {
                 {loading ? 'Signing in' : 'Open my coach profile'}
               </button>
             </form>
+            <div className="mt-3 text-right">
+              <Link href="/auth/recover?portal=coach" className="text-xs font-medium text-emerald-900">
+                Forgot password?
+              </Link>
+            </div>
 
             <div className="mt-6 rounded-md border border-emerald-900/15 bg-emerald-50 px-4 py-3">
               <div className="flex gap-3">

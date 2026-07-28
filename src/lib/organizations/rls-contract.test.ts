@@ -39,6 +39,14 @@ const duplicateReviewMigration = readFileSync(
   resolve('supabase/migrations/20260727185300_coach_duplicate_review_decisions.sql'),
   'utf8'
 )
+const externalOnboardingMigration = readFileSync(
+  resolve('supabase/migrations/20260728094610_external_identity_onboarding.sql'),
+  'utf8'
+)
+const externalDirectoryMigration = readFileSync(
+  resolve('supabase/migrations/20260728095531_external_identity_directory_privacy.sql'),
+  'utf8'
+)
 
 test('club invitation schema stores only hashed single-use tokens', () => {
   assert.match(identityMigration, /token_hash text not null unique/)
@@ -81,6 +89,7 @@ test('production RLS suite covers internal leakage, privileged RPCs, and revocat
     'scoring_models', 'coach_scores', 'coach_recruitment_history',
     'coach_media_events', 'coach_due_diligence_items', 'evidence_items',
     'coach_duplicate_reviews',
+    'external_identity_profiles',
   ]) assert.match(productionRlsSuite, new RegExp(`public\\.${table}`))
   assert.match(productionRlsSuite, /approve_dossier_order/)
   assert.match(productionRlsSuite, /revoke_dossier_access/)
@@ -160,4 +169,26 @@ test('duplicate review decisions are internal, constrained and non-destructive',
   assert.match(duplicateReviewMigration, /coach_a_id < coach_b_id/)
   assert.match(duplicateReviewMigration, /decision in \('keep_separate', 'canonical_selected'\)/)
   assert.doesNotMatch(duplicateReviewMigration, /delete from public\.coaches|update public\.coaches/)
+})
+
+test('external onboarding is membership-bound, acknowledged and isolated from appointment intelligence', () => {
+  assert.match(externalOnboardingMigration, /external_identity_profiles/)
+  assert.match(externalOnboardingMigration, /enable row level security/)
+  assert.match(externalOnboardingMigration, /membership_id uuid not null unique/)
+  assert.match(externalOnboardingMigration, /user_id = \(select auth\.uid\(\)\)/)
+  assert.match(externalOnboardingMigration, /accepted_confidentiality/)
+  assert.match(externalOnboardingMigration, /accepted_intended_use/)
+  assert.match(externalOnboardingMigration, /membership_record\.status|status = 'active'/)
+  assert.match(externalOnboardingMigration, /organization_record\.organization_type <> 'club'/)
+  assert.match(externalOnboardingMigration, /organization_record\.organization_type <> 'coach_business'/)
+  assert.match(externalOnboardingMigration, /revoke all on function public\.complete_external_identity_onboarding/)
+  assert.match(productionRlsSuite, /complete_external_identity_onboarding/)
+  assert.match(productionRlsSuite, /Direct external identity insert was accepted/)
+  assert.match(externalDirectoryMigration, /External identities are visible to self and internal operators/)
+  assert.match(externalDirectoryMigration, /get_external_identity_directory/)
+  assert.doesNotMatch(
+    externalDirectoryMigration.match(/returns table \([\s\S]*?\)/)?.[0] ?? '',
+    /contact_phone|acknowledged/
+  )
+  assert.match(externalDirectoryMigration, /revoke all on function public\.get_external_identity_directory/)
 })

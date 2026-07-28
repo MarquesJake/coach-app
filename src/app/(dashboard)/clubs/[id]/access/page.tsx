@@ -44,12 +44,14 @@ export default async function ClubAccessPage({ params }: { params: { id: string 
     )
   }
 
-  const [{ data: invitations }, { data: memberships }, { data: events }] = await Promise.all([
+  const [{ data: invitations }, { data: memberships }, { data: events }, { data: identities }] = await Promise.all([
     supabase.from('club_invitations').select('id, email, role, status, expires_at, claimed_by, claimed_at, created_at').eq('organization_id', organization.id).order('created_at', { ascending: false }),
     supabase.from('organization_memberships').select('id, user_id, role, status, accepted_at, created_at').eq('organization_id', organization.id).order('created_at'),
     supabase.from('organization_access_events').select('id, event_type, metadata, occurred_at, target_user_id').eq('organization_id', organization.id).order('occurred_at', { ascending: false }).limit(12),
+    supabase.from('external_identity_profiles').select('user_id, display_name, position_title, onboarding_completed_at').eq('organization_id', organization.id),
   ])
   const emailByUser = new Map((invitations ?? []).filter((invite) => invite.claimed_by).map((invite) => [invite.claimed_by as string, invite.email]))
+  const identityByUser = new Map((identities ?? []).map((identity) => [identity.user_id, identity]))
 
   return (
     <div className="mx-auto max-w-[1080px]">
@@ -70,7 +72,24 @@ export default async function ClubAccessPage({ params }: { params: { id: string 
           <div className="divide-y divide-border/60">
             {(memberships ?? []).map((membership) => (
               <div key={membership.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 px-5 py-4">
-                <div className="min-w-0"><p className="truncate text-sm font-medium text-foreground">{emailByUser.get(membership.user_id) ?? (membership.user_id === user.id ? user.email : 'Club account')}</p><p className="mt-1 text-xs capitalize text-muted-foreground">{roleLabel(membership.role)} · {membership.status}</p></div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {identityByUser.get(membership.user_id)?.display_name
+                      ?? emailByUser.get(membership.user_id)
+                      ?? (membership.user_id === user.id ? user.email : 'Club account')}
+                  </p>
+                  <p className="mt-1 text-xs capitalize text-muted-foreground">
+                    {identityByUser.get(membership.user_id)?.position_title ?? roleLabel(membership.role)}
+                    {' · '}
+                    {membership.status !== 'active'
+                      ? membership.status
+                      : identityByUser.get(membership.user_id)?.onboarding_completed_at
+                        ? 'ready'
+                        : membership.user_id === user.id
+                          ? 'internal preview'
+                          : 'setup pending'}
+                  </p>
+                </div>
                 {membership.status === 'active' && membership.user_id !== user.id && <form action={revokeClubMembershipAction}><input type="hidden" name="club_id" value={club.id} /><input type="hidden" name="membership_id" value={membership.id} /><button title="Revoke club access" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:text-red-700"><UserMinus className="h-4 w-4" /></button></form>}
               </div>
             ))}

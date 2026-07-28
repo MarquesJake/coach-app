@@ -56,6 +56,9 @@ export default async function CoachInvitationPage({ params }: { params: { token:
                 </p>
               </div>
               <CoachInvitationForm token={params.token} hasSession={Boolean(user)} currentEmail={user?.email ?? null} />
+              <p className="mt-5 text-[11px] leading-5 text-slate-500">
+                After accepting the invitation, you will confirm your identity and private-use acknowledgements before opening the profile.
+              </p>
             </>
           ) : (
             <div className="rounded-md border border-slate-200 bg-slate-50 p-6">

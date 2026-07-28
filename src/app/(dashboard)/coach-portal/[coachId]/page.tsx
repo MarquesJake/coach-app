@@ -165,6 +165,16 @@ export default async function CoachPortalDetailPage({
   const materials = (materialsRes.data ?? []) as MaterialRow[]
   const accessRequests = (accessRequestsRes.data ?? []) as AccessRequestRow[]
   const invitations = (invitationsRes.data ?? []) as CoachInvitationRow[]
+  const invitationOrganizationIds = Array.from(
+    new Set(invitations.map((invitation) => invitation.organization_id))
+  )
+  const { data: externalIdentities } = invitationOrganizationIds.length
+    ? await supabase
+        .from('external_identity_profiles')
+        .select('user_id, display_name, position_title, onboarding_completed_at')
+        .in('organization_id', invitationOrganizationIds)
+    : { data: [] }
+  const identityByUser = new Map((externalIdentities ?? []).map((identity) => [identity.user_id, identity]))
   const score = readiness(profile, materials)
   const verifiedMaterials = materials.filter((item) => item.verification_status === 'verified').length
   const requestedMaterials = materials.filter((item) => ['requested', 'missing'].includes(item.confidentiality_status)).length
@@ -291,15 +301,22 @@ export default async function CoachPortalDetailPage({
           <div className="divide-y divide-border/60 border-t border-border">
             {invitations.slice(0, 5).map((invitation) => {
               const expired = invitation.status === 'pending' && new Date(invitation.expires_at).getTime() <= Date.now()
+              const identity = invitation.claimed_by ? identityByUser.get(invitation.claimed_by) : null
               return (
                 <div key={invitation.id} className="grid gap-2 px-5 py-3 sm:grid-cols-[minmax(0,1fr)_150px_120px_auto] sm:items-center">
                   <div className="min-w-0">
-                    <p className="truncate text-xs font-medium text-foreground">{invitation.email}</p>
+                    <p className="truncate text-xs font-medium text-foreground">{identity?.display_name ?? invitation.email}</p>
                     <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      {invitation.role === 'coach' ? 'Coach' : 'Representative'}
+                      {identity?.position_title ?? (invitation.role === 'coach' ? 'Coach' : 'Representative')}
                     </p>
                   </div>
-                  <p className="text-xs capitalize text-muted-foreground">{expired ? 'expired' : invitation.status}</p>
+                  <p className="text-xs capitalize text-muted-foreground">
+                    {expired
+                      ? 'expired'
+                      : invitation.status === 'claimed'
+                        ? identity?.onboarding_completed_at ? 'ready' : 'setup pending'
+                        : invitation.status}
+                  </p>
                   <p className="text-[11px] text-muted-foreground">
                     {new Date(invitation.created_at).toLocaleDateString('en-GB')}
                   </p>
