@@ -4,6 +4,7 @@ import {
   classifyOrganizationAccess,
   isAnalystApiRoute,
   isAnalystRoute,
+  isPublicApplicationPath,
 } from '@/lib/organizations/access'
 
 export async function updateSession(request: NextRequest) {
@@ -51,14 +52,7 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const isClubInvite = pathname.startsWith('/club/invite/')
   const isCoachInvite = pathname.startsWith('/coach/invite/')
-  const isPublicPath =
-    pathname === '/' ||
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/club/login') ||
-    pathname.startsWith('/coach/login') ||
-    isClubInvite ||
-    isCoachInvite ||
-    pathname.startsWith('/auth')
+  const isPublicPath = isPublicApplicationPath(pathname)
 
   // Protected routes - redirect to the correct login if not authenticated.
   if (

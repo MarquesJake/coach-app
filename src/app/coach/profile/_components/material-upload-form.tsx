@@ -5,7 +5,12 @@ import { Upload } from 'tus-js-client'
 import { FileUp, Link2, LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
-import { addOwnCoachMaterialAction } from '../actions'
+import {
+  addOwnCoachMaterialAction,
+  beginOwnCoachMaterialUploadAction,
+  completeOwnCoachMaterialUploadAction,
+  failOwnCoachMaterialUploadAction,
+} from '../actions'
 
 const inputClass =
   'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 placeholder:text-slate-400 focus:border-emerald-800 focus:outline-none'
@@ -20,7 +25,7 @@ const ALLOWED_FILE_TYPES = new Set([
 ])
 
 async function uploadPrivateMaterial(
-  coachId: string,
+  objectName: string,
   file: File,
   onProgress: (percent: number) => void
 ): Promise<string> {
@@ -28,8 +33,6 @@ async function uploadPrivateMaterial(
   const { data: { session }, error } = await supabase.auth.getSession()
   if (error || !session) throw new Error('Your session expired. Sign in again before uploading.')
 
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-')
-  const objectName = `${coachId}/${crypto.randomUUID()}-${safeName}`
   const projectUrl = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!)
   const storageHost = projectUrl.hostname.endsWith('.supabase.co')
     ? projectUrl.hostname.replace('.supabase.co', '.storage.supabase.co')
@@ -68,7 +71,7 @@ async function uploadPrivateMaterial(
   return objectName
 }
 
-export function MaterialUploadForm({ coachId }: { coachId: string }) {
+export function MaterialUploadForm() {
   const [file, setFile] = useState<File | null>(null)
   const [pending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
@@ -83,7 +86,6 @@ export function MaterialUploadForm({ coachId }: { coachId: string }) {
       return
     }
 
-    let storagePath: string | null = null
     if (file) {
       if (!ALLOWED_FILE_TYPES.has(file.type)) {
         toast.error('Use a PDF, PowerPoint, MP4, MOV or WebM file.')
@@ -95,14 +97,51 @@ export function MaterialUploadForm({ coachId }: { coachId: string }) {
       }
       setUploading(true)
       setUploadProgress(0)
+      const reservation = await beginOwnCoachMaterialUploadAction({
+        title,
+        materialType: String(formData.get('material_type') ?? 'other'),
+        description: description || null,
+        externalUrl: externalUrl || null,
+        originalFileName: file.name,
+        mimeType: file.type,
+        fileSizeBytes: file.size,
+      })
+      if (!reservation.ok) {
+        setUploading(false)
+        toast.error(reservation.error)
+        return
+      }
+      const { material_id: materialId, storage_path: storagePath } = reservation.reservation
       try {
-        storagePath = await uploadPrivateMaterial(coachId, file, setUploadProgress)
+        await uploadPrivateMaterial(storagePath, file, setUploadProgress)
       } catch (error) {
+        await createClient().storage.from('coach-private-materials').remove([storagePath])
+        await failOwnCoachMaterialUploadAction(
+          materialId,
+          error instanceof Error ? error.message : 'Private upload failed'
+        )
         setUploading(false)
         toast.error(error instanceof Error ? error.message : 'The upload could not be completed.')
         return
       }
+
+      let completion: Awaited<ReturnType<typeof completeOwnCoachMaterialUploadAction>> = {
+        ok: false,
+        error: 'The uploaded object could not be verified.',
+      }
+      for (let attempt = 0; attempt < 3 && !completion.ok; attempt += 1) {
+        if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 750 * attempt))
+        completion = await completeOwnCoachMaterialUploadAction(materialId)
+      }
       setUploading(false)
+      if (!completion.ok) {
+        toast.error(`${completion.error} Your upload is retained for secure recovery.`)
+        window.location.reload()
+        return
+      }
+      toast.success('Material uploaded privately and submitted for Coach First review')
+      window.location.reload()
+      return
     }
 
     startTransition(async () => {
@@ -111,15 +150,12 @@ export function MaterialUploadForm({ coachId }: { coachId: string }) {
         materialType: String(formData.get('material_type') ?? 'other'),
         description: description || null,
         externalUrl: externalUrl || null,
-        storagePath,
-        originalFileName: file?.name ?? null,
-        mimeType: file?.type ?? null,
-        fileSizeBytes: file?.size ?? null,
+        storagePath: null,
+        originalFileName: null,
+        mimeType: null,
+        fileSizeBytes: null,
       })
       if (!result.ok) {
-        if (storagePath) {
-          await createClient().storage.from('coach-private-materials').remove([storagePath])
-        }
         toast.error(result.error)
         return
       }

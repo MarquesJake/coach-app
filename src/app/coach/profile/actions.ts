@@ -94,6 +94,68 @@ export async function addOwnCoachMaterialAction(input: {
   return { ok: true }
 }
 
+type UploadReservation = {
+  material_id: string
+  storage_path: string
+}
+
+export async function beginOwnCoachMaterialUploadAction(input: {
+  title: string
+  materialType: string
+  description: string | null
+  externalUrl: string | null
+  originalFileName: string
+  mimeType: string
+  fileSizeBytes: number
+}): Promise<{ ok: true; reservation: UploadReservation } | { ok: false; error: string }> {
+  const context = await getCoachPortalContext()
+  if (!context) return { ok: false, error: 'Coach access is not available.' }
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase.rpc('begin_own_coach_material_upload', {
+    target_coach_id: context.coachId,
+    material_title: input.title.trim(),
+    material_kind: input.materialType,
+    material_description: input.description?.trim() || '',
+    material_external_url: input.externalUrl?.trim() || '',
+    material_original_file_name: input.originalFileName.trim(),
+    material_mime_type: input.mimeType.trim(),
+    material_file_size_bytes: input.fileSizeBytes,
+  })
+  const reservation = data?.[0] as UploadReservation | undefined
+  if (error || !reservation?.material_id || !reservation.storage_path) {
+    return { ok: false, error: error?.message ?? 'The private upload could not be reserved.' }
+  }
+  return { ok: true, reservation }
+}
+
+export async function completeOwnCoachMaterialUploadAction(
+  materialId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const context = await getCoachPortalContext()
+  if (!context) return { ok: false, error: 'Coach access is not available.' }
+  const supabase = await createServerSupabaseClient()
+  const { error } = await supabase.rpc('complete_own_coach_material_upload', {
+    target_material_id: materialId,
+  })
+  if (error) return { ok: false, error: error.message }
+  revalidatePath('/coach/profile')
+  revalidatePath(`/coach-portal/${context.coachId}`)
+  return { ok: true }
+}
+
+export async function failOwnCoachMaterialUploadAction(
+  materialId: string,
+  reason: string
+): Promise<void> {
+  const context = await getCoachPortalContext()
+  if (!context) return
+  await (await createServerSupabaseClient()).rpc('fail_own_coach_material_upload', {
+    target_material_id: materialId,
+    failure_reason: reason.slice(0, 300),
+  })
+  revalidatePath('/coach/profile')
+}
+
 export async function signOutCoachAction() {
   await (await createServerSupabaseClient()).auth.signOut()
   redirect('/coach/login')

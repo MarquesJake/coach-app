@@ -269,7 +269,7 @@ export default async function CoachProfilePage(
                 </p>
               </div>
             </div>
-            <div className="mt-5"><MaterialUploadForm coachId={context.coachId} /></div>
+            <div className="mt-5"><MaterialUploadForm /></div>
             <div className="mt-5 divide-y divide-slate-100 border-t border-slate-200">
               {materials.length === 0 ? (
                 <p className="py-6 text-sm text-slate-500">No private material submitted yet.</p>
@@ -287,12 +287,22 @@ export default async function CoachProfilePage(
                         Open file
                       </a>
                     )}
-                    <span className={`rounded border px-2 py-1 text-[11px] capitalize ${
-                      material.verification_status === 'verified'
+                    <span className={`rounded border px-2 py-1 text-[11px] ${
+                      material.upload_status === 'failed'
+                        ? 'border-red-700/20 bg-red-50 text-red-900'
+                        : material.upload_status === 'pending_upload'
+                          ? 'border-slate-300 bg-slate-50 text-slate-700'
+                          : material.verification_status === 'verified'
                         ? 'border-emerald-700/20 bg-emerald-50 text-emerald-900'
                         : 'border-amber-700/20 bg-amber-50 text-amber-900'
                     }`}>
-                      {material.verification_status === 'verified' ? 'Coach First reviewed' : 'Awaiting review'}
+                      {material.upload_status === 'failed'
+                        ? 'Upload interrupted - submit again'
+                        : material.upload_status === 'pending_upload'
+                          ? 'Securing upload'
+                          : material.verification_status === 'verified'
+                            ? 'Coach First reviewed'
+                            : 'Awaiting review'}
                     </span>
                   </div>
                 </div>

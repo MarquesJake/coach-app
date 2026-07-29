@@ -5,6 +5,7 @@ import {
   classifyOrganizationAccess,
   isAnalystApiRoute,
   isAnalystRoute,
+  isPublicApplicationPath,
 } from './access.ts'
 
 test('active club-only members are identified and kept out of analyst routes', () => {
@@ -22,6 +23,8 @@ test('active club-only members are identified and kept out of analyst routes', (
   assert.equal(isAnalystRoute('/club'), false)
   assert.equal(isAnalystRoute('/club/dossiers/example'), false)
   assert.equal(isAnalystApiRoute('/api/integrations/coaches/sync-english'), true)
+  assert.equal(isAnalystApiRoute('/api/health'), false)
+  assert.equal(isPublicApplicationPath('/api/health'), true)
   assert.equal(isAnalystApiRoute('/auth/callback'), false)
 })
 

@@ -15,6 +15,10 @@ const productionRlsSuite = readFileSync(
   resolve('supabase/tests/club_identity_rls.sql'),
   'utf8'
 )
+const materialUploadRlsSuite = readFileSync(
+  resolve('supabase/tests/coach_material_upload_rls.sql'),
+  'utf8'
+)
 const trustedIntelligenceMigration = readFileSync(
   resolve('supabase/migrations/20260714174946_trusted_intelligence_vertical.sql'),
   'utf8'
@@ -53,6 +57,10 @@ const materialDeliveryMigration = readFileSync(
 )
 const releasedMaterialBoundaryMigration = readFileSync(
   resolve('supabase/migrations/20260728124243_released_material_metadata_boundary.sql'),
+  'utf8'
+)
+const materialUploadReservationMigration = readFileSync(
+  resolve('supabase/migrations/20260729113939_coach_material_upload_reservations.sql'),
   'utf8'
 )
 
@@ -202,6 +210,33 @@ test('club material lists expose reviewed metadata without underlying storage de
   )
   assert.match(releasedMaterialBoundaryMigration, /grant_record\.expires_at > now\(\)/)
   assert.match(releasedMaterialBoundaryMigration, /revoke all on function public\.add_own_coach_material/)
+})
+
+test('coach file uploads require a reserved row and verified completion', () => {
+  assert.match(materialUploadReservationMigration, /begin_own_coach_material_upload/)
+  assert.match(materialUploadReservationMigration, /complete_own_coach_material_upload/)
+  assert.match(materialUploadReservationMigration, /fail_own_coach_material_upload/)
+  assert.match(materialUploadReservationMigration, /upload_status = 'pending_upload'/)
+  assert.match(materialUploadReservationMigration, /from storage\.objects/)
+  assert.match(materialUploadReservationMigration, /object_metadata->>'size'/)
+  assert.match(materialUploadReservationMigration, /object_metadata->>'mimetype'/)
+  assert.match(
+    materialUploadReservationMigration,
+    /create policy "Coach members can upload reserved coach materials"/
+  )
+  assert.match(
+    materialUploadReservationMigration,
+    /material\.storage_path = name[\s\S]*material\.upload_status = 'pending_upload'/
+  )
+  assert.doesNotMatch(
+    materialUploadReservationMigration.match(
+      /create policy "Coach members can upload reserved coach materials"[\s\S]*?\);/
+    )?.[0] ?? '',
+    /split_part|storage\.foldername/
+  )
+  assert.match(materialUploadRlsSuite, /Unreserved coach material entered storage/)
+  assert.match(materialUploadRlsSuite, /user outside the coach organisation/)
+  assert.match(materialUploadRlsSuite, /rollback;/)
 })
 
 test('duplicate review decisions are internal, constrained and non-destructive', () => {

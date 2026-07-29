@@ -2495,6 +2495,9 @@ export type Database = {
           storage_path: string | null
           title: string
           updated_at: string
+          upload_completed_at: string | null
+          upload_failure_reason: string | null
+          upload_started_at: string | null
           upload_status: string
           uploaded_by: string
           user_id: string
@@ -2515,6 +2518,9 @@ export type Database = {
           storage_path?: string | null
           title: string
           updated_at?: string
+          upload_completed_at?: string | null
+          upload_failure_reason?: string | null
+          upload_started_at?: string | null
           upload_status?: string
           uploaded_by?: string
           user_id: string
@@ -2535,6 +2541,9 @@ export type Database = {
           storage_path?: string | null
           title?: string
           updated_at?: string
+          upload_completed_at?: string | null
+          upload_failure_reason?: string | null
+          upload_started_at?: string | null
           upload_status?: string
           uploaded_by?: string
           user_id?: string
@@ -6413,6 +6422,22 @@ export type Database = {
         }
         Returns: string
       }
+      begin_own_coach_material_upload: {
+        Args: {
+          material_description: string
+          material_external_url: string
+          material_file_size_bytes: number
+          material_kind: string
+          material_mime_type: string
+          material_original_file_name: string
+          material_title: string
+          target_coach_id: string
+        }
+        Returns: {
+          material_id: string
+          storage_path: string
+        }[]
+      }
       can_read_released_material_object: {
         Args: { object_name: string }
         Returns: boolean
@@ -6445,6 +6470,14 @@ export type Database = {
           target_organization_id: string
         }
         Returns: string
+      }
+      complete_own_coach_material_upload: {
+        Args: { target_material_id: string }
+        Returns: boolean
+      }
+      fail_own_coach_material_upload: {
+        Args: { failure_reason?: string; target_material_id: string }
+        Returns: boolean
       }
       get_external_identity_directory: {
         Args: { target_organization_id: string }

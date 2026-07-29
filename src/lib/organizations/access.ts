@@ -38,6 +38,19 @@ export const ANALYST_ROUTE_PREFIXES = [
   '/vacancies',
 ] as const
 
+export function isPublicApplicationPath(pathname: string): boolean {
+  return (
+    pathname === '/' ||
+    pathname === '/api/health' ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/club/login') ||
+    pathname.startsWith('/coach/login') ||
+    pathname.startsWith('/club/invite/') ||
+    pathname.startsWith('/coach/invite/') ||
+    pathname.startsWith('/auth')
+  )
+}
+
 export function classifyOrganizationAccess(
   memberships: OrganizationMembershipIdentity[] | null | undefined
 ): OrganizationAccessProfile {
@@ -82,5 +95,5 @@ export function isAnalystRoute(pathname: string): boolean {
 }
 
 export function isAnalystApiRoute(pathname: string): boolean {
-  return pathname === '/api' || pathname.startsWith('/api/')
+  return !isPublicApplicationPath(pathname) && (pathname === '/api' || pathname.startsWith('/api/'))
 }

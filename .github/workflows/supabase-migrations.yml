@@ -5,6 +5,13 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-production-migrations
+  cancel-in-progress: false
+
 jobs:
   migrate:
     runs-on: ubuntu-latest
@@ -12,32 +19,43 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-public-key
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install application dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+      - name: Run application and permission tests
+        run: npm test
+
+      - name: Build application
+        run: npm run build
+
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.110.0
 
       - name: Link project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
 
-      - name: Apply migrations
+      - name: Apply migrations after application gates pass
         run: |
           if [ -z "$SUPABASE_DB_PASSWORD" ]; then
             supabase db push --yes
           else
             supabase db push --yes --db-url "postgresql://postgres:${SUPABASE_DB_PASSWORD}@db.${SUPABASE_PROJECT_REF}.supabase.co:5432/postgres"
           fi
-
-      - name: Install application dependencies
-        run: npm ci
-
-      - name: Run permission contract tests
-        run: npm test
 
       - name: Run live cross-role club RLS tests
         if: env.SUPABASE_DB_PASSWORD != ''
