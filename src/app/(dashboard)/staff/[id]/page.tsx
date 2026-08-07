@@ -22,7 +22,7 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
 
   const coachIds = Array.from(new Set((history ?? []).map((h) => h.coach_id)))
   const { data: coaches } = coachIds.length
-    ? await supabase.from('coaches').select('id, name').in('id', coachIds).eq('user_id', user.id)
+    ? await supabase.from('coaches').select('id, name').in('id', coachIds)
     : { data: [] }
   const coachMap = new Map((coaches ?? []).map((c) => [c.id, c.name]))
 

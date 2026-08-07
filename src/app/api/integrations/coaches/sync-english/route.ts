@@ -265,7 +265,6 @@ export async function POST(request: Request) {
   const { data: existingCoaches } = await supabase
     .from('coaches')
     .select('id, name, nationality, league_experience, club_current, role_current, age, date_of_birth, base_location, languages, available_status, availability_status, market_status, due_diligence_summary')
-    .eq('user_id', user.id)
 
   const coachesById = new Map<string, ExistingCoach>()
   const byNameNationality = new Map<string, ExistingCoach>()
@@ -349,11 +348,14 @@ export async function POST(request: Request) {
 
   const sortedTeamIds = Array.from(teamIds).sort((a, b) => a - b)
   const nowIso = new Date().toISOString()
+  // Sync state is shared across the internal team, so a key can carry rows from
+  // more than one operator. Take the most recent rather than assuming one.
   const stateSelect = await supabase
     .from('integration_sync_state')
     .select('id, status, cursor, total, updated_at')
-    .eq('user_id', user.id)
     .eq('sync_key', SYNC_KEY)
+    .order('updated_at', { ascending: false })
+    .limit(1)
     .maybeSingle()
 
   let state = stateSelect.data as { id: string; status: string; cursor: number; total: number; updated_at: string } | null
@@ -395,7 +397,6 @@ export async function POST(request: Request) {
         completed_at: reset ? null : undefined,
       })
       .eq('id', state.id)
-      .eq('user_id', user.id)
     state = {
       ...state,
       cursor: nextCursor,
@@ -538,7 +539,6 @@ export async function POST(request: Request) {
         .from('coaches')
         .update(updatePayload)
         .eq('id', existing.id)
-        .eq('user_id', user.id)
       if (error) errors.push(`update ${name}: ${error.message}`)
       else {
         updated++
@@ -857,7 +857,6 @@ export async function POST(request: Request) {
           const transfersRes = await supabase
             .from('club_transfers')
             .select('player_name, club_id, direction, transfer_date, transfer_type, age_at_transfer, fee_band, other_club')
-            .eq('user_id', user.id)
             .in('other_club', coachedClubNames)
             .order('transfer_date', { ascending: false })
             .limit(40)
@@ -934,7 +933,6 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
       completed_at: completed ? new Date().toISOString() : null,
     })
-    .eq('user_id', user.id)
     .eq('sync_key', SYNC_KEY)
 
   return NextResponse.json({

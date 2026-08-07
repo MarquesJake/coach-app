@@ -16,7 +16,7 @@ export default async function TrustedBenchPage() {
   const db = supabase as any
   const [{ data: entries }, { data: coaches }, { data: claims }, { data: sourceRelationships }, { data: contacts }] = await Promise.all([
     db.from('trusted_bench_entries').select('*').eq('org_id', organizationId).order('updated_at', { ascending: false }),
-    supabase.from('coaches').select('id, name, club_current, nationality, availability_status').eq('user_id', user.id).order('name'),
+    supabase.from('coaches').select('id, name, club_current, nationality, availability_status').order('name'),
     db.from('profile_claims').select('coach_id, contact_id, methodology_criteria, fact_check_status, review_status, reviewed_at').eq('org_id', organizationId).in('review_status', ['accepted', 'applied']).is('deleted_at', null),
     db.from('contact_coach_relationships').select('coach_id, contact_id, stakeholder_group, first_hand, independence_confirmed').eq('org_id', organizationId),
     db.from('football_contacts').select('id, full_name').eq('org_id', organizationId).order('full_name'),

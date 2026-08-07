@@ -74,7 +74,7 @@ export async function generateLonglistAction(mandateId: string): Promise<{
   excluded: ExcludedEntryData[]
   error: string | null
 }> {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   // ── 1. Mandate fields ────────────────────────────────────────────────────
   const { data: mandateRow } = await supabase
@@ -86,7 +86,6 @@ export async function generateLonglistAction(mandateId: string): Promise<{
        board_risk_appetite, succession_timeline, language_requirements, relocation_required`
     )
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
 
   if (!mandateRow) return { data: null, excluded: [], error: 'Mandate not found' }
@@ -97,7 +96,6 @@ export async function generateLonglistAction(mandateId: string): Promise<{
   const { data: coaches } = await supabase
     .from('coaches')
     .select('*')
-    .eq('user_id', user.id)
 
   if (!coaches?.length) return { data: [], excluded: [], error: null }
 
@@ -270,13 +268,12 @@ export async function generateLonglistAction(mandateId: string): Promise<{
 // ── addCandidateFromLonglistAction — adds at Longlist stage ─────────────────
 
 export async function addCandidateFromLonglistAction(mandateId: string, coachId: string) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const { data: coach } = await supabase
     .from('coaches')
     .select('id')
     .eq('id', coachId)
-    .eq('user_id', user.id)
     .single()
 
   if (!coach) return { error: 'Coach not found' }
@@ -306,12 +303,11 @@ export async function saveLonglistAction(
   mandateId: string,
   payload: { coach_id: string; ranking_score: number | null; fit_explanation: string | null }[]
 ) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
   const { data: mandate } = await supabase
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
   if (!mandate) return { error: 'Mandate not found' }
   for (const row of payload) {

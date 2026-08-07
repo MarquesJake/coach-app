@@ -78,7 +78,6 @@ export default async function CoachPortalPage() {
     supabase
       .from('coaches')
       .select('id, name, club_current, nationality, availability_status, available_status, tactical_identity')
-      .eq('user_id', user.id)
       .order('name'),
     supabase
       .from('coach_portal_profiles')
@@ -90,16 +89,14 @@ export default async function CoachPortalPage() {
       .eq('user_id', user.id),
     supabase
       .from('confidential_access_requests')
-      .select('id, coach_id, status')
-      .eq('user_id', user.id),
+      .select('id, coach_id, status'),
     supabase
       .from('coach_invitations')
       .select('id, coach_id, status')
       .in('status', ['pending', 'accepted']),
     supabase
       .from('candidate_assessments')
-      .select('coach_id')
-      .eq('user_id', user.id),
+      .select('coach_id'),
   ])
 
   const allCoaches = (coachesRes.data ?? []) as CoachRow[]

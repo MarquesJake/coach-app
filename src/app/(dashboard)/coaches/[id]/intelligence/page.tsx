@@ -44,7 +44,6 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
     supabase
       .from('intelligence_items')
       .select('id, title, detail, source_type, source_name, occurred_at, created_at, verified, direction, sensitivity')
-      .eq('user_id', user.id)
       .eq('entity_type', 'coach')
       .eq('entity_id', params.id)
       .eq('is_deleted', false)

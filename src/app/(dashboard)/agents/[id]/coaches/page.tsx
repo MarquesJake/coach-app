@@ -14,7 +14,7 @@ export default async function AgentCoachesPage({ params }: { params: Promise<{ i
   if (!agent) return null
 
   const { data: links } = await listCoachAgentsForAgent(user.id, id)
-  const { data: coaches } = await supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name')
+  const { data: coaches } = await supabase.from('coaches').select('id, name').order('name')
 
   return (
     <AgentCoachesClient

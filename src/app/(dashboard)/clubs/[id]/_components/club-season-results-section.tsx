@@ -134,7 +134,6 @@ export function ClubSeasonResultsSection({ clubId }: { clubId: string }) {
       .from('club_season_results')
       .select('id, season, league_position, points, goals_for, goals_against, data_source')
       .eq('club_id', clubId)
-      .eq('user_id', user.id)
       .order('season', { ascending: false })
     setRows(((data ?? []) as unknown) as SeasonRow[])
     setLoading(false)

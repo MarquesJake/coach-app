@@ -9,12 +9,11 @@ type CoachUpdate = Database['public']['Tables']['coaches']['Update']
 
 export type { CoachRow, CoachInsert, CoachUpdate }
 
-export async function getCoachesForUser(userId: string) {
+export async function getCoachesForTeam() {
   const supabase = await db()
   return supabase
     .from('coaches')
     .select('*')
-    .eq('user_id', userId)
     .order('name', { ascending: true })
 }
 
@@ -24,7 +23,6 @@ export async function getCoachById(userId: string, coachId: string) {
     .from('coaches')
     .select('*')
     .eq('id', coachId)
-    .eq('user_id', userId)
     .single()
   return { data: data as CoachRow | null, error }
 }
@@ -35,7 +33,6 @@ export async function getCoachesByIds(userId: string, ids: string[]) {
   const { data, error } = await supabase
     .from('coaches')
     .select('*')
-    .eq('user_id', userId)
     .in('id', ids)
   const ordered = (data ?? []).sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
   return { data: ordered as CoachRow[], error }
@@ -154,5 +151,5 @@ export async function createCoach(userId: string, input: Partial<CoachInsert> & 
 
 export async function updateCoach(userId: string, coachId: string, input: CoachUpdate) {
   const supabase = await db()
-  return supabase.from('coaches').update(input).eq('id', coachId).eq('user_id', userId).select().single()
+  return supabase.from('coaches').update(input).eq('id', coachId).select().single()
 }

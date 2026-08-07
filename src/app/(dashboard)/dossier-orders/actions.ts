@@ -25,9 +25,9 @@ export async function publishDossierOfferAction(formData: FormData): Promise<Act
   if (!sellerOrganizationId) return { ok: false, error: 'Internal organisation is not configured' }
 
   const [{ data: mandate }, { data: coach }, { data: recommendation }, { count: privateMaterialCount }, { data: brief }] = await Promise.all([
-    supabase.from('mandates').select('id').eq('id', mandateId).eq('user_id', user.id).single(),
-    supabase.from('coaches').select('id, name, role_current, club_current, nationality').eq('id', coachId).eq('user_id', user.id).single(),
-    supabase.from('candidate_recommendations').select('verdict, confidence, summary, key_strengths, key_risks').eq('mandate_id', mandateId).eq('coach_id', coachId).eq('user_id', user.id).single(),
+    supabase.from('mandates').select('id').eq('id', mandateId).single(),
+    supabase.from('coaches').select('id, name, role_current, club_current, nationality').eq('id', coachId).single(),
+    supabase.from('candidate_recommendations').select('verdict, confidence, summary, key_strengths, key_risks').eq('mandate_id', mandateId).eq('coach_id', coachId).single(),
     supabase.from('coach_private_materials').select('id', { count: 'exact', head: true }).eq('coach_id', coachId).eq('user_id', user.id),
     supabase.from('club_briefs').select('id').eq('buyer_organization_id', buyerOrganizationId).eq('linked_mandate_id', mandateId).limit(1),
   ])

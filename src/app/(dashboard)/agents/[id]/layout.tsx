@@ -39,7 +39,6 @@ export default async function AgentLayout({
   const { count: interactionsCount } = await supabase
     .from('agent_interactions')
     .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
     .eq('agent_id', id)
   const coverage = agentCoverageScore(agent, counts.coachesCount, counts.clubsCount, interactionsCount ?? 0)
 

@@ -11,7 +11,7 @@ export default async function CoachesWatchlistPage() {
   if (!user) redirect('/login')
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: watchlistRows } = await (supabase as any).from('watchlist_coaches').select('coach_id').eq('user_id', user.id).order('added_at', { ascending: false })
+  const { data: watchlistRows } = await (supabase as any).from('watchlist_coaches').select('coach_id').order('added_at', { ascending: false })
   const coachIds = ((watchlistRows ?? []) as { coach_id: string }[]).map((r) => r.coach_id)
   const { data: coaches } = coachIds.length > 0 ? await getCoachesByIds(user.id, coachIds) : { data: [] }
   const ordered = (coaches ?? []).sort((a, b) => coachIds.indexOf(a.id) - coachIds.indexOf(b.id))

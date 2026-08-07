@@ -15,7 +15,6 @@ export default async function NewMandatePage(
   const { data: clubsData } = await supabase
     .from('clubs')
     .select('id, name, league')
-    .eq('user_id', user.id)
     .order('name', { ascending: true })
 
   const clubOptions = (clubsData ?? []).map((c) => ({

@@ -18,13 +18,12 @@ export default async function IntelligenceInboxPage() {
     supabase
       .from('intelligence_inbox_items')
       .select('*')
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(300),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name'),
-    supabase.from('clubs').select('id, name').eq('user_id', user.id).order('name'),
-    supabase.from('agents').select('id, full_name, agency_name').eq('user_id', user.id).order('full_name'),
-    supabase.from('mandates').select('id, custom_club_name, clubs(name)').eq('user_id', user.id).limit(150),
+    supabase.from('coaches').select('id, name').order('name'),
+    supabase.from('clubs').select('id, name').order('name'),
+    supabase.from('agents').select('id, full_name, agency_name').order('full_name'),
+    supabase.from('mandates').select('id, custom_club_name, clubs(name)').limit(150),
   ])
 
   const coaches = (coachesRes.data ?? []).map((coach) => ({ id: coach.id, name: coach.name }))

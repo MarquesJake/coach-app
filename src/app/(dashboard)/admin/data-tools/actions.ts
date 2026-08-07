@@ -114,13 +114,13 @@ export async function clearMyDataAction(confirmation: string): Promise<ClearMyDa
   }
 
   // Resolve owned IDs
-  const { data: coachesData } = await supabase.from('coaches').select('id').eq('user_id', uid)
+  const { data: coachesData } = await supabase.from('coaches').select('id')
   const coachIds = (coachesData ?? []).map((r) => r.id)
-  const { data: clubsData } = await supabase.from('clubs').select('id').eq('user_id', uid)
+  const { data: clubsData } = await supabase.from('clubs').select('id')
   const clubIds = (clubsData ?? []).map((r) => r.id)
-  const { data: mandatesData } = await supabase.from('mandates').select('id').eq('user_id', uid)
+  const { data: mandatesData } = await supabase.from('mandates').select('id')
   const mandateIds = (mandatesData ?? []).map((r) => r.id)
-  const { data: agentsData } = await supabase.from('agents').select('id').eq('user_id', uid)
+  const { data: agentsData } = await supabase.from('agents').select('id')
   const agentIds = (agentsData ?? []).map((r) => r.id)
 
   // Mandate children

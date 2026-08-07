@@ -217,11 +217,10 @@ export default async function DashboardPage(
     supabase
       .from('mandates')
       .select('id, custom_club_name, status, priority, pipeline_stage, target_completion_date, engagement_owner, service_model, clubs(name)')
-      .eq('user_id', user.id)
       .order('target_completion_date'),
-    supabase.from('agents').select('id, full_name, agency_name').eq('user_id', user.id),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id),
-    supabase.from('clubs').select('id, name').eq('user_id', user.id),
+    supabase.from('agents').select('id, full_name, agency_name'),
+    supabase.from('coaches').select('id, name'),
+    supabase.from('clubs').select('id, name'),
   ])
 
   const mandates = mandatesResult.data ?? []
@@ -259,7 +258,6 @@ export default async function DashboardPage(
     supabase
       .from('agent_interactions')
       .select('id, agent_id, coach_id, club_id, summary, topic, follow_up_date')
-      .eq('user_id', user.id)
       .not('follow_up_date', 'is', null),
     organizationId
       ? db
@@ -294,7 +292,6 @@ export default async function DashboardPage(
     supabase
       .from('intelligence_inbox_items')
       .select('id, headline, extracted_signal, source_type, source_name, coach_id, agent_id, mandate_id, due_date, review_status')
-      .eq('user_id', user.id)
       .in('review_status', ['captured', 'triage', 'needs_verification', 'ready_to_promote']),
     organizationId
       ? supabase
@@ -306,7 +303,6 @@ export default async function DashboardPage(
     supabase
       .from('confidential_access_requests')
       .select('id, coach_id, mandate_id, status, request_reason, requester_role, requested_at')
-      .eq('user_id', user.id)
       .eq('status', 'requested'),
     supabase
       .from('coach_portal_profiles')

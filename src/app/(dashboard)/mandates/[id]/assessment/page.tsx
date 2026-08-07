@@ -23,7 +23,6 @@ export default async function MandateAssessmentIndexPage(
     .from('mandates')
     .select('id, custom_club_name, clubs(name)')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
   if (!mandate) notFound()
 

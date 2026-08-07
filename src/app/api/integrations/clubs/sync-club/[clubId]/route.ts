@@ -82,7 +82,6 @@ async function enrichClubCoachProfile(params: {
       .from('coaches')
       .select('id, name, nationality, club_current, league_experience, date_of_birth, age, base_location, languages')
       .in('id', externalCoachIds)
-      .eq('user_id', userId)
       .limit(1)
       .maybeSingle()
     existing = data as ExistingCoach | null
@@ -96,7 +95,6 @@ async function enrichClubCoachProfile(params: {
     const { data: candidates } = await supabase
       .from('coaches')
       .select('id, name, nationality, club_current, league_experience, date_of_birth, age, base_location, languages')
-      .eq('user_id', userId)
     const nameKey = normaliseKey(name)
     const clubKey = normaliseKey(clubName)
     const nationalityKey = normaliseKey(coach.nationality)
@@ -131,7 +129,7 @@ async function enrichClubCoachProfile(params: {
     if (empty(existing.date_of_birth)) update.date_of_birth = isoDate(coach.birth?.date)
     if (empty(existing.base_location)) update.base_location = baseLocation
     if (empty(existing.languages) && nationality) update.languages = [nationality]
-    const { error } = await supabase.from('coaches').update(update).eq('id', existing.id).eq('user_id', userId)
+    const { error } = await supabase.from('coaches').update(update).eq('id', existing.id)
     if (error) return { created: false, updated: false, matched: true, skippedHistorical: false, error: error.message }
   } else if (!appearsCurrentForClub) {
     return {
@@ -243,7 +241,6 @@ export async function POST(_req: NextRequest, props: { params: Promise<{ clubId:
     .from('clubs')
     .select('id, name, league, external_id, external_source, squad_synced_at, coaches_synced_at')
     .eq('id', clubId)
-    .eq('user_id', user.id)
     .single()
 
   if (!club?.external_id || club.external_source !== 'api-football') {
@@ -261,7 +258,7 @@ export async function POST(_req: NextRequest, props: { params: Promise<{ clubId:
 
   if (players.length > 0) {
     // Delete existing squad for this club and re-insert
-    await supabase.from('club_squad').delete().eq('club_id', clubId).eq('user_id', user.id)
+    await supabase.from('club_squad').delete().eq('club_id', clubId)
     const rows = players.map((p: { id: number; name: string; age: number; number: number; position: string; photo: string }) => ({
       user_id: user.id,
       club_id: clubId,
@@ -289,7 +286,6 @@ export async function POST(_req: NextRequest, props: { params: Promise<{ clubId:
     .from('club_coaching_history')
     .delete()
     .eq('club_id', clubId)
-    .eq('user_id', user.id)
     .eq('data_source', 'api-football')
 
   let coachesAdded = 0
@@ -382,7 +378,7 @@ export async function POST(_req: NextRequest, props: { params: Promise<{ clubId:
 
   // Delete and re-insert recent transfers for this club
   if (recentTransfers.length > 0) {
-    await supabase.from('club_transfers').delete().eq('club_id', clubId).eq('user_id', user.id)
+    await supabase.from('club_transfers').delete().eq('club_id', clubId)
     const rows = recentTransfers.map(t => ({
       user_id: user.id,
       club_id: clubId,

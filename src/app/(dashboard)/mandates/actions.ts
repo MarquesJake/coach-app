@@ -88,7 +88,7 @@ export async function deleteMandateAction(mandateId: string): Promise<{ ok: true
   if (!isUuid(mandateId)) return { ok: false, error: 'Invalid mandate' }
   const { mandateResult } = await getMandateDetailForUser(user.id, mandateId)
   if (mandateResult.error || !mandateResult.data) return { ok: false, error: 'Mandate not found or access denied' }
-  const { error: deleteError } = await supabase.from('mandates').delete().eq('id', mandateId).eq('user_id', user.id)
+  const { error: deleteError } = await supabase.from('mandates').delete().eq('id', mandateId)
   if (deleteError) return { ok: false, error: deleteError.message }
   revalidatePath('/mandates')
   return { ok: true }
@@ -137,7 +137,6 @@ export async function createMandateStep1Action(formData: FormData) {
       .from('clubs')
       .select('id')
       .eq('id', clubIdOrName)
-      .eq('user_id', user.id)
       .single()
 
     if (clubError || !club) {
@@ -258,7 +257,6 @@ export async function createMandateAction(formData: FormData) {
       .from('clubs')
       .select('id')
       .eq('id', clubIdOrName)
-      .eq('user_id', user.id)
       .single()
 
     if (clubError || !club) {
@@ -328,7 +326,7 @@ export async function createMandateAction(formData: FormData) {
 }
 
 export async function addShortlistAction(formData: FormData) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const mandateId = toText(formData.get('mandate_id'))
   const coachId = toText(formData.get('coach_id'))
@@ -350,7 +348,6 @@ export async function addShortlistAction(formData: FormData) {
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
 
   if (mandateError || !mandate) {
@@ -390,7 +387,7 @@ export async function addShortlistAction(formData: FormData) {
 }
 
 export async function updateShortlistEntryAction(formData: FormData) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const mandateId = toText(formData.get('mandate_id'))
   const shortlistId = toText(formData.get('shortlist_id'))
@@ -405,7 +402,6 @@ export async function updateShortlistEntryAction(formData: FormData) {
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
 
   if (!mandate) {
@@ -445,7 +441,7 @@ export async function updateShortlistEntryAction(formData: FormData) {
 }
 
 export async function addDeliverableAction(formData: FormData) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const mandateId = toText(formData.get('mandate_id'))
   const item = toText(formData.get('item'))
@@ -460,7 +456,6 @@ export async function addDeliverableAction(formData: FormData) {
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
 
   if (mandateError || !mandate) {
@@ -484,7 +479,7 @@ export async function addDeliverableAction(formData: FormData) {
 }
 
 export async function updateMandateAction(formData: FormData) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const mandateId = toText(formData.get('mandate_id'))
   if (!mandateId) {
@@ -495,7 +490,6 @@ export async function updateMandateAction(formData: FormData) {
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
 
   if (fetchError || !mandate) {
@@ -543,7 +537,6 @@ export async function updateMandateAction(formData: FormData) {
     .from('mandates')
     .update(updates)
     .eq('id', mandateId)
-    .eq('user_id', user.id)
 
   if (error) {
     redirectWithMessage(`/mandates/${mandateId}`, 'error', error.message || 'Could not update mandate')
@@ -559,7 +552,7 @@ export async function updateMandateStageAction(
   pipelineStage: string
 ): Promise<{ error?: string }> {
   try {
-    const { supabase, user } = await requireUser()
+    const { supabase } = await requireUser()
     const sanitized = sanitisePipelineStage(pipelineStage)
     if (!isValidPipelineStage(sanitized)) {
       return { error: 'Invalid pipeline stage' }
@@ -568,7 +561,6 @@ export async function updateMandateStageAction(
       .from('mandates')
       .update({ pipeline_stage: sanitized })
       .eq('id', mandateId)
-      .eq('user_id', user.id)
     if (error) return { error: error.message }
 
     await logActivity({
@@ -588,10 +580,10 @@ export async function updateMandateStageAction(
 }
 
 export async function addCandidateToWorkspaceAction(mandateId: string, coachId: string): Promise<{ error?: string }> {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   // Check coach belongs to user
-  const { data: coach } = await supabase.from('coaches').select('id').eq('id', coachId).eq('user_id', user.id).single()
+  const { data: coach } = await supabase.from('coaches').select('id').eq('id', coachId).single()
   if (!coach) return { error: 'Coach not found' }
 
   const { error } = await supabase.from('mandate_shortlist').insert({

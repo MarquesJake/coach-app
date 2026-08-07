@@ -40,7 +40,6 @@ export async function completeDeskItemAction(formData: FormData) {
       .from('mandates')
       .select('id')
       .eq('id', parentId)
-      .eq('user_id', user.id)
       .maybeSingle()
     if (!mandate) redirect(destination)
 
@@ -99,7 +98,6 @@ export async function completeDeskItemAction(formData: FormData) {
       .from('agent_interactions')
       .select('id, agent_id, summary, follow_up_date')
       .eq('id', recordId)
-      .eq('user_id', user.id)
       .maybeSingle()
     if (!interaction) redirect(destination)
 
@@ -107,7 +105,6 @@ export async function completeDeskItemAction(formData: FormData) {
       .from('agent_interactions')
       .update({ follow_up_date: null })
       .eq('id', recordId)
-      .eq('user_id', user.id)
     if (error) redirect(resultPath(destination, 'error', 'The agent follow-up could not be completed.'))
 
     await logActivity({

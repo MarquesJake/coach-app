@@ -45,7 +45,6 @@ export function ClubBrowserPanel() {
       supabase
         .from('clubs')
         .select('id, name, league, country, tier, badge_url')
-        .eq('user_id', user.id)
         .order('tier', { ascending: true, nullsFirst: false })
         .order('name', { ascending: true })
         .limit(500)
@@ -157,7 +156,6 @@ export function ClubBrowserPanel() {
                     const { data } = await supabase
                       .from('clubs')
                       .select('id, name, league, country, tier, badge_url')
-                      .eq('user_id', user.id)
                       .order('tier', { ascending: true, nullsFirst: false })
                       .order('name', { ascending: true })
                       .limit(500)

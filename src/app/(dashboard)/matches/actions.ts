@@ -18,8 +18,8 @@ async function requireUser() {
 
 export async function runMatchingAction(vacancyId: string): Promise<{ error?: string }> {
   try {
-    const { supabase, user } = await requireUser()
-    await runMatchingForVacancy(supabase, vacancyId, user.id)
+    const { supabase } = await requireUser()
+    await runMatchingForVacancy(supabase, vacancyId)
     revalidatePath('/matches')
     revalidatePath(`/matches?vacancy=${vacancyId}`)
     return {}
@@ -101,9 +101,9 @@ function buildExecutiveBrief(
 
 export async function generateBriefAction(vacancyId: string): Promise<{ error?: string }> {
   try {
-    const { supabase, user } = await requireUser()
+    const { supabase } = await requireUser()
 
-    const { data: clubs } = await supabase.from('clubs').select('id').eq('user_id', user.id)
+    const { data: clubs } = await supabase.from('clubs').select('id')
     const clubIds = (clubs ?? []).map((c) => c.id)
     if (clubIds.length === 0) return { error: 'No clubs found' }
 

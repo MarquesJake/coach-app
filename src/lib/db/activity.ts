@@ -81,7 +81,6 @@ export async function getActivityForEntity(
   const { data, error } = await supabase
     .from('activity_log')
     .select('id, entity_type, entity_id, action_type, description, metadata, created_at')
-    .eq('user_id', user.id)
     .eq('entity_type', entityType)
     .eq('entity_id', entityId)
     .order('created_at', { ascending: false })

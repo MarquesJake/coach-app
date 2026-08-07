@@ -99,7 +99,6 @@ export default async function MandatePlanPage(
       budget_band, succession_timeline, clubs(name)
     `)
     .eq('id', params.id)
-    .eq('user_id', user.id)
     .single()
 
   if (mandateError || !mandate) notFound()

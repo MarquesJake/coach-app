@@ -36,7 +36,6 @@ export function ClubStabilitySection({ clubId }: { clubId: string }) {
         .from('club_coaching_history')
         .select('coach_name, start_date, end_date')
         .eq('club_id', clubId)
-        .eq('user_id', user.id)
         .order('start_date', { ascending: true })
 
       setMetrics(computeCoachingStability(data ?? []))

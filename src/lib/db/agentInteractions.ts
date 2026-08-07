@@ -11,7 +11,6 @@ export async function listInteractionsForAgent(userId: string, agentId: string, 
   const { data, error } = await supabase
     .from('agent_interactions')
     .select('*')
-    .eq('user_id', userId)
     .eq('agent_id', agentId)
     .order('occurred_at', { ascending: false })
     .limit(limit)
@@ -23,7 +22,6 @@ export async function listInteractionsGlobal(userId: string, limit = 100) {
   const { data, error } = await supabase
     .from('agent_interactions')
     .select('*')
-    .eq('user_id', userId)
     .order('occurred_at', { ascending: false })
     .limit(limit)
   return { data: (data ?? []) as InteractionRow[], error }
@@ -44,14 +42,13 @@ export async function updateInteraction(userId: string, id: string, input: Parti
     .from('agent_interactions')
     .update(input)
     .eq('id', id)
-    .eq('user_id', userId)
     .select()
     .single()
 }
 
 export async function deleteInteraction(userId: string, id: string) {
   const supabase = await db()
-  return supabase.from('agent_interactions').delete().eq('id', id).eq('user_id', userId)
+  return supabase.from('agent_interactions').delete().eq('id', id)
 }
 
 export async function getLastInteractionForAgent(userId: string, agentId: string) {
@@ -59,7 +56,6 @@ export async function getLastInteractionForAgent(userId: string, agentId: string
   const { data, error } = await supabase
     .from('agent_interactions')
     .select('occurred_at')
-    .eq('user_id', userId)
     .eq('agent_id', agentId)
     .order('occurred_at', { ascending: false })
     .limit(1)

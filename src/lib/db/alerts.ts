@@ -53,7 +53,6 @@ export async function getAlertsForUser(
   let q = supabase
     .from('alerts')
     .select('id, user_id, entity_type, entity_id, alert_type, title, detail, created_at, is_seen')
-    .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(100)
   if (options.unseenOnly) q = q.eq('is_seen', false)
@@ -74,7 +73,6 @@ export async function markAlertSeen(userId: string, alertId: string): Promise<{ 
     .from('alerts')
     .update({ is_seen: true })
     .eq('id', alertId)
-    .eq('user_id', userId)
   if (error) return { error: error.message }
   return {}
 }

@@ -55,18 +55,15 @@ export default async function SuccessionRadarPage() {
     supabase
       .from('clubs')
       .select('id, name, league, country, tier, current_manager, board_risk_tolerance, strategic_priority, media_pressure, development_vs_win_now, environment_assessment, instability_risk, tactical_model, pressing_model, build_model, market_reputation')
-      .eq('user_id', user.id)
       .limit(300),
     supabase
       .from('mandates')
       .select('id, club_id, pipeline_stage, status, strategic_objective, succession_timeline, created_at')
-      .eq('user_id', user.id)
       .in('pipeline_stage', ['identified', 'board_approved', 'shortlisting'])
       .limit(150),
     supabase
       .from('intelligence_items')
       .select('id, entity_id, title, category, direction, confidence, occurred_at, verified')
-      .eq('user_id', user.id)
       .eq('entity_type', 'club')
       .eq('is_deleted', false)
       .order('occurred_at', { ascending: false, nullsFirst: false })
@@ -74,18 +71,15 @@ export default async function SuccessionRadarPage() {
     supabase
       .from('intelligence_inbox_items')
       .select('id, club_id, review_status, verification_status, direction, source_recorded_at, created_at')
-      .eq('user_id', user.id)
       .not('club_id', 'is', null)
       .limit(300),
     supabase
       .from('coaches')
       .select('id, name, club_current, nationality, available_status, availability_status, market_status, tactical_identity, preferred_style, pressing_intensity, build_preference, player_development_model, academy_integration, leadership_style, overall_manual_score, intelligence_confidence')
-      .eq('user_id', user.id)
       .limit(500),
     supabase
       .from('succession_plans')
       .select('id, club_id, linked_mandate_id, status, priority, owner_name, next_review_date, manager_security, succession_timeline, desired_archetype, board_signal, risk_triggers, target_profile, notes, last_signal_at, updated_at')
-      .eq('user_id', user.id)
       .limit(300),
   ])
 

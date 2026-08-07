@@ -18,7 +18,7 @@ export default async function ClaimReviewPage(props: { searchParams: Promise<{ s
   const [{ data: claims }, { data: contacts }, { data: coaches }, { data: sessions }, { data: relationships }] = await Promise.all([
     query,
     db.from('football_contacts').select('id, full_name, stakeholder_group').eq('org_id', organizationId),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id),
+    supabase.from('coaches').select('id, name'),
     db.from('intelligence_sessions').select('id, title, occurred_at').eq('org_id', organizationId),
     db.from('claim_relationships').select('*').eq('org_id', organizationId),
   ])

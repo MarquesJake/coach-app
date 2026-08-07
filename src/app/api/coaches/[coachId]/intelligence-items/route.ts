@@ -12,7 +12,6 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ coachId:
     .select('id, direction, confidence, source_tier, category, title, sensitivity, occurred_at, created_at')
     .eq('entity_type', 'coach')
     .eq('entity_id', params.coachId)
-    .eq('user_id', user.id)
     .eq('is_deleted', false)
     .order('occurred_at', { ascending: false })
 

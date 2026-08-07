@@ -14,7 +14,7 @@ import { computeCoachIntelSignals, type CoachIntelSignals } from '@/lib/intellig
 import { getActivityForEntity } from '@/lib/db/activity'
 import { Timeline } from '@/components/ui/timeline'
 import { listCoachAgentsForCoach } from '@/lib/db/agentLinks'
-import { getAgentsForUser } from '@/lib/db/agents'
+import { getAgentsForTeam } from '@/lib/db/agents'
 import { CoachAgentsSection } from './_components/coach-agents-section'
 import { CoachAgentInteractions } from './_components/coach-agent-interactions'
 
@@ -44,19 +44,19 @@ export default async function CoachDetailLayout(
     supabase.from('coach_stints').select('id', { count: 'exact', head: true }).eq('coach_id', params.id),
     computeIntelligenceConfidence(user.id, params.id),
     (async () => {
-      const { data } = await supabase.from('watchlist_coaches').select('coach_id').eq('coach_id', params.id).eq('user_id', user.id).maybeSingle()
+      const { data } = await supabase.from('watchlist_coaches').select('coach_id').eq('coach_id', params.id).maybeSingle()
       return { onWatchlist: !!data }
     })(),
     getActivityForEntity('coach', params.id),
     supabase.from('coach_derived_metrics').select('repeat_signings_count, repeat_agents_count, loan_reliance_score, network_density_score').eq('coach_id', params.id).maybeSingle(),
-    supabase.from('intelligence_items').select('occurred_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('intelligence_items').select('occurred_at').eq('entity_type', 'coach').eq('entity_id', params.id).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('coach_external_profiles').select('photo_url, source_name, synced_at, confidence, match_confidence').eq('coach_id', params.id).order('synced_at', { ascending: false }).limit(1).maybeSingle(),
   ])
   const externalProfile = externalProfileRes.data
   const lastIntelligenceAt = (lastIntelRes?.data as { occurred_at?: string | null } | null)?.occurred_at ?? null
   const [{ data: intelSourceRows }, { data: intelSignalRows }] = await Promise.all([
-    supabase.from('intelligence_items').select('source_name').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id),
-    supabase.from('intelligence_items').select('id, direction, confidence, source_tier, category, title, sensitivity, occurred_at, created_at').eq('user_id', user.id).eq('entity_type', 'coach').eq('entity_id', params.id).eq('is_deleted', false),
+    supabase.from('intelligence_items').select('source_name').eq('entity_type', 'coach').eq('entity_id', params.id),
+    supabase.from('intelligence_items').select('id, direction, confidence, source_tier, category, title, sensitivity, occurred_at, created_at').eq('entity_type', 'coach').eq('entity_id', params.id).eq('is_deleted', false),
   ])
   const sourcesCount = new Set((intelSourceRows ?? []).map((r) => r.source_name).filter(Boolean)).size
   const intelSignals: CoachIntelSignals = computeCoachIntelSignals(
@@ -105,12 +105,11 @@ export default async function CoachDetailLayout(
   try {
     const [linksRes, agentsRes, interactionsRes] = await Promise.all([
       listCoachAgentsForCoach(user.id, params.id),
-      getAgentsForUser(user.id),
+      getAgentsForTeam(),
       supabase
         .from('agent_interactions')
         .select('id, occurred_at, summary, interaction_type, agents(full_name, agency_name)')
         .eq('coach_id', params.id)
-        .eq('user_id', user.id)
         .order('occurred_at', { ascending: false })
         .limit(5),
     ])

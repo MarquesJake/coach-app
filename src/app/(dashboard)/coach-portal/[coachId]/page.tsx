@@ -132,7 +132,6 @@ export default async function CoachPortalDetailPage(
       .from('coaches')
       .select('*')
       .eq('id', coachId)
-      .eq('user_id', user.id)
       .single(),
     supabase
       .from('coach_portal_profiles')
@@ -150,7 +149,6 @@ export default async function CoachPortalDetailPage(
       .from('confidential_access_requests')
       .select('*, mandates(id, custom_club_name, clubs(name))')
       .eq('coach_id', coachId)
-      .eq('user_id', user.id)
       .order('requested_at', { ascending: false }),
     supabase
       .from('coach_invitations')

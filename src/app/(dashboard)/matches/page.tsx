@@ -52,7 +52,7 @@ function MatchesContent() {
   const loadVacancies = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return []
-    const { data: clubs } = await supabase.from('clubs').select('id').eq('user_id', user.id)
+    const { data: clubs } = await supabase.from('clubs').select('id')
     const clubIds = (clubs ?? []).map((c) => c.id)
     if (clubIds.length === 0) return []
     const { data } = await supabase
@@ -67,7 +67,7 @@ function MatchesContent() {
     async (id: string) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return { vacancy: null, matches: [] as MatchWithCoach[] }
-      const { data: clubs } = await supabase.from('clubs').select('id').eq('user_id', user.id)
+      const { data: clubs } = await supabase.from('clubs').select('id')
       const clubIds = (clubs ?? []).map((c) => c.id)
       if (clubIds.length === 0) return { vacancy: null, matches: [] as MatchWithCoach[] }
       const [vacRes, matchRes] = await Promise.all([

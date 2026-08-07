@@ -13,7 +13,6 @@ export default async function MandateShortlistPage(props: { params: Promise<{ id
     .from('mandates')
     .select('id, custom_club_name, club_id, clubs(name)')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
   if (!mandate) notFound()
 

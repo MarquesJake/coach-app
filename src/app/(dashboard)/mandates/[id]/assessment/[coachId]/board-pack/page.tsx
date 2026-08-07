@@ -65,7 +65,6 @@ export default async function BoardPackPage(
     .from('mandates')
     .select('id, custom_club_name, strategic_objective, budget_band, succession_timeline, clubs(name, league)')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
   if (!mandate) notFound()
 
@@ -82,7 +81,6 @@ export default async function BoardPackPage(
     .from('coaches')
     .select('id, name, club_current, nationality, date_of_birth, languages, coaching_licence, agent_name, agent_contact, current_salary, wage_expectation, compensation_expectation, staff_cost_estimate, contract_expiry, release_clause, contract_notes, availability_status, availability_timeline, appointment_conditions, market_status, tactical_identity, preferred_style, family_context, relocation_flexibility, feasibility_reviewed_at, due_diligence_summary, compliance_notes')
     .eq('id', coachId)
-    .eq('user_id', user.id)
     .single()
   if (!coach) notFound()
 

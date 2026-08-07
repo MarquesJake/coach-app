@@ -14,7 +14,6 @@ export default async function MandateLonglistPage(props: { params: Promise<{ id:
     .from('mandates')
     .select('id, custom_club_name, club_id, clubs(name)')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
   if (!mandate) notFound()
 
@@ -27,7 +26,6 @@ export default async function MandateLonglistPage(props: { params: Promise<{ id:
   const { data: coaches } = await supabase
     .from('coaches')
     .select('id, name, club_current, pressing_intensity, build_preference, leadership_style, overall_manual_score, tactical_fit_score, leadership_score, media_risk_score, intelligence_confidence, wage_expectation')
-    .eq('user_id', user.id)
     .order('name')
 
   const clubName = (mandate as { custom_club_name?: string | null; clubs?: { name?: string } | null }).custom_club_name

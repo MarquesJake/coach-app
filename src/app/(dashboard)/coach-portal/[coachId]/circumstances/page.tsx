@@ -198,7 +198,6 @@ export default async function CoachCareerCircumstancesPage(
       .from('coaches')
       .select('id, name, club_current, availability_status, current_salary, wage_expectation, contract_expiry, compensation_expectation, feasibility_reviewed_at')
       .eq('id', params.coachId)
-      .eq('user_id', user.id)
       .maybeSingle(),
     supabase
       .from('coach_portal_profiles')

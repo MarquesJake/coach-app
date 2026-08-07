@@ -72,7 +72,6 @@ async function ownsCoach(
     .from('coaches')
     .select('id')
     .eq('id', coachId)
-    .eq('user_id', userId)
     .maybeSingle()
   return Boolean(data)
 }
@@ -420,7 +419,6 @@ export async function updateConfidentialAccessStatusAction(formData: FormData): 
       updated_at: new Date().toISOString(),
     })
     .eq('id', requestId)
-    .eq('user_id', user.id)
 
   if (error) return { ok: false, error: 'Failed to update access request' }
 
@@ -447,7 +445,6 @@ export async function setEvidenceVerificationAction(formData: FormData): Promise
     .from('assessment_evidence')
     .update({ verification_status: status })
     .eq('id', evidenceId)
-    .eq('user_id', user.id)
   if (error) return { ok: false, error: 'Failed to update verification' }
 
   revalidatePath(`/mandates/${mandateId}/assessment/${coachId}`)
@@ -466,7 +463,6 @@ export async function deleteEvidenceAction(formData: FormData): Promise<ActionRe
     .from('assessment_evidence')
     .delete()
     .eq('id', evidenceId)
-    .eq('user_id', user.id)
   if (error) return { ok: false, error: 'Failed to delete evidence' }
 
   revalidatePath(`/mandates/${mandateId}/assessment/${coachId}`)
@@ -486,7 +482,6 @@ export async function setEvidenceRecommendationUseAction(formData: FormData): Pr
     .from('assessment_evidence')
     .update({ used_in_recommendation: used })
     .eq('id', evidenceId)
-    .eq('user_id', user.id)
   if (error) return { ok: false, error: 'Failed to update evidence' }
 
   revalidatePath(`/mandates/${mandateId}/assessment/${coachId}`)
