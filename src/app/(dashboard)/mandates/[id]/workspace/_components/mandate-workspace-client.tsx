@@ -536,10 +536,12 @@ function BoardRecommendation({
   shortlist,
   longlistEntries,
   mandateObjective,
+  onSelectCandidate,
 }: {
   shortlist: Candidate[]
   longlistEntries: LonglistEntryData[]
   mandateObjective: string | null
+  onSelectCandidate: (candidate: BoardCandidate) => void
 }) {
   const boardCandidates = getBoardCandidates(shortlist, longlistEntries)
   const primary = boardCandidates[0] ?? null
@@ -602,9 +604,16 @@ function BoardRecommendation({
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_1fr_0.9fr]">
-        <div className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-3">
+        <button
+          type="button"
+          onClick={() => onSelectCandidate(primary)}
+          className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
           <p className="text-[10px] uppercase tracking-widest text-primary/80">{primary.rankLabel}</p>
-          <p className="mt-1 text-lg font-semibold text-foreground">{primary.name}</p>
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-lg font-semibold text-foreground">{primary.name}</p>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">Open evidence</span>
+          </div>
           <CandidateTypeBadge label={primary.label} />
           <p className="text-xs text-muted-foreground">{primary.club ?? 'Club context pending'}</p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -619,7 +628,7 @@ function BoardRecommendation({
               </span>
             )}
           </div>
-        </div>
+        </button>
 
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Why</p>
@@ -1849,6 +1858,23 @@ export function MandateWorkspaceClient({
     setSelectedRecoFit(fit)
   }
 
+  function handleSelectBoardCandidate(candidate: BoardCandidate) {
+    if (candidate.source === 'shortlist') {
+      setSelectedId(candidate.id)
+      setSelectedRecoEntry(null)
+      setSelectedRecoFit(null)
+      setRightTab('pipeline')
+      return
+    }
+
+    const entry = longlistEntries.find((item) => item.id === candidate.id)
+    const fit = entry ? parseRecommendationFit(entry.fit_explanation) : null
+    setSelectedId(null)
+    setSelectedRecoEntry(entry ?? null)
+    setSelectedRecoFit(fit)
+    setRightTab('recommendations')
+  }
+
   // ── Center panel content ───────────────────────────────────────────────────
   function renderCenter() {
     if (rightTab === 'recommendations' && selectedRecoEntry && selectedRecoFit) {
@@ -1902,6 +1928,7 @@ export function MandateWorkspaceClient({
         shortlist={shortlist}
         longlistEntries={longlistEntries}
         mandateObjective={mandate.strategic_objective}
+        onSelectCandidate={handleSelectBoardCandidate}
       />
       <SuggestedLonglistPanel
         mandateId={mandate.id}
