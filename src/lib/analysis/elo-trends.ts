@@ -122,6 +122,6 @@ export function computeClubEloTrend(rows: ClubSeasonPerformanceInput[]): EloTren
     threeSeasonMovement,
     signal,
     interpretation,
-    methodology: 'Transparent proxy: league position, points and goal difference are normalised into a season strength score, then smoothed around a 1500 baseline. Replaceable with ClubElo or match-by-match provider data.',
+    methodology: 'Transparent season-results strength proxy: league position, points and goal difference are normalised into a season strength score, then smoothed around a 1500 baseline. Replaceable with ClubElo or match-by-match provider data.',
   }
 }

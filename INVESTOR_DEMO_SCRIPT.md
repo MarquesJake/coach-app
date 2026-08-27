@@ -38,7 +38,7 @@ Click **Assessment pack →**.
 Click **Print / Save as PDF** to show the export.
 
 ### 6. Close (15s)
-> "Next modules are already specced from the same methodology: structured interviews and references capture, then the quantitative layer — xG impact, ELO trajectory, PPG versus budget. Same principle throughout: every claim traceable to evidence."
+> "Next modules are already specced from the same methodology: structured interviews and references capture, then the quantitative layer — xG impact, provider-backed ELO trajectory, and PPG versus budget. The live demo already shows a season-results strength proxy; same principle throughout: every claim traceable to evidence."
 
 ---
 

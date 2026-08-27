@@ -154,7 +154,7 @@ function EloProxyTrend({ rows }: { rows: SeasonRow[] }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ELO proxy trend</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Season-results strength proxy</p>
             <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${ELO_SIGNAL_STYLE[trend.signal]}`}>
               {signalLabel}
             </span>
@@ -178,7 +178,7 @@ function EloProxyTrend({ rows }: { rows: SeasonRow[] }) {
       </div>
 
       <div className="mt-4 overflow-x-auto">
-        <svg width={chartWidth} height={chartHeight + 24} className="shrink-0" aria-label="ELO proxy trend chart">
+        <svg width={chartWidth} height={chartHeight + 24} className="shrink-0" aria-label="Season-results strength proxy trend chart">
           <path d={path} fill="none" stroke="currentColor" strokeWidth={2.5} className="text-primary" />
           {recentPoints.map((point, index) => {
             const x = recentPoints.length === 1 ? chartWidth / 2 : (index / (recentPoints.length - 1)) * (chartWidth - 24) + 12

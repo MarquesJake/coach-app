@@ -20,7 +20,7 @@ Must ship:
 - Production health is boring: uptime check, demo login, seed data, no failing scheduled notifications, no broken onboarding route.
 - Dashboard tells the operator what to do today: blocked work, release requests, source review, active mandates, coach submissions.
 - Mandate workspace opens with a decisive board recommendation and a visible fit-detail path.
-- Club profile shows football context, coaching stability, season results, and ELO proxy trend.
+- Club profile shows football context, coaching stability, season results, and a season-results strength proxy trend.
 - Brighton, QPR, and Bolton demo mandates have believable club context, candidate universes, and recommendation rationale.
 - Top 8-12 coach profiles have credible career, tactical, leadership, risk, feasibility, and evidence coverage.
 - Investor demo script is rehearsable in under 12 minutes.
@@ -46,7 +46,7 @@ Must ship:
 - Demo data freeze 48 hours before the meeting.
 - One backup demo account and one backup local build.
 - Investor narrative: problem, live workflow, moat, data roadmap, commercial model, funding ask.
-- ELO story positioned honestly: current proxy for demo, provider-backed ingestion after budget.
+- ELO story positioned honestly: current season-results strength proxy for demo, provider-backed ingestion after budget.
 
 Should ship:
 
@@ -58,11 +58,11 @@ Could ship:
 
 - Small "why now" data slide: manager churn, appointment cost, fragmentation of evidence, growing club pressure.
 
-## ELO Trends Plan
+## ELO And Strength Trends Plan
 
 ### What We Can Demo Now
 
-We can show a transparent ELO proxy trend from existing club season data. It uses league position, points, and goal difference, then smooths those into a rating around a 1500 baseline. This is useful for:
+We can show a transparent season-results strength proxy from existing club season data. It uses league position, points, and goal difference, then smooths those into a rating around a 1500 baseline. This is useful for:
 
 - Showing whether the club environment is rising, stable, or declining.
 - Framing the appointment problem: rebuilding, sustaining momentum, or stopping decay.
@@ -74,7 +74,7 @@ True ELO should be generated from match-level results, opponent strength, home/a
 
 Recommended staging:
 
-- Demo stage: internal ELO proxy from stored season results.
+- Demo stage: internal season-results strength proxy from stored season results.
 - Seed stage: ingest ClubElo-style club ratings for relevant clubs and dates where permitted.
 - Paid data stage: ingest fixtures/results from API-Football or football-data.org and compute match-by-match club ELO.
 - Manager model stage: join fixtures to coach tenures and estimate manager-context movement versus baseline club trend.
@@ -105,7 +105,7 @@ Practical two-week budget:
 | Supabase project pause or degraded health | Demo cannot log in or load data | Supabase Pro, daily production smoke test, backup demo account |
 | API provider quota/rate limit | Sync or live enrichment fails | Pre-seed demo data and avoid live sync dependency during meeting |
 | Demo data looks thin | Investors see a shell, not a product | Freeze three strong mandate stories and eight credible coach profiles |
-| ELO claim overreaches | Trust damage with football/data-savvy investors | Label current feature as proxy; show proper ingestion roadmap |
+| ELO claim overreaches | Trust damage with football/data-savvy investors | Label current feature as a season-results strength proxy; show proper ingestion roadmap |
 | Confidentiality model unclear | Product seems risky for clubs/coaches | Emphasize source review, controlled release, role boundaries |
 | Too many screens | Demo feels sprawling | Use one spine: club signal -> mandate -> recommendation -> diligence -> controlled release |
 
@@ -113,7 +113,7 @@ Practical two-week budget:
 
 1. Start on Dashboard: "This is what the operator needs to move today."
 2. Open a live club/mandate: "The question is not who exists, it is who fits this specific board problem."
-3. Show club context and ELO proxy trend: "The club situation changes the appointment brief."
+3. Show club context and the season-results strength proxy trend: "The club situation changes the appointment brief."
 4. Show board recommendation: "We turn evidence into a decision, with confidence and risks visible."
 5. Open candidate detail/assessment pack: "Every conclusion is traceable and reviewable."
 6. Show intelligence workflow: "The moat is controlled evidence, not scraped public profiles."
