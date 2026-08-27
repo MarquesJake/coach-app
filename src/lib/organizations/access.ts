@@ -45,6 +45,10 @@ export const ANALYST_ROUTE_PREFIXES = [
   '/vacancies',
 ] as const
 
+export const NON_ANALYST_API_ROUTE_PREFIXES = [
+  '/api/private-materials',
+] as const
+
 export function isPublicApplicationPath(pathname: string): boolean {
   return (
     pathname === '/' ||
@@ -125,5 +129,12 @@ export function isAnalystRoute(pathname: string): boolean {
 }
 
 export function isAnalystApiRoute(pathname: string): boolean {
+  if (
+    NON_ANALYST_API_ROUTE_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    )
+  ) {
+    return false
+  }
   return !isPublicApplicationPath(pathname) && (pathname === '/api' || pathname.startsWith('/api/'))
 }

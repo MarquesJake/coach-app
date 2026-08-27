@@ -29,6 +29,7 @@ test('active club-only members are identified and kept out of analyst routes', (
   assert.equal(isAnalystApiRoute('/api/integrations/coaches/sync-english'), true)
   assert.equal(isAnalystApiRoute('/api/health'), false)
   assert.equal(isPublicApplicationPath('/api/health'), true)
+  assert.equal(isAnalystApiRoute('/api/private-materials/11111111-1111-4111-8111-111111111111'), false)
   assert.equal(isAnalystApiRoute('/auth/callback'), false)
 })
 
