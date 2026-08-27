@@ -10,7 +10,6 @@ import {
   Clock3,
   FileCheck2,
   MessageSquareText,
-  PackageCheck,
   Plus,
   SearchCheck,
   ShieldCheck,
@@ -70,6 +69,54 @@ const PROVENANCE_LABELS: Record<OperationsProvenance, string> = {
   coach_submitted: 'Coach submitted',
   club_request: 'Club request',
   public_source: 'Public source',
+}
+
+const FILTER_EMPTY_STATES: Record<
+  OperationsFilter,
+  { title: string; detail: string; href: string; cta: string }
+> = {
+  all: {
+    title: 'The desk is clear',
+    detail: 'No open operational work is waiting across appointments, reviews, releases or coach submissions.',
+    href: '/mandates/new',
+    cta: 'Create a mandate',
+  },
+  attention: {
+    title: 'No urgent work is waiting',
+    detail: 'Blocked, overdue, due-today and review items will appear here as soon as the desk needs intervention.',
+    href: '/dashboard',
+    cta: 'View all work',
+  },
+  mandates: {
+    title: 'No appointment actions are open',
+    detail: 'This queue fills from live mandate actions and post-appointment outcome reviews.',
+    href: '/mandates/new',
+    cta: 'Start a mandate',
+  },
+  review: {
+    title: 'No review queue is open',
+    detail: 'Pending claims and inbox findings will appear here when analyst judgement is needed.',
+    href: '/intelligence/inbox',
+    cta: 'Open inbox',
+  },
+  sources: {
+    title: 'No source follow-ups are open',
+    detail: 'Agent callbacks, trusted network follow-ups and reference round actions are all up to date.',
+    href: '/network',
+    cta: 'Open network',
+  },
+  releases: {
+    title: 'No release decisions are waiting',
+    detail: 'Confidential access requests and dossier release work will show here when a club needs controlled material.',
+    href: '/dossier-orders',
+    cta: 'Open dossiers',
+  },
+  coach: {
+    title: 'No coach submissions are waiting',
+    detail: 'Coach-owned profile updates, feasibility reviews and material submissions will surface here for analyst review.',
+    href: '/coach-portal',
+    cta: 'Open coach access',
+  },
 }
 
 function formatDate(value: string | null): string {
@@ -564,6 +611,15 @@ export default async function DashboardPage(
   const sortedItems = sortOperationsItems(items)
   const visibleItems = filterOperationsItems(sortedItems, filter)
   const counts = operationsCounts(sortedItems)
+  const filterCounts: Record<OperationsFilter, number> = {
+    all: counts.all,
+    attention: counts.attention,
+    mandates: counts.mandates,
+    review: counts.review,
+    sources: counts.sources,
+    releases: counts.releases,
+    coach: counts.coach,
+  }
   const actionsByMandate = new Map<string, OperationsItem[]>()
   for (const item of sortedItems.filter((entry) => entry.kind === 'mandate_action')) {
     if (!item.parentId) continue
@@ -607,13 +663,14 @@ export default async function DashboardPage(
         </div>
       )}
 
-      <div className="grid grid-cols-2 border-b border-border sm:grid-cols-5">
+      <div className="grid grid-cols-2 border-b border-border sm:grid-cols-3 xl:grid-cols-6">
         {[
           { label: 'Need action', value: counts.attention, icon: CircleAlert },
           { label: 'Overdue', value: counts.overdue, icon: Clock3 },
+          { label: 'Appointments', value: counts.mandates, icon: BriefcaseBusiness },
           { label: 'In review', value: counts.review, icon: SearchCheck },
           { label: 'Agents & sources', value: counts.sources, icon: Users },
-          { label: 'Release requests', value: counts.releases, icon: PackageCheck },
+          { label: 'Coach submissions', value: counts.coach, icon: UploadCloud },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="border-r border-border px-3 py-4 last:border-r-0 sm:px-4">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -637,7 +694,19 @@ export default async function DashboardPage(
                 : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
             )}
           >
-            {FILTER_LABELS[option]}
+            <span className="inline-flex items-center gap-2">
+              <span>{FILTER_LABELS[option]}</span>
+              <span
+                className={cn(
+                  'rounded-full px-1.5 py-0.5 text-[10px] tabular-nums',
+                  filter === option
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-secondary/60 text-muted-foreground'
+                )}
+              >
+                {filterCounts[option]}
+              </span>
+            </span>
           </Link>
         ))}
       </nav>
@@ -664,10 +733,13 @@ export default async function DashboardPage(
         ) : (
           <div className="px-5 py-12 text-center">
             <FileCheck2 className="mx-auto h-5 w-5 text-muted-foreground/60" />
-            <p className="mt-3 text-sm font-medium text-foreground">This view is clear</p>
+            <p className="mt-3 text-sm font-medium text-foreground">{FILTER_EMPTY_STATES[filter].title}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Completed work stays on its source record; only open operational work appears here.
+              {FILTER_EMPTY_STATES[filter].detail}
             </p>
+            <Link href={FILTER_EMPTY_STATES[filter].href} className="mt-4 inline-flex text-xs font-medium text-primary hover:underline">
+              {FILTER_EMPTY_STATES[filter].cta}
+            </Link>
           </div>
         )}
       </section>

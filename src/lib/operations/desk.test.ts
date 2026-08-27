@@ -62,13 +62,17 @@ test('counts keep review, source and release work distinct', () => {
     createOperationsItem({ ...base, id: 'review', lane: 'review', kind: 'finding_review', review: true }),
     createOperationsItem({ ...base, id: 'source', lane: 'sources', kind: 'source_follow_up' }),
     createOperationsItem({ ...base, id: 'release', lane: 'releases', kind: 'dossier_release' }),
+    createOperationsItem({ ...base, id: 'coach', lane: 'coach', kind: 'coach_submission' }),
   ]
   assert.deepEqual(operationsCounts(items), {
+    all: 5,
     attention: 2,
     overdue: 0,
+    mandates: 1,
     review: 1,
     sources: 1,
     releases: 1,
+    coach: 1,
   })
 })
 
