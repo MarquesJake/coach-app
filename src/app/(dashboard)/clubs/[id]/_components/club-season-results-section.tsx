@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { computeClubEloTrend, type EloTrendSummary } from '@/lib/analysis/elo-trends'
 
 type SeasonRow = {
   id: string
@@ -13,6 +14,7 @@ type SeasonRow = {
   goals_for: number | null
   goals_against: number | null
   data_source?: string
+  league_label?: string | null
 }
 
 // ── Performance trend chart ──────────────────────────────────────────────────
@@ -113,6 +115,91 @@ function PositionTrend({ rows }: { rows: SeasonRow[] }) {
   return <span className="inline-flex items-center gap-0.5 text-muted-foreground text-[10px]"><Minus className="w-3 h-3" />—</span>
 }
 
+function formatMovement(value: number | null): string {
+  if (value === null) return '—'
+  if (value > 0) return `+${value}`
+  return String(value)
+}
+
+const ELO_SIGNAL_STYLE: Record<EloTrendSummary['signal'], string> = {
+  rising: 'border-emerald-400/20 bg-emerald-400/10 text-emerald-400',
+  stable: 'border-amber-400/20 bg-amber-400/10 text-amber-400',
+  declining: 'border-red-400/20 bg-red-400/10 text-red-400',
+  'insufficient-data': 'border-border bg-surface text-muted-foreground',
+}
+
+function EloProxyTrend({ rows }: { rows: SeasonRow[] }) {
+  const trend = computeClubEloTrend(rows)
+  if (trend.points.length < 2) return null
+
+  const recentPoints = trend.points.slice(-6)
+  const ratings = recentPoints.map((point) => point.rating)
+  const minRating = Math.min(...ratings)
+  const maxRating = Math.max(...ratings)
+  const chartHeight = 76
+  const chartWidth = Math.max(220, recentPoints.length * 56)
+  const ratingRange = Math.max(maxRating - minRating, 1)
+  const path = recentPoints
+    .map((point, index) => {
+      const x = recentPoints.length === 1 ? chartWidth / 2 : (index / (recentPoints.length - 1)) * (chartWidth - 24) + 12
+      const y = chartHeight - ((point.rating - minRating) / ratingRange) * (chartHeight - 18) - 9
+      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`
+    })
+    .join(' ')
+
+  const signalLabel = trend.signal.replace('-', ' ')
+
+  return (
+    <div className="border-b border-border bg-surface/20 px-6 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ELO proxy trend</p>
+            <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${ELO_SIGNAL_STYLE[trend.signal]}`}>
+              {signalLabel}
+            </span>
+          </div>
+          <p className="mt-1 max-w-xl text-xs text-muted-foreground">{trend.interpretation}</p>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-right">
+          <div className="rounded border border-border bg-card px-3 py-2">
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Rating</p>
+            <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">{trend.currentRating}</p>
+          </div>
+          <div className="rounded border border-border bg-card px-3 py-2">
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground">1 season</p>
+            <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">{formatMovement(trend.oneSeasonMovement)}</p>
+          </div>
+          <div className="rounded border border-border bg-card px-3 py-2">
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground">3 season</p>
+            <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">{formatMovement(trend.threeSeasonMovement)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 overflow-x-auto">
+        <svg width={chartWidth} height={chartHeight + 24} className="shrink-0" aria-label="ELO proxy trend chart">
+          <path d={path} fill="none" stroke="currentColor" strokeWidth={2.5} className="text-primary" />
+          {recentPoints.map((point, index) => {
+            const x = recentPoints.length === 1 ? chartWidth / 2 : (index / (recentPoints.length - 1)) * (chartWidth - 24) + 12
+            const y = chartHeight - ((point.rating - minRating) / ratingRange) * (chartHeight - 18) - 9
+            const seasonShort = point.season.replace('/20', '/').replace(/^20/, "'")
+            return (
+              <g key={point.id}>
+                <circle cx={x} cy={y} r={4} className="fill-background stroke-primary" strokeWidth={2} />
+                <text x={x} y={chartHeight + 15} textAnchor="middle" className="fill-muted-foreground" fontSize={9}>
+                  {seasonShort}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+      <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">{trend.methodology}</p>
+    </div>
+  )
+}
+
 export function ClubSeasonResultsSection({ clubId }: { clubId: string }) {
   const [rows, setRows] = useState<SeasonRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -132,7 +219,7 @@ export function ClubSeasonResultsSection({ clubId }: { clubId: string }) {
     if (!user) { setLoading(false); return }
     const { data } = await supabase
       .from('club_season_results')
-      .select('id, season, league_position, points, goals_for, goals_against, data_source')
+      .select('id, season, league_position, points, goals_for, goals_against, data_source, league_label')
       .eq('club_id', clubId)
       .order('season', { ascending: false })
     setRows(((data ?? []) as unknown) as SeasonRow[])
@@ -272,6 +359,7 @@ export function ClubSeasonResultsSection({ clubId }: { clubId: string }) {
       )}
 
       {!loading && rows.length >= 2 && <PerformanceTrendChart rows={rows} />}
+      {!loading && rows.length >= 2 && <EloProxyTrend rows={rows} />}
 
       {loading ? (
         <div className="px-6 py-4">
