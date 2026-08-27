@@ -1787,8 +1787,19 @@ export function MandateWorkspaceClient({
   suggestions: SuggestedLonglistCandidate[]
 }) {
   // ── Pipeline state ─────────────────────────────────────────────────────────
-  const initialRecommendedId = getBoardCandidates(shortlist, longlistEntries).find((candidate) => candidate.source === 'shortlist')?.id
-  const [selectedId, setSelectedId] = useState<string | null>(initialRecommendedId ?? shortlist[0]?.id ?? null)
+  const initialBoardCandidate = getBoardCandidates(shortlist, longlistEntries)[0] ?? null
+  const initialRecommendationEntry =
+    initialBoardCandidate?.source === 'longlist'
+      ? longlistEntries.find((entry) => entry.id === initialBoardCandidate.id) ?? null
+      : null
+  const initialRecommendationFit = initialRecommendationEntry
+    ? parseRecommendationFit(initialRecommendationEntry.fit_explanation)
+    : null
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialBoardCandidate?.source === 'shortlist'
+      ? initialBoardCandidate.id
+      : shortlist[0]?.id ?? null
+  )
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
   const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
   const shortlistReady = shortlist.filter((c) => ['Shortlist', 'Interview', 'Final'].includes(c.candidate_stage)).length
@@ -1806,10 +1817,14 @@ export function MandateWorkspaceClient({
 
   // ── Recommendations state ──────────────────────────────────────────────────
   const [rightTab, setRightTab] = useState<'pipeline' | 'recommendations'>(
-    shortlist.length === 0 && longlistEntries.length > 0 ? 'recommendations' : 'pipeline'
+    initialRecommendationEntry && initialRecommendationFit
+      ? 'recommendations'
+      : shortlist.length === 0 && longlistEntries.length > 0
+        ? 'recommendations'
+        : 'pipeline'
   )
-  const [selectedRecoEntry, setSelectedRecoEntry] = useState<LonglistEntryData | null>(null)
-  const [selectedRecoFit, setSelectedRecoFit] = useState<ParsedFit | null>(null)
+  const [selectedRecoEntry, setSelectedRecoEntry] = useState<LonglistEntryData | null>(initialRecommendationEntry)
+  const [selectedRecoFit, setSelectedRecoFit] = useState<ParsedFit | null>(initialRecommendationFit)
   const [addingId, setAddingId] = useState<string | null>(null)
   const [addedThisSession, setAddedThisSession] = useState<Set<string>>(new Set())
 
