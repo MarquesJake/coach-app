@@ -78,6 +78,7 @@ check(
 
 const mandateWorkspace = readRequiredFile('src/app/(dashboard)/mandates/[id]/workspace/_components/mandate-workspace-client.tsx')
 const mandatePlan = readRequiredFile('src/app/(dashboard)/mandates/[id]/plan/page.tsx')
+const managerContextCard = readRequiredFile('src/app/(dashboard)/coaches/[id]/career/_components/manager-context-trends-card.tsx')
 const mandatesBoard = readRequiredFile('src/app/(dashboard)/mandates/_components/mandates-board.tsx')
 const clubSeasonResults = readRequiredFile('src/app/(dashboard)/clubs/[id]/_components/club-season-results-section.tsx')
 const sidebar = readRequiredFile('src/app/(dashboard)/_components/sidebar.tsx')
@@ -93,6 +94,10 @@ check(
 check(
   mandatePlan.includes('Decision memory') && mandatePlan.includes('post-appointment learning loop'),
   'Mandate plan must preserve the recommendation-to-outcome learning loop'
+)
+check(
+  managerContextCard.includes('Manager-context trends') && managerContextCard.includes('not manager ELO'),
+  'Coach career context must not present the season-results proxy as manager ELO'
 )
 check(
   !/brighton|qpr|bolton|Championship validation/i.test(mandatesBoard),

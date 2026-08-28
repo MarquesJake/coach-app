@@ -79,6 +79,10 @@ Return to **Pack**, then click **Open purchased preview** under Kieran McKenna.
 
 > "The moat is not a public coach profile or one model score. It is the decision memory: the mandate, evidence provenance, human recommendation, diligence gaps, board artifact and controlled release in one system. The live product also has a transparent season-results strength proxy. Investment adds provider-backed match data, club and manager ELO trajectories, broader evidence coverage and the team layer for paid pilots."
 
+If asked about manager ELO, open a coach **Career** tab and point to **Manager-context trends**.
+
+> "Today we show the club season-strength context overlapping each recorded tenure, with missing links and seasons visible. We explicitly do not call that manager ELO. Investment funds match-level attribution, opponent adjustment and a causal model that separates club baseline from manager effect."
+
 ## Do Not Click
 
 - Do not sign up a new user or run onboarding live.

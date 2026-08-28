@@ -134,11 +134,11 @@ Checked 2026-08-28 after production release `edb73e6`:
 
 ## Next Product Slices
 
-Shipped in the demo baseline: interactive board recommendation, West Ham/Kieran narrative gate, coach and mandate data coverage, and recommendation-to-outcome decision memory.
+Shipped in the demo baseline: interactive board recommendation, West Ham/Kieran narrative gate, coach and mandate data coverage, recommendation-to-outcome decision memory, and honest manager-context trend scaffolding.
 
-1. Add manager-context trend placeholders to coach career pages using stint dates and club trend data.
-2. Build authenticated production smoke-test automation for the final two-week run-in.
-3. Tighten controlled-release empty and error states for club and coach users.
+1. Build authenticated production smoke-test automation for the final two-week run-in.
+2. Tighten controlled-release empty and error states for club and coach users.
+3. Add match-level provider ingestion behind the manager-context model after the demo freeze.
 
 ## Source Links Checked
 

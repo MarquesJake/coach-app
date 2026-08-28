@@ -276,10 +276,16 @@ export async function refreshSimilarityForCoachAction(coachId: string): Promise<
 
 /** Upsert a coach stint (create or update). */
 export async function upsertStintAction(coachId: string, formData: FormData) {
-  await assertCoachOwnership(coachId)
+  const userId = await assertCoachOwnership(coachId)
   const supabase = await createServerSupabaseClient()
   const id = toStr(formData.get('id'))
-  const clubName = toStr(formData.get('club_name')) ?? ''
+  const requestedClubId = toStr(formData.get('club_id'))
+  const { data: linkedClub } = requestedClubId
+    ? await supabase.from('clubs').select('id, name').eq('id', requestedClubId).maybeSingle()
+    : { data: null }
+  if (requestedClubId && !linkedClub) return { error: 'Choose an accessible club record.' }
+  const clubName = linkedClub?.name ?? toStr(formData.get('club_name')) ?? ''
+  if (!clubName) return { error: 'Club name is required.' }
   const roleTitle = toStr(formData.get('role_title')) ?? ''
   const startedOn = toDateStr(formData.get('started_on'))
   const endedOn = toDateStr(formData.get('ended_on'))
@@ -288,8 +294,13 @@ export async function upsertStintAction(coachId: string, formData: FormData) {
   const pointsPerGame = toNum(formData.get('points_per_game'))
   const winRate = toNum(formData.get('win_rate'))
   const notableOutcomes = toStr(formData.get('notable_outcomes'))
+  const sourceConfidence = parseSourceConfidenceFromFormData(formData)
+  if (sourceConfidence.verified && !sourceConfidence.verified_by) {
+    sourceConfidence.verified_by = userId
+  }
   if (id) {
     const update: CoachStintUpdate = {
+      club_id: linkedClub?.id ?? null,
       club_name: clubName,
       role_title: roleTitle,
       started_on: startedOn,
@@ -299,12 +310,14 @@ export async function upsertStintAction(coachId: string, formData: FormData) {
       points_per_game: pointsPerGame,
       win_rate: winRate,
       notable_outcomes: notableOutcomes,
+      ...sourceConfidence,
     }
     const { error } = await supabase.from('coach_stints').update(update).eq('id', id).eq('coach_id', coachId)
     if (error) return { error: error.message }
   } else {
     const insert: CoachStintInsert = {
       coach_id: coachId,
+      club_id: linkedClub?.id ?? null,
       club_name: clubName,
       role_title: roleTitle,
       started_on: startedOn,
@@ -314,6 +327,7 @@ export async function upsertStintAction(coachId: string, formData: FormData) {
       points_per_game: pointsPerGame,
       win_rate: winRate,
       notable_outcomes: notableOutcomes,
+      ...sourceConfidence,
     }
     const { error } = await supabase.from('coach_stints').insert(insert)
     if (error) return { error: error.message }
