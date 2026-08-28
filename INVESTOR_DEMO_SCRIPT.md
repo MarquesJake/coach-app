@@ -73,7 +73,7 @@ Optionally click **Print / Save as PDF**. Cancel after showing the export dialog
 
 Return to **Pack**, then click **Open purchased preview** under Kieran McKenna.
 
-> "The club decision room receives the conclusion and dossier scope, but not the private files by default. Four confidential materials are held by Coach First. The request is active, and nothing is released until scope, commercial terms and coach permissions are approved."
+> "The club decision room receives the conclusion and dossier scope, but not the private files by default. Four confidential materials are held by Coach First. This demonstration release expired on 13 August, so the files are locked automatically. Renewing access requires a fresh operator decision and reviewed coach-permissioned files."
 
 ### 7. Close on the moat and roadmap (30s)
 

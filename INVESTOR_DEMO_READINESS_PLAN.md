@@ -100,7 +100,7 @@ Practical two-week budget:
 
 ## Production Environment Audit
 
-Checked 2026-08-28 after production release `edb73e6`:
+Checked 2026-08-28 against the current production baseline; rerun the audit after each intentional release:
 
 | Capability | Status | Action before demo |
 | --- | --- | --- |
@@ -108,7 +108,8 @@ Checked 2026-08-28 after production release `edb73e6`:
 | Transactional email | `RESEND_API_KEY` and `INVITATION_FROM_EMAIL` are not configured in the production Vercel project | Configure only if external invite delivery is part of the demo; existing demo accounts avoid this dependency |
 | Supabase migrations | Production migrations applied successfully on merge | No schema action required |
 | Live RLS CI | Static permission contracts pass; transaction-rollback matrix skipped because `SUPABASE_DB_PASSWORD` is absent from GitHub Actions | Add the repository secret and rerun the migration workflow before the final 48-hour freeze |
-| Production deployment | Both Vercel projects green; authenticated seven-page investor journey passed with no browser errors | Keep `edb73e6` as the verified application baseline until the next intentional release |
+| Production deployment | Both Vercel projects green; authenticated investor journey passed with no browser errors | Record the final production merge during the 48-hour freeze |
+| Authenticated smoke | Read-only eight-route script and manual GitHub workflow are available without a recurring schedule | Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `DEMO_SMOKE_EMAIL` and `DEMO_SMOKE_PASSWORD` repository secrets, then dispatch after each intentional release |
 
 ## Demo Risk Register
 
@@ -134,10 +135,10 @@ Checked 2026-08-28 after production release `edb73e6`:
 
 ## Next Product Slices
 
-Shipped in the demo baseline: interactive board recommendation, West Ham/Kieran narrative gate, coach and mandate data coverage, recommendation-to-outcome decision memory, and honest manager-context trend scaffolding.
+Shipped in the demo baseline: interactive board recommendation, West Ham/Kieran narrative gate, coach and mandate data coverage, recommendation-to-outcome decision memory, honest manager-context trend scaffolding, and fail-closed controlled-release states.
 
-1. Build authenticated production smoke-test automation for the final two-week run-in.
-2. Tighten controlled-release empty and error states for club and coach users.
+1. Add a dedicated demo-smoke account secret and automate the authenticated production path without storing credentials in code.
+2. Decide whether to renew the frozen West Ham release with reviewed files or retain expiry as the investor trust demonstration.
 3. Add match-level provider ingestion behind the manager-context model after the demo freeze.
 
 ## Source Links Checked

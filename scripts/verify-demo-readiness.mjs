@@ -79,6 +79,9 @@ check(
 const mandateWorkspace = readRequiredFile('src/app/(dashboard)/mandates/[id]/workspace/_components/mandate-workspace-client.tsx')
 const mandatePlan = readRequiredFile('src/app/(dashboard)/mandates/[id]/plan/page.tsx')
 const managerContextCard = readRequiredFile('src/app/(dashboard)/coaches/[id]/career/_components/manager-context-trends-card.tsx')
+const releaseState = readRequiredFile('src/lib/dossiers/release-state.ts')
+const clubDossier = readRequiredFile('src/app/(club)/club/dossiers/[id]/page.tsx')
+const authenticatedSmoke = readRequiredFile('scripts/verify-authenticated-demo.mjs')
 const mandatesBoard = readRequiredFile('src/app/(dashboard)/mandates/_components/mandates-board.tsx')
 const clubSeasonResults = readRequiredFile('src/app/(dashboard)/clubs/[id]/_components/club-season-results-section.tsx')
 const sidebar = readRequiredFile('src/app/(dashboard)/_components/sidebar.tsx')
@@ -98,6 +101,18 @@ check(
 check(
   managerContextCard.includes('Manager-context trends') && managerContextCard.includes('not manager ELO'),
   'Coach career context must not present the season-results proxy as manager ELO'
+)
+check(
+  releaseState.includes("state: 'expired'") && releaseState.includes('canViewMaterials: false'),
+  'Controlled release must fail closed when access expires'
+)
+check(
+  releaseState.includes("label: 'Access expired'") && clubDossier.includes("release.state === 'expired'") && clubDossier.includes('all files are locked'),
+  'Club dossier must explain expired access without exposing material links'
+)
+check(
+  authenticatedSmoke.includes('DEMO_SMOKE_EMAIL') && authenticatedSmoke.includes('DEMO_SMOKE_PASSWORD'),
+  'Authenticated smoke must use environment credentials rather than stored demo secrets'
 )
 check(
   !/brighton|qpr|bolton|Championship validation/i.test(mandatesBoard),

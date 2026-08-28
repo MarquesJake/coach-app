@@ -18,6 +18,7 @@ Do not demo broad browsing. The product should feel like a private appointment d
 - [ ] Run `npm run build`.
 - [ ] Run `npm run verify:production`.
 - [ ] Run `npm run verify:demo`.
+- [ ] After demo-smoke secrets are configured, run `npm run verify:demo:authenticated` or dispatch **Investor Demo Smoke** in GitHub Actions.
 - [ ] If `SUPABASE_DB_URL` is available, run `npm run test:rls:materials`.
 
 ## Demo Data Freeze
@@ -32,8 +33,8 @@ Do not demo broad browsing. The product should feel like a private appointment d
 
 ## Trust Boundary Freeze
 
-- [ ] Open a released club dossier and confirm confidential materials use `/api/private-materials/...` links.
-- [ ] Confirm private material links create short-lived signed URLs and do not expose storage paths.
+- [ ] Open the frozen club dossier and confirm the 13 August expiry is shown as `Access expired` with no released file links.
+- [ ] If the release is intentionally renewed before the demo, confirm material links use `/api/private-materials/...`, create short-lived signed URLs and never expose storage paths.
 - [ ] Confirm coach-uploaded material is labeled separately from independent intelligence.
 - [ ] Confirm analyst conclusions are not presented as automated verification.
 - [ ] Confirm source identities and raw notes do not appear in club-facing screens.
@@ -64,4 +65,4 @@ Do not demo broad browsing. The product should feel like a private appointment d
 - [ ] Browser tabs are preloaded and notifications are off.
 - [ ] Latest verified commit hash is written here:
 
-`verified application baseline: edb73e602b3ac44571b75922b9f45e152b65193f`
+`verified application baseline: record the final production merge during the 48-hour freeze`

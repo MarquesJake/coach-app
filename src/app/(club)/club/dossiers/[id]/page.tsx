@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, CheckCircle2, ExternalLink, FileText, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { getClubPortalContext } from '@/lib/organizations/context'
+import { resolveControlledRelease } from '@/lib/dossiers/release-state'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { submitDossierOrderAction } from '../../actions'
 
@@ -13,16 +14,22 @@ export default async function ClubDossierDetailPage(
   const context = await getClubPortalContext()
   if (!context) return null
   const supabase = await createServerSupabaseClient()
-  const { data: offer } = await supabase.from('dossier_offers').select('id, coach_name, coach_current_role, coach_nationality, verdict, confidence, private_material_count, preview_summary, fit_summary, key_strengths, key_risks, included_sections').eq('id', params.id).eq('buyer_organization_id', context.organizationId).single()
+  const { data: offer, error: offerError } = await supabase.from('dossier_offers').select('id, coach_name, coach_current_role, coach_nationality, verdict, confidence, private_material_count, preview_summary, fit_summary, key_strengths, key_risks, included_sections').eq('id', params.id).eq('buyer_organization_id', context.organizationId).maybeSingle()
+  if (offerError) throw new Error(`Failed to load club dossier: ${offerError.message}`)
   if (!offer) notFound()
-  const { data: orders } = await supabase.from('dossier_orders').select('id, status').eq('offer_id', offer.id).eq('buyer_organization_id', context.organizationId).limit(1)
-  const order = orders?.[0]
-  const { data: grants } = order ? await supabase.from('confidential_access_grants').select('id, status, expires_at, allow_download').eq('order_id', order.id).limit(1) : { data: [] }
-  const grant = grants?.[0]
-  const grantIsActive = grant?.status === 'active' && new Date(grant.expires_at).getTime() > Date.now()
-  const { data: materials } = grantIsActive
+  const { data: order, error: orderError } = await supabase.from('dossier_orders').select('id, status, expires_at').eq('offer_id', offer.id).eq('buyer_organization_id', context.organizationId).maybeSingle()
+  if (orderError) throw new Error(`Failed to load dossier request: ${orderError.message}`)
+  const grantsRes = order
+    ? await supabase.from('confidential_access_grants').select('id, status, expires_at, allow_download').eq('order_id', order.id).maybeSingle()
+    : { data: null, error: null }
+  if (grantsRes.error) throw new Error(`Failed to load dossier access: ${grantsRes.error.message}`)
+  const grant = grantsRes.data
+  const release = resolveControlledRelease(order, grant)
+  const materialsRes = release.canViewMaterials
     ? await supabase.rpc('list_released_private_materials', { target_order_id: order!.id })
-    : { data: [] }
+    : { data: [], error: null }
+  if (materialsRes.error) throw new Error(`Failed to load released materials: ${materialsRes.error.message}`)
+  const materials = materialsRes.data ?? []
   const sections = Array.isArray(offer.included_sections) ? offer.included_sections.filter((item): item is string => typeof item === 'string') : []
 
   return (
@@ -49,7 +56,7 @@ export default async function ClubDossierDetailPage(
           <div className="grid gap-4 md:grid-cols-2"><section className="rounded-md border border-border bg-card p-5"><h2 className="text-sm font-semibold text-foreground">What stands up</h2><p className="mt-3 whitespace-pre-line text-sm leading-7 text-muted-foreground">{offer.key_strengths ?? 'Strengths are detailed in the full assessment.'}</p></section><section className="rounded-md border border-border bg-card p-5"><h2 className="text-sm font-semibold text-foreground">What must be tested</h2><p className="mt-3 whitespace-pre-line text-sm leading-7 text-muted-foreground">{offer.key_risks ?? 'Risks and mitigations are detailed in the full assessment.'}</p></section></div>
           <section className="rounded-md border border-border bg-card p-5"><h2 className="text-sm font-semibold text-foreground">Included in the assessment dossier</h2><div className="mt-4 grid gap-2 sm:grid-cols-2">{sections.map((section) => <div key={section} className="flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" />{section}</div>)}</div></section>
 
-          {grantIsActive && <section className="rounded-md border border-emerald-700/25 bg-card p-5"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-700" /><h2 className="text-sm font-semibold text-foreground">Released confidential materials</h2></div><p className="mt-1 text-xs text-muted-foreground">Access expires {new Date(grant.expires_at).toLocaleDateString('en-GB')}. {grant.allow_download ? 'Downloads are permitted.' : 'Files open through short-lived controlled access.'}</p><div className="mt-4 divide-y divide-border/60">{(materials ?? []).map((material) => <div key={material.material_id} className="flex items-start justify-between gap-4 py-3"><div className="flex min-w-0 gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><FileText className="h-4 w-4 text-foreground" /></div><div><p className="text-sm font-medium text-foreground">{material.title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{material.description ?? material.material_type}</p><p className="mt-1 text-[10px] uppercase text-muted-foreground">{material.verification_status} · {material.material_type.replace('_', ' ')}</p></div></div><a href={`/api/private-materials/${material.material_id}?order=${order!.id}`} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-foreground">Open securely<ExternalLink className="h-3.5 w-3.5" /></a></div>)}</div></section>}
+          {release.canViewMaterials && grant && <section className="rounded-md border border-emerald-700/25 bg-card p-5"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-700" /><h2 className="text-sm font-semibold text-foreground">Released confidential materials</h2></div><p className="mt-1 text-xs text-muted-foreground">Access expires {new Date(grant.expires_at).toLocaleDateString('en-GB')}. {grant.allow_download ? 'Downloads are permitted.' : 'Files open through short-lived controlled access.'}</p><div className="mt-4 divide-y divide-border/60">{(materials ?? []).map((material) => <div key={material.material_id} className="flex items-start justify-between gap-4 py-3"><div className="flex min-w-0 gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary"><FileText className="h-4 w-4 text-foreground" /></div><div><p className="text-sm font-medium text-foreground">{material.title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{material.description ?? material.material_type}</p><p className="mt-1 text-[10px] uppercase text-muted-foreground">{material.verification_status} · {material.material_type.replace('_', ' ')}</p></div></div><a href={`/api/private-materials/${material.material_id}?order=${order!.id}`} target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-foreground">Open securely<ExternalLink className="h-3.5 w-3.5" /></a></div>)}</div></section>}
         </div>
 
         <aside>
@@ -60,7 +67,7 @@ export default async function ClubDossierDetailPage(
 
             {!order && <form action={submitDossierOrderAction} className="mt-5 space-y-4"><input type="hidden" name="offer_id" value={offer.id} /><label className="block"><span className="mb-1.5 block text-xs font-semibold text-foreground">Intended use</span><textarea name="intended_use" required rows={4} defaultValue="Board review before deciding whether to progress the candidate to final interview and reference stage." className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs leading-5 text-foreground" /></label><label className="block"><span className="mb-1.5 block text-xs font-semibold text-foreground">Club reference</span><input name="buyer_reference" placeholder="Board or process reference (optional)" className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground" /></label><button className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Request confidential dossier</button></form>}
 
-            {order && <div className="mt-5 space-y-3"><div className="rounded-md border border-border bg-background p-3"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Request status</p><p className="mt-1 text-sm font-semibold capitalize text-foreground">{order.status.replace('_', ' ')}</p></div>{grantIsActive ? <div className="flex items-start gap-2 rounded-md border border-emerald-700/20 bg-emerald-50 p-3 text-xs leading-5 text-emerald-950"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />Coach First has approved the release. Selected materials are unlocked on this page.</div> : <p className="text-xs leading-5 text-muted-foreground">Coach First is reviewing the scope and coach permissions. You will only see material after a controlled release is approved.</p>}</div>}
+            {order && <div className="mt-5 space-y-3"><div className="rounded-md border border-border bg-background p-3"><p className="text-[10px] font-semibold uppercase text-muted-foreground">Request status</p><p className="mt-1 text-sm font-semibold text-foreground">{release.label}</p></div>{release.state === 'active' ? <div className="flex items-start gap-2 rounded-md border border-emerald-700/20 bg-emerald-50 p-3 text-xs leading-5 text-emerald-950"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />Coach First has approved the release. Selected materials are unlocked on this page.</div> : release.state === 'expired' ? <p className="rounded-md border border-amber-700/20 bg-amber-50 p-3 text-xs leading-5 text-amber-950">The approved access window has ended and all files are locked. Ask Coach First to renew the controlled release.</p> : release.state === 'revoked' ? <p className="rounded-md border border-red-700/20 bg-red-50 p-3 text-xs leading-5 text-red-950">This release has been revoked and all files are locked. Contact Coach First if the board still requires access.</p> : release.state === 'declined' || release.state === 'cancelled' ? <p className="text-xs leading-5 text-muted-foreground">This request is closed. Contact Coach First privately if the appointment process requires a new scope.</p> : <p className="text-xs leading-5 text-muted-foreground">Coach First is reviewing the scope and coach permissions. You will only see material after a controlled release is approved.</p>}</div>}
           </div>
         </aside>
       </div>

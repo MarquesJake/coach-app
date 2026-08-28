@@ -1,0 +1,31 @@
+name: Investor Demo Smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: investor-demo-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      APP_BASE_URL: https://coach-app-seven-rose.vercel.app
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      DEMO_SMOKE_EMAIL: ${{ secrets.DEMO_SMOKE_EMAIL }}
+      DEMO_SMOKE_PASSWORD: ${{ secrets.DEMO_SMOKE_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install application dependencies
+        run: npm ci
+
+      - name: Verify the frozen authenticated journey
+        run: npm run verify:demo:authenticated

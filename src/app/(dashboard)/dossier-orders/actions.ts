@@ -101,6 +101,9 @@ export async function approveDossierOrderAction(formData: FormData): Promise<Act
   const permitDownload = formData.get('permit_download') === 'on'
   const releaseNote = String(formData.get('release_note') ?? '').trim()
   if (!orderId || !materialIds.length) return { ok: false, error: 'Select at least one material' }
+  if (!Number.isInteger(accessDays) || accessDays < 1 || accessDays > 365) {
+    return { ok: false, error: 'Access duration must be between 1 and 365 days' }
+  }
   const { error } = await supabase.rpc('approve_dossier_order', {
     target_order_id: orderId,
     material_ids: materialIds,
@@ -108,7 +111,7 @@ export async function approveDossierOrderAction(formData: FormData): Promise<Act
     permit_download: permitDownload,
     release_note: releaseNote || undefined,
   })
-  if (error) return { ok: false, error: error.message }
+  if (error) return { ok: false, error: 'The release could not be approved. Refresh the desk and confirm the selected files are still reviewed and available.' }
   revalidatePath('/dossier-orders')
   revalidatePath('/club')
   revalidatePath('/club/dossiers')
