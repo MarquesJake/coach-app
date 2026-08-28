@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CareerTab } from './_components/career-tab'
+import { ManagerContextTrendsCard } from './_components/manager-context-trends-card'
+import { computeManagerContextTrends } from '@/lib/analysis/manager-context-trends'
 import { getStageLabel } from '@/lib/constants/mandateStages'
 import { displayClubName } from '@/lib/display-names'
 
@@ -66,10 +68,10 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
   const { data: coach, error } = await getCoachById(user.id, params.id)
   if (error || !coach) notFound()
 
-  const [stintsRes, mandateRes] = await Promise.all([
+  const [stintsRes, mandateRes, clubsRes] = await Promise.all([
     supabase
       .from('coach_stints')
-      .select('id, club_name, role_title, started_on, ended_on, appointment_context, exit_context, points_per_game, win_rate, notable_outcomes, league')
+      .select('id, club_id, club_name, role_title, started_on, ended_on, appointment_context, exit_context, points_per_game, win_rate, notable_outcomes, league, source_type, source_name, source_link, source_notes, confidence, verified, verified_by')
       .eq('coach_id', params.id)
       .order('started_on', { ascending: false, nullsFirst: false }),
     supabase
@@ -83,14 +85,32 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
       `)
       .eq('coach_id', params.id)
       .eq('mandates.user_id', user.id),
+    supabase
+      .from('clubs')
+      .select('id, name')
+      .order('name'),
   ])
 
+  const queryError = stintsRes.error || mandateRes.error || clubsRes.error
+  if (queryError) throw new Error(`Failed to load coach career: ${queryError.message}`)
+
   const stints = stintsRes.data ?? []
+  const linkedClubIds = Array.from(new Set(stints.map((stint) => stint.club_id).filter((clubId): clubId is string => Boolean(clubId))))
+  const seasonResults = linkedClubIds.length
+    ? await supabase
+        .from('club_season_results')
+        .select('id, club_id, season, league_position, points, goals_for, goals_against, league_label')
+        .in('club_id', linkedClubIds)
+    : { data: [], error: null }
+  if (seasonResults.error) throw new Error(`Failed to load manager context: ${seasonResults.error.message}`)
+  const managerContext = computeManagerContextTrends(stints, seasonResults.data ?? [])
   const mandatePresence = (mandateRes.data ?? []) as unknown as MandateEntry[]
 
   return (
     <div className="space-y-6">
-      <CareerTab coachId={params.id} stints={stints} />
+      <CareerTab coachId={params.id} stints={stints} clubs={clubsRes.data ?? []} />
+
+      <ManagerContextTrendsCard summary={managerContext} />
 
       {/* ── Mandate Presence ────────────────────────────────────────────── */}
       <section className="rounded-lg border border-border bg-card p-6">

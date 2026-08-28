@@ -8,6 +8,7 @@ import { upsertStintAction, deleteStintAction } from '../../actions'
 
 type Stint = {
   id: string
+  club_id: string | null
   club_name: string
   role_title: string | null
   started_on: string | null
@@ -23,6 +24,8 @@ type Stint = {
   confidence?: number | null
   verified?: boolean
 }
+
+type ClubOption = { id: string; name: string }
 
 function formatDate(s: string | null | undefined): string {
   if (!s) return ''
@@ -145,9 +148,11 @@ function calcTrajectory(stints: Stint[]): { label: string; direction: 'up' | 'st
 export function CareerTab({
   coachId,
   stints,
+  clubs,
 }: {
   coachId: string
   stints: Stint[]
+  clubs: ClubOption[]
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<Stint | null>(null)
@@ -418,6 +423,18 @@ export function CareerTab({
         <form id="stint-form" onSubmit={handleSubmit} className="space-y-4">
           {submitError && <p className="text-sm text-destructive">{submitError}</p>}
           <input type="hidden" name="id" value={editing?.id ?? ''} />
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Linked club record</label>
+            <select
+              name="club_id"
+              defaultValue={editing?.club_id ?? ''}
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">No linked club</option>
+              {clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}
+            </select>
+            <p className="mt-1 text-[11px] text-muted-foreground">Links season history for manager-context analysis. Leave blank when the club record is ambiguous.</p>
+          </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Club name</label>
             <input
