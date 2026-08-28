@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { FileLock2, PackageCheck, ShieldCheck } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { resolveControlledRelease } from '@/lib/dossiers/release-state'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { ReleaseOrderForm } from './_components/release-order-form'
 import { RevokeOrderButton } from './_components/revoke-order-button'
@@ -15,18 +16,34 @@ export default async function DossierOrdersPage() {
   const sellerOrganizationId = await getInternalOrganizationId(user.id)
   if (!sellerOrganizationId) return <div className="rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">Create the Coach First organisation before publishing dossier offers.</div>
 
-  const [{ data: orders }, { data: orderCommercials }, { data: offers }] = await Promise.all([
+  const [ordersRes, orderCommercialsRes, offersRes] = await Promise.all([
     supabase.from('dossier_orders').select('id, offer_id, buyer_organization_id, coach_id, status, intended_use, ordered_at, expires_at').eq('seller_organization_id', sellerOrganizationId).order('ordered_at', { ascending: false }),
     supabase.from('dossier_order_commercials').select('order_id, price_amount, currency, payment_status').eq('seller_organization_id', sellerOrganizationId),
     supabase.from('dossier_offers').select('id, coach_name, headline, status, buyer_organization_id, mandate_id').eq('seller_organization_id', sellerOrganizationId).order('created_at', { ascending: false }),
   ])
+  const initialError = ordersRes.error || orderCommercialsRes.error || offersRes.error
+  if (initialError) throw new Error(`Failed to load dossier release desk: ${initialError.message}`)
+
+  const orders = ordersRes.data ?? []
+  const orderCommercials = orderCommercialsRes.data ?? []
+  const offers = offersRes.data ?? []
   const offerMap = new Map((offers ?? []).map((offer) => [offer.id, offer]))
   const commercialMap = new Map((orderCommercials ?? []).map((commercial) => [commercial.order_id, commercial]))
   const buyerIds = Array.from(new Set((offers ?? []).map((offer) => offer.buyer_organization_id)))
-  const { data: buyers } = buyerIds.length ? await supabase.from('organizations').select('id, name').in('id', buyerIds) : { data: [] }
+  const buyersRes = buyerIds.length ? await supabase.from('organizations').select('id, name').in('id', buyerIds) : { data: [], error: null }
+  if (buyersRes.error) throw new Error(`Failed to load dossier buyers: ${buyersRes.error.message}`)
+  const buyers = buyersRes.data ?? []
   const buyerMap = new Map((buyers ?? []).map((buyer) => [buyer.id, buyer.name]))
   const coachIds = Array.from(new Set((orders ?? []).map((order) => order.coach_id)))
-  const { data: materials } = coachIds.length ? await supabase.from('coach_private_materials').select('id, coach_id, title, material_type, verification_status, upload_status, storage_path, confidentiality_status').in('coach_id', coachIds).eq('verification_status', 'verified').eq('upload_status', 'uploaded').eq('confidentiality_status', 'available').not('storage_path', 'is', null).order('created_at') : { data: [] }
+  const materialsRes = coachIds.length ? await supabase.from('coach_private_materials').select('id, coach_id, title, material_type, verification_status, upload_status, storage_path, confidentiality_status').in('coach_id', coachIds).eq('verification_status', 'verified').eq('upload_status', 'uploaded').eq('confidentiality_status', 'available').not('storage_path', 'is', null).order('created_at') : { data: [], error: null }
+  if (materialsRes.error) throw new Error(`Failed to load releasable materials: ${materialsRes.error.message}`)
+  const materials = materialsRes.data ?? []
+  const orderIds = orders.map((order) => order.id)
+  const grantsRes = orderIds.length
+    ? await supabase.from('confidential_access_grants').select('order_id, status, expires_at, allow_download').in('order_id', orderIds)
+    : { data: [], error: null }
+  if (grantsRes.error) throw new Error(`Failed to load dossier grants: ${grantsRes.error.message}`)
+  const grantMap = new Map((grantsRes.data ?? []).map((grant) => [grant.order_id, grant]))
 
   return (
     <div className="mx-auto max-w-[1200px]">
@@ -37,12 +54,13 @@ export default async function DossierOrdersPage() {
           const offer = offerMap.get(order.offer_id)
           const commercial = commercialMap.get(order.id)
           const orderMaterials = (materials ?? []).filter((material) => material.coach_id === order.coach_id)
+          const release = resolveControlledRelease(order, grantMap.get(order.id))
           return (
             <article key={order.id} className="rounded-md border border-border bg-card p-5">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_150px_150px] lg:items-start">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded border border-amber-700/20 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-900">{order.status.replace('_', ' ')}</span>
+                    <span className="rounded border border-amber-700/20 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-900">{release.label}</span>
                     <span className="text-xs text-muted-foreground">{buyerMap.get(order.buyer_organization_id) ?? 'Club organisation'}</span>
                   </div>
                   <h2 className="mt-2 text-base font-semibold text-foreground">{offer?.coach_name ?? 'Coach dossier'}</h2>
@@ -58,7 +76,7 @@ export default async function DossierOrdersPage() {
                   {order.expires_at && <p className="mt-1 text-xs text-muted-foreground">Expires {new Date(order.expires_at).toLocaleDateString('en-GB')}</p>}
                 </div>
               </div>
-              {order.status === 'active' ? (
+              {release.state === 'active' ? (
                 <div className="mt-4 flex items-center justify-between gap-4 rounded-md border border-emerald-700/20 bg-emerald-50 p-4">
                   <div className="flex items-start gap-2">
                     <ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-800" />
@@ -66,9 +84,9 @@ export default async function DossierOrdersPage() {
                   </div>
                   <RevokeOrderButton orderId={order.id} />
                 </div>
-              ) : (
-                <ReleaseOrderForm orderId={order.id} materials={orderMaterials} />
-              )}
+              ) : release.canRelease ? (
+                <ReleaseOrderForm orderId={order.id} coachId={order.coach_id} materials={orderMaterials} />
+              ) : null}
             </article>
           )
         })}

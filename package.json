@@ -12,6 +12,7 @@
     "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
     "verify:production": "node scripts/verify-production.mjs",
     "verify:demo": "node scripts/verify-demo-readiness.mjs",
+    "verify:demo:authenticated": "node scripts/verify-authenticated-demo.mjs",
     "test:rls": "npm run test:rls:roles && npm run test:rls:onboarding && npm run test:rls:materials && npm run test:rls:corpus",
     "test:rls:corpus": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/internal_corpus_rls.sql",
     "test:rls:roles": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/club_identity_rls.sql",

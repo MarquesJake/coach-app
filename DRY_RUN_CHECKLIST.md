@@ -14,6 +14,7 @@ Verified application baseline: `edb73e602b3ac44571b75922b9f45e152b65193f`.
 ## Pre-Call
 
 - [ ] Run `npm run verify:production` and `npm run verify:demo`.
+- [ ] Run the manual **Investor Demo Smoke** GitHub workflow after configuring its Supabase URL, anon key and dedicated read-only demo-account credentials.
 - [ ] Confirm the deployed commit includes the investor-demo credibility branch.
 - [ ] Open Tab 1 at the production dashboard.
 - [ ] Open Tab 2 at Kieran McKenna's assessment pack as the fallback.
@@ -41,7 +42,7 @@ Verified application baseline: `edb73e602b3ac44571b75922b9f45e152b65193f`.
 - [ ] Kieran's assessment shows `9/9 criteria`, `9/9 complete`, five interview/reference records and four private materials.
 - [ ] The board pack labels illustrative analysis, synthetic interview answers and composite references honestly.
 - [ ] The pack lists four controlled materials and three composite reference records.
-- [ ] The club decision room shows four confidential materials held by Coach First and an active release request.
+- [ ] The club decision room shows four confidential materials held by Coach First and `Access expired`; no released file links are visible.
 
 ## What Not To Touch
 
@@ -59,7 +60,7 @@ Verified application baseline: `edb73e602b3ac44571b75922b9f45e152b65193f`.
 | Is the recommendation automated? | Evidence pull-through is automated; the analyst owns the judgement, confidence and verdict. |
 | Why is feasibility still open? | It is the honest next gate: compensation, staff, family, relocation and timing require direct permissioned checks. |
 | Where is ELO? | The live product uses a transparent season-results strength proxy. Funding adds provider-backed match ingestion and manager-context ELO trajectories. |
-| How is private material protected? | The club sees scope and status first. Files are released only after commercial scope and coach permissions are approved, through controlled short-lived access. |
+| How is private material protected? | The club sees scope and status first. Files are released only after commercial scope and coach permissions are approved, through controlled short-lived access. The frozen story deliberately shows an expired window with every file locked. |
 
 ## Pass Criteria
 

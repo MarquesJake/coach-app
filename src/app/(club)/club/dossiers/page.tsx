@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, FileLock2, LockKeyhole } from 'lucide-react'
 import { getClubPortalContext } from '@/lib/organizations/context'
+import { resolveControlledRelease } from '@/lib/dossiers/release-state'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 export default async function ClubDossiersPage(props: { searchParams: Promise<{ error?: string }> }) {
@@ -8,11 +9,21 @@ export default async function ClubDossiersPage(props: { searchParams: Promise<{ 
   const context = await getClubPortalContext()
   if (!context) return null
   const supabase = await createServerSupabaseClient()
-  const [{ data: offers }, { data: orders }] = await Promise.all([
+  const [offersRes, ordersRes] = await Promise.all([
     supabase.from('dossier_offers').select('id, coach_name, verdict, confidence, preview_summary, private_material_count').eq('buyer_organization_id', context.organizationId).in('status', ['published', 'purchased']).order('published_at', { ascending: false }),
     supabase.from('dossier_orders').select('id, offer_id, status, expires_at').eq('buyer_organization_id', context.organizationId),
   ])
+  const initialError = offersRes.error || ordersRes.error
+  if (initialError) throw new Error(`Failed to load club dossiers: ${initialError.message}`)
+  const offers = offersRes.data ?? []
+  const orders = ordersRes.data ?? []
   const orderMap = new Map((orders ?? []).map((order) => [order.offer_id, order]))
+  const orderIds = orders.map((order) => order.id)
+  const grantsRes = orderIds.length
+    ? await supabase.from('confidential_access_grants').select('order_id, status, expires_at, allow_download').in('order_id', orderIds)
+    : { data: [], error: null }
+  if (grantsRes.error) throw new Error(`Failed to load club dossier grants: ${grantsRes.error.message}`)
+  const grantMap = new Map((grantsRes.data ?? []).map((grant) => [grant.order_id, grant]))
 
   return (
     <div>
@@ -21,12 +32,13 @@ export default async function ClubDossiersPage(props: { searchParams: Promise<{ 
       <div className="mt-6 space-y-3">
         {(offers ?? []).map((offer) => {
           const order = orderMap.get(offer.id)
+          const release = resolveControlledRelease(order, order ? grantMap.get(order.id) : null)
           return (
             <Link key={offer.id} href={`/club/dossiers/${offer.id}`} className="block rounded-md border border-border bg-card p-5 transition-colors hover:bg-secondary/30">
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_150px_180px_20px] lg:items-center">
                 <div><div className="flex items-center gap-2"><span className="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{offer.verdict ?? 'Assessment'}</span><span className="text-xs text-muted-foreground">{offer.confidence ?? 0}% decision confidence</span></div><h2 className="mt-2 text-base font-semibold text-foreground">{offer.coach_name}</h2><p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">{offer.preview_summary}</p></div>
                 <div><p className="text-[10px] uppercase text-muted-foreground">Private depth</p><p className="mt-1 text-sm font-semibold text-foreground">{offer.private_material_count} controlled files</p></div>
-                <div className="flex items-center gap-2">{order?.status === 'active' ? <CheckCircle2 className="h-4 w-4 text-emerald-700" /> : order ? <FileLock2 className="h-4 w-4 text-amber-700" /> : <LockKeyhole className="h-4 w-4 text-muted-foreground" />}<div><p className="text-[10px] uppercase text-muted-foreground">Access</p><p className="mt-0.5 text-xs font-medium text-foreground">{order ? order.status.replace('_', ' ') : 'Preview only'}</p></div></div>
+                <div className="flex items-center gap-2">{release.state === 'active' ? <CheckCircle2 className="h-4 w-4 text-emerald-700" /> : order ? <FileLock2 className="h-4 w-4 text-amber-700" /> : <LockKeyhole className="h-4 w-4 text-muted-foreground" />}<div><p className="text-[10px] uppercase text-muted-foreground">Access</p><p className="mt-0.5 text-xs font-medium text-foreground">{release.label}</p></div></div>
                 <ArrowRight className="hidden h-4 w-4 text-muted-foreground lg:block" />
               </div>
             </Link>
