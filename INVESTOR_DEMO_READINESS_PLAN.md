@@ -34,7 +34,7 @@ Should ship:
 
 Could ship:
 
-- Simple outcome-memory placeholder: "decision record" and "post-appointment review" card.
+- Decision memory linking the recorded recommendation, club decision and scheduled post-appointment review.
 - Demo export pack refresh with the strongest candidate assessment.
 - One polished mobile path for a coach profile or club dossier.
 
@@ -134,11 +134,11 @@ Checked 2026-08-28 after production release `edb73e6`:
 
 ## Next Product Slices
 
-1. Make the board recommendation card interactive and state-synchronised.
-2. Keep the West Ham/Kieran narrative contract enforced in the repo by the demo gate, then validate the live records with the authenticated dry-run checklist.
-3. Add an investor-safe "Data coverage" badge to coach and mandate pages.
-4. Add manager-context trend placeholders to coach career pages using stint dates and club trend data.
-5. Build production smoke-test automation for the final two-week run-in.
+Shipped in the demo baseline: interactive board recommendation, West Ham/Kieran narrative gate, coach and mandate data coverage, and recommendation-to-outcome decision memory.
+
+1. Add manager-context trend placeholders to coach career pages using stint dates and club trend data.
+2. Build authenticated production smoke-test automation for the final two-week run-in.
+3. Tighten controlled-release empty and error states for club and coach users.
 
 ## Source Links Checked
 

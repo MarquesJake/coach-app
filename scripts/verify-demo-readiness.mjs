@@ -77,6 +77,7 @@ check(
 )
 
 const mandateWorkspace = readRequiredFile('src/app/(dashboard)/mandates/[id]/workspace/_components/mandate-workspace-client.tsx')
+const mandatePlan = readRequiredFile('src/app/(dashboard)/mandates/[id]/plan/page.tsx')
 const mandatesBoard = readRequiredFile('src/app/(dashboard)/mandates/_components/mandates-board.tsx')
 const clubSeasonResults = readRequiredFile('src/app/(dashboard)/clubs/[id]/_components/club-season-results-section.tsx')
 const sidebar = readRequiredFile('src/app/(dashboard)/_components/sidebar.tsx')
@@ -88,6 +89,10 @@ check(
 check(
   mandateWorkspace.includes('Decision coverage') && mandateWorkspace.includes('not independent verification'),
   'Mandate workspace must distinguish recorded decision coverage from independent verification'
+)
+check(
+  mandatePlan.includes('Decision memory') && mandatePlan.includes('post-appointment learning loop'),
+  'Mandate plan must preserve the recommendation-to-outcome learning loop'
 )
 check(
   !/brighton|qpr|bolton|Championship validation/i.test(mandatesBoard),

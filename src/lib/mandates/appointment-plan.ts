@@ -269,7 +269,7 @@ export function getNextFootballAction(
   return {
     label: 'Appointment plan complete',
     detail: 'No open gates or manual actions remain. Record the outcome and next review.',
-    hrefSuffix: '/pack',
+    hrefSuffix: '/plan#decision-memory',
     source: 'gate',
   }
 }

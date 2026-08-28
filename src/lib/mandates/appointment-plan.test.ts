@@ -70,3 +70,11 @@ test('completed manual work never displaces the next incomplete gate', () => {
   }], new Date('2026-07-17T12:00:00Z'))
   assert.equal(result.label, 'Controlled release')
 })
+
+test('a completed appointment plan moves into outcome memory', () => {
+  const gates = calculateAppointmentGates(completeFacts)
+  const result = getNextFootballAction(gates, [])
+
+  assert.equal(result.label, 'Appointment plan complete')
+  assert.equal(result.hrefSuffix, '/plan#decision-memory')
+})

@@ -19,6 +19,10 @@ Open **Mandates -> West Ham United -> Plan**.
 
 > "West Ham are planning a confidential succession contingency. Six of seven appointment gates are ready. The only open gate is appointment feasibility: compensation, staff, family, relocation and timing. The system shows what the board knows and what still has to be verified."
 
+Point to **Decision memory** without opening the form.
+
+> "The process does not stop at a recommendation. Coach First preserves what we recommended, what the club ultimately decided and the date for post-appointment review. That outcome memory is how each search improves the next one."
+
 ### 2. Show the mandate, not a database search (45s)
 
 Click **Brief**.
