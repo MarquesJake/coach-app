@@ -7,6 +7,7 @@ import {
   Circle,
   CircleDashed,
   Clock3,
+  Database,
   Plus,
   Settings2,
 } from 'lucide-react'
@@ -27,12 +28,21 @@ import {
   type PlanWorkItem,
   type ServiceModel,
 } from '@/lib/mandates/appointment-plan'
+import {
+  APPOINTMENT_OUTCOME_STATUSES,
+  APPOINTMENT_OUTCOME_STATUS_LABELS,
+  isAppointmentOutcomeStatus,
+  outcomeDecisionNote,
+  selectLeadRecommendation,
+} from '@/lib/mandates/appointment-outcome'
 import { getStageLabel } from '@/lib/constants/mandateStages'
+import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import { displayClubName } from '@/lib/display-names'
 import {
   addMandateWorkItemAction,
+  saveAppointmentOutcomeAction,
   updateMandatePlanSettingsAction,
   updateMandateWorkItemAction,
 } from './actions'
@@ -89,6 +99,7 @@ export default async function MandatePlanPage(
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  const organizationId = await getInternalOrganizationId(user.id)
 
   const { data: mandate, error: mandateError } = await supabase
     .from('mandates')
@@ -118,6 +129,7 @@ export default async function MandatePlanPage(
     feasibilityResult,
     actionsResult,
     releasesResult,
+    outcomeResult,
   ] = await Promise.all([
     supabase
       .from('candidate_assessments')
@@ -150,6 +162,14 @@ export default async function MandatePlanPage(
       .from('dossier_offers')
       .select('id')
       .eq('mandate_id', params.id),
+    organizationId
+      ? supabase
+          .from('appointment_outcomes')
+          .select('id, recommended_coach_id, appointed_coach_id, decision_verdict, decision_confidence, status, appointment_date, outcome_snapshot, next_review_at, updated_at')
+          .eq('org_id', organizationId)
+          .eq('mandate_id', params.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
   ])
 
   const queryError = [
@@ -160,6 +180,7 @@ export default async function MandatePlanPage(
     feasibilityResult.error,
     actionsResult.error,
     releasesResult.error,
+    outcomeResult.error,
   ].find(Boolean)
   if (queryError) throw new Error(`Failed to build appointment plan: ${queryError.message}`)
 
@@ -169,13 +190,8 @@ export default async function MandatePlanPage(
     coachMap.set(row.coach_id, coach?.name ?? 'Unknown coach')
   }
 
-  const verdictRank: Record<string, number> = { Proceed: 0, Target: 1, Shortlist: 2, Monitor: 3, Dismiss: 4 }
-  const recommendations = [...(recommendationsResult.data ?? [])].sort((a, b) => {
-    const verdictDelta = (verdictRank[a.verdict ?? ''] ?? 5) - (verdictRank[b.verdict ?? ''] ?? 5)
-    if (verdictDelta !== 0) return verdictDelta
-    return (b.confidence ?? 0) - (a.confidence ?? 0)
-  })
-  const lead = recommendations.find((row) => row.verdict !== 'Dismiss') ?? recommendations[0] ?? null
+  const recommendations = recommendationsResult.data ?? []
+  const lead = selectLeadRecommendation(recommendations)
   const leadCoachId = lead?.coach_id ?? null
   const leadCriteriaComplete = (assessmentsResult.data ?? []).filter(
     (row) => row.coach_id === leadCoachId && row.status === 'complete'
@@ -224,6 +240,10 @@ export default async function MandatePlanPage(
   const nextHref = nextAction.hrefSuffix.startsWith('#')
     ? nextAction.hrefSuffix
     : `/mandates/${params.id}${nextAction.hrefSuffix}`
+  const outcome = outcomeResult.data
+  const outcomeStatus = outcome && isAppointmentOutcomeStatus(outcome.status) ? outcome.status : 'pending'
+  const outcomeNote = outcomeDecisionNote(outcome?.outcome_snapshot)
+  const nextReviewDate = outcome?.next_review_at?.slice(0, 10) ?? ''
 
   return (
     <div className="mx-auto max-w-[1200px]">
@@ -267,6 +287,107 @@ export default async function MandatePlanPage(
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
+      </section>
+
+      <section id="decision-memory" className="mt-5 overflow-hidden rounded-lg border border-border bg-card">
+        <div className="flex flex-col justify-between gap-4 border-b border-border px-5 py-4 sm:flex-row sm:items-start">
+          <div className="flex gap-3">
+            <div className="mt-0.5 rounded-md border border-primary/20 bg-primary/10 p-2 text-primary">
+              <Database className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">Decision memory</p>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Recommendation to outcome</h2>
+              <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
+                Preserve what Coach First recommended, what the club decided and when the result must be reviewed. This creates the post-appointment learning loop without exposing the record to external portals.
+              </p>
+            </div>
+          </div>
+          <span className={cn(
+            'w-fit rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider',
+            outcomeStatus === 'appointed'
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+              : outcomeStatus === 'pending'
+                ? 'border-amber-300 bg-amber-50 text-amber-800'
+                : 'border-border bg-secondary/50 text-foreground'
+          )}>
+            {outcome ? APPOINTMENT_OUTCOME_STATUS_LABELS[outcomeStatus] : 'Awaiting club decision'}
+          </span>
+        </div>
+
+        <dl className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
+          <div className="bg-card px-5 py-4">
+            <dt className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Recommended</dt>
+            <dd className="mt-1 text-sm font-semibold text-foreground">{leadCoachId ? coachMap.get(leadCoachId) : 'Not recorded'}</dd>
+          </div>
+          <div className="bg-card px-5 py-4">
+            <dt className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Recommendation</dt>
+            <dd className="mt-1 text-sm font-semibold text-foreground">
+              {lead?.verdict ? `${lead.verdict}${lead.confidence !== null ? ` · ${lead.confidence}%` : ''}` : 'Not recorded'}
+            </dd>
+          </div>
+          <div className="bg-card px-5 py-4">
+            <dt className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Appointed</dt>
+            <dd className="mt-1 text-sm font-semibold text-foreground">
+              {outcome?.appointed_coach_id ? coachMap.get(outcome.appointed_coach_id) ?? 'Recorded coach' : 'Decision pending'}
+            </dd>
+          </div>
+          <div className="bg-card px-5 py-4">
+            <dt className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Next review</dt>
+            <dd className="mt-1 text-sm font-semibold text-foreground">
+              {nextReviewDate ? formatDate(nextReviewDate) : 'Not scheduled'}
+            </dd>
+          </div>
+        </dl>
+
+        {outcomeNote && (
+          <div className="border-t border-border px-5 py-4">
+            <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Board decision note</p>
+            <p className="mt-1 text-sm leading-6 text-foreground">{outcomeNote}</p>
+          </div>
+        )}
+
+        <details className="border-t border-border px-5 py-4">
+          <summary className="cursor-pointer list-none text-xs font-semibold text-primary">
+            {outcome ? 'Update decision record' : 'Record club decision'}
+          </summary>
+          <form action={saveAppointmentOutcomeAction} className="mt-4 grid gap-3 sm:grid-cols-2">
+            <input type="hidden" name="mandate_id" value={params.id} />
+            <label className="space-y-1">
+              <span className="text-[10px] font-semibold uppercase text-muted-foreground">Decision status</span>
+              <select name="status" defaultValue={outcomeStatus} className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground">
+                {APPOINTMENT_OUTCOME_STATUSES.map((status) => (
+                  <option key={status} value={status}>{APPOINTMENT_OUTCOME_STATUS_LABELS[status]}</option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-1">
+              <span className="text-[10px] font-semibold uppercase text-muted-foreground">Appointed coach</span>
+              <select name="appointed_coach_id" defaultValue={outcome?.appointed_coach_id ?? ''} className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground">
+                <option value="">No appointment recorded</option>
+                {Array.from(coachMap.entries()).map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+              </select>
+            </label>
+            <label className="space-y-1">
+              <span className="text-[10px] font-semibold uppercase text-muted-foreground">Appointment date</span>
+              <input type="date" name="appointment_date" defaultValue={outcome?.appointment_date ?? ''} className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground" />
+            </label>
+            <label className="space-y-1">
+              <span className="text-[10px] font-semibold uppercase text-muted-foreground">Post-appointment review</span>
+              <input type="date" name="next_review_date" required defaultValue={nextReviewDate} className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground" />
+            </label>
+            <label className="space-y-1 sm:col-span-2">
+              <span className="text-[10px] font-semibold uppercase text-muted-foreground">Board decision note</span>
+              <textarea name="decision_note" required minLength={10} rows={3} defaultValue={outcomeNote ?? ''} placeholder="Why the club followed or departed from the recommendation, and what should be tested at review." className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
+            </label>
+            <p className="text-xs leading-5 text-muted-foreground sm:col-span-2">
+              Appointment made and ended statuses require a shortlisted coach and appointment date. Every save snapshots the current recommendation and adds an audit-log entry.
+            </p>
+            <div className="flex justify-end sm:col-span-2">
+              <button type="submit" className="h-9 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Save decision record</button>
+            </div>
+          </form>
+        </details>
       </section>
 
       <details className="mt-4 border-b border-border pb-4">

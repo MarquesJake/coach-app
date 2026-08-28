@@ -4,6 +4,11 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { logActivity } from '@/lib/db/activity'
 import {
+  isAppointmentOutcomeStatus,
+  selectLeadRecommendation,
+  validateAppointmentOutcomeInput,
+} from '@/lib/mandates/appointment-outcome'
+import {
   ACTION_CATEGORIES,
   ACTION_PRIORITIES,
   ACTION_STATUSES,
@@ -12,7 +17,9 @@ import {
   type ActionPriority,
   type ActionStatus,
 } from '@/lib/mandates/appointment-plan'
+import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import type { Json } from '@/lib/types/db'
 
 function text(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -208,4 +215,120 @@ export async function updateMandateWorkItemAction(formData: FormData) {
 
   revalidateMandate(mandateId)
   redirect(planPath(mandateId, 'Action updated.'))
+}
+
+export async function saveAppointmentOutcomeAction(formData: FormData) {
+  const mandateId = text(formData, 'mandate_id')
+  const status = text(formData, 'status')
+  const appointedCoachId = optionalText(formData, 'appointed_coach_id')
+  const appointmentDate = optionalText(formData, 'appointment_date')
+  const nextReviewDate = optionalText(formData, 'next_review_date')
+  const decisionNote = text(formData, 'decision_note')
+  const { supabase, user } = await requireOwnedMandate(mandateId)
+  const organizationId = await getInternalOrganizationId(user.id)
+  if (!organizationId) redirect(planPath(mandateId, 'Internal organisation access is required.', 'error'))
+
+  const [mandateResult, shortlistResult, recommendationsResult, existingResult] = await Promise.all([
+    supabase
+      .from('mandates')
+      .select('custom_club_name, clubs(name)')
+      .eq('id', mandateId)
+      .single(),
+    supabase
+      .from('mandate_shortlist')
+      .select('coach_id, coaches(name)')
+      .eq('mandate_id', mandateId),
+    supabase
+      .from('candidate_recommendations')
+      .select('coach_id, verdict, confidence')
+      .eq('mandate_id', mandateId),
+    supabase
+      .from('appointment_outcomes')
+      .select('*')
+      .eq('org_id', organizationId)
+      .eq('mandate_id', mandateId)
+      .maybeSingle(),
+  ])
+
+  const queryError = mandateResult.error || shortlistResult.error || recommendationsResult.error || existingResult.error
+  if (queryError) redirect(planPath(mandateId, queryError.message, 'error'))
+
+  const shortlist = shortlistResult.data ?? []
+  const validationError = validateAppointmentOutcomeInput({
+    status,
+    appointedCoachId,
+    appointmentDate,
+    nextReviewDate,
+    decisionNote,
+    shortlistedCoachIds: shortlist.map((candidate) => candidate.coach_id),
+  })
+  if (validationError || !isAppointmentOutcomeStatus(status)) {
+    redirect(planPath(mandateId, validationError ?? 'Choose a valid decision status.', 'error'))
+  }
+
+  const coachNames = new Map(
+    shortlist.map((candidate) => [
+      candidate.coach_id,
+      (candidate.coaches as { name?: string } | null)?.name ?? 'Unknown coach',
+    ])
+  )
+  const lead = selectLeadRecommendation(recommendationsResult.data ?? [])
+  const club = mandateResult.data?.clubs as { name?: string } | null
+  const clubName = mandateResult.data?.custom_club_name || club?.name || 'Mandate'
+  const recordedAt = new Date().toISOString()
+  const snapshot: Json = {
+    version: 1,
+    recorded_at: recordedAt,
+    decision_note: decisionNote,
+    club_name: clubName,
+    recommendation: {
+      coach_id: lead?.coach_id ?? null,
+      coach_name: lead ? coachNames.get(lead.coach_id) ?? null : null,
+      verdict: lead?.verdict ?? null,
+      confidence: lead?.confidence ?? null,
+    },
+    appointment: {
+      coach_id: appointedCoachId,
+      coach_name: appointedCoachId ? coachNames.get(appointedCoachId) ?? null : null,
+      status,
+      appointment_date: appointmentDate,
+    },
+    review: { next_review_date: nextReviewDate },
+  }
+  const nextReviewAt = `${nextReviewDate}T09:00:00.000Z`
+  const payload = {
+    org_id: organizationId,
+    created_by: existingResult.data?.created_by ?? user.id,
+    mandate_id: mandateId,
+    recommended_coach_id: lead?.coach_id ?? null,
+    appointed_coach_id: appointedCoachId,
+    decision_verdict: lead?.verdict ?? null,
+    decision_confidence: lead?.confidence ?? null,
+    status,
+    appointment_date: appointmentDate,
+    outcome_snapshot: snapshot,
+    next_review_at: nextReviewAt,
+    updated_at: recordedAt,
+  }
+
+  const { error } = await supabase
+    .from('appointment_outcomes')
+    .upsert(payload, { onConflict: 'org_id,mandate_id' })
+  if (error) redirect(planPath(mandateId, error.message, 'error'))
+
+  const activityResult = await logActivity({
+    entityType: 'mandate',
+    entityId: mandateId,
+    actionType: existingResult.data ? 'appointment_outcome_updated' : 'appointment_outcome_recorded',
+    description: `Appointment outcome recorded as ${status.replaceAll('_', ' ')}`,
+    beforeData: existingResult.data as Record<string, unknown> | null,
+    afterData: payload as Record<string, unknown>,
+    metadata: { next_review_at: nextReviewAt, recommended_coach_id: lead?.coach_id ?? null, appointed_coach_id: appointedCoachId },
+  })
+
+  revalidateMandate(mandateId)
+  if (activityResult.error) {
+    redirect(planPath(mandateId, 'Decision record saved, but the audit entry needs attention.', 'error'))
+  }
+  redirect(planPath(mandateId, 'Decision record saved and outcome review scheduled.'))
 }
