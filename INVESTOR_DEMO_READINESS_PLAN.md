@@ -1,6 +1,6 @@
 # Coach First Investor Demo Readiness Plan
 
-Target demo window: two weeks from 2026-08-27.
+Target demo window: by 2026-09-10.
 
 ## Demo Objective
 
@@ -97,6 +97,18 @@ Practical two-week budget:
 - Minimum live-demo budget: $85-$150/month.
 - Safer investor-demo budget: $200-$500/month, including usage buffer and data/API experimentation.
 - Serious pilot budget: $750-$2,000/month once clubs, analysts, and data ingestion jobs are active.
+
+## Production Environment Audit
+
+Checked 2026-08-28 after production release `edb73e6`:
+
+| Capability | Status | Action before demo |
+| --- | --- | --- |
+| API-Football | Pro active, 7,500 requests/day; current period ends 2026-09-02 | Confirm automatic renewal or renew before 2 September; do not depend on a live sync during the meeting |
+| Transactional email | `RESEND_API_KEY` and `INVITATION_FROM_EMAIL` are not configured in the production Vercel project | Configure only if external invite delivery is part of the demo; existing demo accounts avoid this dependency |
+| Supabase migrations | Production migrations applied successfully on merge | No schema action required |
+| Live RLS CI | Static permission contracts pass; transaction-rollback matrix skipped because `SUPABASE_DB_PASSWORD` is absent from GitHub Actions | Add the repository secret and rerun the migration workflow before the final 48-hour freeze |
+| Production deployment | Both Vercel projects green; authenticated seven-page investor journey passed with no browser errors | Keep `edb73e6` as the verified application baseline until the next intentional release |
 
 ## Demo Risk Register
 

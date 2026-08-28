@@ -64,4 +64,4 @@ Do not demo broad browsing. The product should feel like a private appointment d
 - [ ] Browser tabs are preloaded and notifications are off.
 - [ ] Latest verified commit hash is written here:
 
-`commit: ______________________________`
+`verified application baseline: edb73e602b3ac44571b75922b9f45e152b65193f`
