@@ -9,6 +9,8 @@
 
 Authenticated production audit completed on 28 August 2026. The dashboard, appointment plan, mandate workspace, candidate room, assessment overview, Kieran McKenna assessment, board pack and club decision room loaded without browser errors.
 
+Verified application baseline: `edb73e602b3ac44571b75922b9f45e152b65193f`.
+
 ## Pre-Call
 
 - [ ] Run `npm run verify:production` and `npm run verify:demo`.

@@ -7,6 +7,15 @@ const baseUrl = new URL(
 
 const failures = []
 const warnings = []
+const observations = []
+
+if (existsSync('.env.local')) {
+  try {
+    process.loadEnvFile('.env.local')
+  } catch {
+    warnings.push('Could not load .env.local for local readiness checks')
+  }
+}
 
 function check(condition, message) {
   if (!condition) failures.push(message)
@@ -146,7 +155,39 @@ try {
   warnings.push('Could not inspect git status')
 }
 
-warn(Boolean(process.env.API_FOOTBALL_KEY?.trim()), 'API_FOOTBALL_KEY is not set; live football sync should not be used during demo')
+const apiFootballKey = process.env.API_FOOTBALL_KEY?.trim()
+if (!apiFootballKey) {
+  warnings.push('API_FOOTBALL_KEY is not loaded; live football sync should not be used during demo')
+} else {
+  try {
+    const response = await fetch('https://v3.football.api-sports.io/status', {
+      headers: { 'x-apisports-key': apiFootballKey },
+      signal: AbortSignal.timeout(10_000),
+    })
+    warn(response.ok, `API-Football status returned ${response.status}`)
+    if (response.ok) {
+      const body = await response.json()
+      const subscription = body.response?.subscription
+      const requests = body.response?.requests
+      warn(subscription?.active === true, 'API-Football subscription is not active')
+
+      const subscriptionEnd = Date.parse(subscription?.end || '')
+      if (Number.isFinite(subscriptionEnd)) {
+        const endDate = new Date(subscriptionEnd).toISOString().slice(0, 10)
+        warn(
+          subscriptionEnd > Date.now() + 14 * 24 * 60 * 60 * 1000,
+          `API-Football current subscription period ends ${endDate}; confirm renewal before the investor demo`
+        )
+      }
+
+      observations.push(
+        `API-Football ${subscription?.plan || 'subscription'} active; daily limit ${requests?.limit_day ?? 'unknown'}`
+      )
+    }
+  } catch {
+    warnings.push('Could not verify the API-Football subscription')
+  }
+}
 warn(Boolean(process.env.RESEND_API_KEY?.trim()), 'RESEND_API_KEY is not set; external invite emails may not send from this environment')
 warn(Boolean(process.env.SUPABASE_DB_URL?.trim()), 'SUPABASE_DB_URL is not set; DB-backed RLS smoke suites cannot run from this environment')
 
@@ -161,6 +202,10 @@ if (failures.length) {
 }
 
 console.log(`Investor demo readiness verified at ${baseUrl.origin}`)
+if (observations.length) {
+  console.log('\nEnvironment:')
+  for (const observation of observations) console.log(`- ${observation}`)
+}
 if (warnings.length) {
   console.log('\nWarnings:')
   for (const warning of warnings) console.log(`- ${warning}`)
