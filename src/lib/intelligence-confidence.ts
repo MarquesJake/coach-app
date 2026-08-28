@@ -42,7 +42,6 @@ export async function computeIntelligenceConfidence(
   const { data: items } = await supabase
     .from('intelligence_items')
     .select('confidence, source_tier, occurred_at')
-    .eq('user_id', userId)
     .eq('entity_type', 'coach')
     .eq('entity_id', coachId)
 

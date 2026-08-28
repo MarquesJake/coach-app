@@ -25,7 +25,7 @@ export default async function CoachStaffNetworkPage(props: { params: Promise<{ i
     : { data: [] }
   const staffMap = new Map((staffRows ?? []).map((s) => [s.id, s.full_name]))
 
-  const { data: allStaff } = await supabase.from('staff').select('id, full_name').eq('user_id', user.id).order('full_name')
+  const { data: allStaff } = await supabase.from('staff').select('id, full_name').order('full_name')
 
   return (
     <StaffNetworkSection

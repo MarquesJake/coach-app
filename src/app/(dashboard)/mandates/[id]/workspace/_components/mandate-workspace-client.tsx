@@ -235,6 +235,7 @@ type BoardCandidate = {
   club: string | null
   label: CandidateLabel | null
   source: 'shortlist' | 'longlist'
+  hasHumanRecommendation: boolean
   score: number | null
   confidence: number
   sourceCoverage: number
@@ -302,42 +303,36 @@ function normaliseAnalystReason(reason: string, source: BoardCandidate['source']
     : 'Shortlist evidence supports continued board review'
 }
 
-type MandateContext = 'brighton' | 'qpr' | 'promotion' | 'development' | 'generic'
+type MandateContext = 'identity' | 'promotion' | 'development' | 'generic'
 
 function mandateContext(mandateObjective: string | null): MandateContext {
   const objective = mandateObjective?.toLowerCase() ?? ''
-  if (/qpr/.test(objective)) return 'qpr'
-  if (/brighton/.test(objective)) return 'brighton'
-  if (/bolton/.test(objective)) return 'promotion'
-  if (/player trading|progressive football|progression|identity/.test(objective)) return 'brighton'
-  if (/academy|pathway|youth|young|player value|player growth/.test(objective)) return 'qpr'
+  if (/player trading|trading|progressive football|progression|identity|resale|future value/.test(objective)) return 'identity'
   if (/promotion|stability|efficiency|league one|reliability|efl/.test(objective)) return 'promotion'
-  if (/develop|development|academy|pathway|youth|young|value creation|player growth/.test(objective)) return 'development'
+  if (/develop|development|academy|pathway|youth|young|value creation|player value|player growth/.test(objective)) return 'development'
   return 'generic'
 }
 
 function boardWhy(candidate: BoardCandidate, mandateObjective: string | null): string[] {
   const context = mandateContext(mandateObjective)
-  const firstLine = context === 'brighton'
+  const firstLine = context === 'identity'
     ? 'Clear alignment with an identity-led brief, supported by progressive football and player trading signals'
     : context === 'promotion'
       ? 'Clear alignment with a promotion brief, supported by stability and league execution signals'
-      : context === 'qpr' || context === 'development'
+      : context === 'development'
         ? 'Clear alignment with a development-led brief, supported by available profile and pathway signals'
         : 'Clear alignment with mandate requirements, supported by current shortlist or scoring evidence'
 
-  const supportingLine = context === 'brighton'
+  const supportingLine = context === 'identity'
     ? 'Profile fit protects the playing model while keeping recruitment and resale logic central'
     : context === 'promotion'
       ? 'Profile points towards EFL execution, dressing room stability and efficient squad usage'
-      : context === 'qpr'
-        ? 'Profile suggests willingness to trust younger players in senior environments'
-        : normaliseAnalystReason(candidate.why[0] ?? '', candidate.source)
-  const contextualLine = context === 'brighton'
-    ? 'Recommendation protects the football identity while keeping player progression and resale value central'
+      : normaliseAnalystReason(candidate.why[0] ?? '', candidate.source)
+  const contextualLine = context === 'identity'
+    ? 'Leading profile protects the football identity while keeping player progression and resale value central'
     : context === 'promotion'
       ? 'Evidence points to a reliable operator for promotion pressure rather than pure stylistic upside'
-      : context === 'qpr' || context === 'development'
+      : context === 'development'
         ? 'Evidence indicates a squad-building profile oriented towards progression rather than short-term experience'
         : candidate.source === 'shortlist'
           ? 'Current pipeline position makes this the clearest appointment route for board discussion'
@@ -369,19 +364,19 @@ function boardRisk(candidate: BoardCandidate): string {
 
 function recommendationTradeOff(primary: BoardCandidate, mandateObjective: string | null): string {
   const explicitTradeOff = primary.comparisonNote?.match(/Recommendation favours[^.]+\./i)?.[0]
-  if (explicitTradeOff) return explicitTradeOff
+  if (explicitTradeOff) return explicitTradeOff.replace(/^Recommendation favours/i, 'Leading profile favours')
 
   const context = mandateContext(mandateObjective)
-  if (context === 'brighton') {
-    return 'Recommendation favours identity continuity and player trading upside over low-risk Premier League familiarity.'
+  if (context === 'identity') {
+    return 'Leading profile favours identity continuity and player trading upside over lower-variance league familiarity.'
   }
   if (context === 'promotion') {
-    return 'Recommendation favours promotion reliability and efficiency over high-upside tactical experimentation.'
+    return 'Leading profile favours promotion reliability and efficiency over high-upside tactical experimentation.'
   }
-  if (context === 'qpr' || context === 'development') {
-    return 'Recommendation favours long-term development upside over immediate Championship certainty.'
+  if (context === 'development') {
+    return 'Leading profile favours long-term development upside over immediate divisional certainty.'
   }
-  return 'Recommendation balances football upside against appointment realism and execution risk.'
+  return 'Leading profile balances football upside against appointment realism and execution risk.'
 }
 
 function recommendationConfidence(primary: BoardCandidate, secondary: BoardCandidate | null): 'High' | 'Medium' | 'Low' {
@@ -408,8 +403,8 @@ function alternativeOptionLine(primary: BoardCandidate, secondary: BoardCandidat
     return 'Represents a lower-risk but less development-focused option'
   }
   const context = mandateContext(mandateObjective)
-  if (context === 'brighton') {
-    return 'Offers a comparable identity fit with a different balance of Premier League certainty and player trading upside'
+  if (context === 'identity') {
+    return 'Offers a comparable identity fit with a different balance of divisional certainty and player trading upside'
   }
   if (context === 'promotion') {
     return 'Represents a practical EFL alternative with slightly lower promotion reliability evidence'
@@ -426,6 +421,7 @@ function buildShortlistBoardCandidate(candidate: Candidate, index: number): Boar
       club: candidate.coaches?.club_current ?? null,
       label: shortlistCandidateLabel(candidate),
       source: 'shortlist',
+      hasHumanRecommendation: true,
       score: shortlistDecisionScore(candidate),
       confidence: candidate.recommendation_confidence ?? candidate.placement_probability,
       sourceCoverage: shortlistSourceCoverage(candidate),
@@ -472,6 +468,7 @@ function buildShortlistBoardCandidate(candidate: Candidate, index: number): Boar
     club: candidate.coaches?.club_current ?? null,
     label: shortlistCandidateLabel(candidate),
     source: 'shortlist',
+    hasHumanRecommendation: false,
     score: candidate.placement_probability,
     confidence: candidate.placement_probability,
     sourceCoverage: shortlistSourceCoverage(candidate),
@@ -510,6 +507,7 @@ function buildLonglistBoardCandidate(entry: LonglistEntryData, index: number): B
       ...(fit?.concerns ?? []),
     ].filter(Boolean).join(' ')),
     source: 'longlist',
+    hasHumanRecommendation: false,
     score: entry.ranking_score,
     confidence,
     sourceCoverage,
@@ -536,15 +534,19 @@ function BoardRecommendation({
   shortlist,
   longlistEntries,
   mandateObjective,
+  onSelectCandidate,
 }: {
   shortlist: Candidate[]
   longlistEntries: LonglistEntryData[]
   mandateObjective: string | null
+  onSelectCandidate: (candidate: BoardCandidate) => void
 }) {
   const boardCandidates = getBoardCandidates(shortlist, longlistEntries)
   const primary = boardCandidates[0] ?? null
   const secondary = boardCandidates[1] ?? null
   const confidence = primary ? recommendationConfidence(primary, secondary) : null
+  const title = primary?.hasHumanRecommendation ? 'Board recommendation' : 'Current leading candidate'
+  const heading = primary?.hasHumanRecommendation ? 'Recommended candidate' : 'Leading evidence profile'
   const isMarginal = Boolean(
     primary &&
     secondary &&
@@ -556,7 +558,7 @@ function BoardRecommendation({
   if (!primary) {
     return (
       <section className="rounded-lg border border-border bg-card px-4 py-4">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Board recommendation</p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Candidate decision</p>
         <div className="mt-3 rounded-lg border border-dashed border-border bg-surface/40 px-4 py-5">
           <p className="text-sm font-semibold text-foreground">No viable candidates identified from current data</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -571,10 +573,12 @@ function BoardRecommendation({
     <section className="rounded-lg border border-border bg-card px-4 py-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Board recommendation</p>
-          <h2 className="mt-1 text-base font-semibold text-foreground">Recommended candidate</h2>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{title}</p>
+          <h2 className="mt-1 text-base font-semibold text-foreground">{heading}</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Recommendation based on strongest alignment with mandate and available evidence.
+            {primary.hasHumanRecommendation
+              ? 'Analyst recommendation based on strongest alignment with mandate and available evidence.'
+              : 'Evidence-led ranking from the current shortlist or market scoring. Confirm with analyst review before treating as a board decision.'}
           </p>
           <p className="mt-1 text-xs font-medium text-foreground">
             {recommendationTradeOff(primary, mandateObjective)}
@@ -602,9 +606,16 @@ function BoardRecommendation({
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_1fr_0.9fr]">
-        <div className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-3">
+        <button
+          type="button"
+          onClick={() => onSelectCandidate(primary)}
+          className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
           <p className="text-[10px] uppercase tracking-widest text-primary/80">{primary.rankLabel}</p>
-          <p className="mt-1 text-lg font-semibold text-foreground">{primary.name}</p>
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-lg font-semibold text-foreground">{primary.name}</p>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">Open evidence</span>
+          </div>
           <CandidateTypeBadge label={primary.label} />
           <p className="text-xs text-muted-foreground">{primary.club ?? 'Club context pending'}</p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -619,7 +630,7 @@ function BoardRecommendation({
               </span>
             )}
           </div>
-        </div>
+        </button>
 
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Why</p>
@@ -740,12 +751,12 @@ function contextualSuggestionLine(objective: string | null) {
 
 function scanCopy(objective: string | null) {
   const context = mandateContext(objective)
-  if (context === 'brighton') {
+  if (context === 'identity') {
     return {
       title: 'Identity and player trading scan',
       active: false,
       description: 'This scan type is not active yet. Curated candidates are shown through expert review.',
-      empty: 'Curated candidates currently carry the Brighton identity and player trading case. Add a dedicated scan later when player value evidence is connected.',
+      empty: 'Curated candidates currently carry this identity and player trading case. Add a dedicated scan later when player value evidence is connected.',
     }
   }
   if (context === 'promotion') {
@@ -1787,8 +1798,19 @@ export function MandateWorkspaceClient({
   suggestions: SuggestedLonglistCandidate[]
 }) {
   // ── Pipeline state ─────────────────────────────────────────────────────────
-  const initialRecommendedId = getBoardCandidates(shortlist, longlistEntries).find((candidate) => candidate.source === 'shortlist')?.id
-  const [selectedId, setSelectedId] = useState<string | null>(initialRecommendedId ?? shortlist[0]?.id ?? null)
+  const initialBoardCandidate = getBoardCandidates(shortlist, longlistEntries)[0] ?? null
+  const initialRecommendationEntry =
+    initialBoardCandidate?.source === 'longlist'
+      ? longlistEntries.find((entry) => entry.id === initialBoardCandidate.id) ?? null
+      : null
+  const initialRecommendationFit = initialRecommendationEntry
+    ? parseRecommendationFit(initialRecommendationEntry.fit_explanation)
+    : null
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialBoardCandidate?.source === 'shortlist'
+      ? initialBoardCandidate.id
+      : shortlist[0]?.id ?? null
+  )
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
   const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
   const shortlistReady = shortlist.filter((c) => ['Shortlist', 'Interview', 'Final'].includes(c.candidate_stage)).length
@@ -1806,10 +1828,14 @@ export function MandateWorkspaceClient({
 
   // ── Recommendations state ──────────────────────────────────────────────────
   const [rightTab, setRightTab] = useState<'pipeline' | 'recommendations'>(
-    shortlist.length === 0 && longlistEntries.length > 0 ? 'recommendations' : 'pipeline'
+    initialRecommendationEntry && initialRecommendationFit
+      ? 'recommendations'
+      : shortlist.length === 0 && longlistEntries.length > 0
+        ? 'recommendations'
+        : 'pipeline'
   )
-  const [selectedRecoEntry, setSelectedRecoEntry] = useState<LonglistEntryData | null>(null)
-  const [selectedRecoFit, setSelectedRecoFit] = useState<ParsedFit | null>(null)
+  const [selectedRecoEntry, setSelectedRecoEntry] = useState<LonglistEntryData | null>(initialRecommendationEntry)
+  const [selectedRecoFit, setSelectedRecoFit] = useState<ParsedFit | null>(initialRecommendationFit)
   const [addingId, setAddingId] = useState<string | null>(null)
   const [addedThisSession, setAddedThisSession] = useState<Set<string>>(new Set())
 
@@ -1832,6 +1858,23 @@ export function MandateWorkspaceClient({
   function handleSelectReco(entry: LonglistEntryData, fit: ParsedFit) {
     setSelectedRecoEntry(entry)
     setSelectedRecoFit(fit)
+  }
+
+  function handleSelectBoardCandidate(candidate: BoardCandidate) {
+    if (candidate.source === 'shortlist') {
+      setSelectedId(candidate.id)
+      setSelectedRecoEntry(null)
+      setSelectedRecoFit(null)
+      setRightTab('pipeline')
+      return
+    }
+
+    const entry = longlistEntries.find((item) => item.id === candidate.id)
+    const fit = entry ? parseRecommendationFit(entry.fit_explanation) : null
+    setSelectedId(null)
+    setSelectedRecoEntry(entry ?? null)
+    setSelectedRecoFit(fit)
+    setRightTab('recommendations')
   }
 
   // ── Center panel content ───────────────────────────────────────────────────
@@ -1887,6 +1930,7 @@ export function MandateWorkspaceClient({
         shortlist={shortlist}
         longlistEntries={longlistEntries}
         mandateObjective={mandate.strategic_objective}
+        onSelectCandidate={handleSelectBoardCandidate}
       />
       <SuggestedLonglistPanel
         mandateId={mandate.id}

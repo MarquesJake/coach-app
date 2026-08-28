@@ -26,7 +26,6 @@ export default async function AgentsPage({
   const { data: agents } = await supabase
     .from('agents')
     .select('id, full_name, agency_name, base_location, markets, influence_score, reliability_score, risk_flag, preferred_contact_channel, created_at')
-    .eq('user_id', user.id)
     .order('full_name')
 
   if (!agents || agents.length === 0) {
@@ -48,9 +47,9 @@ export default async function AgentsPage({
   const agentList: AgentInventoryAgent[] = agents
   const agentIds = agentList.map((a) => a.id)
   const [caCounts, acrCounts, lastInt] = await Promise.all([
-    supabase.from('coach_agents').select('agent_id').eq('user_id', user.id).in('agent_id', agentIds),
-    supabase.from('agent_club_relationships').select('agent_id').eq('user_id', user.id).in('agent_id', agentIds),
-    supabase.from('agent_interactions').select('agent_id, occurred_at').eq('user_id', user.id).in('agent_id', agentIds).order('occurred_at', { ascending: false }),
+    supabase.from('coach_agents').select('agent_id').in('agent_id', agentIds),
+    supabase.from('agent_club_relationships').select('agent_id').in('agent_id', agentIds),
+    supabase.from('agent_interactions').select('agent_id, occurred_at').in('agent_id', agentIds).order('occurred_at', { ascending: false }),
   ])
 
   const coachesCountByAgent: Record<string, number> = {}

@@ -15,6 +15,13 @@ export type OrganizationAccessProfile = {
   hasCoachIdentity: boolean
   isClubOnlyIdentity: boolean
   isCoachOnlyIdentity: boolean
+  /**
+   * The account carries no organization identity of any kind. Such an account
+   * must never fall through into the internal analyst application: analyst
+   * access is granted by active internal membership, never by the absence of
+   * a club or coach identity.
+   */
+  hasNoWorkspaceIdentity: boolean
 }
 
 export const ANALYST_ROUTE_PREFIXES = [
@@ -36,6 +43,10 @@ export const ANALYST_ROUTE_PREFIXES = [
   '/staff',
   '/succession',
   '/vacancies',
+] as const
+
+export const NON_ANALYST_API_ROUTE_PREFIXES = [
+  '/api/private-materials',
 ] as const
 
 export function isPublicApplicationPath(pathname: string): boolean {
@@ -85,8 +96,31 @@ export function classifyOrganizationAccess(
     hasCoachIdentity,
     isClubOnlyIdentity: hasClubIdentity && !hasActiveInternalAccess && !hasCoachIdentity,
     isCoachOnlyIdentity: hasCoachIdentity && !hasActiveInternalAccess && !hasClubIdentity,
+    hasNoWorkspaceIdentity:
+      !hasActiveInternalAccess && !hasClubIdentity && !hasCoachIdentity,
   }
 }
+
+/**
+ * The single authority for entering the internal analyst application. Analyst
+ * surfaces are permitted only on active internal membership, so an account with
+ * no membership at all is denied rather than admitted by default.
+ */
+export function canEnterAnalystApplication(
+  access: OrganizationAccessProfile
+): boolean {
+  return access.hasActiveInternalAccess
+}
+
+/** Where an authenticated account belongs when it cannot enter analyst surfaces. */
+export function resolveWorkspaceHome(access: OrganizationAccessProfile): string {
+  if (access.hasActiveInternalAccess) return '/dashboard/overview'
+  if (access.hasClubIdentity) return '/club'
+  if (access.hasCoachIdentity) return '/coach/profile'
+  return NO_WORKSPACE_PATH
+}
+
+export const NO_WORKSPACE_PATH = '/no-access'
 
 export function isAnalystRoute(pathname: string): boolean {
   return ANALYST_ROUTE_PREFIXES.some(
@@ -95,5 +129,12 @@ export function isAnalystRoute(pathname: string): boolean {
 }
 
 export function isAnalystApiRoute(pathname: string): boolean {
+  if (
+    NON_ANALYST_API_ROUTE_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    )
+  ) {
+    return false
+  }
   return !isPublicApplicationPath(pathname) && (pathname === '/api' || pathname.startsWith('/api/'))
 }

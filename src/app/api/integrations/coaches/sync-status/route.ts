@@ -158,7 +158,6 @@ export async function GET() {
     .from('coaches')
     .select('id, name, available_status')
     .in('name', targetNames)
-    .eq('user_id', user.id)
 
   if (!coaches?.length) {
     return NextResponse.json({ error: 'No matching coaches found' }, { status: 404 })

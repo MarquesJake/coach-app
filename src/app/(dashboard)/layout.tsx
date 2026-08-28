@@ -1,7 +1,10 @@
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getOrganizationAccessProfile } from '@/lib/organizations/context'
+import {
+  canEnterAnalystApplication,
+  resolveWorkspaceHome,
+} from '@/lib/organizations/access'
 import { Sidebar } from './_components/sidebar'
 
 export default async function DashboardLayout({
@@ -21,44 +24,15 @@ export default async function DashboardLayout({
     redirect('/club')
   }
 
-  const { data: clubs } = await supabase
-    .from('clubs')
-    .select('id')
-    .eq('user_id', user.id)
-    .limit(1)
-
-  const hasClub = clubs && clubs.length > 0
-
-  // Read current pathname from headers (set by Next.js middleware)
-  const headersList = await headers()
-  const pathname = headersList.get('x-pathname') || ''
-  const isSetupPage = pathname === '/dashboard/setup'
-
-  // No club and not on setup page → redirect to setup
-  if (!hasClub && !isSetupPage) {
-    redirect('/dashboard/setup')
+  // Defence in depth behind the middleware guard: analyst surfaces require an
+  // active internal membership, never merely the absence of another identity.
+  if (!canEnterAnalystApplication(organizationAccess)) {
+    redirect(resolveWorkspaceHome(organizationAccess))
   }
 
-  // On setup page → render with sidebar so Admin nav is always available
-  if (!hasClub && isSetupPage) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className="pt-14 md:pl-[220px] md:pt-0">
-          <main className="min-h-screen">
-            <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-6">
-              {children}
-            </div>
-          </main>
-        </div>
-      </div>
-    )
-  }
-
-  // Has club + on setup page → redirect away from setup to dashboard
-  if (hasClub && isSetupPage) {
-    redirect('/dashboard')
-  }
+  // Internal membership is the entry condition for the analyst application.
+  // Owning a personal club row is not: the workspace is the team's, so a new
+  // analyst joins a populated application rather than an empty setup form.
 
   return (
     <div className="min-h-screen bg-background">

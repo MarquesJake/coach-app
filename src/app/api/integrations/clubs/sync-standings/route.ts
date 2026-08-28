@@ -32,7 +32,6 @@ export async function POST() {
   const { data: clubs } = await supabase
     .from('clubs')
     .select('id, external_id')
-    .eq('user_id', user.id)
     .eq('external_source', 'api-football')
 
   const clubByApiId = new Map<string, string>()

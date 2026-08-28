@@ -1,10 +1,13 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import {
+  canEnterAnalystApplication,
   classifyOrganizationAccess,
   isAnalystApiRoute,
   isAnalystRoute,
   isPublicApplicationPath,
+  resolveWorkspaceHome,
+  NO_WORKSPACE_PATH,
 } from '@/lib/organizations/access'
 
 export async function updateSession(request: NextRequest) {
@@ -110,6 +113,17 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.json({ error: 'Analyst API access is not available to coach accounts.' }, { status: 403 })
   }
 
+  // Analyst surfaces are entered on active internal membership only. An account
+  // that holds no organization identity at all must be denied here: it is not a
+  // club identity and not a coach identity, so the checks above would otherwise
+  // admit it to the whole internal application.
+  if (!canEnterAnalystApplication(access) && isAnalystApiRoute(pathname)) {
+    return NextResponse.json(
+      { error: 'Analyst API access requires an active internal membership.' },
+      { status: 403 }
+    )
+  }
+
   // Club identities never enter the analyst application, including after
   // membership revocation. The club layout then renders the inactive state.
   if (access.isClubOnlyIdentity && isAnalystRoute(pathname)) {
@@ -121,6 +135,32 @@ export async function updateSession(request: NextRequest) {
   if (access.isCoachOnlyIdentity && isAnalystRoute(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/coach/profile'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+  if (!canEnterAnalystApplication(access) && isAnalystRoute(pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = resolveWorkspaceHome(access)
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+
+  // An account without any workspace has exactly one reachable destination.
+  // Public paths are left alone so that sign-out and the auth callback still
+  // complete rather than bouncing off this guard.
+  if (
+    access.hasNoWorkspaceIdentity &&
+    !isPublicPath &&
+    pathname !== NO_WORKSPACE_PATH
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = NO_WORKSPACE_PATH
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+  if (!access.hasNoWorkspaceIdentity && pathname === NO_WORKSPACE_PATH) {
+    const url = request.nextUrl.clone()
+    url.pathname = resolveWorkspaceHome(access)
     url.search = ''
     return NextResponse.redirect(url)
   }
@@ -180,11 +220,7 @@ export async function updateSession(request: NextRequest) {
 
   if (pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = access.isClubOnlyIdentity
-      ? '/club'
-      : access.isCoachOnlyIdentity
-        ? '/coach/profile'
-        : '/dashboard/overview'
+    url.pathname = resolveWorkspaceHome(access)
     url.search = ''
     return NextResponse.redirect(url)
   }

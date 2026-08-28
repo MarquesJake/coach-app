@@ -142,10 +142,13 @@ export function filterOperationsItems(
 
 export function operationsCounts(items: OperationsItem[]) {
   return {
+    all: items.length,
     attention: items.filter((item) => ['blocked', 'overdue', 'today', 'review'].includes(item.state)).length,
     overdue: items.filter((item) => item.state === 'overdue').length,
+    mandates: items.filter((item) => item.lane === 'mandates').length,
     review: items.filter((item) => item.lane === 'review').length,
     sources: items.filter((item) => item.lane === 'sources').length,
     releases: items.filter((item) => item.lane === 'releases').length,
+    coach: items.filter((item) => item.lane === 'coach').length,
   }
 }

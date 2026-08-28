@@ -133,7 +133,6 @@ export async function POST(_req: NextRequest, props: { params: Promise<{ clubId:
     .from('clubs')
     .select('id, name, wikidata_id, user_id')
     .eq('id', clubId)
-    .eq('user_id', user.id)
     .single()
 
   if (clubError || !club) return NextResponse.json({ error: 'Club not found' }, { status: 404 })
@@ -163,7 +162,6 @@ export async function POST(_req: NextRequest, props: { params: Promise<{ clubId:
     .from('club_coaching_history')
     .select('id, wikidata_id, data_source')
     .eq('club_id', clubId)
-    .eq('user_id', user.id)
     .not('wikidata_id', 'is', null)
 
   const existingByWdId = new Map(

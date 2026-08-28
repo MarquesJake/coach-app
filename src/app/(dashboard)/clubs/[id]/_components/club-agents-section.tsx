@@ -39,9 +39,8 @@ export function ClubAgentsSection({ clubId }: { clubId: string }) {
         supabase
           .from('agent_club_relationships')
           .select('id, agent_id, relationship_type, relationship_strength, last_active_on, agents(id, full_name, agency_name)')
-          .eq('club_id', clubId)
-          .eq('user_id', user.id),
-        supabase.from('agents').select('id, full_name, agency_name').eq('user_id', user.id).order('full_name'),
+          .eq('club_id', clubId),
+        supabase.from('agents').select('id, full_name, agency_name').order('full_name'),
       ])
       setLinks(((linksRes.data ?? []) as unknown) as LinkRow[])
       setAgentsOptions((agentsRes.data ?? []).map((a) => ({ id: a.id, full_name: a.full_name ?? null, agency_name: a.agency_name ?? null })))

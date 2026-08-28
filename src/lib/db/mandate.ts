@@ -30,7 +30,7 @@ type DeliverableInsert = {
   status: string
 }
 
-export async function getMandatesForUser(userId: string) {
+export async function getMandatesForTeam() {
   const supabase = await db()
   return supabase
     .from('mandates')
@@ -61,7 +61,6 @@ export async function getMandatesForUser(userId: string) {
       )
     `
     )
-    .eq('user_id', userId)
     .order('created_at', { ascending: false })
 }
 
@@ -166,7 +165,6 @@ export async function getMandateFitFields(userId: string, mandateId: string) {
        language_requirements, relocation_required, risk_tolerance`
     )
     .eq('id', mandateId)
-    .eq('user_id', userId)
     .single()
   return { data, error }
 }
@@ -199,7 +197,6 @@ export async function getMandateDetailForUser(userId: string, mandateId: string)
     `
     )
     .eq('id', mandateId)
-    .eq('user_id', userId)
     .single()
 
   if (mandateResult.error || !mandateResult.data) {
@@ -258,7 +255,6 @@ export async function addShortlistForUser(
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', userId)
     .single()
 
   if (mandateCheck.error || !mandateCheck.data) {
@@ -284,7 +280,6 @@ export async function addDeliverableForUser(
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', userId)
     .single()
 
   if (mandateCheck.error || !mandateCheck.data) {

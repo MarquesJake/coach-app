@@ -81,13 +81,12 @@ function optionalSourceRiskNotes(missingSources: string[]) {
 }
 
 export async function getMandateSuggestionsForUser(mandateId: string): Promise<SuggestionWithCoach[]> {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const { data: mandate } = await supabase
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
 
   if (!mandate) return []
@@ -101,7 +100,6 @@ export async function getMandateSuggestionsForUser(mandateId: string): Promise<S
       coaches ( name, club_current )
     `)
     .eq('mandate_id', mandateId)
-    .eq('user_id', user.id)
     .eq('suggestion_type', 'player_development')
     .neq('status', 'dismissed')
     .order('score', { ascending: false })
@@ -117,7 +115,6 @@ export async function generatePlayerDevelopmentSuggestions(mandateId: string): P
     .from('mandates')
     .select('id, strategic_objective')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
 
   if (!mandate) return { error: 'Mandate not found', count: 0 }
@@ -132,12 +129,10 @@ export async function generatePlayerDevelopmentSuggestions(mandateId: string): P
       .from('mandate_candidate_suggestions')
       .select('coach_id, status')
       .eq('mandate_id', mandateId)
-      .eq('user_id', user.id)
       .eq('suggestion_type', 'player_development'),
     supabase
       .from('coaches')
-      .select('id, name, club_current, player_development_model, academy_integration, development_score, intelligence_confidence')
-      .eq('user_id', user.id),
+      .select('id, name, club_current, player_development_model, academy_integration, development_score, intelligence_confidence'),
   ])
 
   const blockedCoachIds = new Set<string>([
@@ -226,7 +221,6 @@ export async function generatePlayerDevelopmentSuggestions(mandateId: string): P
   await supabase
     .from('coach_development_signals')
     .delete()
-    .eq('user_id', user.id)
     .eq('source_name', 'player_development_mvp')
     .in('coach_id', coachIds)
 
@@ -282,21 +276,20 @@ export async function generatePlayerDevelopmentSuggestions(mandateId: string): P
 }
 
 export async function addSuggestionToLonglist(suggestionId: string): Promise<{ error: string | null }> {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const { data: suggestion } = await supabase
     .from('mandate_candidate_suggestions')
     .select('id, mandate_id, coach_id, score, confidence, source_coverage, reason_tags, evidence_snippets, risk_notes, status')
     .eq('id', suggestionId)
-    .eq('user_id', user.id)
     .single()
 
   if (!suggestion) return { error: 'Suggestion not found' }
   if (suggestion.status === 'dismissed') return { error: 'Suggestion was dismissed' }
 
   const [{ data: mandate }, { data: coach }, { data: existingLonglist }, { data: existingShortlist }] = await Promise.all([
-    supabase.from('mandates').select('id').eq('id', suggestion.mandate_id).eq('user_id', user.id).single(),
-    supabase.from('coaches').select('id').eq('id', suggestion.coach_id).eq('user_id', user.id).single(),
+    supabase.from('mandates').select('id').eq('id', suggestion.mandate_id).single(),
+    supabase.from('coaches').select('id').eq('id', suggestion.coach_id).single(),
     supabase.from('mandate_longlist').select('id').eq('mandate_id', suggestion.mandate_id).eq('coach_id', suggestion.coach_id).maybeSingle(),
     supabase.from('mandate_shortlist').select('id').eq('mandate_id', suggestion.mandate_id).eq('coach_id', suggestion.coach_id).maybeSingle(),
   ])
@@ -331,7 +324,6 @@ export async function addSuggestionToLonglist(suggestionId: string): Promise<{ e
     .from('mandate_candidate_suggestions')
     .update({ status: 'added_to_longlist', added_at: new Date().toISOString() })
     .eq('id', suggestionId)
-    .eq('user_id', user.id)
 
   revalidatePath(`/mandates/${suggestion.mandate_id}`)
   revalidatePath(`/mandates/${suggestion.mandate_id}/workspace`)
@@ -340,13 +332,12 @@ export async function addSuggestionToLonglist(suggestionId: string): Promise<{ e
 }
 
 export async function dismissSuggestion(suggestionId: string): Promise<{ error: string | null }> {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const { data: suggestion } = await supabase
     .from('mandate_candidate_suggestions')
     .select('id, mandate_id')
     .eq('id', suggestionId)
-    .eq('user_id', user.id)
     .single()
 
   if (!suggestion) return { error: 'Suggestion not found' }
@@ -355,7 +346,6 @@ export async function dismissSuggestion(suggestionId: string): Promise<{ error: 
     .from('mandate_candidate_suggestions')
     .update({ status: 'dismissed', dismissed_at: new Date().toISOString() })
     .eq('id', suggestionId)
-    .eq('user_id', user.id)
 
   if (error) return { error: error.message }
 

@@ -15,7 +15,6 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
     .from('mandates')
     .select('id, custom_club_name, clubs(name)')
     .eq('id', params.id)
-    .eq('user_id', user.id)
     .single()
   if (!mandate) notFound()
 

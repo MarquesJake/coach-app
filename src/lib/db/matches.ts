@@ -17,7 +17,7 @@ export async function getMatchesForVacancy(vacancyId: string) {
 
 export async function getVacancyById(userId: string, vacancyId: string) {
   const supabase = await db()
-  const { data: clubs } = await supabase.from('clubs').select('id').eq('user_id', userId)
+  const { data: clubs } = await supabase.from('clubs').select('id')
   const clubIds = (clubs ?? []).map((c) => c.id)
   const { data, error } = await supabase
     .from('vacancies')
@@ -29,9 +29,9 @@ export async function getVacancyById(userId: string, vacancyId: string) {
   return { data, error: null }
 }
 
-export async function getVacanciesForUser(userId: string) {
+export async function getVacanciesForTeam() {
   const supabase = await db()
-  const { data: clubs } = await supabase.from('clubs').select('id').eq('user_id', userId)
+  const { data: clubs } = await supabase.from('clubs').select('id')
   const clubIds = (clubs ?? []).map((c) => c.id)
   if (clubIds.length === 0) return { data: [] as Database['public']['Tables']['vacancies']['Row'][], error: null }
   const { data, error } = await supabase

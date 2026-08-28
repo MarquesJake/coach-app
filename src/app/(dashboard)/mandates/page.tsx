@@ -6,12 +6,12 @@ import { MandatesBoard } from './_components/mandates-board'
 import type { MandateForBoard } from './_components/mandates-board'
 import { MandateToasts } from './_components/mandate-toasts'
 import { RealtimeMandatesListSubscriber } from './_components/realtime-mandates-list-subscriber'
-import { getMandatesForUser, getMandateBoardSignals } from '@/lib/db/mandate'
+import { getMandatesForTeam, getMandateBoardSignals } from '@/lib/db/mandate'
 import type { BoardSignal } from '@/lib/db/mandate'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { displayClubName } from '@/lib/display-names'
 
-type MandatesForUserRow = NonNullable<Awaited<ReturnType<typeof getMandatesForUser>>['data']>[number]
+type MandatesForUserRow = NonNullable<Awaited<ReturnType<typeof getMandatesForTeam>>['data']>[number]
 
 function clubForMandate(clubs: MandatesForUserRow['clubs']): { name: string | null } | null {
   if (Array.isArray(clubs)) return clubs[0] ?? null
@@ -28,7 +28,7 @@ export default async function MandatesPage() {
     redirect('/login')
   }
 
-  const { data: mandates, error } = await getMandatesForUser(user.id)
+  const { data: mandates, error } = await getMandatesForTeam()
 
   if (error) {
     throw new Error(`Failed to load mandates: ${error.message}`)

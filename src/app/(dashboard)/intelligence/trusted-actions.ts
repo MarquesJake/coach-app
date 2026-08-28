@@ -70,7 +70,7 @@ async function requireInternalContext() {
 }
 
 async function ownsCoach(db: any, userId: string, coachId: string) {
-  const { data } = await db.from('coaches').select('id').eq('id', coachId).eq('user_id', userId).maybeSingle()
+  const { data } = await db.from('coaches').select('id').eq('id', coachId).maybeSingle()
   return Boolean(data)
 }
 

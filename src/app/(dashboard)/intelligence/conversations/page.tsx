@@ -18,7 +18,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
   const [{ data: sessions }, { data: contacts }, { data: coaches }, { data: claims }] = await Promise.all([
     db.from('intelligence_sessions').select('*').eq('org_id', organizationId).order('occurred_at', { ascending: false }).limit(200),
     db.from('football_contacts').select('id, full_name').eq('org_id', organizationId).order('full_name'),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name'),
+    supabase.from('coaches').select('id, name').order('name'),
     db.from('profile_claims').select('session_id, review_status').eq('org_id', organizationId).not('session_id', 'is', null),
   ])
   const contactMap = new Map((contacts ?? []).map((row: { id: string; full_name: string }) => [row.id, row.full_name]))

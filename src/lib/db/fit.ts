@@ -9,7 +9,6 @@ export async function getCoachForFit(userId: string, coachId: string) {
       'id, name, preferred_name, availability_status, market_status, base_location, languages, relocation_flexibility, tactical_identity, pressing_intensity, build_preference, leadership_style, tactical_fit_score, leadership_score, recruitment_fit_score, media_risk_score, overall_manual_score, intelligence_confidence, legal_risk_flag, integrity_risk_flag, safeguarding_risk_flag, due_diligence_summary'
     )
     .eq('id', coachId)
-    .eq('user_id', userId)
     .single()
   return { data, error }
 }
@@ -20,7 +19,6 @@ export async function getEvidenceCountForCoach(userId: string, coachId: string):
   const { count, error } = await supabase
     .from('intelligence_items')
     .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
     .eq('entity_type', 'coach')
     .eq('entity_id', coachId)
   if (error) return 0
@@ -40,7 +38,6 @@ export async function upsertLonglistEntry(
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', userId)
     .single()
   if (!mandate) return 'Mandate not found'
 
@@ -69,7 +66,6 @@ export async function insertShortlistEntry(
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', userId)
     .single()
   if (!mandate) return 'Mandate not found'
 

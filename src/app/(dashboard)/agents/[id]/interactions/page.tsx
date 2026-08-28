@@ -16,8 +16,8 @@ export default async function AgentInteractionsPage({ params }: { params: Promis
 
   const [interactionsRes, coachesRes, clubsRes, claimsRes] = await Promise.all([
     listInteractionsForAgent(user.id, id),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name'),
-    supabase.from('clubs').select('id, name').eq('user_id', user.id).order('name'),
+    supabase.from('coaches').select('id, name').order('name'),
+    supabase.from('clubs').select('id, name').order('name'),
     supabase
       .from('profile_claims')
       .select('*')

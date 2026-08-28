@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
-import { getMandatesForUser } from '@/lib/db/mandate'
+import { getMandatesForTeam } from '@/lib/db/mandate'
 import { getEvidenceCountForCoach } from '@/lib/db/fit'
 import { computeCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-completeness'
 import { FitClient } from './_components/fit-client'
@@ -16,7 +16,7 @@ export default async function CoachFitPage(props: { params: Promise<{ id: string
   const { data: coach, error: coachError } = await getCoachById(user.id, params.id)
   if (coachError || !coach) notFound()
 
-  const { data: mandatesList } = await getMandatesForUser(user.id)
+  const { data: mandatesList } = await getMandatesForTeam()
   const mandates = (mandatesList ?? []).map((m: { id: string; custom_club_name?: string | null; clubs?: { name?: string | null } | null }) => ({
     id: m.id,
     label: displayClubName(m.custom_club_name, (m.clubs as { name?: string } | null)?.name, 'Mandate'),

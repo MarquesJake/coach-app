@@ -35,7 +35,6 @@ export default async function CandidateAssessmentPage(
     .from('mandates')
     .select('id, custom_club_name, clubs(name)')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
   if (!mandate) notFound()
 
@@ -52,7 +51,6 @@ export default async function CandidateAssessmentPage(
     .from('coaches')
     .select('id, name, club_current, nationality, coaching_licence, tactical_identity, preferred_style, availability_status')
     .eq('id', coachId)
-    .eq('user_id', user.id)
     .single()
   if (!coach) notFound()
 

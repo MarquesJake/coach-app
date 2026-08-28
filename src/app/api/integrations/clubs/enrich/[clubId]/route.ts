@@ -47,7 +47,6 @@ export async function POST(_req: NextRequest, props: { params: Promise<{ clubId:
     .from('clubs')
     .select('id, external_id, external_source, user_id, id_league')
     .eq('id', clubId)
-    .eq('user_id', user.id)
     .single()
 
   if (clubError || !club) {

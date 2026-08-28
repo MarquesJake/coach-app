@@ -22,7 +22,6 @@ export default async function StaffPage({
   const { data: staff } = await supabase
     .from('staff')
     .select('id, full_name, primary_role, specialties, notes, created_at')
-    .eq('user_id', user.id)
     .order('full_name')
 
   if (staff === null) return <PageState state="error" message="Failed to load staff" minHeight="sm" />

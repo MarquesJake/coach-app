@@ -27,7 +27,6 @@ export async function listCoachAgentsForCoach(userId: string, coachId: string) {
       created_at,
       agents ( id, full_name, agency_name )
     `)
-    .eq('user_id', userId)
     .eq('coach_id', coachId)
     .order('relationship_type')
   return { data: data ?? [], error }
@@ -50,7 +49,6 @@ export async function listCoachAgentsForAgent(userId: string, agentId: string) {
       created_at,
       coaches ( id, name, role_current, club_current )
     `)
-    .eq('user_id', userId)
     .eq('agent_id', agentId)
     .order('relationship_type')
   return { data: data ?? [], error }
@@ -67,7 +65,7 @@ export async function upsertCoachAgent(userId: string, payload: CoachAgentInsert
 
 export async function deleteCoachAgent(userId: string, id: string) {
   const supabase = await db()
-  return supabase.from('coach_agents').delete().eq('id', id).eq('user_id', userId)
+  return supabase.from('coach_agents').delete().eq('id', id)
 }
 
 export async function listAgentClubRelationshipsForAgent(userId: string, agentId: string) {
@@ -85,7 +83,6 @@ export async function listAgentClubRelationshipsForAgent(userId: string, agentId
       created_at,
       clubs ( id, name, league, country )
     `)
-    .eq('user_id', userId)
     .eq('agent_id', agentId)
     .order('relationship_strength', { ascending: false, nullsFirst: false })
   return { data: data ?? [], error }
@@ -102,5 +99,5 @@ export async function upsertAgentClubRelationship(userId: string, payload: Agent
 
 export async function deleteAgentClubRelationship(userId: string, id: string) {
   const supabase = await db()
-  return supabase.from('agent_club_relationships').delete().eq('id', id).eq('user_id', userId)
+  return supabase.from('agent_club_relationships').delete().eq('id', id)
 }

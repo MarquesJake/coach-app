@@ -29,8 +29,8 @@ export async function createStaffAction(input: { full_name: string; primary_role
 }
 
 export async function updateStaffAction(staffId: string, input: StaffUpdate) {
-  const { supabase, user } = await requireUser()
-  const { error } = await supabase.from('staff').update(input).eq('id', staffId).eq('user_id', user.id)
+  const { supabase } = await requireUser()
+  const { error } = await supabase.from('staff').update(input).eq('id', staffId)
   if (!error) {
     revalidatePath('/staff')
     revalidatePath(`/staff/${staffId}`)

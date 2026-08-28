@@ -114,7 +114,7 @@ export async function getCoachStintAndIntelCountsAction(): Promise<
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return {}
-  const { data: coaches } = await supabase.from('coaches').select('id').eq('user_id', user.id)
+  const { data: coaches } = await supabase.from('coaches').select('id')
   const ids = (coaches ?? []).map((c) => c.id)
   if (ids.length === 0) return {}
   const out: Record<string, { stintCount: number; intelligenceCount: number; researchCount: number }> = {}
@@ -202,7 +202,6 @@ export async function saveCoachDuplicateReviewAction(input: {
   const { data: ownedCoaches } = await supabase
     .from('coaches')
     .select('id')
-    .eq('user_id', user.id)
     .in('id', pair)
   if ((ownedCoaches ?? []).length !== 2) {
     return { ok: false, error: 'Both coach records must belong to your workspace' }

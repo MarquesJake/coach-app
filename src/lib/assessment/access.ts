@@ -22,7 +22,7 @@ export async function canAssessCandidate(
 ): Promise<boolean> {
   if (!userId || !mandateId || !coachId) return false
   const [mandate, shortlisted] = await Promise.all([
-    client.from('mandates').select('id').eq('id', mandateId).eq('user_id', userId).maybeSingle(),
+    client.from('mandates').select('id').eq('id', mandateId).maybeSingle(),
     client
       .from('mandate_shortlist')
       .select('coach_id')

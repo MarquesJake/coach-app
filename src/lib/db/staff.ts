@@ -7,12 +7,11 @@ type StaffUpdate = Database['public']['Tables']['staff']['Update']
 
 export type { StaffRow, StaffInsert, StaffUpdate }
 
-export async function getStaffForUser(userId: string) {
+export async function getStaffForTeam() {
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('staff')
     .select('*')
-    .eq('user_id', userId)
     .order('full_name', { ascending: true })
   return { data: (data ?? []) as StaffRow[], error }
 }
@@ -23,7 +22,6 @@ export async function getStaffById(userId: string, staffId: string) {
     .from('staff')
     .select('*')
     .eq('id', staffId)
-    .eq('user_id', userId)
     .single()
   return { data: data as StaffRow | null, error }
 }
@@ -39,5 +37,5 @@ export async function createStaff(userId: string, input: { full_name: string; pr
 
 export async function updateStaff(userId: string, staffId: string, input: StaffUpdate) {
   const supabase = await createServerSupabaseClient()
-  return supabase.from('staff').update(input).eq('id', staffId).eq('user_id', userId).select().single()
+  return supabase.from('staff').update(input).eq('id', staffId).select().single()
 }

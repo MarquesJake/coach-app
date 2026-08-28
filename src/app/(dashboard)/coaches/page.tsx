@@ -134,7 +134,6 @@ export default function CoachesPage() {
         supabase
           .from('coaches')
           .select('id, user_id, name, age, nationality, role_current, club_current, preferred_style, pressing_intensity, build_preference, leadership_style, wage_expectation, staff_cost_estimate, available_status, reputation_tier, league_experience, last_updated, placement_score, board_compatibility, ownership_fit, cultural_risk, agent_relationship, media_risk, overall_fit, tactical_fit, financial_feasibility, overall_manual_score, intelligence_confidence, media_style, preferred_systems')
-          .eq('user_id', user.id)
           .order('name'),
         getCoachStintAndIntelCountsAction(),
         getCoachDuplicateReviewsAction(),
@@ -176,7 +175,6 @@ export default function CoachesPage() {
       supabase
         .from('coaches')
         .select('id, user_id, name, age, nationality, role_current, club_current, preferred_style, pressing_intensity, build_preference, leadership_style, wage_expectation, staff_cost_estimate, available_status, reputation_tier, league_experience, last_updated, placement_score, board_compatibility, ownership_fit, cultural_risk, agent_relationship, media_risk, overall_fit, tactical_fit, financial_feasibility, overall_manual_score, intelligence_confidence, media_style, preferred_systems')
-        .eq('user_id', user.id)
         .order('name'),
       getCoachStintAndIntelCountsAction(),
       getCoachDuplicateReviewsAction(),

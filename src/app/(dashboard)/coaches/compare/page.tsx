@@ -54,7 +54,6 @@ export default async function CoachesComparePage({
   const { data: items } = await supabase
     .from('intelligence_items')
     .select('entity_id')
-    .eq('user_id', user.id)
     .eq('entity_type', 'coach')
     .in('entity_id', rawIds)
   for (const row of items ?? []) {

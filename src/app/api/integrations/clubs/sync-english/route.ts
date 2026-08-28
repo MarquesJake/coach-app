@@ -55,7 +55,6 @@ export async function POST() {
   const { data: existing } = await supabase
     .from('clubs')
     .select('id, name, external_id, external_source, tier, league')
-    .eq('user_id', user.id)
 
   const byExternalId = new Map<string, { id: string; tier: string | null; league: string }>()
   const byName = new Map<string, { id: string; tier: string | null; league: string }>()
@@ -134,7 +133,6 @@ export async function POST() {
           .from('clubs')
           .update(payload)
           .eq('id', existingRecord.id)
-          .eq('user_id', user.id)
         if (updateErr) {
           errors.push(`update ${team.name}: ${updateErr.message}`)
         } else {
@@ -160,7 +158,6 @@ export async function POST() {
   const { data: allClubs } = await supabase
     .from('clubs')
     .select('id, name, external_source')
-    .eq('user_id', user.id)
 
   const apiFootballNames = new Set(
     (allClubs ?? [])
@@ -173,7 +170,7 @@ export async function POST() {
 
   let cleaned = 0
   if (staleIds.length > 0) {
-    const { error: cleanupErr } = await supabase.from('clubs').delete().in('id', staleIds).eq('user_id', user.id)
+    const { error: cleanupErr } = await supabase.from('clubs').delete().in('id', staleIds)
     if (cleanupErr) errors.push(`cleanup duplicate stale: ${cleanupErr.message}`)
     else cleaned = staleIds.length
   }
@@ -183,7 +180,6 @@ export async function POST() {
   const { data: englishApiClubs } = await supabase
     .from('clubs')
     .select('id, external_id, league')
-    .eq('user_id', user.id)
     .eq('external_source', 'api-football')
     .eq('country', 'England')
     .in('league', leagueLabels)
@@ -194,7 +190,7 @@ export async function POST() {
 
   let removedStaleSeason = 0
   if (staleSeasonIds.length > 0) {
-    const { error: seasonCleanupErr } = await supabase.from('clubs').delete().in('id', staleSeasonIds).eq('user_id', user.id)
+    const { error: seasonCleanupErr } = await supabase.from('clubs').delete().in('id', staleSeasonIds)
     if (seasonCleanupErr) errors.push(`cleanup season stale: ${seasonCleanupErr.message}`)
     else removedStaleSeason = staleSeasonIds.length
   }

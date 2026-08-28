@@ -80,7 +80,6 @@ export default function ClubCoachesPage() {
     const { data } = await supabase
       .from('club_coaching_history')
       .select('*')
-      .eq('user_id', user.id)
       .eq('club_id', clubId)
       .order('start_date', { ascending: false })
     setRows(((data ?? []) as unknown) as HistoryRow[])

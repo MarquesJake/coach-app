@@ -39,7 +39,6 @@ export default async function MandateWorkspacePage(props: { params: Promise<{ id
       )
     `)
     .eq('id', params.id)
-    .eq('user_id', user.id)
     .single()
 
   if (mandateError || !mandate) notFound()
@@ -115,7 +114,6 @@ export default async function MandateWorkspacePage(props: { params: Promise<{ id
         .from('club_season_results')
         .select('season, league_position, points, goals_for, goals_against')
         .eq('club_id', clubId)
-        .eq('user_id', user.id)
         .order('season', { ascending: true })
         .limit(8)
     : { data: [] }
@@ -126,7 +124,6 @@ export default async function MandateWorkspacePage(props: { params: Promise<{ id
         .from('club_coaching_history')
         .select('coach_name, start_date, end_date, reason_for_exit, style_tags, data_source')
         .eq('club_id', clubId)
-        .eq('user_id', user.id)
         .order('start_date', { ascending: true })
         .limit(10)
     : { data: [] }
@@ -151,7 +148,6 @@ export default async function MandateWorkspacePage(props: { params: Promise<{ id
       .from('coaches')
       .select('id, name, available_status, club_current')
       .in('id', coachIds)
-      .eq('user_id', user.id)
 
     const coachMap = new Map((coachMeta ?? []).map((c) => [c.id, c]))
     for (const entry of longlistRaw) {

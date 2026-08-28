@@ -20,7 +20,7 @@ export default async function ContactDetailPage(props: { params: Promise<{ id: s
     db.from('contact_coach_relationships').select('*').eq('contact_id', params.id).eq('org_id', organizationId).order('created_at', { ascending: false }),
     db.from('intelligence_sessions').select('id, coach_id, title, intake_method, occurred_at, processing_status').eq('contact_id', params.id).eq('org_id', organizationId).order('occurred_at', { ascending: false }),
     db.from('profile_claims').select('id, coach_id, session_id, claimed_value, review_status, evidence_strength, external_visibility').eq('contact_id', params.id).eq('org_id', organizationId).is('deleted_at', null).order('created_at', { ascending: false }),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name'),
+    supabase.from('coaches').select('id, name').order('name'),
   ])
   if (!contact) notFound()
   const coachMap = new Map((coaches ?? []).map((coach) => [coach.id, coach.name]))

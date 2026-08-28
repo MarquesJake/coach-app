@@ -7,12 +7,11 @@ type AgentUpdate = Database['public']['Tables']['agents']['Update']
 
 export type { AgentRow, AgentInsert, AgentUpdate }
 
-export async function getAgentsForUser(userId: string) {
+export async function getAgentsForTeam() {
   const supabase = await db()
   return supabase
     .from('agents')
     .select('*')
-    .eq('user_id', userId)
     .order('full_name', { ascending: true })
 }
 
@@ -22,7 +21,6 @@ export async function getAgentById(userId: string, agentId: string) {
     .from('agents')
     .select('*')
     .eq('id', agentId)
-    .eq('user_id', userId)
     .single()
   return { data: data as AgentRow | null, error }
 }
@@ -42,14 +40,13 @@ export async function updateAgent(userId: string, agentId: string, input: AgentU
     .from('agents')
     .update({ ...input, updated_at: new Date().toISOString() })
     .eq('id', agentId)
-    .eq('user_id', userId)
     .select()
     .single()
 }
 
 export async function deleteAgent(userId: string, agentId: string) {
   const supabase = await db()
-  return supabase.from('agents').delete().eq('id', agentId).eq('user_id', userId)
+  return supabase.from('agents').delete().eq('id', agentId)
 }
 
 export async function getAgentCounts(
@@ -58,9 +55,9 @@ export async function getAgentCounts(
 ): Promise<{ coachesCount: number; clubsCount: number; lastInteractionAt: string | null }> {
   const supabase = await db()
   const [ca, acr, last] = await Promise.all([
-    supabase.from('coach_agents').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('agent_id', agentId),
-    supabase.from('agent_club_relationships').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('agent_id', agentId),
-    supabase.from('agent_interactions').select('occurred_at').eq('user_id', userId).eq('agent_id', agentId).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('coach_agents').select('id', { count: 'exact', head: true }).eq('agent_id', agentId),
+    supabase.from('agent_club_relationships').select('id', { count: 'exact', head: true }).eq('agent_id', agentId),
+    supabase.from('agent_interactions').select('occurred_at').eq('agent_id', agentId).order('occurred_at', { ascending: false }).limit(1).maybeSingle(),
   ])
   return {
     coachesCount: ca.count ?? 0,
@@ -77,7 +74,6 @@ export async function listAgentDealsForAgent(userId: string, agentId: string) {
   const { data, error } = await supabase
     .from('agent_deals')
     .select('*')
-    .eq('user_id', userId)
     .eq('agent_id', agentId)
     .order('occurred_on', { ascending: false, nullsFirst: false })
   return { data: (data ?? []) as AgentDealRow[], error }
@@ -90,5 +86,5 @@ export async function createAgentDeal(userId: string, input: Omit<AgentDealInser
 
 export async function deleteAgentDeal(userId: string, id: string) {
   const supabase = await db()
-  return supabase.from('agent_deals').delete().eq('id', id).eq('user_id', userId)
+  return supabase.from('agent_deals').delete().eq('id', id)
 }

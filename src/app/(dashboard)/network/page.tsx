@@ -16,7 +16,7 @@ export default async function NetworkPage() {
     db.from('football_contacts').select('*').eq('org_id', organizationId).order('full_name'),
     db.from('contact_coach_relationships').select('contact_id').eq('org_id', organizationId),
     db.from('intelligence_sessions').select('contact_id').eq('org_id', organizationId),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id).order('name'),
+    supabase.from('coaches').select('id, name').order('name'),
   ])
   const relationshipCounts = new Map<string, number>()
   for (const row of relationships ?? []) relationshipCounts.set(row.contact_id, (relationshipCounts.get(row.contact_id) ?? 0) + 1)

@@ -118,7 +118,6 @@ export default async function IntelligencePage() {
     supabase
       .from('intelligence_items')
       .select('id, title, detail, entity_type, entity_id, source_name, source_type, source_tier, confidence, occurred_at, created_at, verified, direction, sensitivity, source_expires_at')
-      .eq('user_id', user.id)
       .eq('is_deleted', false)
       .order('occurred_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
@@ -126,9 +125,8 @@ export default async function IntelligencePage() {
     supabase
       .from('intelligence_inbox_items')
       .select('id, review_status')
-      .eq('user_id', user.id)
       .in('review_status', ['captured', 'triage', 'needs_verification', 'ready_to_promote']),
-    supabase.from('coaches').select('id, name').eq('user_id', user.id),
+    supabase.from('coaches').select('id, name'),
     organizationId
       ? db.from('intelligence_sessions').select('id, processing_status').eq('org_id', organizationId).in('processing_status', ['captured', 'reviewing'])
       : Promise.resolve({ data: [] }),

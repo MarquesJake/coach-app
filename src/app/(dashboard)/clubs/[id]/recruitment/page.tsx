@@ -115,13 +115,11 @@ export default function ClubRecruitmentPage() {
           .from('mandates')
           .select('id, status, priority, strategic_objective, succession_timeline, created_at')
           .eq('club_id', clubId)
-          .eq('user_id', user.id)
           .order('created_at', { ascending: false }),
         supabase
           .from('club_transfers')
           .select('id, player_name, direction, fee_band, fee_amount, age_at_transfer, nationality, position, other_club, transfer_type, transfer_date, season')
           .eq('club_id', clubId)
-          .eq('user_id', user.id)
           .order('transfer_date', { ascending: false }),
       ])
 

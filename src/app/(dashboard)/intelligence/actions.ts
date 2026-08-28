@@ -244,13 +244,12 @@ export async function updateIntelligenceInboxStatusAction(input: {
   id: string
   review_status: string
 }) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
   const reviewStatus = enumValue(input.review_status, INBOX_REVIEW_STATUSES, 'triage')
   const { error } = await supabase
     .from('intelligence_inbox_items')
     .update({ review_status: reviewStatus, updated_at: new Date().toISOString() })
     .eq('id', input.id)
-    .eq('user_id', user.id)
   if (error) return { ok: false, error: error.message }
   revalidatePath('/intelligence/inbox')
   revalidatePath('/intelligence')
@@ -266,7 +265,6 @@ export async function promoteIntelligenceInboxItemAction(input: {
     .from('intelligence_inbox_items')
     .select('*')
     .eq('id', input.id)
-    .eq('user_id', user.id)
     .maybeSingle()
 
   if (itemError) return { ok: false, error: itemError.message }
@@ -334,7 +332,6 @@ export async function promoteIntelligenceInboxItemAction(input: {
       .from('coaches')
       .select('id')
       .eq('id', item.coach_id)
-      .eq('user_id', user.id)
       .maybeSingle()
     if (!coach) return { ok: false, error: 'Coach not found' }
     const organizationId = await getInternalOrganizationId(user.id)
@@ -384,7 +381,6 @@ export async function promoteIntelligenceInboxItemAction(input: {
       .from('coaches')
       .select('id')
       .eq('id', item.coach_id)
-      .eq('user_id', user.id)
       .maybeSingle()
     if (!coach) return { ok: false, error: 'Coach not found' }
     const { data: promoted, error } = await supabase
@@ -417,7 +413,6 @@ export async function promoteIntelligenceInboxItemAction(input: {
       .from('agents')
       .select('id')
       .eq('id', item.agent_id)
-      .eq('user_id', user.id)
       .maybeSingle()
     if (!agent) return { ok: false, error: 'Agent not found' }
     const { data: promoted, error } = await supabase
@@ -466,7 +461,6 @@ export async function promoteIntelligenceInboxItemAction(input: {
       updated_at: now,
     })
     .eq('id', item.id)
-    .eq('user_id', user.id)
 
   if (updateError) return { ok: false, error: updateError.message }
 

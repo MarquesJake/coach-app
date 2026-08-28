@@ -74,7 +74,7 @@ export async function createMandateBuilderAction(formData: FormData) {
     customClubName = clubIdOrName.slice(7).trim() || null
   } else if (isUuid(clubIdOrName)) {
     const { data: club } = await supabase
-      .from('clubs').select('id').eq('id', clubIdOrName).eq('user_id', user.id).single()
+      .from('clubs').select('id').eq('id', clubIdOrName).single()
     if (!club) redirect('/mandates/new?error=Club+not+found')
     clubId = club.id
   } else if (clubIdOrName) {
@@ -133,13 +133,13 @@ export async function createMandateBuilderAction(formData: FormData) {
 // ── Update ───────────────────────────────────────────────────────────────────
 
 export async function updateMandateBuilderAction(formData: FormData) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
 
   const mandateId = toText(formData.get('mandate_id'))
   if (!mandateId) redirect('/mandates?error=Missing+mandate+id')
 
   const { data: existing } = await supabase
-    .from('mandates').select('id').eq('id', mandateId).eq('user_id', user.id).single()
+    .from('mandates').select('id').eq('id', mandateId).single()
   if (!existing) redirect('/mandates?error=Mandate+not+found')
 
   const strategicObjective = toText(formData.get('strategic_objective'))
@@ -194,7 +194,6 @@ export async function updateMandateBuilderAction(formData: FormData) {
       confidentiality_level: confidentialityLevel,
     })
     .eq('id', mandateId)
-    .eq('user_id', user.id)
 
   if (error) {
     redirect(`/mandates/${mandateId}/edit?error=${encodeURIComponent(error.message)}`)

@@ -21,7 +21,6 @@ export default async function MandateEditPage(props: { params: Promise<{ id: str
       clubs ( name )
     `)
     .eq('id', params.id)
-    .eq('user_id', user.id)
     .single()
 
   if (error || !mandate) notFound()

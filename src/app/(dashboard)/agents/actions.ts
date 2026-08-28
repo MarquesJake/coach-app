@@ -122,7 +122,6 @@ export async function createAgentAction(formData: FormData): Promise<Result> {
       .from('agents')
       .update({ football_contact_id: contactId })
       .eq('id', id)
-      .eq('user_id', user.id)
     if (linkError) {
       await dbDeleteAgent(user.id, id)
       return { ok: false, error: 'Could not connect the agent to the football network' }
@@ -178,7 +177,6 @@ export async function updateAgentAction(agentId: string, formData: FormData): Pr
       .from('agents')
       .select('football_contact_id')
       .eq('id', agentId)
-      .eq('user_id', user.id)
       .maybeSingle()
     if (linkedAgent?.football_contact_id) {
       await supabase
@@ -349,7 +347,6 @@ export async function createAgentInteractionAction(payload: {
       .from('agents')
       .select('id, full_name, agency_name, football_contact_id')
       .eq('id', payload.agent_id)
-      .eq('user_id', user.id)
       .maybeSingle()
     if (!agent.data) return { ok: false, error: 'Agent not found' }
     const agentData = agent.data
@@ -362,7 +359,6 @@ export async function createAgentInteractionAction(payload: {
         .from('coaches')
         .select('*')
         .eq('id', coachId)
-        .eq('user_id', user.id)
         .maybeSingle()
       if (!coach.data) return { ok: false, error: 'Coach not found' }
       currentCoach = coach.data as unknown as Record<string, unknown>
@@ -392,7 +388,6 @@ export async function createAgentInteractionAction(payload: {
         .from('agents')
         .update({ football_contact_id: contactId })
         .eq('id', payload.agent_id)
-        .eq('user_id', user.id)
       if (agentLinkError) return { ok: false, error: 'Could not link the agent to the football network' }
     }
 

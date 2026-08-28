@@ -41,7 +41,6 @@ async function requireOwnedMandate(mandateId: string) {
     .from('mandates')
     .select('id')
     .eq('id', mandateId)
-    .eq('user_id', user.id)
     .single()
 
   if (!mandate) redirect('/mandates?error=Mandate+not+found')

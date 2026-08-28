@@ -57,10 +57,9 @@ export function getScoreBgColor(score: number): string {
  */
 export async function runMatchingForVacancy(
   supabase: SupabaseClient<Database>,
-  vacancyId: string,
-  userId: string
+  vacancyId: string
 ): Promise<MatchRow[]> {
-  const { data: clubs } = await supabase.from('clubs').select('id').eq('user_id', userId)
+  const { data: clubs } = await supabase.from('clubs').select('id')
   const clubIds = (clubs ?? []).map((c) => c.id)
   if (clubIds.length === 0) throw new Error('No clubs found for user')
 
@@ -76,7 +75,6 @@ export async function runMatchingForVacancy(
   const { data: coaches, error: coachesError } = await supabase
     .from('coaches')
     .select('*')
-    .eq('user_id', userId)
 
   if (coachesError) throw new Error(coachesError.message)
   const coachList = coaches ?? []

@@ -9,11 +9,13 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Shared across the internal team: report the most recent run for this key.
   const stateRes = await supabase
     .from('integration_sync_state')
     .select('status, cursor, total, result, error, updated_at, completed_at')
-    .eq('user_id', user.id)
     .eq('sync_key', SYNC_KEY)
+    .order('updated_at', { ascending: false })
+    .limit(1)
     .maybeSingle()
 
   const state = stateRes.data

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { getCoachById, getCoachesForUser, updateCoach } from '@/lib/db/coaches'
+import { getCoachById, getCoachesForTeam, updateCoach } from '@/lib/db/coaches'
 import { computeSimilarity } from '@/lib/similarity'
 import { logActivity } from '@/lib/db/activity'
 import { createAlert } from '@/lib/db/alerts'
@@ -200,7 +200,7 @@ export async function updateCoachCoreAction(coachId: string, payload: Record<str
     const marketChanged = marketKeys.some((key) => key in update && (beforeCoach as Record<string, unknown>)?.[key] !== update[key])
 
     const supabase = await createServerSupabaseClient()
-    const { data: onWatchlist } = await supabase.from('watchlist_coaches').select('coach_id').eq('user_id', userId).eq('coach_id', coachId).maybeSingle()
+    const { data: onWatchlist } = await supabase.from('watchlist_coaches').select('coach_id').eq('coach_id', coachId).maybeSingle()
 
     if (onWatchlist) {
       if (riskChanged) {
@@ -250,7 +250,7 @@ export async function refreshSimilarityForCoachAction(coachId: string): Promise<
     const { data: mainCoach, error: mainErr } = await getCoachById(userId, coachId)
     if (mainErr || !mainCoach) return { ok: false, error: 'Coach not found' }
 
-    const { data: allCoaches } = await getCoachesForUser(userId)
+    const { data: allCoaches } = await getCoachesForTeam()
     const others = (allCoaches ?? []).filter((c) => c.id !== coachId)
     if (others.length === 0) {
       revalidatePath(`/coaches/${coachId}/similar`)
@@ -872,7 +872,7 @@ export async function getWatchlistStatusAction(coachId: string): Promise<{ onWat
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { onWatchlist: false }
-  const { data } = await supabase.from('watchlist_coaches').select('coach_id').eq('coach_id', coachId).eq('user_id', user.id).maybeSingle()
+  const { data } = await supabase.from('watchlist_coaches').select('coach_id').eq('coach_id', coachId).maybeSingle()
   return { onWatchlist: !!data }
 }
 
@@ -890,7 +890,7 @@ export async function removeFromWatchlistAction(coachId: string): Promise<{ erro
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
-  const { error } = await supabase.from('watchlist_coaches').delete().eq('coach_id', coachId).eq('user_id', user.id)
+  const { error } = await supabase.from('watchlist_coaches').delete().eq('coach_id', coachId)
   if (!error) revalidatePath(`/coaches/${coachId}`)
   return { error: error?.message ?? null }
 }

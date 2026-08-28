@@ -72,7 +72,6 @@ async function ownsCoach(
     .from('coaches')
     .select('id')
     .eq('id', coachId)
-    .eq('user_id', userId)
     .maybeSingle()
   return Boolean(data)
 }
@@ -417,7 +416,6 @@ export async function updateCoachPortalAccessStatusAction(formData: FormData): P
     })
     .eq('id', requestId)
     .eq('coach_id', coachId)
-    .eq('user_id', user.id)
 
   if (error) return { ok: false, error: 'Failed to update access request' }
 
