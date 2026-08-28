@@ -86,6 +86,10 @@ check(
   'Mandate workspace must not encode demo club names in mandate context logic'
 )
 check(
+  mandateWorkspace.includes('Decision coverage') && mandateWorkspace.includes('not independent verification'),
+  'Mandate workspace must distinguish recorded decision coverage from independent verification'
+)
+check(
   !/brighton|qpr|bolton|Championship validation/i.test(mandatesBoard),
   'Mandates board risk labels must not depend on named demo clubs'
 )

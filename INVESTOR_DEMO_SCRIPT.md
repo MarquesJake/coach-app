@@ -33,6 +33,10 @@ Point to **Analyst recommendation: Kieran McKenna, Proceed, 83% confidence**.
 
 Click **Assessment**.
 
+Before leaving the workspace, point to **Decision coverage**.
+
+> "The live mandate shows the completeness of the decision record at board level: candidate count, nine-of-nine evidence coverage, completed assessments and recorded analyst verdicts. We keep that separate from independent verification, which remains visible at criterion level."
+
 > "Six candidates are fully assessed across all nine criteria, but the board gets a clear decision set. McKenna is the lead recommendation. Francesco Farioli is the elite model benchmark to monitor. Gary O'Neil is a do-not-proceed decision in this cycle because feasibility and proportionality outweigh the useful football profile. Rejected options are explained, not hidden."
 
 ### 4. Open the evidence trail (90s)
