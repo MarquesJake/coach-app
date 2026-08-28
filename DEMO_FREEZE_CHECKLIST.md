@@ -22,12 +22,12 @@ Do not demo broad browsing. The product should feel like a private appointment d
 
 ## Demo Data Freeze
 
-- [ ] Pick the primary mandate story and write its opening sentence in the demo script.
-- [ ] Confirm the mandate has a complete club context, season-results strength proxy, coaching stability, and clear strategic objective.
-- [ ] Confirm the workspace opens to either a true analyst recommendation or an honestly labeled current leading candidate.
-- [ ] Confirm the top candidate has enough evidence to support the assessment page and board pack.
-- [ ] Confirm two contrast mandates exist only as backup/proof of breadth, not the main click path.
-- [ ] Confirm 8-12 coach profiles have credible career, tactical, leadership, risk, feasibility, and source coverage.
+- [ ] Freeze West Ham United as the primary mandate story and Kieran McKenna as the lead candidate.
+- [ ] Confirm mandate `f3646b63-7d72-4420-8c16-b8456a4fee98` still shows 6/7 appointment gates ready.
+- [ ] Confirm the workspace shows a recorded `Proceed` recommendation for Kieran McKenna at 83% confidence.
+- [ ] Confirm Kieran has 9/9 criteria complete, five interview/reference records, four controlled materials, a board pack and a published club preview.
+- [ ] Confirm the assessment decision set still contrasts Kieran McKenna, Francesco Farioli and Gary O'Neil.
+- [ ] Keep any additional mandates and coach profiles as backup/proof of breadth, not the main click path.
 - [ ] Confirm no live demo step depends on a fresh API sync.
 
 ## Trust Boundary Freeze

@@ -1,52 +1,89 @@
-# Coach First — 5-Minute Investor Demo Script
+# Coach First - 6-Minute Investor Demo Script
 
-**Login:** jakemarques@live.com (own account — do NOT sign up fresh; new-account setup has a known redirect issue).
+**Login:** `jakemarques@live.com` using the existing account. Do not sign up during the demo.
 **Production:** https://coach-app-seven-rose.vercel.app
-**Browser:** Chrome (assessment-pack PDF export keeps its colours in Chrome's Save-as-PDF).
+**Browser:** Chrome. The assessment-pack PDF retains its presentation styling when background graphics are enabled.
+**Primary mandate:** West Ham United, mandate `f3646b63-7d72-4420-8c16-b8456a4fee98`.
 
-**One-line thesis:** *CoachInside tells you who exists. Consultancies tell you what they think. Coach First is where the club runs the decision.*
+**One-line thesis:** *Coach databases tell you who exists. Coach First is where a club runs and defends the appointment decision.*
 
----
+## The Story
 
-## The story (Mandate → 3 candidates → Brian → evidence → recommendation → assessment pack)
+### 1. Start with operational control (30s)
 
-### 1. Mandate context (30s)
-Open **Mandates → QPR Head Coach Succession → Workspace**.
-> "A Championship club needs a head coach. The brief isn't 'find a coach' — it's develop young players, integrate the academy, protect player value. Coach First turns that brief into a structured appointment decision."
+Open **Today**.
 
-### 2. The decision set (45s)
-Click the **Assessment** tab.
-> "Seven shortlisted candidates, but the board decision comes down to three." Point at the **Board decision set**:
-> - **Brian Barry-Murphy — Lead recommendation, Proceed 74%.** Development specialist, matches the brief.
-> - **Kjetil Knutsen — Monitor 55%.** Credible, less aligned, timing risk.
-> - **Edward Still — Do not proceed 34%.** The rejected option — and the board can see *why* he was rejected, which is half the value.
+> "This is the operating desk for a live appointment process: the next football action, overdue diligence, release requests and mandate ownership. It keeps a confidential search moving without losing accountability."
 
-### 3. Brian's workspace (90s)
-Click **Brian Barry-Murphy**.
-- **Board summary bar** (the ten-second read): "Strong evidence: profile, tactical, development. Gaps: match management, training — that's what interviews and training observation fill next. Confidence 74%. Recommendation: proceed to structured interview and references."
-- **Assessment matrix**: "Nine criteria from a club-leadership assessment methodology, crossed with eight evidence methods. Every cell is evidence: green verified, amber unverified, grey auto-derived from platform data. This is the audit trail behind the recommendation."
-- Click a criterion (e.g. **Players Development**): "Analyst conclusion on the left, the evidence behind it on the right — each item carries source, method, confidence, verification. AI will draft; the analyst signs off."
-- If asked about the **work-permit note**: "Indicative GBE screen from recorded career data — final eligibility is a legal confirmation, deliberately secondary to the footballing assessment."
+Open **Mandates -> West Ham United -> Plan**.
 
-### 4. Final recommendation (30s)
-Scroll to **Final recommendation**.
-> "Analyst conclusion, structured by the methodology, supported by the evidence above: Proceed at 74% — with the risks and mitigation stated, not hidden."
+> "West Ham are planning a confidential succession contingency. Six of seven appointment gates are ready. The only open gate is appointment feasibility: compensation, staff, family, relocation and timing. The system shows what the board knows and what still has to be verified."
 
-### 5. The Head Coach Assessment Pack (60s)
-Click **Assessment pack →**.
-> "One click: the confidential Head Coach Assessment Pack the board actually receives. Strengths, risks, recommendation. Profile and hiring feasibility. Career timeline. All nine assessment findings with their evidence cited. References appendix. This is what consultancies charge five-figure retainers to produce over weeks — generated from the workspace in seconds."
-Click **Print / Save as PDF** to show the export.
+### 2. Show the mandate, not a database search (45s)
 
-### 6. Close (15s)
-> "Next modules are already specced from the same methodology: structured interviews and references capture, then the quantitative layer — xG impact, provider-backed ELO trajectory, and PPG versus budget. The live demo already shows a season-results strength proxy; same principle throughout: every claim traceable to evidence."
+Click **Brief**.
 
----
+> "The brief is immediate promotion while building a model that can survive the step back into the Premier League. That changes the decision: the club needs Championship execution, emotional reset, player-value growth and a staff model that scales."
 
-## Don'ts
-- Don't sign up a fresh account live (setup redirect issue).
-- Don't lead with GBE — it's a note, not a claim.
-- Don't open Knutsen/Still assessment packs unless asked (thinner than Brian's; references show "pending structured references").
-- Don't demo from Safari if exporting the PDF.
+Point to **Analyst recommendation: Kieran McKenna, Proceed, 83% confidence**.
 
-## If asked "is this automated?"
-> "The evidence pull-through is automated; the judgement is the analyst's. That's deliberate — boards don't buy an algorithm's opinion, they buy a defensible process. Automation deepens each module release."
+> "This is a recorded analyst recommendation, not an unexplained ranking. The rationale and the main execution risk sit together: strong promotion and development alignment, but availability, compensation and timing still require discreet validation."
+
+### 3. Make the decision set legible (45s)
+
+Click **Assessment**.
+
+> "Six candidates are fully assessed across all nine criteria, but the board gets a clear decision set. McKenna is the lead recommendation. Francesco Farioli is the elite model benchmark to monitor. Gary O'Neil is a do-not-proceed decision in this cycle because feasibility and proportionality outweigh the useful football profile. Rejected options are explained, not hidden."
+
+### 4. Open the evidence trail (90s)
+
+Click **Kieran McKenna**.
+
+> "The ten-second read is nine of nine criteria complete, full evidence coverage and 83% decision confidence. There are five structured interview and reference records and four controlled private materials."
+
+Point to the assessment matrix.
+
+> "Nine club-leadership criteria cross eight evidence methods. Every conclusion carries method, confidence, verification and whether it counts toward the recommendation. Public facts, illustrative demo analysis, synthetic interview examples and composite reference examples are labelled separately."
+
+Open one criterion, such as **Players Development** or **Cultural & Organisational Fit**.
+
+> "The analyst conclusion is supported by the evidence immediately beneath it. Automation pulls the record together; the analyst owns the judgement and sign-off."
+
+### 5. Show the board artifact (75s)
+
+Click **Assessment pack ->**.
+
+> "This is the confidential artifact the board receives: strengths, risks and mitigation; profile and appointment feasibility; career context; all nine findings; references; controlled materials; and the mandate context. It is generated directly from the governed workspace, so the board pack and the working evidence cannot drift apart."
+
+Point out that the pack says **illustrative demo assessment** where applicable.
+
+> "For this demonstration, synthetic and illustrative material is explicitly labelled. In a live club process those slots are filled by authorised research, interviews, references and coach-permissioned files. The product preserves that source boundary."
+
+Optionally click **Print / Save as PDF**. Cancel after showing the export dialog.
+
+### 6. Prove controlled external access (45s)
+
+Return to **Pack**, then click **Open purchased preview** under Kieran McKenna.
+
+> "The club decision room receives the conclusion and dossier scope, but not the private files by default. Four confidential materials are held by Coach First. The request is active, and nothing is released until scope, commercial terms and coach permissions are approved."
+
+### 7. Close on the moat and roadmap (30s)
+
+> "The moat is not a public coach profile or one model score. It is the decision memory: the mandate, evidence provenance, human recommendation, diligence gaps, board artifact and controlled release in one system. The live product also has a transparent season-results strength proxy. Investment adds provider-backed match data, club and manager ELO trajectories, broader evidence coverage and the team layer for paid pilots."
+
+## Do Not Click
+
+- Do not sign up a new user or run onboarding live.
+- Do not run fresh API sync or generate demo data during the meeting.
+- Do not edit, delete or reclassify evidence during the demo.
+- Do not open legacy **Matches** or internal data tools.
+- Do not publish a new club preview or change controlled-release state.
+- Do not lead with the indicative work-permit note; explain it only if asked.
+
+## If Asked "Is This Automated?"
+
+> "Evidence pull-through and document generation are automated; the appointment judgement is the analyst's. That is deliberate. Boards need a defensible process with traceable evidence, not an algorithm pretending uncertainty does not exist."
+
+## If Asked "Is This Real Data?"
+
+> "The workflow and production records are live. This investor story uses clearly labelled illustrative analysis, synthetic interview answers and composite references so no real person is misquoted and no private football information is implied. Paid club work replaces those examples with authorised evidence."

@@ -32,7 +32,7 @@ const readinessPlan = readRequiredFile('INVESTOR_DEMO_READINESS_PLAN.md')
 const investorScript = readRequiredFile('INVESTOR_DEMO_SCRIPT.md')
 readRequiredFile('DEMO_FREEZE_CHECKLIST.md')
 readRequiredFile('DEMO_SMOKE_TEST.md')
-readRequiredFile('DRY_RUN_CHECKLIST.md')
+const dryRunChecklist = readRequiredFile('DRY_RUN_CHECKLIST.md')
 
 check(
   readinessPlan.includes('season-results strength proxy'),
@@ -41,6 +41,30 @@ check(
 check(
   investorScript.includes('season-results strength proxy'),
   'Investor demo script must use season-results strength proxy wording'
+)
+check(
+  investorScript.includes('West Ham United') && investorScript.includes('Kieran McKenna'),
+  'Investor demo script must follow the frozen West Ham and Kieran McKenna production story'
+)
+check(
+  investorScript.includes('f3646b63-7d72-4420-8c16-b8456a4fee98'),
+  'Investor demo script must identify the frozen production mandate'
+)
+check(
+  /illustrative analysis|illustrative demo analysis/i.test(investorScript),
+  'Investor demo script must disclose the illustrative evidence boundary'
+)
+check(
+  !/QPR|Brian Barry-Murphy|Barry-Murphy/i.test(investorScript),
+  'Investor demo script still references the retired QPR story'
+)
+check(
+  dryRunChecklist.includes('West Ham United') && dryRunChecklist.includes('Kieran McKenna'),
+  'Dry-run checklist must match the frozen production story'
+)
+check(
+  !/QPR|Brian Barry-Murphy|Barry-Murphy/i.test(dryRunChecklist),
+  'Dry-run checklist still references the retired QPR story'
 )
 
 const mandateWorkspace = readRequiredFile('src/app/(dashboard)/mandates/[id]/workspace/_components/mandate-workspace-client.tsx')

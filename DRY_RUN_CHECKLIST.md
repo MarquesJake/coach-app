@@ -1,74 +1,68 @@
-# Coach First — Investor Demo Dry-Run Checklist (QPR flow)
+# Coach First - Investor Demo Dry-Run Checklist
 
-> **BUILD FROZEN — 12 July 2026, tag `demo-freeze-2026-07-12` (head `d0d363a`).**
-> No code or schema changes until after the investor presentation. Data polish only,
-> and only with explicit sign-off. Full verification sweep passed on freeze day:
-> quality gates green (14/14 tests, tsc, lint, build), authenticated browser walk of
-> the demo path on production, pack narrative consistency confirmed.
+**Production:** https://coach-app-seven-rose.vercel.app
+**Login:** `jakemarques@live.com`
+**Browser:** Chrome
+**Primary story:** West Ham United -> Kieran McKenna
+**Mandate:** `f3646b63-7d72-4420-8c16-b8456a4fee98`
+**Candidate:** `c04c8747-bda1-4c95-a1ad-ed82af70c31d`
 
-*Verified live against production (authenticated walk of every step) on 12 July 2026, head `d0d363a` + interview/reference depth seeded.*
+Authenticated production audit completed on 28 August 2026. The dashboard, appointment plan, mandate workspace, candidate room, assessment overview, Kieran McKenna assessment, board pack and club decision room loaded without browser errors.
 
-**URL:** https://coach-app-seven-rose.vercel.app · **Login:** jakemarques@live.com · **Browser: Chrome**
+## Pre-Call
 
-## Pre-call (10 minutes before)
-- [ ] Open Chrome, log in, leave two tabs ready: **Tab 1** QPR Workspace, **Tab 2** Brian's assessment pack (backup).
-- [ ] In Tab 2, click **Print / Save as PDF** once and save `Barry-Murphy-Head-Coach-Assessment-Pack.pdf` to Desktop — this is your live backup artifact.
-- [ ] In the print dialog: destination *Save as PDF*, **"Background graphics" ticked** (keeps the dark cover).
-- [ ] Close the sidebar's Internal Tools if expanded. Close unrelated tabs. Notifications off.
+- [ ] Run `npm run verify:production` and `npm run verify:demo`.
+- [ ] Confirm the deployed commit includes the investor-demo credibility branch.
+- [ ] Open Tab 1 at the production dashboard.
+- [ ] Open Tab 2 at Kieran McKenna's assessment pack as the fallback.
+- [ ] Save a fresh PDF backup named `Kieran-McKenna-Head-Coach-Assessment-Pack.pdf` with background graphics enabled.
+- [ ] Confirm the PDF opens and the confidential cover, findings and reference appendix render.
+- [ ] Close unrelated tabs, collapse internal tools and turn notifications off.
 
----
+## Exact Click Path
 
-## 1. Exact click path
-1. **Mandates → QPR Head Coach Succession → Workspace** *(start here — club context on screen)*
-2. Click the **Assessment** tab *(Board decision set: three cards)*
-3. Click the **Brian Barry-Murphy** card *(workspace: summary bar → matrix)*
-4. Click matrix row **6. Players Development** *(conclusion left, evidence right)*
-5. Scroll to **Final recommendation** *(bottom of page)*
-6. Click **Assessment pack →** *(top right)*
-7. Scroll the assessment pack slowly: cover → at-a-glance → profile → timeline → findings → references → mandate context
-8. Click **Print / Save as PDF** *(show the export, don't fumble the dialog — cancel is fine)*
+1. **Today -> Mandates -> West Ham United -> Plan**
+2. **Brief** to show the club context and analyst recommendation
+3. **Assessment** to show the three-option board decision set
+4. **Kieran McKenna** to open the evidence workspace
+5. **Players Development** or **Cultural & Organisational Fit** to show evidence provenance
+6. **Assessment pack ->** to show the board artifact
+7. **Pack -> Open purchased preview** to show the controlled club decision room
 
-## 2. Exact 5-minute talk track
-- **(0:00) Workspace:** "QPR need a head coach. The brief isn't 'find a coach' — it's develop young players, integrate the academy, protect player value. Coach First turns that brief into a structured appointment decision."
-- **(0:30) Assessment tab:** "Seven shortlisted, but the board decision comes down to three. Lead recommendation: Barry-Murphy, Proceed at 74%. Knutsen — credible, but we're monitoring, not moving. Edward Still — rejected, and the board can see exactly *why*. Showing your working on the rejected option is half the value."
-- **(1:15) Brian's workspace, summary bar:** "The ten-second read: strong evidence across eight criteria, one honest gap — match management, which live match observation fills next. Training management was a gap last week; a structured reference from his assistant coach closed it — that's the reference process working. Confidence 74."
-- **(2:00) Matrix:** "Nine criteria from a real club-leadership assessment methodology, crossed with eight evidence methods. Every cell is evidence — green verified, amber unverified, grey auto-derived from platform data. This is the audit trail behind the recommendation."
-- **(2:45) Players Development row:** "Analyst conclusion on the left; the evidence behind it on the right — each item carries source, method, confidence and verification status. AI drafts, the analyst signs off."
-- **(3:15) Final recommendation:** "Analyst conclusion, structured by the methodology: Proceed at 74% — risks and mitigation stated, not hidden."
-- **(3:45) Assessment pack:** "One click: the confidential Head Coach Assessment Pack the board receives. Strengths, risks, recommendation. Appointment feasibility — contract expiry, wage, clause, agent: the intelligence clubs actually pay for. Structured references from a CEO, his assistant, a player and a sporting director — including the honest negative. Interview answers on the record. Consultancies charge five-figure retainers and take weeks; it's generated from the workspace in seconds."
-- **(4:45) Close:** "Next modules are specced from the same methodology — structured interviews and references, then the quantitative layer: xG impact, ELO trajectory, points-per-game versus budget. Same principle throughout: every claim traceable to evidence."
+## Production Truth To Confirm
 
-## 3. What NOT to click
-- **No fresh sign-up, ever** (new-account setup has a known blank-screen issue).
-- **Knutsen / Edward Still assessment packs** — thinner than Brian's; only open if directly asked, and frame as "earlier-stage candidates carry less evidence by design."
-- **Longlist / Shortlist tabs** — fine pages, but they dilute the 5-minute story.
-- **Internal Tools (Admin) in the sidebar** — never during a demo.
-- **Evidence delete (✕) or the Counts/Background dropdowns** — don't mutate demo data live.
-- **The work-permit note** — don't bring it up unprompted.
+- [ ] The appointment plan shows `6/7 gates ready`.
+- [ ] The only open gate is appointment feasibility.
+- [ ] The workspace shows a recorded `Proceed` recommendation for Kieran McKenna at 83% confidence.
+- [ ] The candidate room contains six decision candidates.
+- [ ] The assessment overview shows Kieran McKenna, Francesco Farioli and Gary O'Neil as lead, monitor and do-not-proceed examples.
+- [ ] Kieran's assessment shows `9/9 criteria`, `9/9 complete`, five interview/reference records and four private materials.
+- [ ] The board pack labels illustrative analysis, synthetic interview answers and composite references honestly.
+- [ ] The pack lists four controlled materials and three composite reference records.
+- [ ] The club decision room shows four confidential materials held by Coach First and an active release request.
 
-## 4. Known risks and how to frame them
-| Risk | If it comes up, say |
-|---|---|
-| Match Management unscored | "Deliberate — that criterion requires live match observation, staged after longlisting. Training management had the same gap until his assistant's structured reference closed it — the process fills gaps in order." |
-| Work-permit note ("auto-pass not confirmed") | "An indicative screen from recorded career data. Final GBE eligibility is a legal confirmation — we keep it visible but secondary, because it qualifies the appointment, it doesn't drive the football judgement." |
-| "Is this all automated?" | "Evidence pull-through is automated; judgement is the analyst's. Boards don't buy an algorithm's opinion — they buy a defensible process. Automation deepens with each module." |
-| "This looks like SaaS / a dashboard" | "Deliberately: the workspace is the operating layer, and the Head Coach Assessment Pack is the board-facing artifact. Clubs need a working system internally, but the output has to feel like a confidential appointment document." |
-| "Where's the match data / xG?" | "Phase 3 — quantitative layer on the roadmap. The workflow and evidence architecture come first because that's what makes the data defensible." |
-| Single-user product | "Correct for Phase 1 — organisations, seats and audit trail are the commercial layer, scheduled after the evidence modules." |
-| Slow page / cold start | Pause on the current screen and keep talking; every page is server-rendered and recovers on its own. Don't refresh mid-sentence. |
+## What Not To Touch
 
-## 5. One-line Phase 2 roadmap bridge
-> "Structured interview and reference capture is already live — you saw a CEO, an assistant coach, a player and a sporting director on the record in the pack. Next: the confidential coach data room deepens, then the quantitative layer. Every stakeholder conversation becomes queryable evidence."
+- [ ] Do not create a user, mandate, candidate, preview or release request live.
+- [ ] Do not run **Generate demo data** or a football API sync.
+- [ ] Do not edit recommendation scores or assessment evidence.
+- [ ] Do not open internal data tools or the legacy **Matches** route.
+- [ ] Do not expose agent contact details, source identities or private storage paths.
 
-## 6. Backup plan if PDF/print misbehaves on the call
-1. **First line:** you already saved `Barry-Murphy-Board-Pack.pdf` pre-call (see Pre-call). Open it from Desktop and screen-share the file — "here's one we exported earlier."
-2. If the print dialog opens but looks wrong (white cover / missing colours): cancel, tick **"Background graphics"** in *More settings*, retry once. If still wrong, fall back to the saved PDF.
-3. If the assessment-pack page itself won't load: the on-screen pack in Tab 2 (already loaded pre-call) is the show — scroll it and say "and this exports to PDF for circulation."
-4. Never debug live. One retry maximum, then the saved artifact.
+## Known Questions
 
----
+| Question | Answer |
+| --- | --- |
+| Is the evidence real? | The production workflow is live. Investor records clearly label illustrative analysis, synthetic interview answers and composite references; paid work replaces them with authorised evidence. |
+| Is the recommendation automated? | Evidence pull-through is automated; the analyst owns the judgement, confidence and verdict. |
+| Why is feasibility still open? | It is the honest next gate: compensation, staff, family, relocation and timing require direct permissioned checks. |
+| Where is ELO? | The live product uses a transparent season-results strength proxy. Funding adds provider-backed match ingestion and manager-context ELO trajectories. |
+| How is private material protected? | The club sees scope and status first. Files are released only after commercial scope and coach permissions are approved, through controlled short-lived access. |
 
-## Dry-run pass criteria
-- [ ] Full run under 5:30 without touching anything in section 3.
-- [ ] You can answer each section-4 question without pausing.
-- [ ] The saved PDF opens and looks right before the call starts.
+## Pass Criteria
+
+- [ ] Complete the story in under seven minutes without mutating data.
+- [ ] Every page loads without an error overlay or visible empty state.
+- [ ] The language matches the live labels and scores.
+- [ ] The saved PDF opens before the call.
+- [ ] A second person can run the path using only this checklist and the demo script.

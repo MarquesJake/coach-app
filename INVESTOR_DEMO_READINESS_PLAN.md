@@ -21,8 +21,8 @@ Must ship:
 - Dashboard tells the operator what to do today: blocked work, release requests, source review, active mandates, coach submissions.
 - Mandate workspace opens with a decisive board recommendation and a visible fit-detail path.
 - Club profile shows football context, coaching stability, season results, and a season-results strength proxy trend.
-- Brighton, QPR, and Bolton demo mandates have believable club context, candidate universes, and recommendation rationale.
-- Top 8-12 coach profiles have credible career, tactical, leadership, risk, feasibility, and evidence coverage.
+- The West Ham United demo mandate has believable club context, six fully assessed decision candidates, a recorded recommendation, board packs and a controlled club preview.
+- Kieran McKenna is the frozen lead story; breadth beyond that story is supporting proof, not part of the main click path.
 - Investor demo script is rehearsable in under 12 minutes.
 
 Should ship:
@@ -123,7 +123,7 @@ Practical two-week budget:
 ## Next Product Slices
 
 1. Make the board recommendation card interactive and state-synchronised.
-2. Create a demo-data freeze script/checklist for Brighton, QPR, Bolton, and top coaches.
+2. Keep the West Ham/Kieran narrative contract enforced in the repo by the demo gate, then validate the live records with the authenticated dry-run checklist.
 3. Add an investor-safe "Data coverage" badge to coach and mandate pages.
 4. Add manager-context trend placeholders to coach career pages using stint dates and club trend data.
 5. Build production smoke-test automation for the final two-week run-in.
