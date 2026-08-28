@@ -23,6 +23,7 @@ import {
   generatePlayerDevelopmentSuggestions,
 } from '../../../actions-suggestions'
 import { displayClubName } from '@/lib/display-names'
+import { summarizeDecisionCoverage } from '@/lib/mandates/decision-coverage'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1825,6 +1826,19 @@ export function MandateWorkspaceClient({
         : longlistEntries.length > 0
           ? 'Market scored'
           : 'Needs market scan'
+  const decisionCoverage = summarizeDecisionCoverage(
+    shortlist.map((candidate) => ({
+      evidenceCoverageCount: candidate.evidence_coverage_count,
+      assessmentCompleteCount: candidate.assessment_complete_count,
+      recommendationVerdict: candidate.recommendation_verdict,
+    }))
+  )
+  const decisionCoverageLabel =
+    decisionCoverage.status === 'board_ready'
+      ? 'Board-ready coverage'
+      : decisionCoverage.status === 'empty'
+        ? 'No decision set'
+        : 'Coverage developing'
 
   // ── Recommendations state ──────────────────────────────────────────────────
   const [rightTab, setRightTab] = useState<'pipeline' | 'recommendations'>(
@@ -1925,6 +1939,53 @@ export function MandateWorkspaceClient({
           </div>
         </div>
       </div>
+
+      <section className="rounded-lg border border-border bg-card px-4 py-3" aria-labelledby="decision-coverage-heading">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 id="decision-coverage-heading" className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Decision coverage
+              </h2>
+              <span className={cn(
+                'rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider',
+                decisionCoverage.status === 'board_ready'
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                  : 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+              )}>
+                {decisionCoverageLabel}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Recorded assessment work only, not independent verification. Criterion-level provenance remains visible in the assessment pack.
+            </p>
+          </div>
+          <dl className="grid grid-cols-2 gap-x-5 gap-y-2 sm:grid-cols-4">
+            <div>
+              <dt className="text-[9px] uppercase tracking-widest text-muted-foreground">Candidates</dt>
+              <dd className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">{decisionCoverage.candidateCount}</dd>
+            </div>
+            <div>
+              <dt className="text-[9px] uppercase tracking-widest text-muted-foreground">9/9 evidence</dt>
+              <dd className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
+                {decisionCoverage.evidenceReadyCount}/{decisionCoverage.candidateCount}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[9px] uppercase tracking-widest text-muted-foreground">9/9 assessed</dt>
+              <dd className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
+                {decisionCoverage.fullyAssessedCount}/{decisionCoverage.candidateCount}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[9px] uppercase tracking-widest text-muted-foreground">Verdicts recorded</dt>
+              <dd className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
+                {decisionCoverage.verdictCount}/{decisionCoverage.candidateCount}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
 
       <BoardRecommendation
         shortlist={shortlist}
