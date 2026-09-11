@@ -21,8 +21,8 @@ export default async function InvestorPage() {
   const { data: saved, error } = await supabase.from('investor_workspaces').select('*').eq('user_id', user.id).maybeSingle()
   if (error) throw new Error('Unable to load your evaluation workspace. Please retry.')
   return <InvestorWorkspace expiresAt={access!.expires_at} initial={saved ?? {
-    brief: 'Practice brief: evaluate what evidence a club would need before appointing a head coach. Compare public examples as learning cases, not available applicants. Define three priorities and the questions you would ask next.',
+    brief: 'Appointment brief: set out the evidence the club needs before appointing a head coach. Compare the candidates below, define three priorities and the questions you would ask next.',
     shortlist: ['e59e9bcb-e51a-4a71-862b-dfd7909fcd6e', 'a2876420-b8a0-4544-9efd-e6483769e8cb', 'e75c98a2-c5c2-49be-af53-ec1295b0f75b'],
-    notes: 'No appointment recommendation recorded. Employment terms, availability, references and club-specific fit are unknown. The named coaches are public examples, not participants in this evaluation.',
+    notes: 'No appointment recommendation recorded. Employment terms, availability, references and club-specific fit are still to be confirmed.',
   }} />
 }

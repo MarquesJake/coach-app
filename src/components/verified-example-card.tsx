@@ -16,8 +16,8 @@ export function VerifiedExampleCard({ example, showProfileLink = false }: { exam
         <ul className="mt-2 grid gap-1 sm:grid-cols-2">{example.leagueSample!.map(match => <li key={match.opponent}>{match.opponent}: {match.goalsFor}-{match.goalsAgainst} (Barnet score first)</li>)}</ul>
         <p className="mt-2 text-xs text-muted-foreground">Calculated from the cited results, not provider Elo, a whole-career rating, or an estimate of the manager&apos;s causal impact. Five matches are a small sample, not a live season table or final-season total.</p>
       </div>}
-      <p className="text-sm"><strong>Demo question:</strong> {example.use}</p>
-      <p className="text-xs text-muted-foreground">Not established by this snapshot: recruitment availability, salary expectations, private references, coach consent or a client relationship. Any appointment exercise is illustrative.</p>
+      <p className="text-sm"><strong>Why it matters:</strong> {example.use}</p>
+      <p className="text-xs text-muted-foreground">Not established by this snapshot: recruitment availability, salary expectations, private references, coach consent or a client relationship.</p>
       {showProfileLink && <Link href={`/coaches/${example.coachId}`} className="inline-block text-sm underline">Open existing profile</Link>}
     </section>
   )

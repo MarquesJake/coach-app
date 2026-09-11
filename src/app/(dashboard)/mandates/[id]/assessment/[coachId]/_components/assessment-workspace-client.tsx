@@ -715,11 +715,10 @@ export function AssessmentWorkspaceClient({
           </p>
         </div>
         <div className="card-surface rounded-lg px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Recorded / illustrative</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Recorded assessments</p>
           <p className="text-lg font-semibold text-foreground mt-0.5 tabular-nums">
             {status.recordedLabel}
           </p>
-          <p className="text-xs text-muted-foreground">{status.illustrativeLabel}</p>
         </div>
         <div className="card-surface rounded-lg px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Work-permit note</p>
@@ -800,7 +799,7 @@ export function AssessmentWorkspaceClient({
         <div className="px-5 py-3 border-b border-border">
           <h2 className="text-sm font-semibold text-foreground">Assessment matrix</h2>
           <p className="text-2xs text-muted-foreground mt-0.5">
-            Source records across 9 criteria and 8 methods. Only non-illustrative verified evidence counts towards the coverage summary. Grey profile-derived records are research leads; a filled cell does not establish sufficiency.
+            Source records across 9 criteria and 8 methods. Only verified evidence counts towards the coverage summary. Grey profile-derived records are research leads; a filled cell does not establish sufficiency.
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -1113,7 +1112,7 @@ export function AssessmentWorkspaceClient({
       {/* Final recommendation */}
       <div className={cn('card-surface rounded-lg p-5', workspaceSection !== 'recommendation' && 'hidden')}>
         <h3 className="text-sm font-semibold text-foreground">Human recommendation</h3>
-        <p className="mt-2 text-xs text-muted-foreground">{status.recommendationLabel}. Saving a recommendation does not approve the evidence or authorize sharing. Illustrative content is excluded from decision summaries and reports.</p>
+        <p className="mt-2 text-xs text-muted-foreground">{status.recommendationLabel}. Saving a recommendation does not approve the evidence or authorize sharing.</p>
         <p className="text-2xs text-muted-foreground mt-0.5 mb-3">
           Analyst conclusion — structured by the 9-criteria methodology and supported by the evidence above. This is what the Head Coach Assessment Pack is built around.
         </p>

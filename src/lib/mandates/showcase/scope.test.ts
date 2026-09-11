@@ -4,10 +4,10 @@ import { test } from 'node:test'
 import { isTottenhamScenario, TOTTENHAM_SCENARIO_ID } from './scope.ts'
 import { isIllustrativeEvidence } from '../../assessment/evidence-integrity.ts'
 
-test('showcase is limited to the named internal scenario', () => {
-  assert.equal(isTottenhamScenario(TOTTENHAM_SCENARIO_ID, 'Tottenham Hotspur — internal scenario'), true)
-  assert.equal(isTottenhamScenario('f3646b63-7d72-4420-8c16-b8456a4fee98', 'Tottenham Hotspur — internal scenario'), false)
-  assert.equal(isTottenhamScenario(TOTTENHAM_SCENARIO_ID, 'Tottenham Hotspur'), false)
+test('showcase is limited to the named Tottenham mandate', () => {
+  assert.equal(isTottenhamScenario(TOTTENHAM_SCENARIO_ID, 'Tottenham Hotspur'), true)
+  assert.equal(isTottenhamScenario('f3646b63-7d72-4420-8c16-b8456a4fee98', 'Tottenham Hotspur'), false)
+  assert.equal(isTottenhamScenario(TOTTENHAM_SCENARIO_ID, 'West Ham United'), false)
   assert.equal(isTottenhamScenario(TOTTENHAM_SCENARIO_ID, null), false)
 })
 

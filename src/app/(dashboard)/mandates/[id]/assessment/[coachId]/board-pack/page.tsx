@@ -280,7 +280,7 @@ export default async function BoardPackPage(
         <p className="text-3xl font-serif font-bold text-slate-400 leading-tight">{coach.name}</p>
         <div className="w-16 h-0.5 bg-emerald-500 my-6" />
         <p className="text-sm text-slate-300">Mandate context: {clubName}. Recipient release has not been established by this print view.</p>
-        <p className="mt-3 text-xs text-slate-300">{status.recordedLabel} · {status.illustrativeLabel} · {status.reviewedLabel}</p>
+        <p className="mt-3 text-xs text-slate-300">{status.recordedLabel} · {status.reviewedLabel}</p>
         <p className="mt-2 text-xs text-slate-300">{status.nextAction}</p>
         <p className="text-xs text-slate-400 mt-1">
           Generated {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -332,7 +332,7 @@ export default async function BoardPackPage(
         <h2 className="font-semibold text-sm">What we still need to check</h2>
         <p className="mt-2 text-xs text-muted-foreground">{status.nextAction}</p>
         <p className="mt-2 text-xs text-muted-foreground">Reviewed coverage counts criteria with at least one reviewed record. It does not establish sufficient evidence, resolve conflicts or grant permission to share.</p>
-        <p className="mt-2 text-xs text-muted-foreground">{recommendation?.mitigation ? `Conditions before appointment: ${recommendation.mitigation}` : 'Conditions before appointment have not been established in a non-illustrative recommendation.'}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{recommendation?.mitigation ? `Conditions before appointment: ${recommendation.mitigation}` : 'Conditions before appointment have not been recorded.'}</p>
         <Link className="mt-3 inline-block text-xs text-primary underline print:hidden" href={`/mandates/${mandateId}/decision`}>Review internal research questions and owners</Link>
       </section>
 

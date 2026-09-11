@@ -103,13 +103,13 @@ export default async function MandatePackPage(props: { params: Promise<{ id: str
                   <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
                     {packReady
                       ? recommendation.summary ?? 'Recommendation summary not yet completed.'
-                      : 'Illustrative or incomplete fields are excluded. Replace them with verified evidence before presenting a recommendation.'}
+                      : 'Incomplete fields are excluded. Back them with verified evidence before presenting a recommendation.'}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5"><FileCheck2 className="h-3.5 w-3.5" /> {packReady ? 'Recommendation recorded' : 'Draft report only'}</span>
                     <span className="inline-flex items-center gap-1.5"><LockKeyhole className="h-3.5 w-3.5" /> {materialSummary.uploaded} uploaded files · {materialSummary.reviewedUploads} reviewed uploads · release permissions checked separately</span>
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground">{status.recordedLabel} · {status.illustrativeLabel} · {status.reviewedLabel}</p>
+                  <p className="mt-3 text-xs text-muted-foreground">{status.recordedLabel} · {status.reviewedLabel}</p>
                   <p className="mt-2 text-xs text-muted-foreground">{status.coverLabel}. {status.nextAction}</p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
@@ -122,7 +122,7 @@ export default async function MandatePackPage(props: { params: Promise<{ id: str
               </div>
               {!packReady ? (
                 <p className="mt-4 border-t border-border pt-4 text-xs text-amber-900">
-                  Club publishing is disabled until illustrative fields are replaced with reviewed evidence.
+                  Club publishing opens once every field is backed by reviewed evidence.
                 </p>
               ) : coachOffers.length > 0 ? (
                 <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4 text-xs text-muted-foreground">

@@ -43,7 +43,6 @@ export default async function DashboardLayout({
         <main id="main-content" tabIndex={-1} className="min-h-screen min-w-0">
           <div className="gaffa-content">
             <DemoNotice />
-            <p className="gaffa-notice"><strong>Prototype</strong><span>Imported facts and appointment scenarios need review.</span><a href="/investor-guide" className="underline underline-offset-2">Sources and limitations</a></p>
             {children}
           </div>
         </main>

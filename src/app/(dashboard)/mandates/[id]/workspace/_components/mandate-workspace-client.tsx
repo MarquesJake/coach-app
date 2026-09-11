@@ -476,7 +476,7 @@ function BoardRecommendation({
         <div className="mt-3 rounded-lg border border-dashed border-border bg-surface/40 px-4 py-5">
           <p className="text-sm font-semibold text-foreground">No assessed candidates ready for a board decision</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Candidates can be reviewed below. Record real evidence and assessments first; a shortlist entry alone does not establish suitability. Illustrative profiles are excluded from this decision panel.
+            Candidates can be reviewed below. Record evidence and assessments first; a shortlist entry alone does not establish suitability.
           </p>
         </div>
       </section>

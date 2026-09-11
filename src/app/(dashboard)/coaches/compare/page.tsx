@@ -124,7 +124,7 @@ export default async function CoachesComparePage({
       <div className="space-y-4">
         <section className="rounded-lg border border-border bg-card p-4 text-sm">
           <h2 className="font-medium">Compare recorded information</h2>
-          <p className="mt-2 text-muted-foreground">These profiles may include illustrative or unverified material. Missing information is unknown; a recorded flag is a prompt to investigate, not a finding. Source counts and profile coverage do not establish reliability or appointment suitability.</p>
+          <p className="mt-2 text-muted-foreground">These profiles may include unverified material. Missing information is unknown; a recorded flag is a prompt to investigate, not a finding. Source counts and profile coverage do not establish reliability or appointment suitability.</p>
           <div className="mt-3 flex flex-wrap gap-3">
             {coachRecords.map((coach) => (
               <Link key={coach.id} href={researchHref(`/coaches/${coach.id}/fit`, { ...context, coach: coach.id })} className="text-primary underline">

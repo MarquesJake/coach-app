@@ -7,7 +7,7 @@ test('investor print rules are scoped and keep the training warning in the docum
   const page = readFileSync(new URL('../../app/investor/workspace-client.tsx', import.meta.url), 'utf8')
   assert.match(css, /#investor-workspace section h2\s*\{\s*break-after: avoid/)
   assert.match(page, /id="investor-workspace"/)
-  assert.match(page, /TRAINING ONLY \/ No appointment recommendation \/ No release approved/)
+  assert.match(page, /DRAFT \/ No appointment recommendation \/ No release approved/)
 })
 
 test('club login permits its grid to shrink on narrow screens', () => {
