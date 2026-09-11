@@ -16,6 +16,7 @@ export default defineConfig([
   },
   globalIgnores([
     '.next/**',
+    '.next-demo/**',
     '.vercel/**',
     'out/**',
     'build/**',

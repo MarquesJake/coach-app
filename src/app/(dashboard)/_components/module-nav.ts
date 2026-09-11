@@ -12,17 +12,17 @@ export const AGENTS_SUBNAV: SubNavItem[] = [
 ]
 
 export const MANDATES_SUBNAV: SubNavItem[] = [
-  { label: 'Board', href: '/mandates' },
-  { label: 'New mandate', href: '/mandates/new' },
+  { label: 'Mandates', href: '/mandates' },
+  { label: 'Start appointment', href: '/mandates/new' },
 ]
 
 export const COACH_PORTAL_SUBNAV: SubNavItem[] = [
-  { label: 'Portal board', href: '/coach-portal' },
+  { label: 'Submissions & review', href: '/coach-portal' },
 ]
 
 export const INTELLIGENCE_SUBNAV: SubNavItem[] = [
-  { label: 'Latest intel', href: '/intelligence' },
-  { label: 'Inbox', href: '/intelligence/inbox' },
+  { label: 'Recorded sources', href: '/intelligence' },
+  { label: 'Capture', href: '/intelligence/inbox' },
   { label: 'Conversations', href: '/intelligence/conversations' },
   { label: 'Review', href: '/intelligence/review' },
 ]

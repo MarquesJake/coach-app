@@ -3,6 +3,12 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/db'
 import { cn } from '@/lib/utils'
+import { calculateProfileReadiness } from '@/lib/coach-profile-readiness'
+import { declarationReviewLabel, submissionQueueRank, summarizeMaterials } from '@/lib/assessment/material-status'
+import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
+
+export const metadata = { title: 'Coach submissions' }
+
 
 type CoachRow = Pick<
   Database['public']['Tables']['coaches']['Row'],
@@ -11,7 +17,7 @@ type CoachRow = Pick<
 type PortalRow = Database['public']['Tables']['coach_portal_profiles']['Row']
 type MaterialRow = Pick<
   Database['public']['Tables']['coach_private_materials']['Row'],
-  'id' | 'coach_id' | 'material_type' | 'confidentiality_status' | 'verification_status'
+  'id' | 'coach_id' | 'material_type' | 'confidentiality_status' | 'verification_status' | 'storage_path' | 'upload_status' | 'external_url' | 'title' | 'description' | 'source_label'
 >
 type AccessRequestRow = Pick<
   Database['public']['Tables']['confidential_access_requests']['Row'],
@@ -26,39 +32,8 @@ type AssessmentRow = Pick<
   'coach_id'
 >
 
-const PROFILE_FIELDS: Array<keyof PortalRow> = [
-  'short_bio',
-  'personal_statement',
-  'football_identity',
-  'in_possession_model',
-  'out_of_possession_model',
-  'training_week',
-  'session_design_principles',
-  'player_development_proof',
-  'staff_network',
-  'reference_permissions',
-]
-
-const STATUS_LABELS: Record<string, string> = {
-  not_invited: 'Not invited',
-  invited: 'Invited',
-  in_progress: 'In progress',
-  submitted: 'Submitted',
-  in_review: 'In review',
-  approved: 'Approved',
-  needs_update: 'Needs update',
-}
-
 function readiness(profile: PortalRow | null, materials: MaterialRow[]) {
-  const completed = profile
-    ? PROFILE_FIELDS.filter((field) => {
-        const value = profile[field]
-        return typeof value === 'string' && value.trim().length > 0
-      }).length
-    : 0
-  const materialBoost = Math.min(2, materials.length)
-  const score = Math.round(((completed + materialBoost) / (PROFILE_FIELDS.length + 2)) * 100)
-  return Math.min(100, score)
+  return calculateProfileReadiness(profile, summarizeMaterials(materials).uploaded)
 }
 
 function statusTone(status: string) {
@@ -81,12 +56,10 @@ export default async function CoachPortalPage() {
       .order('name'),
     supabase
       .from('coach_portal_profiles')
-      .select('*')
-      .eq('user_id', user.id),
+      .select('*'),
     supabase
       .from('coach_private_materials')
-      .select('id, coach_id, material_type, confidentiality_status, verification_status')
-      .eq('user_id', user.id),
+      .select('id, coach_id, material_type, confidentiality_status, verification_status, storage_path, upload_status, external_url, title, description, source_label'),
     supabase
       .from('confidential_access_requests')
       .select('id, coach_id, status'),
@@ -98,6 +71,10 @@ export default async function CoachPortalPage() {
       .from('candidate_assessments')
       .select('coach_id'),
   ])
+
+  if (coachesRes.error || profilesRes.error || materialsRes.error || accessRequestsRes.error || invitationsRes.error || assessmentsRes.error) {
+    throw new Error('Coach submissions could not be loaded. Refresh to retry.')
+  }
 
   const allCoaches = (coachesRes.data ?? []) as CoachRow[]
   const profiles = new Map((profilesRes.data ?? []).map((profile) => [profile.coach_id, profile as PortalRow]))
@@ -123,9 +100,10 @@ export default async function CoachPortalPage() {
     ...Array.from(assessedCoachIds),
   ])
   const coaches = allCoaches.filter((coach) => activeCoachIds.has(coach.id))
+    .sort((a, b) => submissionQueueRank(profiles.get(a.id)?.portal_status) - submissionQueueRank(profiles.get(b.id)?.portal_status))
 
   const withPortal = coaches.filter((coach) => profiles.has(coach.id)).length
-  const approved = (profilesRes.data ?? []).filter((profile) => profile.portal_status === 'approved').length
+  const awaitingReview = (profilesRes.data ?? []).filter((profile) => submissionQueueRank(profile.portal_status) < 3).length
   const liveAccessRequests = accessRequests.filter((request) => ['requested', 'approved'].includes(request.status)).length
   const readyForClub = coaches.filter((coach) => {
     const profile = profiles.get(coach.id) ?? null
@@ -147,8 +125,8 @@ export default async function CoachPortalPage() {
         <div className="grid grid-cols-2 gap-3">
           {[
             { label: 'Active records', value: coaches.length },
-            { label: 'Portal profiles', value: withPortal },
-            { label: 'Club-ready', value: readyForClub },
+            { label: 'Needs review or update', value: awaitingReview },
+            { label: 'Profiles at 70% completeness', value: readyForClub },
             { label: 'Live requests', value: liveAccessRequests },
           ].map((item) => (
             <div key={item.label} className="rounded-lg border border-border bg-card p-4">
@@ -164,13 +142,13 @@ export default async function CoachPortalPage() {
       <section className="rounded-lg border border-border bg-card overflow-hidden">
         <div className="border-b border-border px-5 py-4 flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Portal board</h2>
+            <h2 className="text-sm font-semibold text-foreground">Submission review queue</h2>
             <p className="text-2xs text-muted-foreground mt-0.5">
-              Profile readiness across self-supplied coach material, confidential files and release permissions.
+              Submitted and needs-update work first. Profile completeness is separate from declaration review, uploaded files and recipient release permission.
             </p>
           </div>
           <div className="text-2xs text-muted-foreground">
-            {approved} approved profile{approved === 1 ? '' : 's'}
+            {withPortal} portal profile{withPortal === 1 ? '' : 's'}
           </div>
         </div>
 
@@ -185,6 +163,7 @@ export default async function CoachPortalPage() {
               const coachMaterials = materialsByCoach.get(coach.id) ?? []
               const score = readiness(profile, coachMaterials)
               const status = profile?.portal_status ?? 'not_invited'
+              const materialSummary = summarizeMaterials(coachMaterials)
               return (
                 <Link
                   key={coach.id}
@@ -197,22 +176,23 @@ export default async function CoachPortalPage() {
                       {[coach.club_current, coach.nationality, coach.tactical_identity].filter(Boolean).join(' · ') || 'Profile context missing'}
                     </p>
                   </div>
-                  <span className={cn('justify-self-start rounded-full border px-2 py-1 text-[10px] font-medium', statusTone(status))}>
-                    {STATUS_LABELS[status] ?? status}
+                  <span className={cn('justify-self-start rounded-full border px-2 py-1 text-[10px] font-medium', statusTone(profile && isIllustrativeEvidence(profile) ? 'needs_update' : status))}>
+                    {declarationReviewLabel(profile)}
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-foreground tabular-nums">{score}%</p>
+                    <p className="text-[10px] text-muted-foreground">{profile && isIllustrativeEvidence(profile) ? 'Illustrative profile completeness' : 'Profile completeness'}</p>
                     <div className="mt-1 h-1.5 rounded-full bg-surface overflow-hidden">
                       <div className="h-full rounded-full bg-primary" style={{ width: `${score}%` }} />
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {coachMaterials.length} material{coachMaterials.length === 1 ? '' : 's'}
+                    {materialSummary.entries} entries · {materialSummary.uploaded} uploads · {materialSummary.reviewedUploads} reviewed uploads
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {(accessRequestsByCoach.get(coach.id) ?? []).length} request{(accessRequestsByCoach.get(coach.id) ?? []).length === 1 ? '' : 's'}
                   </p>
-                  <span className="text-2xs font-medium text-primary">Open portal →</span>
+                  <span className="text-2xs font-medium text-primary">Review submission →</span>
                 </Link>
               )
             })

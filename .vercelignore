@@ -1,0 +1,11 @@
+.claude/
+.claire/
+.next/
+.next-demo/
+demo-materials/
+node_modules/
+outputs/
+tmp/
+*.pdf
+.env*
+npm-debug.log*

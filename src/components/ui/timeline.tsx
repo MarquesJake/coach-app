@@ -3,12 +3,14 @@ import { getIconForActionType } from '@/lib/constants/activityActions'
 export type TimelineItem = {
   id: string
   action_type: string
-  description: string
-  created_at: string
+  description: string | null
+  created_at: string | null
 }
 
-function relativeTime(dateStr: string): string {
+function relativeTime(dateStr: string | null): string {
+  if (!dateStr) return 'Time not recorded'
   const date = new Date(dateStr)
+  if (!Number.isFinite(date.getTime())) return 'Time not recorded'
   const now = new Date()
   const sec = Math.floor((now.getTime() - date.getTime()) / 1000)
   if (sec < 60) return 'Just now'
@@ -50,7 +52,7 @@ export function Timeline({ items, emptyMessage = 'No activity yet' }: TimelinePr
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {item.action_type.replace(/_/g, ' ')}
                 </p>
-                <p className="text-sm text-foreground mt-0.5">{item.description}</p>
+                <p className="text-sm text-foreground mt-0.5">{item.description || 'Activity recorded; details unavailable'}</p>
                 <p className="text-2xs text-muted-foreground mt-1">{relativeTime(item.created_at)}</p>
               </div>
             </li>

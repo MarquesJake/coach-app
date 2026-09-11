@@ -17,7 +17,12 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Coach First",
+  // Pages set their own title; the template appends the product name so a tab
+  // reads "Mandates · Gaffa" rather than "Gaffa" on every screen.
+  title: {
+    default: "Gaffa",
+    template: "%s · Gaffa",
+  },
   description:
     "The football intelligence OS for manager search, mandate delivery, and relationship intelligence.",
 };

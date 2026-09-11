@@ -5,6 +5,8 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { createCoach, createCoachFull } from '@/lib/db/coaches'
 import { logActivity } from '@/lib/db/activity'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
+import { assertRouteQueries } from '@/lib/coaches/route-audit'
+import { safeResearchReturn } from '@/lib/research-context'
 
 function toText(value: FormDataEntryValue | null) {
   return typeof value === 'string' ? value.trim() : ''
@@ -86,7 +88,7 @@ export async function createCoachAction(formData: FormData) {
   if (!user) redirect('/login')
 
   const name = toText(formData.get('name'))
-  const returnTo = toText(formData.get('returnTo')) || '/coaches'
+  const returnTo = safeResearchReturn(toText(formData.get('returnTo'))) || '/coaches'
   if (!name) {
     redirect(`/coaches/new?error=Name+required${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`)
   }
@@ -104,7 +106,9 @@ export async function createCoachAction(formData: FormData) {
     })
   }
 
-  redirect(`${returnTo}?coach_created=${data?.id ?? ''}`)
+  const destination = new URL(returnTo, 'https://internal.invalid')
+  destination.searchParams.set('coach_created', data?.id ?? '')
+  redirect(`${destination.pathname}${destination.search}${destination.hash}`)
 }
 
 /** Stint and intelligence counts per coach for completeness. */
@@ -114,7 +118,8 @@ export async function getCoachStintAndIntelCountsAction(): Promise<
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return {}
-  const { data: coaches } = await supabase.from('coaches').select('id')
+  const { data: coaches, error: coachesError } = await supabase.from('coaches').select('id')
+  assertRouteQueries('Research directory', { error: coachesError })
   const ids = (coaches ?? []).map((c) => c.id)
   if (ids.length === 0) return {}
   const out: Record<string, { stintCount: number; intelligenceCount: number; researchCount: number }> = {}
@@ -126,6 +131,7 @@ export async function getCoachStintAndIntelCountsAction(): Promise<
     supabase.from('profile_claims').select('coach_id').in('coach_id', ids).in('review_status', ['accepted', 'applied']),
     supabase.from('coach_private_materials').select('coach_id').in('coach_id', ids),
   ])
+  assertRouteQueries('Research depth', stintsRes, intelRes, assessmentsRes, findingsRes, materialsRes)
   ;(stintsRes.data ?? []).forEach((r: { coach_id: string }) => {
     if (out[r.coach_id]) out[r.coach_id].stintCount++
   })
@@ -167,7 +173,7 @@ export async function getCoachDuplicateReviewsAction(): Promise<CoachDuplicateRe
     .select('id, coach_a_id, coach_b_id, decision, canonical_coach_id, reason, review_note, reviewed_at')
     .eq('org_id', organizationId)
     .order('reviewed_at', { ascending: false })
-  if (error) return []
+  assertRouteQueries('Identity review', { error })
   return (data ?? []) as CoachDuplicateReviewDecision[]
 }
 

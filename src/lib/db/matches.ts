@@ -15,7 +15,7 @@ export async function getMatchesForVacancy(vacancyId: string) {
     .order('overall_score', { ascending: false })
 }
 
-export async function getVacancyById(userId: string, vacancyId: string) {
+export async function getVacancyById(vacancyId: string) {
   const supabase = await db()
   const { data: clubs } = await supabase.from('clubs').select('id')
   const clubIds = (clubs ?? []).map((c) => c.id)

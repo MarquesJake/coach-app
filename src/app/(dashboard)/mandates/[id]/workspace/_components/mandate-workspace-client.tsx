@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { removeShortlistCandidateAction, updateShortlistWorkspaceAction } from '../../../actions'
+import { canPresentBoardProfile, recordedBoardReasons, summariseRecordedFit } from '@/lib/mandates/recorded-fit'
 import { fmtTenure, type StabilityMetrics } from '@/lib/analysis/coaching-stability'
 import {
   computeCoachIntelSignals,
@@ -66,6 +68,7 @@ type Mandate = {
 }
 
 type Candidate = {
+  is_illustrative?: boolean
   id: string
   coach_id: string
   candidate_stage: string
@@ -90,6 +93,8 @@ type Candidate = {
   recommendation_mitigation: string | null
   assessment_complete_count: number
   evidence_coverage_count: number
+  progress_label?: string
+  next_action?: string
   coaches: { name: string | null; club_current: string | null; nationality: string | null } | null
 }
 
@@ -152,11 +157,7 @@ function fitDot(signal: string | null) {
 
 function overallFit(c: Candidate): 'strong' | 'moderate' | 'weak' | 'unknown' {
   const signals = [c.fit_tactical, c.fit_cultural, c.fit_level, c.fit_communication, c.fit_network]
-  const scored = signals.filter(Boolean)
-  if (scored.length === 0) return 'unknown'
-  if (scored.some((s) => s === 'Weak')) return 'weak'
-  if (scored.every((s) => s === 'Strong')) return 'strong'
-  return 'moderate'
+  return summariseRecordedFit(signals)
 }
 
 function tenure(start: string | null, end: string | null) {
@@ -286,23 +287,6 @@ function shortlistSourceCoverage(candidate: Candidate): number {
   return Math.round((coveredSignals / signals.length) * 100)
 }
 
-function normaliseAnalystReason(reason: string, source: BoardCandidate['source']): string {
-  if (/academy|pathway|development|u23|young|youth/i.test(reason)) {
-    return 'Profile suggests willingness to trust younger players in senior environments'
-  }
-  if (/tactical|level|cultural|communication|network/i.test(reason)) {
-    return 'Supporting evidence points to credible alignment with the operating environment'
-  }
-  if (/placement probability|pipeline status|active decision/i.test(reason)) {
-    return 'Candidate has enough decision momentum to support a board-level conversation'
-  }
-  if (/availability/i.test(reason)) {
-    return 'Availability profile gives the board a more executable appointment path'
-  }
-  return source === 'longlist'
-    ? 'Available evidence supports further validation against the mandate brief'
-    : 'Shortlist evidence supports continued board review'
-}
 
 type MandateContext = 'identity' | 'promotion' | 'development' | 'generic'
 
@@ -314,70 +298,16 @@ function mandateContext(mandateObjective: string | null): MandateContext {
   return 'generic'
 }
 
-function boardWhy(candidate: BoardCandidate, mandateObjective: string | null): string[] {
-  const context = mandateContext(mandateObjective)
-  const firstLine = context === 'identity'
-    ? 'Clear alignment with an identity-led brief, supported by progressive football and player trading signals'
-    : context === 'promotion'
-      ? 'Clear alignment with a promotion brief, supported by stability and league execution signals'
-      : context === 'development'
-        ? 'Clear alignment with a development-led brief, supported by available profile and pathway signals'
-        : 'Clear alignment with mandate requirements, supported by current shortlist or scoring evidence'
-
-  const supportingLine = context === 'identity'
-    ? 'Profile fit protects the playing model while keeping recruitment and resale logic central'
-    : context === 'promotion'
-      ? 'Profile points towards EFL execution, dressing room stability and efficient squad usage'
-      : normaliseAnalystReason(candidate.why[0] ?? '', candidate.source)
-  const contextualLine = context === 'identity'
-    ? 'Leading profile protects the football identity while keeping player progression and resale value central'
-    : context === 'promotion'
-      ? 'Evidence points to a reliable operator for promotion pressure rather than pure stylistic upside'
-      : context === 'development'
-        ? 'Evidence indicates a squad-building profile oriented towards progression rather than short-term experience'
-        : candidate.source === 'shortlist'
-          ? 'Current pipeline position makes this the clearest appointment route for board discussion'
-          : 'Scoring profile makes this the strongest current evidence-led option for further diligence'
-
-  return [firstLine, supportingLine, contextualLine]
+function boardWhy(candidate: BoardCandidate): string[] {
+  return recordedBoardReasons(candidate.why)
 }
 
 function boardRisk(candidate: BoardCandidate): string {
-  const risk = candidate.risk
-  const context = `${risk} ${candidate.comparisonNote ?? ''}`
-  if (/under contract|compensation|timing|availability|feasibility|trajectory/i.test(context)) {
-    return 'Availability, compensation and timing need discreet validation before the board treats this as executable'
-  }
-  if (/limited intelligence|limited info|low source coverage|profile level|player-level|player level|validate/i.test(risk)) {
-    return 'Evidence is currently profile-led, with limited player-level validation'
-  }
-  if (/development|academy|pathway|young|youth/i.test(risk)) {
-    return 'Development signals are present but not yet proven across multiple environments'
-  }
-  if (/confidence|sparse|recent data|current performance/i.test(risk)) {
-    return 'Limited recent data reduces certainty around current performance level'
-  }
-  if (/weak|needs validation|risk rating/i.test(risk)) {
-    return 'Known risk markers need further validation before a final board recommendation'
-  }
-  return risk
+  return candidate.risk || 'No candidate-specific risk assessment recorded.'
 }
 
-function recommendationTradeOff(primary: BoardCandidate, mandateObjective: string | null): string {
-  const explicitTradeOff = primary.comparisonNote?.match(/Recommendation favours[^.]+\./i)?.[0]
-  if (explicitTradeOff) return explicitTradeOff.replace(/^Recommendation favours/i, 'Leading profile favours')
-
-  const context = mandateContext(mandateObjective)
-  if (context === 'identity') {
-    return 'Leading profile favours identity continuity and player trading upside over lower-variance league familiarity.'
-  }
-  if (context === 'promotion') {
-    return 'Leading profile favours promotion reliability and efficiency over high-upside tactical experimentation.'
-  }
-  if (context === 'development') {
-    return 'Leading profile favours long-term development upside over immediate divisional certainty.'
-  }
-  return 'Leading profile balances football upside against appointment realism and execution risk.'
+function recommendationTradeOff(primary: BoardCandidate): string {
+  return primary.comparisonNote || 'No analyst trade-off recorded. Compare the underlying evidence before making a decision.'
 }
 
 function recommendationConfidence(primary: BoardCandidate, secondary: BoardCandidate | null): 'High' | 'Medium' | 'Low' {
@@ -390,27 +320,10 @@ function recommendationConfidence(primary: BoardCandidate, secondary: BoardCandi
   return 'Low'
 }
 
-function alternativeOptionLine(primary: BoardCandidate, secondary: BoardCandidate | null, mandateObjective: string | null): string {
-  if (!secondary) return 'No clear alternative identified at this stage'
-
-  const gap = primary.score != null && secondary.score != null ? Math.abs(primary.score - secondary.score) : null
-  if (gap !== null && gap <= 3) {
-    return 'Decision remains marginal between top candidates based on current evidence'
-  }
-  if (gap !== null && gap <= 8) {
-    return 'Alternative option provides a similar profile with slightly lower evidence strength'
-  }
-  if (secondary.source === 'shortlist' && primary.source === 'longlist') {
-    return 'Represents a lower-risk but less development-focused option'
-  }
-  const context = mandateContext(mandateObjective)
-  if (context === 'identity') {
-    return 'Offers a comparable identity fit with a different balance of divisional certainty and player trading upside'
-  }
-  if (context === 'promotion') {
-    return 'Represents a practical EFL alternative with slightly lower promotion reliability evidence'
-  }
-  return 'Offers a comparable fit with less clarity in development signals'
+function alternativeOptionLine(secondary: BoardCandidate | null): string {
+  return secondary
+    ? 'Compare the recorded evidence directly; ranking alone does not establish suitability or availability.'
+    : 'No assessed alternative is recorded.'
 }
 
 function buildShortlistBoardCandidate(candidate: Candidate, index: number): BoardCandidate {
@@ -521,9 +434,10 @@ function buildLonglistBoardCandidate(entry: LonglistEntryData, index: number): B
 
 function getBoardCandidates(shortlist: Candidate[], longlistEntries: LonglistEntryData[]): BoardCandidate[] {
   if (shortlist.length > 0) {
-    return [...shortlist]
+    return shortlist.filter((candidate) => !candidate.is_illustrative)
       .sort((a, b) => shortlistDecisionScore(b) - shortlistDecisionScore(a))
       .map(buildShortlistBoardCandidate)
+      .filter(canPresentBoardProfile)
   }
 
   return [...longlistEntries]
@@ -534,7 +448,6 @@ function getBoardCandidates(shortlist: Candidate[], longlistEntries: LonglistEnt
 function BoardRecommendation({
   shortlist,
   longlistEntries,
-  mandateObjective,
   onSelectCandidate,
 }: {
   shortlist: Candidate[]
@@ -546,8 +459,8 @@ function BoardRecommendation({
   const primary = boardCandidates[0] ?? null
   const secondary = boardCandidates[1] ?? null
   const confidence = primary ? recommendationConfidence(primary, secondary) : null
-  const title = primary?.hasHumanRecommendation ? 'Board recommendation' : 'Current leading candidate'
-  const heading = primary?.hasHumanRecommendation ? 'Recommended candidate' : 'Leading evidence profile'
+  const title = primary?.hasHumanRecommendation ? 'Recorded analyst decision' : 'Candidate review'
+  const heading = primary?.hasHumanRecommendation ? 'Analyst verdict' : 'Current assessed candidate'
   const isMarginal = Boolean(
     primary &&
     secondary &&
@@ -561,9 +474,9 @@ function BoardRecommendation({
       <section className="rounded-lg border border-border bg-card px-4 py-4">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Candidate decision</p>
         <div className="mt-3 rounded-lg border border-dashed border-border bg-surface/40 px-4 py-5">
-          <p className="text-sm font-semibold text-foreground">No viable candidates identified from current data</p>
+          <p className="text-sm font-semibold text-foreground">No assessed candidates ready for a board decision</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Generate scored recommendations or move credible coaches into the shortlist before presenting a board decision.
+            Candidates can be reviewed below. Record real evidence and assessments first; a shortlist entry alone does not establish suitability. Illustrative profiles are excluded from this decision panel.
           </p>
         </div>
       </section>
@@ -578,11 +491,11 @@ function BoardRecommendation({
           <h2 className="mt-1 text-base font-semibold text-foreground">{heading}</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {primary.hasHumanRecommendation
-              ? 'Analyst recommendation based on strongest alignment with mandate and available evidence.'
-              : 'Evidence-led ranking from the current shortlist or market scoring. Confirm with analyst review before treating as a board decision.'}
+              ? 'Recorded analyst judgement. Review the verdict and its supporting evidence; this is not independent verification.'
+              : 'Current ordering of assessed candidates, not a board recommendation or a confirmation of availability.'}
           </p>
           <p className="mt-1 text-xs font-medium text-foreground">
-            {recommendationTradeOff(primary, mandateObjective)}
+            {recommendationTradeOff(primary)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -636,7 +549,7 @@ function BoardRecommendation({
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Why</p>
           <ul className="mt-2 space-y-1.5">
-            {boardWhy(primary, mandateObjective).map((reason) => (
+            {boardWhy(primary).map((reason) => (
               <li key={reason} className="flex gap-2 text-xs leading-relaxed text-foreground">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
                 <span>{reason}</span>
@@ -655,10 +568,10 @@ function BoardRecommendation({
             {secondary ? (
               <p className="mt-2 text-xs leading-relaxed text-foreground">
                 <span className="font-semibold">{secondary.name}</span>
-                {secondary.club ? ` from ${secondary.club}` : ''}. {alternativeOptionLine(primary, secondary, mandateObjective)}
+                {secondary.club ? ` from ${secondary.club}` : ''}. {alternativeOptionLine(secondary)}
               </p>
             ) : (
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{alternativeOptionLine(primary, null, mandateObjective)}</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{alternativeOptionLine(null)}</p>
             )}
           </div>
         </div>
@@ -756,16 +669,16 @@ function scanCopy(objective: string | null) {
     return {
       title: 'Identity and player trading scan',
       active: false,
-      description: 'This scan type is not active yet. Curated candidates are shown through expert review.',
-      empty: 'Curated candidates currently carry this identity and player trading case. Add a dedicated scan later when player value evidence is connected.',
+      description: 'This scan type is not active yet. Pipeline entries are not evidence of suitability.',
+      empty: 'No identity or player-value evidence has been supplied by this scan. Assess candidates individually before drawing conclusions.',
     }
   }
   if (context === 'promotion') {
     return {
       title: 'Promotion reliability scan',
       active: false,
-      description: 'This scan type is not active yet. Curated candidates are shown through expert review.',
-      empty: 'Curated candidates currently carry this promotion and stability case. Add a dedicated scan later when EFL reliability evidence is connected.',
+      description: 'This scan type is not active yet. Pipeline entries are not evidence of suitability.',
+      empty: 'No promotion or stability evidence has been supplied by this scan. Assess candidates individually before drawing conclusions.',
     }
   }
   return {
@@ -981,6 +894,7 @@ function FitSignalSelect({ name, label, value }: { name: string; label: string; 
       <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</label>
       <select
         name={name}
+        aria-label={label}
         defaultValue={value ?? 'Unknown'}
         className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground"
       >
@@ -1408,29 +1322,37 @@ function IntelligenceSummary({
 function FitAssessment({
   candidate,
   mandateId,
+  onDirtyChange,
 }: {
   candidate: Candidate | null
   mandateId: string
+  onDirtyChange: (dirty: boolean) => void
 }) {
   const [isPending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const router = useRouter()
 
   // ── Intel state (owned here so derived values can inform header + tension) ──
   const [intelSignals, setIntelSignals] = useState<CoachIntelSignals | null>(null)
   const [intelLoading, setIntelLoading] = useState(false)
+  const [intelError, setIntelError] = useState(false)
 
   useEffect(() => {
     if (!candidate) return
+    const controller = new AbortController()
     setIntelLoading(true)
     setIntelSignals(null)
-    fetch(`/api/coaches/${candidate.coach_id}/intelligence-items`)
+    setIntelError(false)
+    fetch(`/api/coaches/${candidate.coach_id}/intelligence-items`, { signal: controller.signal })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((data: { items: IntelItem[] }) => {
+        if (controller.signal.aborted) return
         setIntelSignals(computeCoachIntelSignals(data.items ?? []))
       })
-      .catch(() => setIntelSignals(computeCoachIntelSignals([])))
-      .finally(() => setIntelLoading(false))
+      .catch(() => { if (!controller.signal.aborted) setIntelError(true) })
+      .finally(() => { if (!controller.signal.aborted) setIntelLoading(false) })
+    return () => controller.abort()
   }, [candidate?.coach_id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!candidate) {
@@ -1488,17 +1410,38 @@ function FitAssessment({
     : null
 
   async function handleSubmit(formData: FormData) {
+    if (isPending) return
     startTransition(async () => {
-      await updateShortlistWorkspaceAction(formData)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
+      setSaved(false)
+      setSaveError(null)
+      try {
+        const result = await updateShortlistWorkspaceAction(formData)
+        if (result.error) {
+          setSaveError(result.error)
+          return
+        }
+        setSaved(true)
+        onDirtyChange(false)
+      } catch {
+        setSaveError('Save could not be confirmed. Your draft is still here. Check your connection and retry before leaving this page.')
+      }
     })
   }
 
   async function handleRemove(formData: FormData) {
+    if (isPending) return
     startTransition(async () => {
-      await removeShortlistCandidateAction(formData)
-      router.refresh()
+      setSaveError(null)
+      try {
+        const result = await removeShortlistCandidateAction(formData)
+        if (result.error) {
+          setSaveError(result.error)
+          return
+        }
+        router.refresh()
+      } catch {
+        setSaveError('Removal could not be confirmed. Refresh to check the candidate before retrying.')
+      }
     })
   }
 
@@ -1508,8 +1451,10 @@ function FitAssessment({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-foreground">{coachName}</h2>
+          {candidate.progress_label && <p className="mt-2 text-xs text-muted-foreground">{candidate.progress_label}</p>}
+          {candidate.next_action && <p className="mt-2 text-sm text-primary">Next: {candidate.next_action}</p>}
           <p className="text-xs text-muted-foreground mt-0.5">
-            {candidate.coaches?.club_current || 'Free agent'}
+            {candidate.coaches?.club_current || 'Current club not confirmed'}
             {candidate.coaches?.nationality ? ` · ${candidate.coaches.nationality}` : ''}
           </p>
         </div>
@@ -1537,7 +1482,12 @@ function FitAssessment({
         </div>
       </div>
 
-      <form action={handleSubmit} className="space-y-5">
+      {saveError && <p role="alert" className="text-sm text-red-600">{saveError}</p>}
+      {intelError && <p role="alert" className="text-sm text-amber-700">Source signals could not be loaded. This is not a finding of no evidence. Reload or open the candidate research before relying on the fit summary.</p>}
+      <form onChange={() => { setSaved(false); onDirtyChange(true) }} onSubmit={(event) => {
+        event.preventDefault()
+        void handleSubmit(new FormData(event.currentTarget))
+      }} className="space-y-5">
         <input type="hidden" name="shortlist_id" value={candidate.id} />
         <input type="hidden" name="mandate_id" value={mandateId} />
 
@@ -1546,6 +1496,7 @@ function FitAssessment({
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Stage</h3>
           <select
             name="candidate_stage"
+            aria-label="Candidate stage"
             defaultValue={candidate.candidate_stage}
             className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground"
           >
@@ -1557,11 +1508,17 @@ function FitAssessment({
 
         {/* Network provenance */}
         <section className="space-y-3">
+          <label className="block text-xs font-semibold">Workflow status<select name="status" defaultValue={candidate.status} className="mt-2 h-10 w-full rounded border border-border bg-surface px-2 text-sm">{Array.from(new Set([candidate.status, 'Under Review', 'Shortlisted', 'In Negotiations', 'Declined'])).map(status => <option key={status} value={status}>{status}</option>)}</select></label>
+          <label className="block text-xs font-semibold">Candidate workflow notes<textarea name="notes" defaultValue={candidate.notes ?? ''} rows={3} className="mt-2 w-full rounded border border-border bg-surface p-3 text-sm" /></label>
+          <p className="text-xs text-muted-foreground">These are internal process notes, not evidence verification or permission to contact the coach.</p>
+        </section>
+        <section className="space-y-3">
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Network provenance</h3>
           <div className="space-y-1">
             <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">How identified</label>
             <select
               name="network_source"
+              aria-label="How identified"
               defaultValue={candidate.network_source ?? ''}
               className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground"
             >
@@ -1577,6 +1534,7 @@ function FitAssessment({
               <input
                 type="text"
                 name="network_recommender"
+                aria-label="Recommended by"
                 defaultValue={candidate.network_recommender ?? ''}
                 placeholder="Name, role"
                 className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground placeholder-muted-foreground/40"
@@ -1586,6 +1544,7 @@ function FitAssessment({
               <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Relationship</label>
               <select
                 name="network_relationship"
+                aria-label="Relationship with recommender"
                 defaultValue={candidate.network_relationship ?? ''}
                 className="w-full h-9 rounded bg-surface border border-border px-2 text-xs text-foreground"
               >
@@ -1636,7 +1595,10 @@ function FitAssessment({
         </button>
       </form>
 
-      <form action={handleRemove} className="border-t border-border pt-4">
+      <form onSubmit={(event) => {
+        event.preventDefault()
+        void handleRemove(new FormData(event.currentTarget))
+      }} className="border-t border-border pt-4">
         <input type="hidden" name="shortlist_id" value={candidate.id} />
         <input type="hidden" name="mandate_id" value={mandateId} />
         <button
@@ -1733,6 +1695,7 @@ function CandidatePipeline({
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-foreground truncate">{c.coaches?.name ?? 'Unknown'}</p>
+                    {c.is_illustrative && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">Illustrative profile, not reviewed evidence</p>}
                     <CandidateTypeBadge label={label} />
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -1748,7 +1711,7 @@ function CandidatePipeline({
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                  {c.coaches?.club_current || 'Free agent'}
+                  {c.coaches?.club_current || 'Current club not confirmed'}
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {c.recommendation_verdict && (
@@ -1798,6 +1761,7 @@ export function MandateWorkspaceClient({
   longlistEntries: LonglistEntryData[]
   suggestions: SuggestedLonglistCandidate[]
 }) {
+  const searchParams = useSearchParams()
   // ── Pipeline state ─────────────────────────────────────────────────────────
   const initialBoardCandidate = getBoardCandidates(shortlist, longlistEntries)[0] ?? null
   const initialRecommendationEntry =
@@ -1808,24 +1772,12 @@ export function MandateWorkspaceClient({
     ? parseRecommendationFit(initialRecommendationEntry.fit_explanation)
     : null
   const [selectedId, setSelectedId] = useState<string | null>(
-    initialBoardCandidate?.source === 'shortlist'
+    shortlist.find(candidate => candidate.coach_id === searchParams.get('candidate'))?.id ?? (initialBoardCandidate?.source === 'shortlist'
       ? initialBoardCandidate.id
-      : shortlist[0]?.id ?? null
+      : shortlist[0]?.id ?? null)
   )
   const selectedCandidate = shortlist.find((c) => c.id === selectedId) ?? null
   const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
-  const shortlistReady = shortlist.filter((c) => ['Shortlist', 'Interview', 'Final'].includes(c.candidate_stage)).length
-  const assessmentReady = shortlist.some((c) => (c.recommendation_verdict === 'Proceed' || c.recommendation_verdict === 'Target') && (c.assessment_complete_count ?? 0) >= 6)
-  const recommendationStatus =
-    assessmentReady
-      ? 'Assessment pack ready'
-      : shortlistReady >= 3
-      ? 'Assessment pack ready'
-      : shortlist.length > 0
-        ? 'Evidence building'
-        : longlistEntries.length > 0
-          ? 'Market scored'
-          : 'Needs market scan'
   const decisionCoverage = summarizeDecisionCoverage(
     shortlist.map((candidate) => ({
       evidenceCoverageCount: candidate.evidence_coverage_count,
@@ -1835,7 +1787,7 @@ export function MandateWorkspaceClient({
   )
   const decisionCoverageLabel =
     decisionCoverage.status === 'board_ready'
-      ? 'Board-ready coverage'
+      ? 'Recorded coverage complete, release review required'
       : decisionCoverage.status === 'empty'
         ? 'No decision set'
         : 'Coverage developing'
@@ -1850,6 +1802,36 @@ export function MandateWorkspaceClient({
   )
   const [selectedRecoEntry, setSelectedRecoEntry] = useState<LonglistEntryData | null>(initialRecommendationEntry)
   const [selectedRecoFit, setSelectedRecoFit] = useState<ParsedFit | null>(initialRecommendationFit)
+  const [candidateDirty, setCandidateDirty] = useState(false)
+
+  useEffect(() => {
+    if (!candidateDirty) return
+    const unload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
+    const leave = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest('a[href]')
+      if (!link || link.getAttribute('href')?.startsWith('#')) return
+      if (!window.confirm('Leave without saving candidate changes?')) { event.preventDefault(); event.stopPropagation() }
+    }
+    window.addEventListener('beforeunload', unload)
+    document.addEventListener('click', leave, true)
+    return () => { window.removeEventListener('beforeunload', unload); document.removeEventListener('click', leave, true) }
+  }, [candidateDirty])
+
+  function canChangeCandidate() {
+    if (candidateDirty && !window.confirm('Discard the unsaved changes for this candidate?')) return false
+    setCandidateDirty(false)
+    return true
+  }
+
+  function rememberCandidate(id: string) {
+    const coachId = shortlist.find(candidate => candidate.id === id)?.coach_id
+    if (coachId) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('candidate', coachId)
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+    }
+    setSelectedId(id)
+  }
   const [addingId, setAddingId] = useState<string | null>(null)
   const [addedThisSession, setAddedThisSession] = useState<Set<string>>(new Set())
 
@@ -1870,13 +1852,15 @@ export function MandateWorkspaceClient({
   }
 
   function handleSelectReco(entry: LonglistEntryData, fit: ParsedFit) {
+    if (!canChangeCandidate()) return
     setSelectedRecoEntry(entry)
     setSelectedRecoFit(fit)
   }
 
   function handleSelectBoardCandidate(candidate: BoardCandidate) {
+    if (!canChangeCandidate()) return
     if (candidate.source === 'shortlist') {
-      setSelectedId(candidate.id)
+      rememberCandidate(candidate.id)
       setSelectedRecoEntry(null)
       setSelectedRecoFit(null)
       setRightTab('pipeline')
@@ -1906,24 +1890,24 @@ export function MandateWorkspaceClient({
         />
       )
     }
-    return <FitAssessment candidate={selectedCandidate} mandateId={mandate.id} />
+    return <FitAssessment key={selectedCandidate?.id ?? 'empty'} candidate={selectedCandidate} mandateId={mandate.id} onDirtyChange={setCandidateDirty} />
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-5">
       <div className="rounded-lg border border-border bg-card px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Mandate workspace</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Candidates</p>
             <h1 className="mt-1 text-lg font-semibold text-foreground">{clubName}</h1>
             <p className="mt-1 text-xs text-muted-foreground">
-              Club context, candidate fit, shortlist decision and board recommendation in one view.
+              Select a candidate, record the shortlist decision, then continue to their evidence and assessment.
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Suggestions surface evidence patterns. Curated candidates reflect expert review and mandate realism.
+              Candidates are workflow entries, not endorsements. Review their recorded sources and analyst decisions before drawing conclusions.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-right">
+          <div className="flex flex-wrap gap-2">
             <div className="rounded border border-border bg-surface/50 px-3 py-2">
               <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Candidates</p>
               <p className="mt-0.5 text-sm font-semibold text-foreground">{shortlist.length}</p>
@@ -1932,15 +1916,16 @@ export function MandateWorkspaceClient({
               <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Market scored</p>
               <p className="mt-0.5 text-sm font-semibold text-foreground">{longlistEntries.length}</p>
             </div>
-            <div className="rounded border border-primary/20 bg-primary/10 px-3 py-2">
-              <p className="text-[9px] uppercase tracking-widest text-primary/80">Decision</p>
-              <p className="mt-0.5 text-sm font-semibold text-primary">{recommendationStatus}</p>
-            </div>
+            <Link className="gaffa-action gaffa-action-secondary" href={`/mandates/${mandate.id}/longlist`}>Edit research pool</Link>
+            <Link className="gaffa-action gaffa-action-primary" href={`/coaches?mandate=${mandate.id}`}>Find a coach to add</Link>
+            <Link className="gaffa-action gaffa-action-secondary" href={`/coaches/compare?mandate=${mandate.id}&ids=${shortlist.slice(0, 4).map(c => c.coach_id).join(',')}`}>Compare candidates</Link>
           </div>
         </div>
       </div>
 
-      <section className="rounded-lg border border-border bg-card px-4 py-3" aria-labelledby="decision-coverage-heading">
+      <details className="order-3 rounded-lg border border-border bg-card px-4 py-3">
+        <summary className="mb-3 cursor-pointer text-sm font-semibold">Assessment coverage and internal shortlist export</summary>
+        <Link href={`/mandates/${mandate.id}/export/shortlist`} target="_blank" rel="noopener noreferrer" className="mb-4 inline-block text-sm text-primary underline">Open printable internal shortlist (new tab)</Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -1985,27 +1970,28 @@ export function MandateWorkspaceClient({
             </div>
           </dl>
         </div>
-      </section>
+      </details>
 
-      <BoardRecommendation
+      <details className="order-4 rounded-lg border border-border bg-card p-4"><summary className="mb-3 cursor-pointer text-sm font-semibold">Recorded candidate comparison, not release approval</summary><BoardRecommendation
         shortlist={shortlist}
         longlistEntries={longlistEntries}
         mandateObjective={mandate.strategic_objective}
         onSelectCandidate={handleSelectBoardCandidate}
-      />
-      <SuggestedLonglistPanel
+      /></details>
+      <details className="order-5 rounded-lg border border-border bg-card p-4"><summary className="mb-3 cursor-pointer text-sm font-semibold">Explore development-focused suggestions</summary><SuggestedLonglistPanel
         mandateId={mandate.id}
         mandateObjective={mandate.strategic_objective}
         suggestions={suggestions}
-      />
+      /></details>
 
-      <div className="grid grid-cols-[280px_1fr_260px] gap-4 h-[calc(100vh-39rem)] min-h-[560px]">
+      <div className="order-1 grid grid-cols-1 items-start gap-4 [&>*]:min-w-0 lg:grid-cols-[320px_minmax(0,1fr)]">
         {/* Left: Club Brief */}
-        <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <details className="order-3 rounded-lg border border-border bg-card lg:col-span-2">
+          <summary className="cursor-pointer p-4 text-sm font-semibold">Club background and historical context</summary>
           <div className="border-b border-border px-4 py-2.5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club context</p>
           </div>
-          <div className="h-[calc(100%-42px)] p-4 overflow-hidden">
+          <div className="p-4">
             <ClubBrief
               mandate={mandate}
               seasonResults={seasonResults}
@@ -2013,20 +1999,22 @@ export function MandateWorkspaceClient({
               stabilityMetrics={stabilityMetrics}
             />
           </div>
-        </div>
+        </details>
 
         {/* Center: Fit Assessment or Fit Detail */}
-        <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="order-2 rounded-lg border border-border bg-card">
           <div className="border-b border-border px-4 py-2.5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Candidate fit assessment</p>
           </div>
-          <div className="h-[calc(100%-42px)] p-4 overflow-hidden">
+          <div className="p-4">
+            {selectedCandidate && <div className="mb-4 flex flex-wrap gap-2 border-b border-border pb-4"><Link className="gaffa-action gaffa-action-primary" href={`/mandates/${mandate.id}/assessment/${selectedCandidate.coach_id}`}>Continue assessment</Link><Link className="gaffa-action gaffa-action-secondary" href={`/coaches/${selectedCandidate.coach_id}/research?mandate=${mandate.id}`}>Research this candidate</Link></div>}
+            {candidateDirty && <p role="status" className="mb-3 text-sm text-amber-700">Unsaved candidate changes. Save before continuing to assessment.</p>}
             {renderCenter()}
           </div>
         </div>
 
         {/* Right: Pipeline / Recommendations tabs */}
-        <div className="rounded-lg border border-border bg-card overflow-hidden flex flex-col">
+        <div id="shortlist-decisions" className="order-1 rounded-lg border border-border bg-card flex flex-col scroll-mt-6">
           <div className="border-b border-border px-4 py-2.5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Shortlist decision board</p>
           </div>
@@ -2042,14 +2030,14 @@ export function MandateWorkspaceClient({
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              Pipeline
+              Shortlist
               {shortlist.length > 0 && (
                 <span className="ml-1 tabular-nums text-muted-foreground">({shortlist.length})</span>
               )}
             </button>
             <button
               type="button"
-              onClick={() => { setRightTab('recommendations'); setSelectedId(null) }}
+              onClick={() => { if (!canChangeCandidate()) return; setRightTab('recommendations'); setSelectedId(null) }}
               className={cn(
                 'flex-1 py-2.5 text-[10px] font-semibold uppercase tracking-wider transition-colors',
                 rightTab === 'recommendations'
@@ -2065,13 +2053,15 @@ export function MandateWorkspaceClient({
           </div>
 
           {/* Tab content */}
-          <div className="flex-1 overflow-hidden p-4">
+          <div className="flex-1 p-4">
+            {shortlist.length === 0 && <Link className="mb-4 block text-sm text-primary underline" href={`/coaches?mandate=${mandate.id}`}>Start with a researched coach</Link>}
             {rightTab === 'pipeline' ? (
               <CandidatePipeline
                 candidates={shortlist}
                 selectedId={selectedId}
                 onSelect={(id) => {
-                  setSelectedId(id)
+                  if (id === selectedId || !canChangeCandidate()) return
+                  rememberCandidate(id)
                   setSelectedRecoEntry(null)
                   setSelectedRecoFit(null)
                 }}

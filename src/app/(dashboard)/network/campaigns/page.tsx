@@ -4,6 +4,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { ReferenceCampaignClient } from '../_components/reference-campaign-client'
 
+export const metadata = { title: 'Campaigns · Football network' }
+
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default async function ReferenceCampaignsPage() {
@@ -13,13 +16,15 @@ export default async function ReferenceCampaignsPage() {
   const organizationId = await getInternalOrganizationId(user.id)
   if (!organizationId) return <p className="text-sm text-destructive">Internal analyst access is required.</p>
   const db = supabase as any
-  const [{ data: campaigns }, { data: targets }, { data: coaches }, { data: contacts }, { data: mandates }] = await Promise.all([
+  const results = await Promise.all([
     db.from('reference_campaigns').select('*').eq('org_id', organizationId).order('created_at', { ascending: false }),
     db.from('reference_campaign_contacts').select('*').eq('org_id', organizationId).order('created_at', { ascending: false }),
     supabase.from('coaches').select('id, name').order('name'),
     db.from('football_contacts').select('id, full_name').eq('org_id', organizationId).order('full_name'),
     supabase.from('mandates').select('id, custom_club_name').order('created_at', { ascending: false }),
   ])
+  if (results.some((result) => result.error)) throw new Error('Could not load reference rounds')
+  const [{ data: campaigns }, { data: targets }, { data: coaches }, { data: contacts }, { data: mandates }] = results
   const coachMap = new Map((coaches ?? []).map((coach) => [coach.id, coach.name]))
-  return <div className="space-y-4"><ReferenceCampaignClient coaches={coaches ?? []} contacts={contacts ?? []} mandates={(mandates ?? []).map((mandate) => ({ id: mandate.id, label: mandate.custom_club_name || 'Mandate' }))} campaigns={campaigns ?? []} /><div className="divide-y divide-border border-y border-border">{(campaigns ?? []).map((campaign: Record<string, any>) => { const rows = (targets ?? []).filter((target: Record<string, any>) => target.campaign_id === campaign.id); return <div key={campaign.id} className="grid gap-3 py-4 md:grid-cols-[1fr_140px_1fr]"><div><Link href={`/coaches/${campaign.coach_id}/intelligence`} className="font-medium hover:text-primary">{campaign.title}</Link><p className="text-xs text-muted-foreground">{coachMap.get(campaign.coach_id)} · {campaign.evidence_gap || 'No evidence gap specified'}</p></div><p className="text-sm text-muted-foreground">{rows.filter((row: Record<string, any>) => row.status === 'completed').length}/{rows.length} complete</p><p className="text-sm text-muted-foreground">{campaign.next_action || 'No next action set'}</p></div>})}{!(campaigns ?? []).length && <p className="py-10 text-center text-sm text-muted-foreground">No reference rounds yet.</p>}</div></div>
+  return <div className="space-y-4"><h1 className="sr-only">Reference rounds</h1><ReferenceCampaignClient coaches={coaches ?? []} contacts={contacts ?? []} mandates={(mandates ?? []).map((mandate) => ({ id: mandate.id, label: mandate.custom_club_name || 'Mandate' }))} campaigns={campaigns ?? []} /><div className="divide-y divide-border border-y border-border">{(campaigns ?? []).map((campaign: Record<string, any>) => { const rows = (targets ?? []).filter((target: Record<string, any>) => target.campaign_id === campaign.id); return <div key={campaign.id} className="grid gap-3 py-4 md:grid-cols-[1fr_140px_1fr]"><div><Link href={`/coaches/${campaign.coach_id}/intelligence`} className="font-medium hover:text-primary">{campaign.title}</Link><p className="text-xs text-muted-foreground">{coachMap.get(campaign.coach_id)} · {campaign.evidence_gap || 'No evidence gap specified'}</p></div><p className="text-sm text-muted-foreground">{rows.filter((row: Record<string, any>) => row.status === 'completed').length}/{rows.length} complete</p><p className="text-sm text-muted-foreground">{campaign.next_action || 'No next action set'}</p></div>})}{!(campaigns ?? []).length && <p className="py-10 text-center text-sm text-muted-foreground">No reference rounds yet.</p>}</div></div>
 }

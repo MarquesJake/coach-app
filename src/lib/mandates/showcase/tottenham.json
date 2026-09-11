@@ -1,0 +1,907 @@
+{
+  "mandate_id": "09420a64-b4d2-4245-8088-af0dc88266eb",
+  "owner_id": "fe956aea-661a-4eb6-8d86-0480a64f82e0",
+  "edition": "10 September 2026 · internal discussion edition",
+  "label": "Internal scenario — no club instruction",
+  "sources": [
+    {
+      "id": "spurs-appointment",
+      "title": "Tottenham: De Zerbi appointment",
+      "url": "https://www.tottenhamhotspur.com/news/1018014/roberto-de-zerbi-joins-as-mens-head-coach",
+      "date": "31 March 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "spurs-bees",
+      "title": "Tottenham: opening-day defeat",
+      "url": "https://www.tottenhamhotspur.com/news/1086537/opening-day-defeat-against-bees",
+      "date": "22 August 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "spurs-newcastle",
+      "title": "Tottenham: Newcastle report",
+      "url": "https://www.tottenhamhotspur.com/news/1087602/second-half-goals-seal-win-for-magpies",
+      "date": "29 August 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "spurs-forest",
+      "title": "Tottenham: Forest verdict",
+      "url": "https://www.tottenhamhotspur.com/news/1088646/forest-0-0-spurs-roberto-de-zerbis-verdict",
+      "date": "5 September 2026",
+      "note": "Official match account, including the coach’s own assessment; not independent evidence of dressing-room sentiment."
+    },
+    {
+      "id": "spurs-cup",
+      "title": "Tottenham: Charlton cup report",
+      "url": "https://www.tottenhamhotspur.com/news/1087003/debut-goal-for-savio-as-we-progress-in-carabao-cup",
+      "date": "26 August 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "ipswich-exit",
+      "title": "Ipswich: McKenna to step down",
+      "url": "https://www.itfc.co.uk/news/2026/june/10/kieran-mckenna-to-step-down-as-ipswich-town-manager/",
+      "date": "10 June 2026",
+      "note": "Official departure announcement. It does not establish his present willingness or contractual freedom to accept another role."
+    },
+    {
+      "id": "ipswich-career",
+      "title": "Ipswich: McKenna career profile",
+      "url": "https://www.itfc.co.uk/players/kieran%20mckenna/",
+      "date": "Historical profile",
+      "note": "Historical career reference; do not use this old profile as proof of current employment."
+    },
+    {
+      "id": "knutsen-deal",
+      "title": "Bodø/Glimt: Knutsen extends",
+      "url": "https://www.glimt.no/nyheter/kjetil-knutsen-forlenger-med-bodo-glimt--den-er-signert",
+      "date": "3 January 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "knutsen-current",
+      "title": "Bodø/Glimt: Bayern preview",
+      "url": "https://www.glimt.no/nyheter/verdens-vanskeligste-bortekamp",
+      "date": "9 September 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "hoeness-deal",
+      "title": "Stuttgart: Hoeneß and Krecidlo extend",
+      "url": "https://www.vfb.de/en/vfb/latest/news/professionals/2425/vfb-und-sebastian-hoeness-verlaengern-vertrag-/?data=&mobile=",
+      "date": "22 March 2025",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "hoeness-current",
+      "title": "Stuttgart: Cologne preview",
+      "url": "https://www.vfb.de/en/vfb/latest/news/professionals/2627/vorschau-vfb-stuttgart-gegen-1--fc-koeln-en/",
+      "date": "4 September 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "terzic-deal",
+      "title": "Athletic Club: Terzić appointed",
+      "url": "https://www.athletic-club.eus/en/news/2026/05/05/edin-terzic-to-be-new-athletic-club-head-coach/",
+      "date": "5 May 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "silva-deal",
+      "title": "Benfica: Marco Silva agreement",
+      "url": "https://www.slbenfica.pt/fr-fr/agora/noticias/2026/06/09/futebol-benfica-comunicado-cmvm-treinador-marco-silva-acordo",
+      "date": "9 June 2026",
+      "note": "Official announcement indexed in search; full-page retrieval unavailable. Contract summary should be rechecked before any approach."
+    },
+    {
+      "id": "farioli-deal",
+      "title": "Porto: Farioli renews",
+      "url": "https://www.fcporto.pt/pt/noticias/20260111-pt-francesco-farioli-renova-contrato",
+      "date": "11 January 2026",
+      "note": "Official renewal announcement indexed in search; full-page retrieval blocked. Recheck the original contract statement before any approach."
+    },
+    {
+      "id": "farioli-ajax",
+      "title": "Ajax: Farioli departure",
+      "url": "https://english.ajax.nl/articles/francesco-farioli-decides-to-leave-ajax",
+      "date": "19 May 2025",
+      "note": "Official departure account with attributed comments from both parties. Their explanations are perspectives, not independent findings about character."
+    },
+    {
+      "id": "pochettino",
+      "title": "US Soccer: Pochettino contract through 2030",
+      "url": "https://www.ussoccer.com/stories/2026/08/usmnt/mauricio-pochettino-head-coach-new-contract-through-2030",
+      "date": "3 August 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    },
+    {
+      "id": "iraola",
+      "title": "Liverpool: Andoni Iraola staff profile",
+      "url": "https://www.liverpoolfc.com/team/mens/staff/andoni-iraola",
+      "date": "Checked 10 September 2026",
+      "note": "Official club publication. Public facts only; no evidence of interest in Tottenham."
+    }
+  ],
+  "coaches": [
+    {
+      "key": "de-zerbi",
+      "id": "78552079-813c-4239-8654-e05769d221d8",
+      "name": "Roberto De Zerbi",
+      "club": "Tottenham",
+      "nationality": "Italian",
+      "route": "Incumbent benchmark",
+      "angle": "Improve the current set-up",
+      "obstacle": "Evidence of sustainable attacking improvement",
+      "facts": "Tottenham appointed De Zerbi on 31 March 2026 on a long-term contract. The opening three league matches produced one point, no goals and five conceded. A separate 5–1 cup win over Charlton and the goalless Forest draw provide context: the picture is not three identical performances. The club’s Forest report records his view that organisation and spirit had improved.",
+      "sources": [
+        "spurs-appointment",
+        "spurs-bees",
+        "spurs-newcastle",
+        "spurs-forest",
+        "spurs-cup"
+      ],
+      "case": "Use continuity as the test every alternative must beat. A successor needs to offer a credible improvement after transition costs, disruption and implementation time are included.",
+      "against": "An alternative can look better simply because its difficulties have not yet been experienced here. Equally, the cost of change must not become an excuse to ignore persistent weaknesses.",
+      "gate": "A short, observable improvement plan and a scheduled review; no assumed vacancy or dismissal decision.",
+      "areas": [
+        {
+          "key": "coach_profile",
+          "title": "Career & appointment",
+          "domain": "Career context",
+          "hypothesis": "A fictional continuity proposal keeps the current head coach responsible for the next training block and asks the sporting lead to remove avoidable organisational friction. This creates a fair comparison with the disruption of appointing someone new.",
+          "test": "Confirm the actual scope of support, staff responsibilities and contractual obligations with authorised club personnel. Ask what assistance would make a material difference within two weeks.",
+          "counter": "No club instruction or private explanation has been received. This proposal does not imply that the coach is under a formal review."
+        },
+        {
+          "key": "performance_impact",
+          "title": "Performance & impact",
+          "domain": "Career context",
+          "hypothesis": "Judge the next block on chance creation, defensive exposure and repeatability, alongside points. Separate open-play improvement from one excellent finishing performance. The scenario uses nine points across six league matches as a discussion target, not an automatic dismissal threshold.",
+          "test": "Compare matched sequences before and after any adjustment, controlling for opposition, venue, score state and player availability. Keep the Charlton cup match outside the league baseline.",
+          "counter": "Three league matches are a small sample. Neither the poor start nor the cup result alone establishes the coach’s underlying impact."
+        },
+        {
+          "key": "tactical_proposal",
+          "title": "Football proposal",
+          "domain": "Football methods",
+          "hypothesis": "The worked proposal reduces the number of early-possession decisions: one reliable route through pressure, one direct escape and clearer support around the striker. The aim is to make execution easier without abandoning the intended football.",
+          "test": "Map who receives, who provides the next pass and who protects a turnover. Test the plan against a high press and a compact block using the same available squad.",
+          "counter": "This is an invented intervention, not De Zerbi’s submitted plan. Simplification may also remove useful solutions against opponents who adapt."
+        },
+        {
+          "key": "match_management",
+          "title": "Match management",
+          "domain": "Football methods",
+          "hypothesis": "Build a simple response card for three situations: level after an hour, protecting a lead and chasing a goal. Each response changes one problem at a time and identifies the exposure created by the substitution.",
+          "test": "Review several full games with substitutions marked against the preceding ten minutes. Ask what the bench observed and whether the intended effect occurred.",
+          "counter": "A substitution followed by a goal is not proof of good decision-making. Opponent changes and fatigue may explain the outcome."
+        },
+        {
+          "key": "training_management",
+          "title": "Training & preparation",
+          "domain": "Football methods",
+          "hypothesis": "In the example week, install attacking connections early, rehearse defensive recovery at moderate load and finish with match-specific decisions. Keep a written link between the training theme and the next match observation.",
+          "test": "Request an actual microcycle and observe a session if permission is granted. Compare planned work, coaching interventions and what players can explain afterwards.",
+          "counter": "No training observation has taken place. The example says nothing about the quality or load of current Tottenham sessions."
+        },
+        {
+          "key": "players_development",
+          "title": "Player development",
+          "domain": "Conditions for success",
+          "hypothesis": "Give two existing players tightly defined development tasks rather than changing six positions at once. One task concerns receiving under pressure; the other concerns timing support around the penalty area.",
+          "test": "Use an agreed baseline, repeat the same video coding and obtain the player’s explanation. Distinguish opportunity, coaching effect and normal adaptation to teammates.",
+          "counter": "No individual player deficit is asserted. Development tasks need to follow a real squad assessment and medical/performance input."
+        },
+        {
+          "key": "media_comms",
+          "title": "Communication",
+          "domain": "Leadership under pressure",
+          "hypothesis": "The scenario communication line acknowledges the league output, explains the immediate football work and avoids promising a recovery date. Internally, players should hear the same priorities before they hear them through media.",
+          "test": "Compare full press conferences with internal messages if available. Test whether the sporting lead and coach can explain the plan consistently without identical scripted wording.",
+          "counter": "Public tone cannot establish private trust. The Forest comments are the coach’s account, not a reference from the squad."
+        },
+        {
+          "key": "personality_profile",
+          "title": "Leadership & character",
+          "domain": "Leadership under pressure",
+          "hypothesis": "Test how the incumbent receives challenge when the results make everyone impatient. A worked interview would ask for a decision he reversed, who changed his mind and how he explained that reversal to staff.",
+          "test": "Seek a specific recent example with independent corroboration. Include someone who disagreed with him, using a relevant professional relationship rather than personal gossip.",
+          "counter": "There is no finding here about temperament, private life or the dressing room. These are unanswered leadership questions."
+        },
+        {
+          "key": "cultural_org_fit",
+          "title": "Club & organisational fit",
+          "domain": "Working relationships",
+          "hypothesis": "A fictional support agreement gives the coach ownership of selection and training, the sporting lead ownership of squad planning, and a shared weekly review of whether resources match expectations.",
+          "test": "Confirm actual decision rights and test one disagreement about recruitment, one about player workload and one about results. Record who resolves each issue and when.",
+          "counter": "A tidy governance chart cannot remove genuine disagreement. The club’s existing arrangements have not been inspected."
+        }
+      ]
+    },
+    {
+      "key": "mckenna",
+      "id": "c04c8747-bda1-4c95-a1ad-ed82af70c31d",
+      "name": "Kieran McKenna",
+      "club": "Current role unverified",
+      "nationality": "Northern Irish",
+      "route": "First research priority",
+      "angle": "Development with a practical first month",
+      "obstacle": "Current intentions and obligations unknown",
+      "facts": "Ipswich announced McKenna’s departure on 10 June 2026. No later appointment has been verified in this review, so he is not labelled available. His earlier pathway includes Tottenham’s academy, Manchester United youth and first-team coaching, and successive Ipswich promotions in 2023 and 2024.",
+      "sources": [
+        "ipswich-exit",
+        "ipswich-career"
+      ],
+      "case": "Explore a development-led option with a clear installation plan. His previous Tottenham connection is context; it is not evidence that he wants to return or would be supported by today’s club.",
+      "against": "A compelling coaching process may still take longer to translate than this scenario allows. The first-month plan matters more than a polished long-term presentation.",
+      "gate": "Establish current situation through permitted research; only seek interest after contact authority changes.",
+      "areas": [
+        {
+          "key": "coach_profile",
+          "title": "Career & appointment",
+          "domain": "Career context",
+          "hypothesis": "The worked appointment case begins with motivation: why this job, why now and what would make it the wrong move? Treat any assumed wish to return to Tottenham as unproven. A credible answer must connect the football opportunity to the working conditions.",
+          "test": "Establish current employment and any continuing obligations from current documents. If contact is later approved, ask the coach directly about timing, mandate and the support he requires.",
+          "counter": "Leaving Ipswich does not demonstrate willingness to join Tottenham. A historical club connection is not an introduction or an endorsement."
+        },
+        {
+          "key": "performance_impact",
+          "title": "Performance & impact",
+          "domain": "Career context",
+          "hypothesis": "Use the rise through divisions as a reason to investigate repeatable improvement, then ask where the same approach met its limits. The sample case separates player recruitment, available resources and coaching from the final league position.",
+          "test": "Build season-by-season comparisons against wage and squad context using a licensed or clearly sourced dataset. Include difficult runs and opponents that disrupted his preferred solutions.",
+          "counter": "Promotion success does not by itself prove immediate top-flight stabilisation. No adjusted performance model has been completed for this dossier."
+        },
+        {
+          "key": "tactical_proposal",
+          "title": "Football proposal",
+          "domain": "Football methods",
+          "hypothesis": "The fictional Spurs proposal uses coordinated wide combinations, a supported striker and an extra passing option around the first press. One deeper midfielder can advance only when the other protects the centre. Keep at least one safe exit under aggressive pressure.",
+          "test": "Ask for the same XI to solve a high press and a low block, then remove a preferred player. Require three training priorities and the specific compromise he would make first.",
+          "counter": "This is our worked proposal, not McKenna’s plan. It may demand receiving and timing qualities that have not been established in the current squad."
+        },
+        {
+          "key": "match_management",
+          "title": "Match management",
+          "domain": "Football methods",
+          "hypothesis": "Test whether a detailed pre-match plan survives an opponent changing shape. The example exercise starts at 0–1 with the original build-up route blocked and only two attacking substitutes available.",
+          "test": "Ask for an immediate adjustment, the next substitution and the signal that would make him reverse the change. Review comparable match sequences before drawing a conclusion.",
+          "counter": "A persuasive tactical explanation after the event can conceal slow recognition during a match. No live decision-making assessment is recorded."
+        },
+        {
+          "key": "training_management",
+          "title": "Training & preparation",
+          "domain": "Football methods",
+          "hypothesis": "The illustrative first week introduces a small vocabulary, repeated game situations and short player feedback. Written session plans should identify the behaviour to improve, the intervention and the match evidence that would show learning.",
+          "test": "Request a real congested-week schedule and one week with full training time. Observe who leads the detail and how the head coach checks that players have understood.",
+          "counter": "No session has been observed. A method that works in a stable weekly rhythm may need redesign for travel, recovery and short turnarounds."
+        },
+        {
+          "key": "players_development",
+          "title": "Player development",
+          "domain": "Conditions for success",
+          "hypothesis": "The example programme gives an emerging player a route from training competence to meaningful minutes, with clear feedback after selection setbacks. It also asks how an established player is improved without treating him as a youth prospect.",
+          "test": "Trace two development cases and one stalled case. Speak to the player and another staff member only when authorised, and separate coaching contribution from maturation or increased playing time.",
+          "counter": "Youth-coaching experience is relevant history, not proof of every development claim. No player testimony has been collected for this mandate."
+        },
+        {
+          "key": "media_comms",
+          "title": "Communication",
+          "domain": "Leadership under pressure",
+          "hypothesis": "The worked media brief balances calm explanation with accountability. After a third poor result, the coach must explain what he has changed without blaming the inherited squad or revealing every tactical adjustment.",
+          "test": "Use a mock hostile press conference and a separate five-minute board update. Assess clarity, consistency and how he handles a question he cannot responsibly answer.",
+          "counter": "Presentation skill is not the same as leadership under sustained scrutiny. The mock exercise has not been conducted."
+        },
+        {
+          "key": "personality_profile",
+          "title": "Leadership & character",
+          "domain": "Leadership under pressure",
+          "hypothesis": "Explore how he handles a respected senior player challenging the plan and an assistant offering a different solution. The sample assessment values a clear decision, a fair explanation and a route for disagreement to improve the work.",
+          "test": "Ask for one difficult selection conversation and one mistake he owned. Later triangulate with a former player, staff member and sporting executive who saw the event.",
+          "counter": "No private character judgment is made. Friendly references alone would not be enough to support an appointment conclusion."
+        },
+        {
+          "key": "cultural_org_fit",
+          "title": "Club & organisational fit",
+          "domain": "Working relationships",
+          "hypothesis": "The fictional operating model pairs the coach with a sporting lead who owns recruitment strategy and can protect a focused first month. Agree how academy progression, first-team results and transfer priorities will be balanced before discussing a long contract.",
+          "test": "Work through a rejected recruitment request and a player-sale scenario. Ask who decides, what evidence is shared and which conditions would make the role unworkable.",
+          "counter": "Shared language about development can hide different expectations about time, spending and authority. None of those expectations has been agreed."
+        }
+      ]
+    },
+    {
+      "key": "hoeness",
+      "id": "eac4b0c8-2825-55d3-b37c-1635da0b94af",
+      "name": "Sebastian Hoeneß",
+      "club": "VfB Stuttgart",
+      "nationality": "German",
+      "route": "Priority comparative study",
+      "angle": "Turnaround followed by sustained improvement",
+      "obstacle": "Employed; release and interest unknown",
+      "facts": "Stuttgart’s March 2025 announcement extended Hoeneß and assistant David Krecidlo to 30 June 2028. It records his arrival in April 2023 with the side bottom, survival through the play-offs, and a runners-up finish the following season. A September 2026 club preview identifies him in the role. Stuttgart’s praise for player improvement is an attributed employer assessment.",
+      "sources": [
+        "hoeness-deal",
+        "hoeness-current"
+      ],
+      "case": "Use him to test whether stabilisation and ambitious football can be part of the same plan. Investigate what changed immediately and what depended on the subsequent club environment.",
+      "against": "The standout improvement happened in a particular squad and organisation. Importing the head coach without those conditions could produce a very different result.",
+      "gate": "Confirm a realistic release route before investing in an appointment timetable.",
+      "areas": [
+        {
+          "key": "coach_profile",
+          "title": "Career & appointment",
+          "domain": "Career context",
+          "hypothesis": "The example case studies a coach already working in a stable project. The initial question is whether Tottenham could offer a coherent role at all; the existence of a contract makes this an employed-coach exercise, not an available-manager list.",
+          "test": "Verify current representation and any publicly documented release terms. With later permission, establish the practical position before discussing interview dates or making a commercial assumption.",
+          "counter": "The published end date does not reveal break clauses, compensation, willingness to leave or the club’s negotiating position."
+        },
+        {
+          "key": "performance_impact",
+          "title": "Performance & impact",
+          "domain": "Career context",
+          "hypothesis": "Separate the initial survival intervention from the later improvement. The fictional research hypothesis is that rapid clarity and a more developed long-term model may be different capabilities, both of which Tottenham would need.",
+          "test": "Build two case studies: the first weeks after arrival and the subsequent full season. Account for player additions, departures, availability, opponent strength and the starting point.",
+          "counter": "The same coach can succeed at one stage and struggle at another. The historical trajectory does not establish a current Spurs performance forecast."
+        },
+        {
+          "key": "tactical_proposal",
+          "title": "Football proposal",
+          "domain": "Football methods",
+          "hypothesis": "The worked Spurs proposal combines connected progression with a clear responsibility for protecting central turnovers. Full-backs and midfielders cannot all advance on the same cue. Prioritise support distances and a reliable route into the final third.",
+          "test": "Use a squad-role workshop and a low-block exercise. Ask which roles can be coached immediately, which require a different selection and which genuinely require recruitment.",
+          "counter": "This is a hypothetical brief for testing Hoeneß, not a verified description of every Stuttgart pattern or a candidate submission."
+        },
+        {
+          "key": "match_management",
+          "title": "Match management",
+          "domain": "Football methods",
+          "hypothesis": "Test whether the coach can change attacking occupation without losing the defensive protection installed earlier in the week. The scenario presents a compact opponent and a growing temptation to send everyone forward.",
+          "test": "Request a specific in-game adjustment, the risk accepted and the observation that would trigger the next change. Compare the answer with full-match evidence.",
+          "counter": "Late attacking volume can reflect game state rather than better management. No substitution-effect study has been completed."
+        },
+        {
+          "key": "training_management",
+          "title": "Training & preparation",
+          "domain": "Football methods",
+          "hypothesis": "The sample installation plan limits new information in week one and expands only once the squad executes the first principles under pressure. The assistant’s role should be explicit: detail, delivery and feedback cannot all depend on the head coach.",
+          "test": "Map the real division of labour with Krecidlo and other staff if an approach becomes authorised. Review one session from design through delivery to the following match.",
+          "counter": "Krecidlo’s contract was extended alongside the coach, but that does not establish that either would move or that a staff package is portable."
+        },
+        {
+          "key": "players_development",
+          "title": "Player development",
+          "domain": "Conditions for success",
+          "hypothesis": "Test whether improvement is individual, positional or a product of a better team structure. The worked case follows one player who gained responsibility and another who did not improve, avoiding a selection of success stories only.",
+          "test": "Gather before-and-after role evidence and contemporaneous feedback. Ask who delivered the individual work and whether the player would describe the same mechanism.",
+          "counter": "The club’s positive development statement is useful context but is not independent proof of causation or transferability."
+        },
+        {
+          "key": "media_comms",
+          "title": "Communication",
+          "domain": "Leadership under pressure",
+          "hypothesis": "The fictional board exercise asks for a clear explanation of why an ambitious approach is temporarily producing poor output. The coach must distinguish a necessary learning period from a problem that requires immediate change.",
+          "test": "Compare full interviews in good and bad runs. Conduct a simulated update with an impatient executive and assess whether uncertainty is explained without becoming evasive.",
+          "counter": "Translated media clips can lose nuance. Communication across languages and audiences remains an assessment requirement."
+        },
+        {
+          "key": "personality_profile",
+          "title": "Leadership & character",
+          "domain": "Leadership under pressure",
+          "hypothesis": "Explore professional humility after success: what would he stop doing if the new environment contradicted his expectations? The example interview asks him to revisit a decision that worked initially but later needed changing.",
+          "test": "Seek concrete examples from coaching colleagues and sporting management, including one disagreement. Record the source’s proximity and whether the account is independently supported.",
+          "counter": "Employer praise for trust is an interested-party account. It cannot establish how he would handle an unfamiliar hierarchy or sustained conflict."
+        },
+        {
+          "key": "cultural_org_fit",
+          "title": "Club & organisational fit",
+          "domain": "Working relationships",
+          "hypothesis": "The fictional fit case requires a shared development horizon and explicit permission to simplify when results demand it. Agree which principles belong to the club and which tactical details belong to the head coach.",
+          "test": "Run a recruitment trade-off exercise and an academy-minutes exercise. Clarify authority over the first team, staff selection and performance review before evaluating cultural fit.",
+          "counter": "A successful existing partnership may be difficult to recreate. The possibility of moving the coach does not mean the surrounding conditions can be transferred."
+        }
+      ]
+    },
+    {
+      "key": "knutsen",
+      "id": "1c853d61-5d83-4b3f-b8b5-e9bde2988f5e",
+      "name": "Kjetil Knutsen",
+      "club": "Bodø/Glimt",
+      "nationality": "Norwegian",
+      "route": "Longer-horizon alternative",
+      "angle": "A coherent coaching and club model",
+      "obstacle": "Contract to 2029; system portability untested",
+      "facts": "Bodø/Glimt announced a Knutsen contract extension through 2029 in January 2026. Its 9 September Bayern preview provides a current employment checkpoint. These publications establish that he is working at the club, not that he is willing or contractually free to move.",
+      "sources": [
+        "knutsen-deal",
+        "knutsen-current"
+      ],
+      "case": "Explore a different route: building repeatable collective habits and a clear development environment. The key is how much can travel with the coach into an urgent appointment.",
+      "against": "This scenario may demand speed that a deeply embedded model cannot deliver. Long-term coherence is attractive only if the first six weeks are credible.",
+      "gate": "Resolve staff portability, implementation time and employed-coach feasibility.",
+      "areas": [
+        {
+          "key": "coach_profile",
+          "title": "Career & appointment",
+          "domain": "Career context",
+          "hypothesis": "Start with the scale of the move rather than an assumed career ambition. The worked case asks whether the role can preserve the conditions needed for effective coaching while changing league, scrutiny and organisational context.",
+          "test": "Confirm current contractual position and identify the decision-makers in any permitted process. Ask about timing only after authority for contact has been granted.",
+          "counter": "A long contract is a practical constraint, not evidence of permanent unavailability. No private view on England or Tottenham is known."
+        },
+        {
+          "key": "performance_impact",
+          "title": "Performance & impact",
+          "domain": "Career context",
+          "hypothesis": "Assess consistency across squad turnover and different types of opposition. The sample hypothesis is that repeatable improvement may matter more than one exceptional European result, especially when considering a different competitive environment.",
+          "test": "Use several seasons of domestic and European matches, adjusting for resources and opponents. Include poor spells and matches where the usual collective solutions did not work.",
+          "counter": "League context and club continuity may explain part of the record. No cross-league adjustment or performance score has been produced."
+        },
+        {
+          "key": "tactical_proposal",
+          "title": "Football proposal",
+          "domain": "Football methods",
+          "hypothesis": "The fictional Spurs proposal centres on rehearsed relationships between wide players, midfield support and the forward line. Start with a small number of shared cues rather than requiring the whole existing model to be copied at once.",
+          "test": "Ask which principles would survive immediately in this squad and which would be postponed. Test an opponent who denies the usual passing combinations and space behind the defence.",
+          "counter": "This is a proposed research exercise. It does not establish that the current Tottenham players can execute the model or that Knutsen would choose it here."
+        },
+        {
+          "key": "match_management",
+          "title": "Match management",
+          "domain": "Football methods",
+          "hypothesis": "Challenge the ability to depart from the preferred rhythm when a stronger opponent controls territory. The example game requires a more compact phase without losing the next attacking outlet.",
+          "test": "Review full matches with long periods without the ball. Ask what changes are tactical, what changes are personnel-led and which problems the coach deliberately accepts.",
+          "counter": "Resilience in one major fixture may not describe routine league management. No coded sample has been completed."
+        },
+        {
+          "key": "training_management",
+          "title": "Training & preparation",
+          "domain": "Football methods",
+          "hypothesis": "The worked first-month schedule builds repeated actions with a small shared vocabulary and frequent checks for understanding. Preserve useful existing staff knowledge while installing the first new routines.",
+          "test": "Request a genuine installation plan for a squad he has not built. Observe how corrections are delivered and whether assistant coaches can teach the same principles independently.",
+          "counter": "No training visit has happened. Established routines at one club cannot be assumed to appear quickly in a new group."
+        },
+        {
+          "key": "players_development",
+          "title": "Player development",
+          "domain": "Conditions for success",
+          "hypothesis": "The development exercise asks how a player earns responsibility inside a collective system and how the staff adapt for someone with a different learning pace. Include a player who struggled to fit.",
+          "test": "Trace the pathway from recruitment or promotion to regular contribution. Separate player identification, individual coaching, team structure and exposure to minutes.",
+          "counter": "A club reputation for development does not identify the head coach’s precise contribution. The assessment remains open."
+        },
+        {
+          "key": "media_comms",
+          "title": "Communication",
+          "domain": "Leadership under pressure",
+          "hypothesis": "Test how a consistent internal message translates to a larger and more impatient audience. The fictional press exercise demands a clear account of progress even when the league table has not yet rewarded it.",
+          "test": "Review complete media appearances with translation checked where necessary. Simulate a board update focused on what is changing now, not only long-term belief.",
+          "counter": "Language comfort, media exposure and communication under this particular pressure have not been assessed directly."
+        },
+        {
+          "key": "personality_profile",
+          "title": "Leadership & character",
+          "domain": "Leadership under pressure",
+          "hypothesis": "Investigate how the coach preserves standards without making loyalty to a method more important than learning. The sample interview asks for a time a player or assistant changed his mind.",
+          "test": "Seek contrasting professional accounts from a player, a departing staff member and management. Ask each for a specific event and what happened afterwards.",
+          "counter": "No personality label or private-life finding is justified by the sources here. The exercise is about observable working behaviour."
+        },
+        {
+          "key": "cultural_org_fit",
+          "title": "Club & organisational fit",
+          "domain": "Working relationships",
+          "hypothesis": "The fictional fit model needs board patience, aligned recruitment and a coherent staff group. If the role only permits a short firefighting period, the mandate may be wrong for this route even if the coach is strong.",
+          "test": "Agree a realistic implementation horizon and test a forced player-sale scenario. Identify which parts of the current support system would be essential and which could be rebuilt.",
+          "counter": "Hiring a successful coach cannot import a whole club culture. A mismatch in time horizon would be a substantive reason to stop."
+        }
+      ]
+    },
+    {
+      "key": "silva",
+      "id": "f727a6d0-926e-5cdf-8be7-e06eb0652607",
+      "name": "Marco Silva",
+      "club": "Benfica",
+      "nationality": "Portuguese",
+      "route": "Practical league benchmark",
+      "angle": "Premier League context and role clarity",
+      "obstacle": "New Benfica commitment; no release indication",
+      "facts": "Benfica announced an agreement with Marco Silva in June 2026 for the 2026/27 and 2027/28 seasons, with an option for a further season. He therefore belongs in this exercise as an employed coach, not as Fulham’s current manager or an assumed free agent. The official indexed announcement supports this status; the full page needs rechecking before contact.",
+      "sources": [
+        "silva-deal"
+      ],
+      "case": "Use the research to test an option framed around league familiarity, practical roles and a manageable transition. Those are hypotheses to investigate, not a completed endorsement.",
+      "against": "A recent commitment elsewhere can make an apparently sensible football option unrealistic commercially and professionally.",
+      "gate": "A credible permission and release route must precede an active candidate process.",
+      "areas": [
+        {
+          "key": "coach_profile",
+          "title": "Career & appointment",
+          "domain": "Career context",
+          "hypothesis": "The example appointment case begins with the new Benfica commitment. An attractive profile should not be allowed to create a false impression that a move is attainable or that the coach is seeking one.",
+          "test": "Recheck the primary contract announcement and current role. If contact is later authorised, establish whether there is any legitimate route to discuss an opportunity before planning interviews.",
+          "counter": "Contract duration alone does not reveal compensation or interest. No representative has been contacted."
+        },
+        {
+          "key": "performance_impact",
+          "title": "Performance & impact",
+          "domain": "Career context",
+          "hypothesis": "The worked research asks whether the coach improves the repeatability of ordinary league performances, not just the ceiling against strong opponents. Compare resource levels and the stability of the squad around him.",
+          "test": "Build a full career performance table using sourced records, including difficult periods. Separate recruitment quality, player availability and coaching effects wherever the data permits.",
+          "counter": "League familiarity is not proof of a quick recovery. No adjusted win-rate or impact estimate is claimed in this file."
+        },
+        {
+          "key": "tactical_proposal",
+          "title": "Football proposal",
+          "domain": "Football methods",
+          "hypothesis": "The fictional Spurs plan starts with compact distances, recognisable wide support and enough presence near the striker. The defensive midfielder’s first responsibility is to keep the centre protected when an attack ends.",
+          "test": "Present the current available squad and ask for a realistic first XI, two different opponent plans and the first compromise. Challenge any solution that depends on an immediate transfer.",
+          "counter": "This is our practical test brief, not a sourced account of Silva’s exact preferred plan for Tottenham."
+        },
+        {
+          "key": "match_management",
+          "title": "Match management",
+          "domain": "Football methods",
+          "hypothesis": "The example game-management exercise starts with an organised first half but little penalty-area threat. The coach must increase attacking support without turning every turnover into an open-field defensive problem.",
+          "test": "Ask for a role change before a substitution and a substitution if the role change fails. Review comparable match sequences and separate intent from outcome.",
+          "counter": "A strong verbal plan is not evidence that the same adjustment is recognised and implemented quickly in a real match."
+        },
+        {
+          "key": "training_management",
+          "title": "Training & preparation",
+          "domain": "Football methods",
+          "hypothesis": "The sample week prioritises a small number of repeatable attacking patterns and defensive transition responsibilities. Keep tactical work compatible with a congested schedule and the existing performance department.",
+          "test": "Request an actual weekly plan and identify who designs set plays, opposition preparation and individual work. Observe how the staff handle a late injury or selection change.",
+          "counter": "No training material or staff interview has been received. The required coaching team and cost remain unknown."
+        },
+        {
+          "key": "players_development",
+          "title": "Player development",
+          "domain": "Conditions for success",
+          "hypothesis": "The worked development case tests improvement in experienced players as well as younger prospects. Ask how the coach handles a player whose role is tactically useful but whose confidence has deteriorated.",
+          "test": "Follow one successful role change, one young player’s progression and one stalled case. Seek evidence of specific interventions rather than relying on market-value changes.",
+          "counter": "Player value and selection are affected by many factors. There is no individual development finding in this dossier."
+        },
+        {
+          "key": "media_comms",
+          "title": "Communication",
+          "domain": "Leadership under pressure",
+          "hypothesis": "The fictional communication exercise requires the coach to protect confidence while acknowledging poor output. The board receives a short explanation of the trade-offs, and players receive practical instructions they can use.",
+          "test": "Review full press conferences around difficult runs and ask for a mock message after a damaging home defeat. Check consistency across audiences.",
+          "counter": "A manager can communicate clearly in public while relationships are strained privately; neither conclusion can be inferred here."
+        },
+        {
+          "key": "personality_profile",
+          "title": "Leadership & character",
+          "domain": "Leadership under pressure",
+          "hypothesis": "Explore how he responds when a recruitment request is declined and when a senior player wants guarantees. The sample assessment values clarity of standards, proportionate challenge and a documented route to resolve disagreement.",
+          "test": "Ask for a concrete example of each situation, then seek authorised professional references from both sides of the working relationship.",
+          "counter": "No temperament claim, rumour or private biographical inference is included. These are open questions for a later assessment."
+        },
+        {
+          "key": "cultural_org_fit",
+          "title": "Club & organisational fit",
+          "domain": "Working relationships",
+          "hypothesis": "The fictional operating agreement sets a realistic football budget and a clear boundary between coaching input and final recruitment decisions. A practical first-month approach must still fit the club’s longer-term direction.",
+          "test": "Run a scenario where the preferred player cannot be signed. Ask for the alternative coaching solution and the point at which the role becomes unsuitable.",
+          "counter": "Agreement on a formation does not establish agreement on authority or resources. A new employer relationship may make this route impractical regardless of football fit."
+        }
+      ]
+    },
+    {
+      "key": "terzic",
+      "id": "7a47c629-c96f-50c2-ba0c-23e56fe5f2de",
+      "name": "Edin Terzić",
+      "club": "Athletic Club",
+      "nationality": "German",
+      "route": "High-pressure comparison",
+      "angle": "Decision-making in demanding matches",
+      "obstacle": "New Athletic role; immediate move difficult",
+      "facts": "Athletic Club announced Terzić as head coach in May 2026 on a contract to 30 June 2028. Its career summary records Dortmund’s 2021 DFB-Pokal win, the narrow 2023 league-title outcome and the 2024 Champions League final. It also records academy and football-operations work at Dortmund and assistant roles at West Ham and Beşiktaş.",
+      "sources": [
+        "terzic-deal"
+      ],
+      "case": "Study the relationship between knockout performance, weekly consistency and leadership in pressured moments. His varied roles provide useful questions about how a coach understands the wider organisation.",
+      "against": "Memorable high-stakes matches can dominate an assessment and obscure routine league weaknesses. His new role also makes near-term feasibility a major obstacle.",
+      "gate": "Treat as a comparative study until there is credible evidence of a practical appointment route.",
+      "areas": [
+        {
+          "key": "coach_profile",
+          "title": "Career & appointment",
+          "domain": "Career context",
+          "hypothesis": "The worked case treats the Athletic appointment as an active commitment. Career variety is relevant to understanding his development, but should not be converted into an assumption that he would welcome another move.",
+          "test": "Verify the current role and permitted process. Build a chronology of responsibilities, separating assistant, operational and head-coach work rather than counting every role as equivalent.",
+          "counter": "No approach, interest or release clause has been established. A career connection in England is not current availability."
+        },
+        {
+          "key": "performance_impact",
+          "title": "Performance & impact",
+          "domain": "Career context",
+          "hypothesis": "Investigate whether performance in decisive games is supported by reliable weekly output. The fictional research design gives equal attention to ordinary matches where a stronger squad is expected to take control.",
+          "test": "Compare league and knockout samples, using opponent quality and game state. Include the difficult outcomes alongside the headline achievements and test whether patterns recur.",
+          "counter": "Cup progression can reflect finishing, goalkeeping and draw difficulty as well as coaching. The source record does not establish an adjusted impact score."
+        },
+        {
+          "key": "tactical_proposal",
+          "title": "Football proposal",
+          "domain": "Football methods",
+          "hypothesis": "The worked Spurs proposal starts from defensive control and purposeful attacking transitions, then asks how the same team creates against an opponent that refuses to open space. The second question is essential for home fixtures.",
+          "test": "Require two plans with the same personnel: resisting an elite attack and breaking down a deep block. Ask which principles remain constant and which roles change.",
+          "counter": "This is an invented comparison exercise, not a claim about Terzić’s complete tactical identity or an actual Tottenham proposal."
+        },
+        {
+          "key": "match_management",
+          "title": "Match management",
+          "domain": "Football methods",
+          "hypothesis": "Use a pressure exercise with a narrow lead, tired wide players and an opponent adding a second striker. The decision must balance territory, defensive numbers and a credible outlet.",
+          "test": "Ask for the first adjustment, substitution timing and a response if the opponent scores. Review real full-game sequences and seek the rationale from an authorised interview later.",
+          "counter": "Reaching a major final does not automatically prove every in-game decision. No direct assessment has been completed."
+        },
+        {
+          "key": "training_management",
+          "title": "Training & preparation",
+          "domain": "Football methods",
+          "hypothesis": "The sample preparation model translates the opponent plan into a small number of player decisions rather than an overloaded briefing. Staff must know which messages are essential and which detail belongs in individual work.",
+          "test": "Request a real match-preparation sequence and observe a session if permission is granted. Ask players to explain the plan in their own words.",
+          "counter": "No training observation or player interview has occurred. Tactical preparation quality remains unverified."
+        },
+        {
+          "key": "players_development",
+          "title": "Player development",
+          "domain": "Conditions for success",
+          "hypothesis": "The fictional development brief asks how younger players are trusted when results are under pressure. It also tests how the coach gives useful feedback to a player who has lost his place.",
+          "test": "Trace one player who progressed, one who remained peripheral and one who left. Compare opportunity, coaching intervention and the player’s own account.",
+          "counter": "Academy experience is useful context but cannot establish the quality of current first-team development work."
+        },
+        {
+          "key": "media_comms",
+          "title": "Communication",
+          "domain": "Leadership under pressure",
+          "hypothesis": "The worked communication test uses an emotional result and asks the coach to turn it into a clear next step. An effective answer acknowledges the occasion without allowing it to consume the following week.",
+          "test": "Compare complete post-match interviews after major wins and losses. Simulate a short board briefing in which the evidence does not support a simple optimistic story.",
+          "counter": "Public passion cannot be treated as a personality score. Media material is only one part of a leadership assessment."
+        },
+        {
+          "key": "personality_profile",
+          "title": "Leadership & character",
+          "domain": "Leadership under pressure",
+          "hypothesis": "Explore how authority works when the coach has strong emotional identification with a club and when he arrives as an outsider. The example interview asks how he builds credibility before results supply it.",
+          "test": "Seek specific professional examples from players, staff and executives, including a disagreement. Ask what he did, who was affected and how the issue was resolved.",
+          "counter": "No private-life or character conclusion is drawn. A compelling personal story is not a substitute for corroborated behaviour."
+        },
+        {
+          "key": "cultural_org_fit",
+          "title": "Club & organisational fit",
+          "domain": "Working relationships",
+          "hypothesis": "The fictional fit discussion compares different club identities and recruitment structures. Ask what he would preserve at Tottenham and what he would need permission to change, rather than assuming one model transfers intact.",
+          "test": "Run a decision-rights workshop covering recruitment, academy progression, staff appointments and media responsibilities. Clarify which commitments are essential.",
+          "counter": "Athletic’s distinct context and a new contract may make this a useful benchmark rather than a feasible immediate option."
+        }
+      ]
+    },
+    {
+      "key": "farioli",
+      "id": "3104f191-492d-40b9-a560-28f71d2b0af5",
+      "name": "Francesco Farioli",
+      "club": "FC Porto",
+      "nationality": "Italian",
+      "route": "Continuity-of-method comparison",
+      "angle": "Detailed preparation and explicit role alignment",
+      "obstacle": "Employed; test governance and adaptation",
+      "facts": "Porto’s January 2026 renewal announcement records a contract extension to 2028. Ajax’s May 2025 departure statement says he left after one season, having arrived from Nice. Ajax credited a return to Champions League qualification; Farioli described different visions and timeframes. Those are attributed perspectives. Three assistants departed Ajax with him at that time, which does not establish their current availability.",
+      "sources": [
+        "farioli-deal",
+        "farioli-ajax"
+      ],
+      "case": "Test whether a change of coach could preserve useful football principles while improving implementation and clarity. Make expectations about authority and time explicit from the beginning.",
+      "against": "If the squad’s actual problem is complexity or adaptation speed, hiring another detailed-method option may reproduce it. The mandate must identify what would be materially different.",
+      "gate": "Verify current contract details and define the practical difference from the incumbent before advancing.",
+      "areas": [
+        {
+          "key": "coach_profile",
+          "title": "Career & appointment",
+          "domain": "Career context",
+          "hypothesis": "The example career review examines how the coach moved between environments and how responsibilities changed. The Ajax departure account is a prompt to ask about alignment, not evidence of a character flaw.",
+          "test": "Create a dated chronology with the coach’s explanation and the employer’s account kept distinct. Recheck current Porto terms before considering a timetable.",
+          "counter": "The public renewal summary does not disclose release mechanics. No motivation, interest or private explanation has been established."
+        },
+        {
+          "key": "performance_impact",
+          "title": "Performance & impact",
+          "domain": "Career context",
+          "hypothesis": "The worked research tests the durability of improvement and the difference between defensive control, attacking output and final results. Include matches where control did not produce enough threat.",
+          "test": "Use full-season, opponent-adjusted data where available and investigate difficult stretches. Compare the team’s underlying opportunities with scorelines before attributing impact.",
+          "counter": "Neither qualification nor a disappointing run can establish the whole coaching effect. No modelled forecast is provided."
+        },
+        {
+          "key": "tactical_proposal",
+          "title": "Football proposal",
+          "domain": "Football methods",
+          "hypothesis": "The fictional Spurs proposal keeps a deliberate build-up but creates a clearer direct option when the opponent wins the first tactical contest. The question is whether the coach can simplify without treating it as a loss of identity.",
+          "test": "Ask for a first-month plan using the inherited squad and a fallback plan after an early setback. Require a specific explanation of what would differ from the incumbent’s approach.",
+          "counter": "The proposal is invented for the exercise. Shared tactical vocabulary does not prove identical methods, or that a change would improve the situation."
+        },
+        {
+          "key": "match_management",
+          "title": "Match management",
+          "domain": "Football methods",
+          "hypothesis": "The example match starts with territorial control but few dangerous entries. The coach must decide whether to change occupation, tempo or personnel, while retaining protection against counters.",
+          "test": "Review matches with similar game states and ask for the evidence behind the first adjustment. Separate a deliberate trade-off from a problem recognised too late.",
+          "counter": "No coded match-management study has been completed. Possession share alone is not a measure of control or good decision-making."
+        },
+        {
+          "key": "training_management",
+          "title": "Training & preparation",
+          "domain": "Football methods",
+          "hypothesis": "The worked installation plan uses video and pitch work to teach the same limited set of decisions. The test is whether detailed preparation becomes understandable action rather than an accumulation of information.",
+          "test": "Request a real session plan and an example of how it was simplified for a player. Map the division of labour across the current staff rather than assuming the historical Ajax group still applies.",
+          "counter": "Past staff associations are not a current staff offer. No observation or agreed package exists."
+        },
+        {
+          "key": "players_development",
+          "title": "Player development",
+          "domain": "Conditions for success",
+          "hypothesis": "The fictional development exercise asks how the coach works with a talented player who struggles with the system’s demands. Progress should be expressed as observable decisions and actions, not only improved confidence.",
+          "test": "Trace a specific intervention from feedback to training to match execution. Include a case where adaptation failed and ask what the staff changed.",
+          "counter": "No individual player assessment has been performed. A method’s sophistication does not guarantee that every player benefits."
+        },
+        {
+          "key": "media_comms",
+          "title": "Communication",
+          "domain": "Leadership under pressure",
+          "hypothesis": "The sample media exercise asks for a plain explanation of a complex football problem. The coach should be able to describe the immediate work without implying that supporters or executives simply fail to understand the method.",
+          "test": "Compare complete interviews and conduct a short mock board update. Test clarity in the working language expected for the role, including follow-up questions.",
+          "counter": "Public explanations and translations provide limited evidence of daily communication. No direct language assessment is recorded."
+        },
+        {
+          "key": "personality_profile",
+          "title": "Leadership & character",
+          "domain": "Leadership under pressure",
+          "hypothesis": "Explore how the coach reacts when the promised timetable changes. The worked interview asks for an example where expectations diverged, what he communicated early and what he would do differently now.",
+          "test": "Seek the coach’s account and authorised references with first-hand knowledge. Record disagreement explicitly instead of choosing whichever version fits the preferred narrative.",
+          "counter": "The Ajax statement cannot support a personality diagnosis or private allegation. No adverse character finding is made here."
+        },
+        {
+          "key": "cultural_org_fit",
+          "title": "Club & organisational fit",
+          "domain": "Working relationships",
+          "hypothesis": "The fictional operating agreement puts vision, recruitment control and implementation time in writing. It includes a review point for disagreements so that different expectations can be surfaced before they become a crisis.",
+          "test": "Run a scenario in which a key sale changes the squad plan. Ask what remains achievable, what must be renegotiated and who makes the final decision.",
+          "counter": "Documented alignment reduces ambiguity but cannot guarantee a durable relationship. There is no evidence that either party would accept this hypothetical arrangement."
+        }
+      ]
+    }
+  ],
+  "workstreams": [
+    {
+      "title": "Squad problem before coach preference",
+      "owner": "Jake — proposed",
+      "due": "12 September",
+      "body": "FICTIONAL SCENARIO. Begin with three hypotheses: the striker is insufficiently supported; attacks leave too little central protection; instructions take too long to become repeatable actions. These are testable prompts, not findings about named players. Code full matches, map each available player to the required roles and log evidence that contradicts each hypothesis.",
+      "output": "A role map covering first choice, cover and adaptation needed. Every named player assessment must have a dated source or match sequence."
+    },
+    {
+      "title": "A fair comparison of the seven routes",
+      "owner": "Ben — proposed",
+      "due": "14 September",
+      "body": "FICTIONAL SCENARIO. Give every coach the same squad, the same fictional budget and the same first-month constraints. Compare the change required, the first observable improvement and the failure mode. The incumbent receives the same scrutiny as alternatives; candidates do not receive credit for claims that have not been tested.",
+      "output": "A one-page comparison with reasons to research, reasons to stop and the next evidence requirement. No invented fit percentages."
+    },
+    {
+      "title": "Professional background and working relationships",
+      "owner": "Rasmus — proposed",
+      "due": "16 September",
+      "body": "FICTIONAL SCENARIO. Reconstruct career transitions, responsibilities, staff partnerships, recruitment involvement and responses to setbacks. Distinguish direct knowledge from reputation. Later, with permission, explore work-relevant practical needs such as relocation, travel and support through the coach’s own account. Do not invent family circumstances, health information or private allegations.",
+      "output": "A dated career chronology, professional relationship map and unresolved contradictions, with source identity and access kept appropriately restricted."
+    },
+    {
+      "title": "Commercial and staffing feasibility",
+      "owner": "Ben — proposed",
+      "due": "17 September",
+      "body": "FICTIONAL SCENARIO. Model head-coach pay, additional staff, compensation and transition costs separately. Agree which retained roles are essential and which incoming roles can be accommodated. Establish current employment before discussing feasibility; a published contract end date is not a release quote.",
+      "output": "A cost bridge, staff responsibility map and clear list of conditions. Candidate-specific figures remain unknown until substantiated."
+    },
+    {
+      "title": "Challenge session and board paper",
+      "owner": "Jake + Ben + Rasmus — proposed",
+      "due": "20 September",
+      "body": "FICTIONAL SCENARIO. Present the strongest case against the preferred research route first. Ask what would change the view, what is still unknown and whether a successor materially improves on supported continuity. This is an internal rehearsal, not a scheduled meeting with Tottenham.",
+      "output": "A concise example board paper, an evidence appendix and a record of the next decision. No external release or contact authority is implied."
+    }
+  ],
+  "references": [
+    [
+      "Sporting executive",
+      "Authority, recruitment and disagreement",
+      "Describe one occasion when the coach opposed your decision. What did he do after the decision was made?",
+      "Test whether the source saw daily work or only formal meetings. Include the coach’s account of the same event."
+    ],
+    [
+      "Assistant coach",
+      "Preparation, delegation and staff culture",
+      "Which responsibilities were truly yours, and what happened when your reading of a match differed?",
+      "A close colleague may be loyal or financially connected to the coach. Seek specific examples and an independent perspective."
+    ],
+    [
+      "Senior player",
+      "Trust, selection and difficult feedback",
+      "Tell us about a difficult selection decision. What was explained, and did the explanation match subsequent actions?",
+      "Separate dissatisfaction with playing time from the fairness and clarity of the process."
+    ],
+    [
+      "Developing player",
+      "Individual improvement and opportunity",
+      "What specific work changed your decisions or execution, and who delivered it?",
+      "Distinguish coaching from maturation, recruitment quality and the effect of more minutes."
+    ],
+    [
+      "Performance practitioner",
+      "Load, recovery and multidisciplinary work",
+      "How were disagreements over readiness resolved, and who owned the final decision?",
+      "Ask about the professional process. Do not collect or invent identifiable medical information."
+    ],
+    [
+      "A professionally critical reference",
+      "Counterevidence and limitations",
+      "Where did the approach stop working, what was tried and what would you warn the next club to establish first?",
+      "Record the source’s relationship, timing, possible grievance and what can be independently corroborated."
+    ]
+  ],
+  "plan": [
+    [
+      "Days 1–30",
+      "Stabilise and understand",
+      "FICTIONAL SCENARIO. Agree decision rights, retain essential support staff and complete individual football conversations. Install only the first attacking and defensive priorities. Establish a baseline for chance quality, dangerous turnovers and availability using an agreed data source.",
+      "Review after two weeks: can players explain their roles, and do match sequences show the intended change? No automatic points-based dismissal rule."
+    ],
+    [
+      "Days 31–60",
+      "Test repeatability",
+      "FICTIONAL SCENARIO. Extend the model against contrasting opponents, refine set plays and run individual development work. Compare actual staffing needs with the initial assumptions before requesting more personnel.",
+      "Review whether improvements survive a setback, a change of opponent and a missing first-choice player. Record what has not improved."
+    ],
+    [
+      "Days 61–90",
+      "Decide what to build",
+      "FICTIONAL SCENARIO. Agree the sustainable game model and evidence-based recruitment priorities. Confirm academy pathways, staff ownership and the next quarter’s performance questions.",
+      "Decide which changes are working, which should stop and what additional support is justified. Avoid using the early sample as proof of long-term success."
+    ]
+  ],
+  "budgets": [
+    [
+      "Head coach, annual gross base",
+      "£5m–£7m"
+    ],
+    [
+      "Head coach bonus, separate ceiling",
+      "Up to £1m"
+    ],
+    [
+      "Additional coaching staff, annual",
+      "£2m–£3m"
+    ],
+    [
+      "Incoming release compensation, one-off",
+      "Up to £8m"
+    ],
+    [
+      "Employer costs, retained staff, relocation",
+      "Not estimated"
+    ],
+    [
+      "Incumbent settlement and transition liabilities",
+      "Unknown; excluded from example totals"
+    ]
+  ],
+  "exclusions": [
+    {
+      "name": "Mauricio Pochettino",
+      "reason": "US Soccer announced a contract through 2030. Historical Tottenham relevance is not current availability.",
+      "source": "pochettino"
+    },
+    {
+      "name": "Andoni Iraola",
+      "reason": "Liverpool lists him as head coach. Researching an attractive name does not establish a viable route to appointment.",
+      "source": "iraola"
+    }
+  ]
+}

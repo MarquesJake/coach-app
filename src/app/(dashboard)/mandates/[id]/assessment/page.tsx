@@ -1,11 +1,14 @@
+import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { ASSESSMENT_CRITERIA } from '@/lib/assessment/criteria'
-import { deriveEvidence } from '@/lib/assessment/derived-evidence'
 import { cn } from '@/lib/utils'
 import { displayClubName } from '@/lib/display-names'
+
+export const metadata = { title: 'Assessment' }
+
 
 export default async function MandateAssessmentIndexPage(
   props: {
@@ -26,11 +29,13 @@ export default async function MandateAssessmentIndexPage(
     .single()
   if (!mandate) notFound()
 
-  const { data: shortlist } = await supabase
+  const { data: shortlist, error: shortlistError } = await supabase
     .from('mandate_shortlist')
-    .select('coach_id, status, placement_probability, coaches(name, club_current)')
+    .select('coach_id, status, placement_probability, coaches(name, club_current, due_diligence_summary, compliance_notes)')
     .eq('mandate_id', mandateId)
     .order('placement_probability', { ascending: false })
+
+  if (shortlistError) throw new Error('Assessment candidates could not be loaded. Refresh to retry.')
 
   const coachIds = (shortlist ?? []).map((s) => s.coach_id)
 
@@ -38,76 +43,35 @@ export default async function MandateAssessmentIndexPage(
     coachIds.length
       ? supabase
           .from('candidate_assessments')
-          .select('coach_id, criterion, status')
+          .select('coach_id, criterion, status, summary')
           .eq('mandate_id', mandateId)
       : Promise.resolve({ data: [] as { coach_id: string; criterion: string; status: string }[] }),
     coachIds.length
       ? supabase
           .from('assessment_evidence')
-          .select('coach_id, criterion')
+          .select('coach_id, criterion, title, detail, source, verification_status')
           .eq('mandate_id', mandateId)
-      : Promise.resolve({ data: [] as { coach_id: string; criterion: string }[] }),
+      : Promise.resolve({ data: [] as { coach_id: string; criterion: string; verification_status?: string }[] }),
     coachIds.length
       ? supabase
           .from('candidate_recommendations')
-          .select('coach_id, verdict, confidence, summary')
+          .select('coach_id, verdict, confidence, summary, key_strengths, key_risks, mitigation')
           .eq('mandate_id', mandateId)
       : Promise.resolve({ data: [] as { coach_id: string; verdict: string | null; confidence: number | null; summary: string | null }[] }),
   ])
 
-  // Coverage counts captured evidence plus auto-derived platform evidence,
-  // matching what the per-candidate workspace matrix shows.
-  const [derivedCoaches, allStints, allTactical, allChecks, allRefs] = coachIds.length
-    ? await Promise.all([
-        supabase
-          .from('coaches')
-          .select('id, tactical_identity, preferred_style')
-          .in('id', coachIds),
-        supabase
-          .from('coach_stints')
-          .select('coach_id, club_name, points_per_game, league')
-          .in('coach_id', coachIds),
-        supabase
-          .from('coach_tactical_reports')
-          .select('id, coach_id, match_observed, formation_used, overall_tactical_score')
-          .in('coach_id', coachIds),
-        supabase
-          .from('coach_background_checks')
-          .select('id, coach_id, media_reputation, overall_risk_rating, last_verified_at')
-          .in('coach_id', coachIds),
-        supabase
-          .from('coach_references')
-          .select('id, coach_id, reference_name, reference_role, rating')
-          .in('coach_id', coachIds),
-      ])
-    : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }]
+  if ([assessments, evidence, recommendations].some(result => 'error' in result && result.error)) {
+    throw new Error('Assessment progress could not be loaded. Refresh to retry.')
+  }
 
-  const coverage = new Map<string, Set<string>>()
-  for (const row of evidence.data ?? []) {
-    const set = coverage.get(row.coach_id) ?? new Set<string>()
-    set.add(row.criterion)
-    coverage.set(row.coach_id, set)
-  }
-  for (const coach of derivedCoaches.data ?? []) {
-    const derived = deriveEvidence({
-      coach,
-      stints: (allStints.data ?? []).filter((s) => s.coach_id === coach.id),
-      tacticalReports: (allTactical.data ?? []).filter((t) => t.coach_id === coach.id),
-      backgroundChecks: (allChecks.data ?? []).filter((b) => b.coach_id === coach.id),
-      references: (allRefs.data ?? []).filter((r) => r.coach_id === coach.id),
-    })
-    const set = coverage.get(coach.id) ?? new Set<string>()
-    for (const item of derived) set.add(item.criterion)
-    coverage.set(coach.id, set)
-  }
-  const completeCounts = new Map<string, number>()
-  for (const row of assessments.data ?? []) {
-    if (row.status === 'complete') {
-      completeCounts.set(row.coach_id, (completeCounts.get(row.coach_id) ?? 0) + 1)
-    }
-  }
+  const statuses = new Map((shortlist ?? []).map(row => [row.coach_id, deriveAssessmentStatus({
+    coach: row.coaches,
+    assessments: (assessments.data ?? []).filter(a => a.coach_id === row.coach_id),
+    evidence: (evidence.data ?? []).filter(e => e.coach_id === row.coach_id),
+    recommendation: (recommendations.data ?? []).find(r => r.coach_id === row.coach_id),
+  })]))
   const verdicts = new Map(
-    (recommendations.data ?? []).map((r) => [r.coach_id, r])
+    (recommendations.data ?? []).filter(r => statuses.get(r.coach_id)?.recommendationRecorded).map((r) => [r.coach_id, r])
   )
 
   const clubName = displayClubName(
@@ -149,13 +113,13 @@ export default async function MandateAssessmentIndexPage(
       <MandateTabNav mandateId={mandateId} />
       <h1 className="text-lg font-semibold text-foreground">Candidate assessment · {clubName}</h1>
       <p className="text-xs text-muted-foreground mt-0.5">
-        Run the 9-criteria assessment for each shortlisted candidate. Evidence coverage, criterion findings and a board-ready recommendation.
+        Recorded assessments, illustrative examples and reviewed evidence are counted separately. A recorded human recommendation does not authorize publication.
       </p>
 
       {decisionSet.length > 0 && (
         <div className="mt-6">
           <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-            Board decision set
+            Recorded human recommendations · internal review
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
             {decisionSet.map(({ tag, tone, c }) => (
@@ -176,6 +140,7 @@ export default async function MandateAssessmentIndexPage(
                 {c.rec!.summary && (
                   <p className="text-2xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{c.rec!.summary}</p>
                 )}
+                <p className="mt-2 text-2xs text-muted-foreground">{statuses.get(c.row.coach_id)?.nextAction}</p>
               </Link>
             ))}
           </div>
@@ -183,10 +148,10 @@ export default async function MandateAssessmentIndexPage(
       )}
 
       <div className="mt-6 card-surface rounded-lg overflow-hidden">
-        <div className="grid grid-cols-[minmax(170px,1fr)_130px_110px_120px_110px] px-5 py-2.5 border-b border-border bg-surface/50 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+        <div className="hidden lg:grid grid-cols-[minmax(170px,1fr)_130px_110px_120px_160px] gap-3 px-5 py-2.5 border-b border-border bg-surface/50 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
           <span>Candidate</span>
-          <span>Evidence coverage</span>
-          <span>Assessed</span>
+          <span>Reviewed evidence</span>
+          <span>Recorded / illustrative</span>
           <span>Verdict</span>
           <span></span>
         </div>
@@ -194,32 +159,34 @@ export default async function MandateAssessmentIndexPage(
           {!shortlist?.length ? (
             <div className="px-5 py-8 text-center text-sm text-muted-foreground">
               No shortlisted candidates yet. Add coaches to the shortlist first — assessment runs on shortlisted candidates.
+              <Link href={`/mandates/${mandateId}/candidates`} className="mt-3 flex min-h-10 items-center justify-center text-primary underline">Choose candidates</Link>
             </div>
           ) : (
             orderedShortlist.map((row) => {
-              const covered = coverage.get(row.coach_id)?.size ?? 0
-              const complete = completeCounts.get(row.coach_id) ?? 0
+              const status = statuses.get(row.coach_id)!
+              const covered = status.reviewedCount
               const rec = verdicts.get(row.coach_id)
               const coach = row.coaches as { name?: string; club_current?: string | null } | null
               return (
                 <div
                   key={row.coach_id}
-                  className="grid grid-cols-[minmax(170px,1fr)_130px_110px_120px_110px] px-5 py-3 items-center gap-2"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(170px,1fr)_130px_110px_120px_160px] px-5 py-4 items-start gap-3"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 sm:col-span-2 lg:col-span-1">
                     <p className="text-sm font-medium text-foreground truncate">{coach?.name ?? 'Unknown coach'}</p>
-                    <p className="text-2xs text-muted-foreground truncate">{coach?.club_current ?? 'Unattached'}</p>
+                    <p className="text-2xs text-muted-foreground truncate">{coach?.club_current?.trim() || 'Current club not recorded'}</p>
+                    <p className="mt-1 text-2xs text-muted-foreground">{status.nextAction}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div><span className="mb-1 block text-xs text-muted-foreground lg:hidden">Reviewed evidence</span><div className="flex items-center gap-2">
                     <div className="w-16 h-1.5 rounded-full bg-surface border border-border/50 overflow-hidden">
                       <div
                         className="h-full bg-primary/70"
                         style={{ width: `${Math.round((covered / totalCriteria) * 100)}%` }}
                       />
                     </div>
-                    <span className="text-2xs tabular-nums text-muted-foreground">{covered}/{totalCriteria}</span>
-                  </div>
-                  <span className="text-2xs tabular-nums text-muted-foreground">{complete}/{totalCriteria} complete</span>
+                    <span className="text-2xs tabular-nums text-muted-foreground">{status.reviewedLabel}</span>
+                  </div></div>
+                  <span className="text-2xs tabular-nums text-muted-foreground"><span className="mb-1 block text-xs lg:hidden">Assessment entries</span>{status.recordedLabel}<br />{status.illustrativeLabel}</span>
                   <span
                     className={cn(
                       'text-2xs font-medium',
@@ -230,21 +197,22 @@ export default async function MandateAssessmentIndexPage(
                       !rec?.verdict && 'text-muted-foreground'
                     )}
                   >
-                    {rec?.verdict ?? '—'}
+                    <span className="mb-1 block text-xs text-muted-foreground lg:hidden">Recommendation</span>
+                    {status.recommendationLabel}
                     {rec?.confidence !== null && rec?.confidence !== undefined && (
                       <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}%</span>
                     )}
                   </span>
-                  <div className="flex justify-end gap-3">
+                  <div className="flex flex-wrap items-start gap-3">
                     <Link
                       href={`/mandates/${mandateId}/assessment/${row.coach_id}`}
-                      className="text-2xs font-medium text-primary hover:underline"
+                      className="inline-flex min-h-10 items-center text-xs font-medium text-primary hover:underline"
                     >
                       Assess →
                     </Link>
                     <Link
                       href={`/mandates/${mandateId}/assessment/${row.coach_id}/board-pack`}
-                      className="text-2xs font-medium text-muted-foreground hover:text-foreground"
+                      className="inline-flex min-h-10 items-center text-xs font-medium text-muted-foreground hover:text-foreground"
                     >
                       Assessment pack
                     </Link>

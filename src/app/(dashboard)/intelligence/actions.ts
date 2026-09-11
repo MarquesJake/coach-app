@@ -1,4 +1,5 @@
 'use server'
+import { readResearchContext, contextFromResearchNote as readResearchContextFromItem, researchContextNote, type ResearchContext } from '@/lib/research-context'
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -13,7 +14,6 @@ import {
   INTAKE_TYPES,
   SENSITIVITY_LEVELS,
   SOURCE_TYPES,
-  VERIFICATION_STATUSES,
 } from '@/lib/intelligence/inbox'
 import {
   CLAIM_SENSITIVITIES,
@@ -133,6 +133,7 @@ async function requireUser() {
 }
 
 export async function createIntelligenceInboxItemAction(input: {
+  research_context?: ResearchContext
   intake_type?: string | null
   headline: string
   raw_detail?: string | null
@@ -172,6 +173,11 @@ export async function createIntelligenceInboxItemAction(input: {
   const clubId = input.club_id?.trim() || null
   const mandateId = input.mandate_id?.trim() || null
   const agentId = input.agent_id?.trim() || null
+  const context = readResearchContext(input.research_context ?? {})
+  if (context.question) {
+    const { data: question, error } = await supabase.from('coach_research_questions').select('coach_id,mandate_id').eq('id', context.question).maybeSingle()
+    if (error || !question || question.coach_id !== coachId || question.mandate_id !== mandateId) return { data: null, error: 'Research question does not match this coach and appointment. Return to research and select it again.' }
+  }
 
   if (!(await ownsEntity(supabase, user.id, 'coaches', coachId))) return { data: null, error: 'Coach not found' }
   if (!(await ownsEntity(supabase, user.id, 'clubs', clubId))) return { data: null, error: 'Club not found' }
@@ -189,11 +195,11 @@ export async function createIntelligenceInboxItemAction(input: {
     .from('intelligence_inbox_items')
     .insert({
       user_id: user.id,
-      intake_type: enumValue(input.intake_type, INTAKE_TYPES, 'analyst_note'),
+      intake_type: enumValue(input.intake_type, INTAKE_TYPES, 'other'),
       headline,
       raw_detail: input.raw_detail?.trim() || null,
       extracted_signal: input.extracted_signal?.trim() || null,
-      source_type: enumValue(input.source_type, SOURCE_TYPES, 'internal_analyst'),
+      source_type: enumValue(input.source_type, SOURCE_TYPES, 'other'),
       source_name: input.source_name?.trim() || null,
       source_tier: input.source_tier ? normaliseTier(input.source_tier) : null,
       source_link: input.source_link?.trim() || null,
@@ -204,8 +210,8 @@ export async function createIntelligenceInboxItemAction(input: {
       contradiction_status: optionalEnum(input.contradiction_status, ['none', 'supports_existing', 'contradicts_existing', 'needs_resolution']) ?? 'none',
       channel: input.channel?.trim() || null,
       sensitivity: enumValue(input.sensitivity, SENSITIVITY_LEVELS, 'standard'),
-      verification_status: enumValue(input.verification_status, VERIFICATION_STATUSES, 'unverified'),
-      review_status: enumValue(input.review_status, INBOX_REVIEW_STATUSES, 'captured'),
+      verification_status: 'unverified',
+      review_status: 'captured',
       confidence: clampConfidence(input.confidence),
       direction: optionalEnum(input.direction, DIRECTIONS),
       methodology_criteria: methodologyCriteria,
@@ -218,7 +224,7 @@ export async function createIntelligenceInboxItemAction(input: {
       agent_id: agentId,
       suggested_destination: enumValue(input.suggested_destination, DESTINATIONS, 'intelligence_item'),
       commercial_surface: enumValue(input.commercial_surface, COMMERCIAL_SURFACES, 'subscription_intelligence'),
-      analyst_notes: input.analyst_notes?.trim() || null,
+      analyst_notes: [input.analyst_notes?.trim(), researchContextNote({ ...context, coach: coachId ?? undefined, mandate: mandateId ?? undefined })].filter(Boolean).join('\n') || null,
       next_action: input.next_action?.trim() || null,
       due_date: input.due_date || null,
       updated_at: new Date().toISOString(),
@@ -315,7 +321,7 @@ export async function promoteIntelligenceInboxItemAction(input: {
         occurred_at: item.source_recorded_at ?? item.created_at,
         verified: item.verification_status === 'verified',
         verified_at: item.verification_status === 'verified' ? now : null,
-        verified_by: item.verification_status === 'verified' ? user.email ?? 'Coach First analyst' : null,
+        verified_by: item.verification_status === 'verified' ? user.email ?? 'Gaffa analyst' : null,
         direction: item.direction,
         sensitivity: itemSensitivityToIntelligence(item.sensitivity),
         mandate_id: item.mandate_id,
@@ -353,7 +359,7 @@ export async function promoteIntelligenceInboxItemAction(input: {
         source_type: item.source_type,
         source_name: item.source_name,
         source_link: item.source_link,
-        source_notes: [item.channel, item.next_action].filter(Boolean).join(' · ') || null,
+        source_notes: [item.channel, item.next_action, researchContextNote(readResearchContextFromItem(item.analyst_notes))].filter(Boolean).join('\n') || null,
         source_tier: normaliseTier(item.source_tier),
         confidence: item.confidence,
         sensitivity: itemSensitivityToClaim(item.sensitivity),
@@ -457,7 +463,7 @@ export async function promoteIntelligenceInboxItemAction(input: {
       destination_record_type: destinationRecordType,
       destination_record_id: destinationRecordId,
       promoted_at: now,
-      promoted_by: user.email ?? 'Coach First analyst',
+      promoted_by: user.email ?? 'Gaffa analyst',
       updated_at: now,
     })
     .eq('id', item.id)

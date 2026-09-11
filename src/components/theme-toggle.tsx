@@ -14,15 +14,18 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'))
+    const syncTheme = () => setIsDark(document.documentElement.classList.contains('dark'))
+    syncTheme()
+    window.addEventListener('gaffa-theme-change', syncTheme)
+    return () => window.removeEventListener('gaffa-theme-change', syncTheme)
   }, [])
 
   function toggleTheme() {
-    const nextDark = !isDark
+    const nextDark = !document.documentElement.classList.contains('dark')
     document.documentElement.classList.toggle('dark', nextDark)
     document.documentElement.classList.toggle('light', !nextDark)
     window.localStorage.setItem(STORAGE_KEY, nextDark ? 'dark' : 'light')
-    setIsDark(nextDark)
+    window.dispatchEvent(new Event('gaffa-theme-change'))
   }
 
   const Icon = isDark ? Sun : Moon

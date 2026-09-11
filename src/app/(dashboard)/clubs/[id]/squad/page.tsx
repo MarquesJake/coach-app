@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useClubLoad } from '../../_components/use-club-load'
+import { assertRouteQueries } from '@/lib/coaches/route-audit'
 import { Loader2, RefreshCw, User } from 'lucide-react'
 
 type Player = {
@@ -33,29 +35,39 @@ function groupByPosition(players: Player[]): Record<string, Player[]> {
 export default function ClubSquadPage() {
   const params = useParams()
   const id = params.id as string
-  const [players, setPlayers] = useState<Player[]>([])
-  const [loading, setLoading] = useState(true)
-  const [syncing, setSyncing] = useState(false)
-  const [lastSynced, setLastSynced] = useState<string | null>(null)
+  return <SquadContent key={id} id={id} />
+}
 
-  const loadSquad = useCallback(async () => {
+function SquadContent({ id }: { id: string }) {
+  const [syncing, setSyncing] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
+  const syncLock = useRef(false)
+  const { data, loading, error, retry } = useClubLoad(id, async () => {
     const supabase = createClient()
-    const [{ data: squad }, { data: club }] = await Promise.all([
+    const [{ data: squad, error: squadError }, { data: club, error: clubError }] = await Promise.all([
       supabase.from('club_squad').select('*').eq('club_id', id).order('number'),
       supabase.from('clubs').select('squad_synced_at').eq('id', id).single(),
     ])
-    setPlayers((squad as Player[]) ?? [])
-    setLastSynced(club?.squad_synced_at ?? null)
-    setLoading(false)
-  }, [id])
-
-  useEffect(() => { loadSquad() }, [loadSquad])
+    assertRouteQueries('Squad records', { error: squadError }, { error: clubError })
+    if (!club) throw new Error('Club unavailable')
+    return { players: (squad as Player[]) ?? [], lastSynced: club.squad_synced_at }
+  }, 'Squad records could not be loaded. Retry loading before relying on this view.')
+  const players = data?.players ?? []
+  const lastSynced = data?.lastSynced
 
   async function handleSync() {
+    if (syncLock.current) return
+    syncLock.current = true
     setSyncing(true)
-    await fetch(`/api/integrations/clubs/sync-club/${id}`, { method: 'POST' })
-    await loadSquad()
-    setSyncing(false)
+    setSyncError(null)
+    try {
+      const response = await fetch(`/api/integrations/clubs/sync-club/${id}`, { method: 'POST' })
+      const body = await response.json()
+      if (!response.ok || !body.ok || body.error || body.coach_profile_errors?.length) throw new Error('Sync incomplete')
+      retry()
+    } catch {
+      setSyncError('Sync could not be confirmed or completed. Reload records to check for partial updates before retrying sync.')
+    } finally { syncLock.current = false; setSyncing(false) }
   }
 
   const groups = groupByPosition(players)
@@ -69,7 +81,7 @@ export default function ClubSquadPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Current Squad</h2>
-          {lastSynced && (
+          {!loading && !error && lastSynced && (
             <p className="text-[10px] text-muted-foreground mt-0.5">
               Updated {new Date(lastSynced).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
             </p>
@@ -77,7 +89,7 @@ export default function ClubSquadPage() {
         </div>
         <button
           onClick={handleSync}
-          disabled={syncing}
+          disabled={syncing || loading}
           className="inline-flex items-center gap-1.5 px-3 h-7 rounded border border-border text-[10px] font-medium text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors disabled:opacity-50"
         >
           {syncing ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
@@ -85,8 +97,9 @@ export default function ClubSquadPage() {
         </button>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-16">
+      {syncError && <div role="alert" className="space-y-2 text-sm text-destructive"><p>{syncError}</p><button onClick={retry} className="underline">Reload records</button></div>}
+      {error ? <div role="alert" className="space-y-2 text-sm"><p>{error}</p><button onClick={retry} className="underline">Retry loading squad</button></div> : loading ? (
+        <div role="status" aria-label="Loading squad" className="flex items-center justify-center py-16">
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
       ) : players.length === 0 ? (
@@ -94,7 +107,7 @@ export default function ClubSquadPage() {
           <p className="text-sm text-muted-foreground">No squad data yet.</p>
           <button
             onClick={handleSync}
-            disabled={syncing}
+            disabled={syncing || loading}
             className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground text-xs font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50"
           >
             {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}

@@ -1,0 +1,29 @@
+#tottenham-showcase { --case-accent: #80663b; }
+.dark #tottenham-showcase { --case-accent: #c4ad7b; }
+#tottenham-showcase .case-label { color: var(--case-accent); font-size: 10px; font-weight: 650; letter-spacing: .13em; text-transform: uppercase; }
+#tottenham-showcase p { text-wrap: pretty; }
+#tottenham-showcase section[id], #tottenham-showcase article[id], #tottenham-showcase details[id] { scroll-margin-top: 28px; }
+#tottenham-showcase summary { cursor: pointer; list-style: none; }
+#tottenham-showcase summary::-webkit-details-marker { display: none; }
+#tottenham-showcase summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 6px; border-radius: 4px; }
+#tottenham-showcase details > summary .case-chevron { transition: transform .18s; }
+#tottenham-showcase details[open] > summary .case-chevron { transform: rotate(180deg); }
+#tottenham-showcase .case-copy { font-size: 14px; line-height: 1.8; color: var(--muted-foreground); }
+#tottenham-showcase .case-source { font-size: 12px; text-underline-offset: 3px; text-decoration: underline; }
+@media print {
+  @page { margin: 15mm; }
+  body, .gaffa-workspace { background: white !important; }
+  body:has(#tottenham-showcase) .gaffa-notice, body:has(#tottenham-showcase) .gaffa-tabs { display: none !important; }
+  #tottenham-showcase, .dark #tottenham-showcase { --background: white; --card: white; --foreground: #17221e; --muted-foreground: #46564d; --border: #cdd5ce; --primary: #22533c; --case-accent: #705321; color: #17221e; background: white; font-size: 10pt; max-width: none; }
+  #tottenham-showcase .case-copy { font-size: 10pt; line-height: 1.5; }
+  #tottenham-showcase .case-cover { padding: 0 0 20px; border: 0; }
+  #tottenham-showcase .case-section { break-before: page; }
+  #tottenham-showcase .case-assessment { break-inside: avoid; }
+  #tottenham-showcase h2, #tottenham-showcase h3, #tottenham-showcase h4, #tottenham-showcase summary { break-after: avoid; }
+  #tottenham-showcase details > * { content-visibility: visible !important; }
+  #tottenham-showcase .case-chevron { display: none; }
+  #tottenham-showcase .case-source::after { content: ' [' attr(href) ']'; font-size: 8pt; overflow-wrap: anywhere; }
+  #tottenham-showcase .case-grid { display: block; }
+  #tottenham-showcase .case-grid > * { margin-bottom: 14px; }
+  #tottenham-showcase .case-disclaimer { display: block; color: #705321; font-size: 9pt; }
+}

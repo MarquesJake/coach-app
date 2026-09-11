@@ -31,19 +31,19 @@ export function MetricCard({
     >
       <div className="flex items-center gap-2 mb-2.5">
         <span className={cn(
-          variant === 'light' ? 'text-light-muted/50' : 'text-muted-foreground/50'
+          variant === 'light' ? 'text-light-muted/50' : 'text-muted-foreground'
         )}>
           {icon}
         </span>
         <span className={cn(
-          'text-[10px] font-semibold uppercase tracking-[0.08em]',
-          variant === 'light' ? 'text-light-muted/60' : 'text-muted-foreground/60'
+          'text-xs font-medium',
+          variant === 'light' ? 'text-light-muted/60' : 'text-muted-foreground'
         )}>
           {label}
         </span>
       </div>
       <span className={cn(
-        'text-xl font-semibold tabular-nums block leading-none',
+        'text-3xl font-medium tabular-nums block leading-none',
         variant === 'light' ? 'text-light-fg' : accentColor
       )}>
         {value}
@@ -51,7 +51,7 @@ export function MetricCard({
       {subtitle && (
         <span className={cn(
           'text-2xs mt-1.5 block',
-          variant === 'light' ? 'text-light-muted/60' : 'text-muted-foreground/50'
+          variant === 'light' ? 'text-light-muted/60' : 'text-muted-foreground'
         )}>
           {subtitle}
         </span>

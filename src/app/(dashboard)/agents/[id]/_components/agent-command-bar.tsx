@@ -17,12 +17,14 @@ type Agent = {
 }
 
 export function AgentCommandBar({
+  agentId,
   agent,
   coachesCount,
   clubsCount,
   lastInteractionAt,
   coveragePercent,
 }: {
+  agentId: string
   agent: Agent
   coachesCount: number
   clubsCount: number
@@ -53,7 +55,8 @@ export function AgentCommandBar({
     <header className="w-full bg-card/80 border-b border-border px-6 py-4">
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div className="flex flex-col gap-1.5">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">{name}</h1>
+          <Link href="/agents" className="text-xs text-muted-foreground hover:underline">Back to agents</Link>
+          <h1 className="break-words text-2xl font-semibold text-foreground tracking-tight">{name}</h1>
           {agency && <p className="text-sm text-muted-foreground">{agency}</p>}
           <div className="flex flex-wrap items-center gap-2 text-sm">
             {baseLocation && (
@@ -69,9 +72,9 @@ export function AgentCommandBar({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
-              href={agent.football_contact_id ? `/intelligence/conversations?contact=${agent.football_contact_id}` : '/intelligence/conversations'}
+              href={`/agents/${agentId}/interactions?new=1`}
               className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
             >
               <MessageSquareText className="h-4 w-4" />
@@ -116,7 +119,7 @@ export function AgentCommandBar({
                 style={{ width: `${Math.min(100, Math.max(0, coveragePercent))}%` }}
               />
             </div>
-            <span className="text-[10px] text-muted-foreground">Coverage</span>
+            <span className="text-[10px] text-muted-foreground">Record completeness {coveragePercent}%</span>
           </div>
           <div className="text-[10px] text-muted-foreground">
             {coachesCount} coach{coachesCount !== 1 ? 'es' : ''} · {clubsCount} club{clubsCount !== 1 ? 's' : ''}

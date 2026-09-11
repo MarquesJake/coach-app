@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Users,
   Briefcase,
   LayoutDashboard,
   Building2,
-  Settings,
   Zap,
   Database,
   Radio,
@@ -32,7 +32,10 @@ const primaryNav = [
   { label: 'Succession', href: '/succession', icon: Activity },
   { label: 'Mandates', href: '/mandates', icon: Briefcase },
   { label: 'Coaches', href: '/coaches', icon: Users },
-  { label: 'Intelligence', href: '/intelligence', icon: Radio },
+  { label: 'Research & sources', href: '/intelligence', icon: Radio },
+  { label: 'Club briefs', href: '/club-briefs', icon: Building2 },
+  { label: 'Coach submissions', href: '/coach-portal', icon: ShieldCheck },
+  { label: 'Report releases', href: '/dossier-orders', icon: PackageCheck },
 ]
 
 const networkNav = [
@@ -42,12 +45,9 @@ const networkNav = [
 ]
 
 const internalNav = [
-  { label: 'Dossiers', href: '/dossier-orders', icon: PackageCheck },
-  { label: 'Coach access', href: '/coach-portal', icon: ShieldCheck },
   { label: 'Alerts', href: '/alerts', icon: Bell },
   { label: 'Staff', href: '/staff', icon: Users },
   { label: 'Config', href: '/config', icon: SlidersHorizontal },
-  { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Data tools', href: '/admin/data-tools', icon: Database },
 ]
 
@@ -55,35 +55,62 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [signingOut, setSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState<string | null>(null)
+  const mobileMenuRef = useRef<HTMLDetailsElement>(null)
+
+  // The mobile menu is a <details>; close it on a press anywhere outside it, as
+  // a menu is expected to, rather than only on Escape or navigation.
+  useEffect(() => {
+    function closeOnOutsidePress(event: PointerEvent) {
+      const menu = mobileMenuRef.current
+      if (menu?.open && !menu.contains(event.target as Node)) menu.open = false
+    }
+    document.addEventListener('pointerdown', closeOnOutsidePress)
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePress)
+  }, [])
 
   async function handleSignOut() {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    if (signingOut) return
+    setSigningOut(true)
+    setSignOutError(null)
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) { setSignOutError('Sign-out was not confirmed. Please retry.'); return }
+      router.push('/login')
+      router.refresh()
+    } catch { setSignOutError('Sign-out was not confirmed. Check your connection and retry.') }
+    finally { setSigningOut(false) }
   }
 
   function isActive(href: string) {
     if (pathname === href) return true
-    if (href === '/dashboard') return pathname === '/dashboard'
+    if (href === '/dashboard') return pathname.startsWith('/dashboard')
     return pathname.startsWith(href + '/')
   }
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden print:hidden">
         <Link href="/dashboard" className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/10">
             <Zap className="h-3.5 w-3.5 text-primary" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[13px] font-semibold leading-tight text-foreground">Coach First</span>
+            <span className="text-[13px] font-semibold leading-tight text-foreground">Gaffa</span>
             <span className="text-[9px] uppercase leading-tight tracking-[0.12em] text-muted-foreground">Intelligence OS</span>
           </div>
         </Link>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <details className="group">
-            <summary className="flex h-9 w-9 cursor-pointer list-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground" aria-label="Open navigation">
+          <details ref={mobileMenuRef} key={pathname} className="group" onKeyDown={event => {
+            if (event.key === 'Escape') {
+              event.currentTarget.open = false
+              event.currentTarget.querySelector('summary')?.focus()
+              event.stopPropagation()
+            }
+          }}>
+            <summary className="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground" aria-label="Navigation menu">
               <Menu className="h-5 w-5" />
             </summary>
             <div className="fixed inset-x-3 top-[62px] max-h-[calc(100vh-74px)] overflow-y-auto border border-border bg-card p-2 shadow-lg">
@@ -94,7 +121,7 @@ export function Sidebar() {
                     {primaryNav.map((item) => {
                       const active = isActive(item.href)
                       const Icon = item.icon
-                      return <Link key={item.href} href={item.href} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
+                      return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
                     })}
                   </div>
                 </div>
@@ -106,7 +133,7 @@ export function Sidebar() {
                     {networkNav.map((item) => {
                       const active = isActive(item.href)
                       const Icon = item.icon
-                      return <Link key={item.href} href={item.href} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
+                      return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
                     })}
                   </div>
                 </details>
@@ -118,33 +145,35 @@ export function Sidebar() {
                     {internalNav.map((item) => {
                       const active = isActive(item.href)
                       const Icon = item.icon
-                      return <Link key={item.href} href={item.href} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
+                      return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={cn('flex min-h-10 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors', active ? 'bg-primary/[0.06] text-primary' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground')}><Icon className="h-4 w-4 flex-shrink-0" />{item.label}</Link>
                     })}
                   </div>
                 </details>
               </nav>
               <button
                 onClick={handleSignOut}
+                disabled={signingOut}
                 className="mt-2 flex min-h-10 w-full items-center gap-2.5 border-t border-border px-3 pt-3 text-[13px] font-medium text-muted-foreground hover:text-foreground"
               >
                 <LogOut className="h-4 w-4" />
-                Sign Out
+                {signingOut ? 'Signing out...' : 'Sign out'}
               </button>
+              {signOutError && <p role="alert" className="p-3 text-xs text-red-600">{signOutError}</p>}
             </div>
           </details>
         </div>
       </header>
 
-      <aside className="fixed z-30 hidden h-full w-[220px] flex-col border-r border-border bg-card md:flex">
+      <aside className="gaffa-sidebar fixed z-30 hidden h-full w-[220px] flex-col border-r border-border bg-card md:flex">
       {/* Logo */}
-      <div className="border-b border-border px-5 py-5">
+      <div className="border-b border-border px-6 py-7">
         <Link href="/dashboard" className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/10">
             <Zap className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-foreground text-[13px] leading-tight tracking-tight">
-              Coach First
+              Gaffa
             </span>
             <span className="text-[9px] text-muted-foreground uppercase tracking-[0.12em] leading-tight">
               Intelligence OS
@@ -154,10 +183,10 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-4">
+      <nav aria-label="Main navigation" className="flex-1 px-3 py-4 overflow-y-auto space-y-4">
         <div>
           <div className="mb-1 px-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
               Work
             </span>
           </div>
@@ -167,6 +196,7 @@ export function Sidebar() {
               const Icon = item.icon
               return (
                 <Link
+                  aria-current={active ? 'page' : undefined}
                   key={item.href}
                   href={item.href}
                   className={cn(
@@ -199,6 +229,7 @@ export function Sidebar() {
               const Icon = item.icon
               return (
                 <Link
+                  aria-current={active ? 'page' : undefined}
                   key={item.href}
                   href={item.href}
                   className={cn(
@@ -225,6 +256,7 @@ export function Sidebar() {
               const Icon = item.icon
               return (
                 <Link
+                  aria-current={active ? 'page' : undefined}
                   key={item.href}
                   href={item.href}
                   className={cn(
@@ -247,13 +279,15 @@ export function Sidebar() {
       <div className="flex items-center gap-1 border-t border-border px-3 py-3">
         <button
           onClick={handleSignOut}
+          disabled={signingOut}
           className="flex flex-1 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
         >
           <LogOut className="h-4 w-4" />
-          Sign Out
+          {signingOut ? 'Signing out...' : 'Sign out'}
         </button>
         <ThemeToggle />
       </div>
+      {signOutError && <p role="alert" className="px-4 pb-3 text-xs text-red-600">{signOutError}</p>}
       </aside>
     </>
   )

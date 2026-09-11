@@ -5,6 +5,9 @@ import { getClubPortalContext } from '@/lib/organizations/context'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { completeClubOnboardingAction } from './actions'
 
+export const metadata = { title: 'Onboarding · Club' }
+
+
 function roleLabel(role: string) {
   if (role === 'club_owner') return 'Club owner'
   if (role === 'club_director') return 'Club director'
@@ -28,7 +31,7 @@ export default async function ClubOnboardingPage() {
     <main className="min-h-screen bg-[#f6f4ef] text-slate-950">
       <div className="mx-auto grid min-h-screen max-w-6xl lg:grid-cols-[0.9fr_1.1fr]">
         <section className="flex flex-col justify-between border-b border-slate-200 px-6 py-8 lg:border-b-0 lg:border-r lg:px-10">
-          <p className="text-sm font-semibold text-emerald-950">COACH FIRST</p>
+          <p className="text-sm font-semibold text-emerald-950">GAFFA</p>
           <div className="max-w-md py-12">
             <p className="text-xs font-semibold uppercase text-emerald-800">Private club access</p>
             <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight">
@@ -52,7 +55,7 @@ export default async function ClubOnboardingPage() {
               </div>
               <div className="flex gap-3 text-xs leading-5 text-slate-600">
                 <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-800" />
-                Access to private material still requires explicit Coach First approval.
+                Access to private material still requires explicit Gaffa approval.
               </div>
             </div>
           </div>
@@ -64,7 +67,7 @@ export default async function ClubOnboardingPage() {
             <p className="text-xs font-semibold uppercase text-emerald-800">First login</p>
             <h2 className="mt-2 text-2xl font-semibold">Complete your account</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              This takes under a minute and makes your seat identifiable to the club and Coach First.
+              This takes under a minute and makes your seat identifiable to the club and Gaffa.
             </p>
             <div className="mt-6">
               <ExternalOnboardingForm

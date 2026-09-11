@@ -1,9 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { isIllustrativeEvidence, isVerifiedEvidence } from '@/lib/assessment/evidence-integrity'
+import { deriveAssessmentStatus } from '@/lib/assessment/status'
+import { deriveMaterialStatus, summarizeMaterials } from '@/lib/assessment/material-status'
 import {
   ASSESSMENT_CRITERIA,
   DIRECT_ASSESSMENT_EVIDENCE_METHOD_KEYS,
@@ -101,6 +104,8 @@ export type PrivateMaterialRow = {
   uploaded_by: string
   confidentiality_status: string
   verification_status: string
+  storage_path: string | null
+  upload_status: string
   created_at: string
 }
 
@@ -118,7 +123,7 @@ export type ConfidentialAccessRequestRow = {
 const inputClass =
   'w-full px-2.5 py-1.5 bg-surface border border-border rounded-md text-xs text-foreground placeholder-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-colors'
 
-type SubmitAction = (action: (fd: FormData) => Promise<{ ok: boolean; error?: string }>) => (formData: FormData) => void
+type SubmitAction = (action: (fd: FormData) => Promise<{ ok: boolean; error?: string }>) => (event: FormEvent<HTMLFormElement>) => void
 
 const MATERIAL_TYPE_LABELS: Record<string, string> = {
   presentation: 'Coach presentation',
@@ -175,7 +180,7 @@ function StructuredInterviewPanel({
         </p>
       </div>
 
-      <form action={submit(addInterviewAnswerAction)} className="space-y-2">
+      <form onSubmit={submit(addInterviewAnswerAction)} className="space-y-2">
         <input type="hidden" name="mandate_id" value={mandateId} />
         <input type="hidden" name="coach_id" value={coachId} />
         <div className="grid grid-cols-[1fr_130px] gap-2">
@@ -189,6 +194,8 @@ function StructuredInterviewPanel({
           <input name="confidence" type="number" min={0} max={100} placeholder="Conf." className={inputClass} />
         </div>
         <input name="interviewer" placeholder="Interviewer (optional)" className={inputClass} />
+        <textarea name="custom_question" rows={2} maxLength={1000} aria-label="Bespoke interview question" placeholder="Optional: replace the template with the exact club-specific question asked" className={inputClass} />
+        <label className="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" name="review_confirmed" value="true" />I have checked the source and accuracy of this captured answer. Otherwise save as unverified background.</label>
         <textarea
           name="answer"
           rows={4}
@@ -281,7 +288,7 @@ function StructuredReferencesPanel({
         </p>
       </div>
 
-      <form action={submit(addReferenceAnswerAction)} className="space-y-2">
+      <form onSubmit={submit(addReferenceAnswerAction)} className="space-y-2">
         <input type="hidden" name="mandate_id" value={mandateId} />
         <input type="hidden" name="coach_id" value={coachId} />
         <select name="question_key" defaultValue="rq_biggest_risk" className={inputClass}>
@@ -295,6 +302,8 @@ function StructuredReferencesPanel({
           <input name="reference_name" placeholder="Reference name" className={inputClass} />
           <input name="reference_role" placeholder="Role / relationship" className={inputClass} />
         </div>
+        <textarea name="custom_question" rows={2} maxLength={1000} aria-label="Bespoke reference question" placeholder="Optional: replace the template with the exact question asked" className={inputClass} />
+        <label className="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" name="review_confirmed" value="true" />I have checked the source and accuracy of this captured answer. Otherwise save as unverified background.</label>
         <textarea
           name="answer"
           rows={4}
@@ -384,8 +393,7 @@ function ConfidentialDataRoomPanel({
   isPending: boolean
 }) {
   const latestRequest = accessRequests[0]
-  const availableCount = materials.filter((item) => item.confidentiality_status === 'available').length
-  const verifiedCount = materials.filter((item) => item.verification_status === 'verified').length
+  const materialSummary = summarizeMaterials(materials)
 
   return (
     <div className="card-surface rounded-lg p-5 space-y-4 border-l-2 border-emerald-500/50">
@@ -403,24 +411,25 @@ function ConfidentialDataRoomPanel({
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-md border border-border/50 bg-surface/40 px-2 py-2">
             <p className="text-lg font-semibold text-foreground tabular-nums">{materials.length}</p>
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Items</p>
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Entries</p>
           </div>
           <div className="rounded-md border border-border/50 bg-surface/40 px-2 py-2">
-            <p className="text-lg font-semibold text-foreground tabular-nums">{availableCount}</p>
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Available</p>
+            <p className="text-lg font-semibold text-foreground tabular-nums">{materialSummary.uploaded}</p>
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Uploaded files</p>
           </div>
           <div className="rounded-md border border-border/50 bg-surface/40 px-2 py-2">
-            <p className="text-lg font-semibold text-foreground tabular-nums">{verifiedCount}</p>
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Verified</p>
+            <p className="text-lg font-semibold text-foreground tabular-nums">{materialSummary.reviewedUploads}</p>
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Reviewed uploads</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <form action={submit(addPrivateMaterialAction)} className="space-y-2 rounded-md border border-border/50 bg-surface/30 p-3">
+        <form onSubmit={submit(addPrivateMaterialAction)} className="space-y-2 rounded-md border border-border/50 bg-surface/30 p-3">
           <input type="hidden" name="mandate_id" value={mandateId} />
           <input type="hidden" name="coach_id" value={coachId} />
-          <p className="text-xs font-semibold text-foreground">Log private material</p>
+          <p className="text-xs font-semibold text-foreground">Log material metadata or a link</p>
+          <p className="text-2xs text-muted-foreground">This form does not upload a file or authorize recipient access.</p>
           <div className="grid grid-cols-[1fr_150px] gap-2">
             <input name="title" required placeholder="e.g. Coach methodology deck" className={inputClass} />
             <select name="material_type" defaultValue="presentation" className={inputClass}>
@@ -463,7 +472,7 @@ function ConfidentialDataRoomPanel({
           </button>
         </form>
 
-        <form action={submit(requestConfidentialAccessAction)} className="space-y-2 rounded-md border border-border/50 bg-surface/30 p-3">
+        <form onSubmit={submit(requestConfidentialAccessAction)} className="space-y-2 rounded-md border border-border/50 bg-surface/30 p-3">
           <input type="hidden" name="mandate_id" value={mandateId} />
           <input type="hidden" name="coach_id" value={coachId} />
           <div className="flex items-center justify-between gap-3">
@@ -519,9 +528,10 @@ function ConfidentialDataRoomPanel({
                     {item.description && <p className="text-2xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>}
                   </div>
                   <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground">
-                    {item.confidentiality_status}
+                    {deriveMaterialStatus(item).label}
                   </span>
                 </div>
+                <p className="mt-1 text-2xs text-muted-foreground">{deriveMaterialStatus(item).releaseLabel}</p>
               </div>
             ))
           )}
@@ -549,7 +559,7 @@ function ConfidentialDataRoomPanel({
                       <p className="text-[10px] text-muted-foreground/70 mt-1">{request.club_context}</p>
                     )}
                   </div>
-                  <form action={submit(updateConfidentialAccessStatusAction)} className="shrink-0">
+                  <form onSubmit={submit(updateConfidentialAccessStatusAction)} className="shrink-0">
                     <input type="hidden" name="request_id" value={request.id} />
                     <input type="hidden" name="mandate_id" value={mandateId} />
                     <input type="hidden" name="coach_id" value={coachId} />
@@ -578,6 +588,7 @@ export function AssessmentWorkspaceClient({
   mandateId,
   coachId,
   coachName,
+  coachProvenance,
   assessments,
   evidence,
   derived,
@@ -592,6 +603,7 @@ export function AssessmentWorkspaceClient({
   mandateId: string
   coachId: string
   coachName: string
+  coachProvenance: { due_diligence_summary: string | null; compliance_notes: string | null }
   assessments: AssessmentRow[]
   evidence: EvidenceRow[]
   derived: DerivedEvidence[]
@@ -653,26 +665,29 @@ export function AssessmentWorkspaceClient({
     }
     for (const item of evidence) {
       bump(item.criterion, item.method, 'manual')
-      if (item.verification_status === 'verified') bump(item.criterion, item.method, 'verified')
+      if (!isIllustrativeEvidence(coachProvenance) && isVerifiedEvidence(item)) bump(item.criterion, item.method, 'verified')
     }
     for (const item of derived) bump(item.criterion, item.method, 'auto')
     return counts
-  }, [evidence, derived])
+  }, [evidence, derived, coachProvenance])
 
-  const coveredCriteria = useMemo(() => {
-    const covered = new Set<string>()
-    for (const item of evidence) covered.add(item.criterion)
-    for (const item of derived) covered.add(item.criterion)
-    return covered
-  }, [evidence, derived])
+  const status = deriveAssessmentStatus({ coach: coachProvenance, assessments, evidence, recommendation })
+  const coveredCriteria = new Set(status.reviewedCriteria)
 
   const submit = (action: (fd: FormData) => Promise<{ ok: boolean; error?: string }>) =>
-    (formData: FormData) => {
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      if (isPending) return
+      const formData = new FormData(event.currentTarget)
       setError(null)
       startTransition(async () => {
-        const result = await action(formData)
-        if (!result.ok) setError(result.error ?? 'Something went wrong')
-        else router.refresh()
+        try {
+          const result = await action(formData)
+          if (!result.ok) setError(result.error ?? 'Something went wrong')
+          else router.refresh()
+        } catch {
+          setError('Save could not be confirmed. Your entries are still here. Check your connection and the saved record before retrying.')
+        }
       })
     }
 
@@ -680,7 +695,7 @@ export function AssessmentWorkspaceClient({
   // and where the decision stands — legible in ten seconds.
   const strongCriteria = ASSESSMENT_CRITERIA.filter((c) => {
     const a = assessmentByCriterion.get(c.key)
-    return a?.status === 'complete' && a.score !== null && a.score >= 70 && coveredCriteria.has(c.key)
+    return a?.status === 'complete' && !isIllustrativeEvidence(a) && a.score !== null && a.score >= 70 && coveredCriteria.has(c.key)
   })
   const gapCriteria = ASSESSMENT_CRITERIA.filter((c) => !coveredCriteria.has(c.key))
 
@@ -694,17 +709,17 @@ export function AssessmentWorkspaceClient({
       {/* Summary strip */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="card-surface rounded-lg px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Evidence coverage</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Reviewed evidence</p>
           <p className="text-lg font-semibold text-foreground mt-0.5 tabular-nums">
-            {coveredCriteria.size}<span className="text-muted-foreground text-sm">/9 criteria</span>
+            {status.reviewedLabel}
           </p>
         </div>
         <div className="card-surface rounded-lg px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Assessed</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Recorded / illustrative</p>
           <p className="text-lg font-semibold text-foreground mt-0.5 tabular-nums">
-            {assessments.filter((a) => a.status === 'complete').length}
-            <span className="text-muted-foreground text-sm">/9 complete</span>
+            {status.recordedLabel}
           </p>
+          <p className="text-xs text-muted-foreground">{status.illustrativeLabel}</p>
         </div>
         <div className="card-surface rounded-lg px-4 py-3">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Work-permit note</p>
@@ -730,25 +745,24 @@ export function AssessmentWorkspaceClient({
       <div className="card-surface rounded-lg px-5 py-3.5 border-l-2 border-primary/60">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto] gap-x-8 gap-y-1.5 items-start">
           <p className="text-2xs text-muted-foreground">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500/90 mr-2">Strong evidence</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500/90 mr-2">Assessed with verified records</span>
             {strongCriteria.length > 0 ? strongCriteria.map((c) => c.label).join(', ') : 'None assessed yet'}
           </p>
           <p className="text-2xs text-muted-foreground">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-500/90 mr-2">Evidence gaps</span>
-            {gapCriteria.length > 0 ? gapCriteria.map((c) => c.label).join(', ') : 'Full coverage'}
+            {gapCriteria.length > 0 ? gapCriteria.map((c) => c.label).join(', ') : 'All criteria have a verified record; assess sufficiency and conflicts'}
           </p>
           <p className="text-2xs text-muted-foreground lg:text-right">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mr-2">Decision confidence</span>
             <span className="text-foreground font-semibold tabular-nums">
-              {recommendation?.confidence !== null && recommendation?.confidence !== undefined ? `${recommendation.confidence}%` : '—'}
+              {status.confidence !== null ? `${status.confidence}% (human judgement)` : 'Not recorded'}
             </span>
           </p>
         </div>
         <p className="text-2xs text-muted-foreground mt-1.5">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mr-2">Recommendation</span>
-          {recommendation?.verdict
-            ? `${recommendation.verdict}${recommendation.summary ? ` — ${recommendation.summary}` : ''}`
-            : 'Not yet decided'}
+          {status.recommendationLabel}
+          {status.recommendationRecorded && recommendation?.summary ? ` · ${recommendation.summary}` : ''}
         </p>
       </div>
 
@@ -776,11 +790,7 @@ export function AssessmentWorkspaceClient({
           ))}
         </div>
         <p className="text-xs text-muted-foreground">
-          {gapCriteria.length > 0
-            ? `Next: close ${gapCriteria[0].label}`
-            : recommendation?.verdict
-              ? 'Next: review and issue the assessment pack'
-              : 'Next: record the final recommendation'}
+          {status.nextAction}
         </p>
       </div>
 
@@ -790,7 +800,7 @@ export function AssessmentWorkspaceClient({
         <div className="px-5 py-3 border-b border-border">
           <h2 className="text-sm font-semibold text-foreground">Assessment matrix</h2>
           <p className="text-2xs text-muted-foreground mt-0.5">
-            Evidence coverage across 9 criteria and 8 methods. Green = verified, amber = unverified, grey = auto-derived from platform data.
+            Source records across 9 criteria and 8 methods. Only non-illustrative verified evidence counts towards the coverage summary. Grey profile-derived records are research leads; a filled cell does not establish sufficiency.
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -824,6 +834,7 @@ export function AssessmentWorkspaceClient({
                       {rowAssessment?.score !== null && rowAssessment?.score !== undefined && (
                         <span className="ml-2 tabular-nums text-muted-foreground">{rowAssessment.score}</span>
                       )}
+                      {status.illustrativeCriteria.includes(criterion.key) && <span className="ml-2 text-amber-500">Illustrative assessment</span>}
                     </td>
                     {EVIDENCE_METHODS.map((m) => {
                       const cell = cellCounts.get(`${criterion.key}:${m.key}`)
@@ -867,8 +878,9 @@ export function AssessmentWorkspaceClient({
               {selectedMeta.num}. {selectedMeta.label}
             </h3>
             <p className="text-2xs text-muted-foreground mt-0.5">{selectedMeta.question}</p>
+            {status.illustrativeCriteria.includes(selected) && <p className="mt-2 text-xs text-amber-500">Illustrative assessment: excluded from recorded counts and reports.</p>}
           </div>
-          <form action={submit(saveAssessmentAction)} className="space-y-3">
+          <form onSubmit={submit(saveAssessmentAction)} className="space-y-3">
             <input type="hidden" name="mandate_id" value={mandateId} />
             <input type="hidden" name="coach_id" value={coachId} />
             <input type="hidden" name="criterion" value={selected} />
@@ -963,7 +975,7 @@ export function AssessmentWorkspaceClient({
                     {item.detail && <p className="text-2xs text-muted-foreground mt-1">{item.detail}</p>}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <form action={submit(setEvidenceRecommendationUseAction)}>
+                    <form onSubmit={submit(setEvidenceRecommendationUseAction)}>
                       <input type="hidden" name="evidence_id" value={item.id} />
                       <input type="hidden" name="mandate_id" value={mandateId} />
                       <input type="hidden" name="coach_id" value={coachId} />
@@ -981,26 +993,26 @@ export function AssessmentWorkspaceClient({
                         <option value="false">Background</option>
                       </select>
                     </form>
-                    <form action={submit(setEvidenceVerificationAction)}>
+                    <form onSubmit={submit(setEvidenceVerificationAction)}>
                       <input type="hidden" name="evidence_id" value={item.id} />
                       <input type="hidden" name="mandate_id" value={mandateId} />
                       <input type="hidden" name="coach_id" value={coachId} />
                       <select
                         name="verification_status"
-                        defaultValue={item.verification_status}
+                        defaultValue={isIllustrativeEvidence(item) ? 'unverified' : item.verification_status}
                         onChange={(e) => e.currentTarget.form?.requestSubmit()}
                         className={cn(
                           'text-2xs bg-surface border border-border rounded px-1.5 py-1',
-                          item.verification_status === 'verified' && 'text-emerald-300',
+                          isVerifiedEvidence(item) && 'text-emerald-300',
                           item.verification_status === 'disputed' && 'text-red-300'
                         )}
                       >
                         <option value="unverified">Unverified</option>
-                        <option value="verified">Verified</option>
+                        <option value="verified" disabled={isIllustrativeEvidence(item)}>Verified</option>
                         <option value="disputed">Disputed</option>
                       </select>
                     </form>
-                    <form action={submit(deleteEvidenceAction)}>
+                    <form onSubmit={submit(deleteEvidenceAction)}>
                       <input type="hidden" name="evidence_id" value={item.id} />
                       <input type="hidden" name="mandate_id" value={mandateId} />
                       <input type="hidden" name="coach_id" value={coachId} />
@@ -1024,7 +1036,7 @@ export function AssessmentWorkspaceClient({
             ))}
           </div>
 
-          <form action={submit(addEvidenceAction)} className="border-t border-border/50 pt-3 space-y-2">
+          <form onSubmit={submit(addEvidenceAction)} className="border-t border-border/50 pt-3 space-y-2">
             <input type="hidden" name="mandate_id" value={mandateId} />
             <input type="hidden" name="coach_id" value={coachId} />
             <input type="hidden" name="criterion" value={selected} />
@@ -1100,11 +1112,12 @@ export function AssessmentWorkspaceClient({
 
       {/* Final recommendation */}
       <div className={cn('card-surface rounded-lg p-5', workspaceSection !== 'recommendation' && 'hidden')}>
-        <h3 className="text-sm font-semibold text-foreground">Final recommendation</h3>
+        <h3 className="text-sm font-semibold text-foreground">Human recommendation</h3>
+        <p className="mt-2 text-xs text-muted-foreground">{status.recommendationLabel}. Saving a recommendation does not approve the evidence or authorize sharing. Illustrative content is excluded from decision summaries and reports.</p>
         <p className="text-2xs text-muted-foreground mt-0.5 mb-3">
           Analyst conclusion — structured by the 9-criteria methodology and supported by the evidence above. This is what the Head Coach Assessment Pack is built around.
         </p>
-        <form action={submit(saveRecommendationAction)} className="space-y-3">
+        <form onSubmit={submit(saveRecommendationAction)} className="space-y-3">
           <input type="hidden" name="mandate_id" value={mandateId} />
           <input type="hidden" name="coach_id" value={coachId} />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[180px_120px_1fr]">
@@ -1123,7 +1136,7 @@ export function AssessmentWorkspaceClient({
             </div>
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Summary</label>
-              <input name="summary" defaultValue={recommendation?.summary ?? ''} placeholder="Overall assessment in one or two sentences" className={inputClass} />
+              <input name="summary" defaultValue={recommendation?.summary ?? ''} placeholder="Why this coach for this club over the alternatives? State the evidence and the uncertainty that could reverse the recommendation." className={inputClass} />
             </div>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -1133,11 +1146,11 @@ export function AssessmentWorkspaceClient({
             </div>
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Key risks</label>
-              <textarea name="key_risks" rows={2} defaultValue={recommendation?.key_risks ?? ''} className={inputClass} />
+              <textarea name="key_risks" placeholder="Strongest counterargument, conflicting evidence and what remains unknown" rows={3} defaultValue={recommendation?.key_risks ?? ''} className={inputClass} />
             </div>
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Mitigation</label>
-              <textarea name="mitigation" rows={2} defaultValue={recommendation?.mitigation ?? ''} className={inputClass} />
+              <textarea name="mitigation" placeholder="Conditions required for success, checks before appointment, owner and review date" rows={3} defaultValue={recommendation?.mitigation ?? ''} className={inputClass} />
             </div>
           </div>
           <button

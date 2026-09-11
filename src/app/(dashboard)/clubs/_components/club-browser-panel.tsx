@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useClubLoad } from './use-club-load'
 import { Search, Plus, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toastError, toastSuccess } from '@/lib/ui/toast'
@@ -29,8 +30,15 @@ const ENGLISH_TIERS = [
 
 export function ClubBrowserPanel() {
   const pathname = usePathname()
-  const [clubs, setClubs] = useState<ClubRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data, loading, error, retry } = useClubLoad(`club-browser:${pathname}`, async () => {
+    const supabase = createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) throw new Error('Sign in again')
+    const result = await supabase.from('clubs').select('id, name, league, country, tier, badge_url').order('tier', { ascending: true, nullsFirst: false }).order('name', { ascending: true }).limit(500)
+    if (result.error) throw result.error
+    return (result.data ?? []) as ClubRow[]
+  }, 'Club directory could not be loaded. Retry or sign in again.')
+  const clubs = useMemo(() => data ?? [], [data])
   const [query, setQuery] = useState('')
   const [tierFilter, setTierFilter] = useState<string | null>(null)
   const [leagueFilter, setLeagueFilter] = useState<string>('')
@@ -38,22 +46,6 @@ export function ClubBrowserPanel() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [syncingEngland, setSyncingEngland] = useState(false)
 
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) { setLoading(false); return }
-      supabase
-        .from('clubs')
-        .select('id, name, league, country, tier, badge_url')
-        .order('tier', { ascending: true, nullsFirst: false })
-        .order('name', { ascending: true })
-        .limit(500)
-        .then(({ data }) => {
-          setClubs((data as ClubRow[]) ?? [])
-          setLoading(false)
-        })
-    })
-  }, [])
 
   // Which tier chips to show (only tiers present in data)
   const presentTiers = useMemo(() => {
@@ -92,7 +84,7 @@ export function ClubBrowserPanel() {
   const selectedId = pathname.match(/^\/clubs\/([a-f0-9-]{36})/)?.[1] ?? null
 
   return (
-    <div className="flex flex-col h-full bg-transparent">
+    <div className="flex flex-col h-full min-h-0 overflow-y-auto bg-transparent">
 
       {/* Header */}
       <div className="px-4 py-3 border-b border-border space-y-2.5 shrink-0">
@@ -103,7 +95,7 @@ export function ClubBrowserPanel() {
           <div className="flex items-center gap-2">
             <Link
               href="/clubs/new"
-              title="Add club"
+              aria-label="Add club" title="Add club"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -150,18 +142,8 @@ export function ClubBrowserPanel() {
                       }`
                     )
                   }
-                  const supabase = createClient()
-                  const { data: { user } } = await supabase.auth.getUser()
-                  if (user) {
-                    const { data } = await supabase
-                      .from('clubs')
-                      .select('id, name, league, country, tier, badge_url')
-                      .order('tier', { ascending: true, nullsFirst: false })
-                      .order('name', { ascending: true })
-                      .limit(500)
-                    setClubs((data as ClubRow[]) ?? [])
-                    setVisibleCount(PAGE_SIZE)
-                  }
+                  retry()
+                  setVisibleCount(PAGE_SIZE)
                 } catch {
                   toastError('Club sync failed')
                 } finally {
@@ -181,7 +163,7 @@ export function ClubBrowserPanel() {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
           <input
             type="text"
-            placeholder="Search clubs…"
+            aria-label="Search loaded clubs" placeholder="Search loaded clubs…"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setVisibleCount(PAGE_SIZE) }}
             className="w-full h-8 pl-8 pr-3 rounded bg-surface border border-border text-xs text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-primary/50 transition-colors"
@@ -193,7 +175,7 @@ export function ClubBrowserPanel() {
           <div className="flex gap-1.5">
             {leagues.length > 1 && (
               <select
-                value={leagueFilter}
+                aria-label="Filter by league" value={leagueFilter}
                 onChange={e => { setLeagueFilter(e.target.value); setVisibleCount(PAGE_SIZE) }}
                 className="flex-1 h-7 rounded border border-border bg-surface text-[10px] px-2 text-foreground min-w-0"
               >
@@ -203,7 +185,7 @@ export function ClubBrowserPanel() {
             )}
             {countries.length > 1 && (
               <select
-                value={countryFilter}
+                aria-label="Filter by country" value={countryFilter}
                 onChange={e => { setCountryFilter(e.target.value); setVisibleCount(PAGE_SIZE) }}
                 className="flex-1 h-7 rounded border border-border bg-surface text-[10px] px-2 text-foreground min-w-0"
               >
@@ -216,7 +198,7 @@ export function ClubBrowserPanel() {
                 type="button"
                 onClick={() => { setLeagueFilter(''); setCountryFilter(''); setVisibleCount(PAGE_SIZE) }}
                 className="h-7 px-2 text-[10px] text-muted-foreground hover:text-foreground border border-border rounded transition-colors shrink-0"
-                title="Clear filters"
+                aria-label="Clear league and country filters" title="Clear filters"
               >
                 ✕
               </button>
@@ -229,6 +211,7 @@ export function ClubBrowserPanel() {
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               type="button"
+              aria-pressed={tierFilter === null}
               onClick={() => { setTierFilter(null); setVisibleCount(PAGE_SIZE) }}
               className={cn(
                 'h-5 px-2 rounded text-[9px] font-semibold uppercase tracking-wide border transition-colors',
@@ -242,6 +225,7 @@ export function ClubBrowserPanel() {
             {presentTiers.map(t => (
               <button
                 key={t.tier}
+                aria-pressed={tierFilter === t.tier}
                 type="button"
                 onClick={() => { setTierFilter(tierFilter === t.tier ? null : t.tier); setVisibleCount(PAGE_SIZE) }}
                 className={cn(
@@ -259,8 +243,8 @@ export function ClubBrowserPanel() {
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto">
-        {loading ? (
+      <div className="flex-1 min-h-24 overflow-y-auto">
+        {error ? <div role="alert" className="p-4 space-y-2 text-xs"><p>{error}</p><button type="button" onClick={retry} className="underline">Retry loading clubs</button></div> : loading ? (
           <div className="flex flex-col gap-2 p-3">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 px-1 py-1.5 animate-pulse">
@@ -296,6 +280,7 @@ export function ClubBrowserPanel() {
                 <Link
                   key={club.id}
                   href={`/clubs/${club.id}`}
+                  aria-current={isSelected ? 'page' : undefined}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 border-b border-border/30 transition-colors group',
                     isSelected
@@ -365,8 +350,9 @@ export function ClubBrowserPanel() {
 
       {/* Footer count */}
       <div className="px-4 py-2 border-t border-border shrink-0">
+        {!loading && !error && clubs.length === 500 && <p className="text-[10px] text-muted-foreground">Showing the first 500 loaded clubs; filters search this subset.</p>}
         <p className="text-[10px] text-muted-foreground/60">
-          {loading ? '…' : `${filtered.length} club${filtered.length !== 1 ? 's' : ''}${query || tierFilter || leagueFilter || countryFilter ? ` found` : ''}`}
+          {error ? 'Club count unavailable' : loading ? 'Loading clubs' : `${filtered.length} club${filtered.length !== 1 ? 's' : ''}${query || tierFilter || leagueFilter || countryFilter ? ` found` : ''}`}
         </p>
       </div>
     </div>

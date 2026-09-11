@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAgentById, getAgentCounts } from '@/lib/db/agents'
 import { AgentCommandBar } from './_components/agent-command-bar'
 import { AgentTabNav } from './_components/agent-tab-nav'
+import type { Metadata } from 'next'
 
 function agentCoverageScore(agent: {
   email?: string | null
@@ -20,6 +21,18 @@ function agentCoverageScore(agent: {
   return score
 }
 
+// Names the entity in the tab so several open records can be told apart; child
+// tabs supply their own label through the template ("Career · Kieran McKenna").
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createServerSupabaseClient()
+  const { data } = await supabase.from('agents').select('full_name').eq('id', id).maybeSingle()
+  const name = data?.full_name?.trim() || 'Agent'
+  return { title: { default: name, template: `%s · ${name} · Gaffa` } }
+}
+
 export default async function AgentLayout({
   children,
   params,
@@ -32,19 +45,22 @@ export default async function AgentLayout({
   if (!user) redirect('/login')
 
   const { id } = await params
-  const { data: agent, error } = await getAgentById(user.id, id)
-  if (error || !agent) notFound()
+  const { data: agent, error } = await getAgentById(id)
+  if (error) throw new Error('Could not load agent')
+  if (!agent) notFound()
 
   const counts = await getAgentCounts(user.id, id)
-  const { count: interactionsCount } = await supabase
+  const { count: interactionsCount, error: interactionsError } = await supabase
     .from('agent_interactions')
     .select('id', { count: 'exact', head: true })
     .eq('agent_id', id)
+  if (interactionsError) throw new Error('Could not load agent interactions')
   const coverage = agentCoverageScore(agent, counts.coachesCount, counts.clubsCount, interactionsCount ?? 0)
 
   return (
     <div className="animate-fade-in">
       <AgentCommandBar
+        agentId={id}
         agent={agent}
         coachesCount={counts.coachesCount}
         clubsCount={counts.clubsCount}

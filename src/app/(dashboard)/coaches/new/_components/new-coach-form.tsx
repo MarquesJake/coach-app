@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
+import { readResearchContext, researchHref } from '@/lib/research-context'
 import { ArrowLeft } from 'lucide-react'
 import { createCoachQuickAction, createCoachFullAction } from '../../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
@@ -20,23 +21,24 @@ function Label({ children, htmlFor }: { children: React.ReactNode; htmlFor?: str
 }
 
 function ScoreSlider({ id, name, label, disabled }: { id: string; name: string; label: string; disabled?: boolean }) {
-  const [value, setValue] = useState(0)
+  const [value, setValue] = useState('')
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <Label htmlFor={id}>{label}</Label>
-        <span className="text-sm font-medium tabular-nums text-foreground min-w-[2rem] text-right">{value}</span>
+        <span className="text-sm font-medium tabular-nums text-foreground min-w-[2rem] text-right">{value || 'Not recorded'}</span>
       </div>
       <input
         id={id}
         name={name}
-        type="range"
+        type="number"
         min={0}
         max={100}
         step={1}
-        defaultValue={0}
-        onChange={(e) => setValue(Number(e.target.value))}
-        className="w-full h-2 rounded-lg appearance-none bg-surface border border-border"
+        value={value}
+        placeholder="Not recorded"
+        onChange={(e) => setValue(e.target.value)}
+        className={inputClass}
         disabled={disabled}
       />
     </div>
@@ -45,6 +47,7 @@ function ScoreSlider({ id, name, label, disabled }: { id: string; name: string; 
 
 export function NewCoachForm() {
   const router = useRouter()
+  const context = readResearchContext(useSearchParams())
   const [quickSubmitting, setQuickSubmitting] = useState(false)
   const [fullSubmitting, setFullSubmitting] = useState(false)
   const [quickError, setQuickError] = useState<string | null>(null)
@@ -62,7 +65,10 @@ export function NewCoachForm() {
     setQuickSubmitting(true)
     const formData = new FormData()
     formData.set('name', name)
-    const result = await createCoachQuickAction(formData)
+    let result
+    try { result = await createCoachQuickAction(formData) } catch {
+      setQuickSubmitting(false); setQuickError('Save could not be confirmed. Your entries are kept; check the directory before retrying.'); return
+    }
     setQuickSubmitting(false)
     if ('error' in result) {
       setQuickError(result.error)
@@ -70,7 +76,7 @@ export function NewCoachForm() {
       return
     }
     toastSuccess('Coach created')
-    router.push(`/coaches/${result.data.id}`)
+    router.push(researchHref(`/coaches/${result.data.id}`, { ...context, coach: result.data.id }))
   }
 
   const handleFullCreate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -86,7 +92,10 @@ export function NewCoachForm() {
     const formData = new FormData(form)
     formData.set('name', name)
     formData.delete('full_name')
-    const result = await createCoachFullAction(formData)
+    let result
+    try { result = await createCoachFullAction(formData) } catch {
+      setFullSubmitting(false); setFullError('Save could not be confirmed. Your entries are kept; check the directory before retrying.'); return
+    }
     setFullSubmitting(false)
     if ('error' in result) {
       setFullError(result.error)
@@ -94,7 +103,7 @@ export function NewCoachForm() {
       return
     }
     toastSuccess('Coach created')
-    router.push(`/coaches/${result.data.id}`)
+    router.push(researchHref(`/coaches/${result.data.id}`, { ...context, coach: result.data.id }))
   }
 
   return (

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
 import { SourceConfidenceFields, IntelPill } from '@/components/source-confidence-fields'

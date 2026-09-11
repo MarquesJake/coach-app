@@ -10,6 +10,12 @@ select
   coach.user_id
 from public.coaches coach
 join auth.users app_user on app_user.id = coach.user_id
+where not exists (
+  select 1 from public.organizations organization
+  where organization.coach_id = coach.id
+    and organization.organization_type = 'coach_business'
+    and organization.status = 'active'
+)
 limit 1;
 
 grant select on material_upload_test_context to authenticated;
@@ -17,7 +23,7 @@ grant select on material_upload_test_context to authenticated;
 do $$
 begin
   if not exists (select 1 from material_upload_test_context) then
-    raise exception 'Coach material RLS test requires one owned coach';
+    raise exception 'Coach material RLS test requires one owned coach without an active coach business';
   end if;
 end;
 $$;

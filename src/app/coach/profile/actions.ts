@@ -58,10 +58,10 @@ export async function saveOwnCoachProfileAction(formData: FormData) {
     submit_for_review: submitForReview,
   })
   if (error) {
-    redirect(`/coach/profile?error=${encodeURIComponent(error.message)}`)
+    redirect('/coach/profile?error=save')
   }
   revalidatePath('/coach/profile')
-  redirect(`/coach/profile?saved=${submitForReview ? 'Profile submitted for Coach First review' : 'Progress saved privately'}`)
+  redirect(`/coach/profile?saved=${submitForReview ? 'Profile submitted for Gaffa review' : 'Progress saved privately'}`)
 }
 
 export async function addOwnCoachMaterialAction(input: {
@@ -157,6 +157,7 @@ export async function failOwnCoachMaterialUploadAction(
 }
 
 export async function signOutCoachAction() {
-  await (await createServerSupabaseClient()).auth.signOut()
+  const { error } = await (await createServerSupabaseClient()).auth.signOut()
+  if (error) redirect('/coach/profile?error=signout')
   redirect('/coach/login')
 }

@@ -4,6 +4,7 @@ import { EditCoachDrawer, type EditCoachField } from './edit-coach-drawer'
 import { updateCoachCoreAction } from '@/app/(dashboard)/coaches/[id]/actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { useRouter } from 'next/navigation'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   const v = value?.trim()
@@ -18,13 +19,13 @@ function Row({ label, value }: { label: string; value: string | null | undefined
 
 const LEADERSHIP_FIELDS: EditCoachField[] = [
   { key: 'leadership_style', label: 'Leadership style', type: 'text' },
-  { key: 'staff_management_style', label: 'Staff management style', type: 'textarea' },
-  { key: 'player_development_model', label: 'Player development model', type: 'textarea' },
-  { key: 'recruitment_collaboration', label: 'Recruitment collaboration', type: 'textarea' },
+  { key: 'staff_management_style', placeholder: 'Give a dated example of how responsibilities were assigned and disagreements resolved. Identify the source.', label: 'How they manage staff', type: 'textarea' },
+  { key: 'player_development_model', placeholder: 'Who improved, from what starting point, and what coaching intervention contributed? Include period and contrary evidence.', label: 'Player development', type: 'textarea' },
+  { key: 'recruitment_collaboration', placeholder: 'Who controlled recruitment? Describe a decision, the coach’s influence and the outcome.', label: 'Working with recruitment', type: 'textarea' },
   { key: 'academy_integration', label: 'Academy integration', type: 'text' },
-  { key: 'comms_profile', label: 'Comms profile', type: 'text' },
-  { key: 'media_style', label: 'Media style summary', type: 'textarea' },
-  { key: 'conflict_history', label: 'Conflict history', type: 'textarea' },
+  { key: 'comms_profile', label: 'Internal communication', type: 'text' },
+  { key: 'media_style', label: 'Media and public communication', type: 'textarea' },
+  { key: 'conflict_history', placeholder: 'Record a sourced account, date, context and response; distinguish disputed claims from established findings.', label: 'Disagreements and how they were handled', type: 'textarea' },
 ]
 
 type CoachRecord = Record<string, unknown>
@@ -79,17 +80,18 @@ export function LeadershipSection({ coachId, coach }: { coachId: string; coach: 
         </div>
         <div className="space-y-0">
           <Row label="Leadership style" value={leadershipStyle} />
-          <Row label="Staff management style" value={staffManagementStyle} />
-          <Row label="Player development model" value={playerDevelopmentModel} />
-          <Row label="Recruitment collaboration" value={recruitmentCollaboration} />
+          <Row label="How they manage staff" value={staffManagementStyle} />
+          <Row label="Player development" value={playerDevelopmentModel} />
+          <Row label="Working with recruitment" value={recruitmentCollaboration} />
           <Row label="Academy integration" value={academyIntegration} />
-          <Row label="Comms profile" value={commsProfile} />
-          <Row label="Media style summary" value={mediaStyle} />
-          <Row label="Conflict history" value={conflictHistory} />
+          <Row label="Internal communication" value={commsProfile} />
+          <Row label="Media and public communication" value={mediaStyle} />
+          <Row label="Disagreements and how they were handled" value={conflictHistory} />
         </div>
         {!leadershipStyle && !staffManagementStyle && !playerDevelopmentModel && !recruitmentCollaboration && !mediaStyle && !conflictHistory && (
-          <p className="text-sm text-muted-foreground py-4">No data available.</p>
+          <p className="text-sm text-muted-foreground py-4">No leadership assessment recorded yet. Add specific examples from interviews, references and observed behaviour.</p>
         )}
+        <Link className="gaffa-link mt-4 inline-block text-sm" href={`/coaches/${coachId}/research?template=leadership#new-question`}>Investigate personality and leadership →</Link>
       </section>
     </div>
   )

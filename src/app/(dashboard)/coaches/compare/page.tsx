@@ -1,45 +1,59 @@
+import { assertRouteQueries } from '@/lib/coaches/route-audit'
+import { CoachPicker } from './_components/coach-picker'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
+import { researchedCoachChoices, selectedComparisonIds } from '@/lib/coaches/research-picker'
+import { getCoachStintAndIntelCountsAction, getCoachDuplicateReviewsAction } from '../actions'
+import { readResearchContext, researchHref, type ResearchParams } from '@/lib/research-context'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachesByIds } from '@/lib/db/coaches'
 import { MAX_COMPARE } from '@/lib/compare'
 import { computeCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-completeness'
 import { CompareTable } from '@/app/(dashboard)/compare/_components/compare-table'
-import { CompareClearButton } from '@/app/(dashboard)/compare/_components/compare-clear-button'
-import { PositioningMatrix } from '@/app/(dashboard)/coaches/[id]/_components/positioning-matrix'
-import { ComputePeerGroupButton } from './_components/compute-peer-group-button'
 import { EmptyState } from '@/components/ui/empty-state'
-import { computeSimilarity } from '@/lib/similarity'
+
+export const metadata = { title: 'Compare · Coaches' }
+
 
 export default async function CoachesComparePage({
   searchParams,
 }: {
-  searchParams: Promise<{ ids?: string }>
+  searchParams: Promise<ResearchParams>
 }) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const params = await searchParams
-  const rawIds = (params.ids ?? '').trim().split(/[\s,]+/).filter(Boolean).slice(0, MAX_COMPARE)
-
-  if (rawIds.length === 0) {
+  const context = readResearchContext(params)
+  const [directory, counts, reviews, shortlist, pool] = await Promise.all([
+    supabase.from('coaches').select('id,name,club_current,nationality').order('name'),
+    getCoachStintAndIntelCountsAction(),
+    getCoachDuplicateReviewsAction(),
+    context.mandate ? supabase.from('mandate_shortlist').select('coach_id').eq('mandate_id', context.mandate) : Promise.resolve({ data: [], error: null }),
+    context.mandate ? supabase.from('mandate_longlist').select('coach_id').eq('mandate_id', context.mandate) : Promise.resolve({ data: [], error: null }),
+  ])
+  if (directory.error || shortlist.error || pool.error) return <p role="alert">Comparison choices could not be loaded. Reload before selecting candidates.</p>
+  const pickerCoaches = researchedCoachChoices(directory.data ?? [], counts, reviews)
+  const candidates = [...(shortlist.data ?? []), ...(pool.data ?? [])].map(row => row.coach_id)
+  const requested = typeof params.ids === 'string' ? params.ids : undefined
+  const rawIds = selectedComparisonIds(requested, candidates, pickerCoaches.map(coach => coach.id), MAX_COMPARE)
+  const excluded = (requested?.split(/[\s,]+/).filter(Boolean) ?? candidates).filter(id => !pickerCoaches.some(coach => coach.id === id))
+  const scopeNote = <div className="mb-4 space-y-2 text-sm"><p>Researched coach records only. Research depth does not establish verification or suitability.</p>{excluded.length > 0 && <p role="status">Some requested records need research or identity review before comparison. No identities were substituted.</p>}{context.mandate && <Link href={researchHref(`/mandates/${context.mandate}/candidates`, context)} className="underline">Return to appointment candidates</Link>}<Link href="/coaches/identity-review" className="block underline">Review identities</Link></div>
+  if (rawIds.length < 2) {
     return (
       <div className="rounded-lg border border-border bg-card p-6">
-        <EmptyState
-          title="No data available."
-          description="Go to All coaches and select 2 to 4 coaches using the checkboxes, then click Compare."
-          actionLabel="Go to all coaches"
-          actionHref="/coaches"
-        />
+        <h1 className="text-lg font-medium text-foreground mb-4">Compare Coaches</h1>
+        {scopeNote}<CoachPicker key={rawIds.join(',')} options={pickerCoaches} initial={rawIds} context={context} />
       </div>
     )
   }
 
-  const { data: coaches, error } = await getCoachesByIds(user.id, rawIds)
+  const { data: coaches, error } = await getCoachesByIds(rawIds)
   if (error || !coaches?.length) {
     return (
       <div className="rounded-lg border border-border bg-card p-6">
+        <h1 className="text-lg font-medium text-foreground mb-4">Compare Coaches</h1>
         <EmptyState
           title="Could not load coaches"
           description="The selected coaches may no longer be available. Try selecting again from the list."
@@ -51,7 +65,7 @@ export default async function CoachesComparePage({
   }
 
   const evidenceCounts: Record<string, number> = {}
-  const { data: items } = await supabase
+  const { data: items, error: itemsError } = await supabase
     .from('intelligence_items')
     .select('entity_id')
     .eq('entity_type', 'coach')
@@ -63,14 +77,14 @@ export default async function CoachesComparePage({
   const recruitmentCounts: Record<string, number> = {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any
-  const { data: recruitmentRows } = await sb.from('coach_recruitment_history').select('coach_id').in('coach_id', rawIds)
+  const { data: recruitmentRows, error: recruitmentError } = await sb.from('coach_recruitment_history').select('coach_id').in('coach_id', rawIds)
   for (const row of (recruitmentRows ?? []) as { coach_id: string }[]) {
     recruitmentCounts[row.coach_id] = (recruitmentCounts[row.coach_id] ?? 0) + 1
   }
 
   const mediaCounts: Record<string, number> = {}
   const mediaSeverity: Record<string, number[]> = {}
-  const { data: mediaRows } = await sb.from('coach_media_events').select('coach_id, severity_score').in('coach_id', rawIds)
+  const { data: mediaRows, error: mediaError } = await sb.from('coach_media_events').select('coach_id, severity_score').in('coach_id', rawIds)
   for (const row of (mediaRows ?? []) as { coach_id: string; severity_score: number | null }[]) {
     mediaCounts[row.coach_id] = (mediaCounts[row.coach_id] ?? 0) + 1
     if (row.severity_score != null) {
@@ -79,7 +93,8 @@ export default async function CoachesComparePage({
     }
   }
 
-  const coachRecords = coaches.map((c) => ({
+  assertRouteQueries('Comparison evidence', { error: itemsError }, { error: recruitmentError }, { error: mediaError })
+  const coachRecords = [...coaches].sort((a, b) => rawIds.indexOf(a.id) - rawIds.indexOf(b.id)).map((c) => ({
     ...c,
     _completeness: computeCompleteness(c as Record<string, unknown>),
     _evidenceCount: evidenceCounts[c.id] ?? 0,
@@ -88,51 +103,10 @@ export default async function CoachesComparePage({
     _mediaAvgSeverity: (mediaSeverity[c.id]?.length ? mediaSeverity[c.id].reduce((a, b) => a + b, 0) / mediaSeverity[c.id].length : null) as number | null,
   }))
 
-  const positioningData = coachRecords.map((c) => {
-    const overall = Number((c as Record<string, unknown>).overall_manual_score)
-    const tactical = Number((c as Record<string, unknown>).tactical_fit_score)
-    const mediaRisk = Number((c as Record<string, unknown>).media_risk_score)
-    const o = Number.isNaN(overall) ? 50 : Math.max(0, Math.min(100, overall))
-    const t = Number.isNaN(tactical) ? 50 : Math.max(0, Math.min(100, tactical))
-    const m = Number.isNaN(mediaRisk) ? 40 : Math.max(0, Math.min(100, mediaRisk))
-    return {
-      id: c.id,
-      label: (c.name as string) ?? 'Coach',
-      stability: Math.round(100 - m),
-      risk: m,
-      development: Math.round((o + t) / 2),
-      winNow: Math.round(100 - (o + t) / 2),
-    }
-  })
-
-  const primaryId = coachRecords[0]?.id ?? ''
-  const { data: similarityRows } = await sb.from('coach_similarity').select('coach_a_id, coach_b_id, similarity_score').or(`coach_a_id.eq.${primaryId},coach_b_id.eq.${primaryId}`).order('similarity_score', { ascending: false }).limit(10)
-  const peerGroupEntries = ((similarityRows ?? []) as { coach_a_id: string; coach_b_id: string; similarity_score: number }[]).map((row) => {
-    const otherId = row.coach_a_id === primaryId ? row.coach_b_id : row.coach_a_id
-    return { coachId: otherId, score: row.similarity_score }
-  })
-  const peerGroupCoachIds = peerGroupEntries.map((e) => e.coachId)
-  const { data: peerGroupCoaches } = peerGroupCoachIds.length > 0 ? await getCoachesByIds(user.id, peerGroupCoachIds) : { data: [] }
-  const peerGroupNames = new Map((peerGroupCoaches ?? []).map((c) => [c.id, (c.name as string) ?? 'Coach']))
-  const peerGroupList = peerGroupEntries.map((e) => ({ coachId: e.coachId, name: peerGroupNames.get(e.coachId) ?? 'Coach', score: e.score }))
-
-  const similarityPairs: { a: string; b: string; nameA: string; nameB: string; score: number }[] = []
-  for (let i = 0; i < coachRecords.length; i++) {
-    for (let j = i + 1; j < coachRecords.length; j++) {
-      const result = computeSimilarity(coachRecords[i] as Record<string, unknown>, coachRecords[j] as Record<string, unknown>)
-      similarityPairs.push({
-        a: coachRecords[i].id,
-        b: coachRecords[j].id,
-        nameA: (coachRecords[i].name as string) ?? 'Coach',
-        nameB: (coachRecords[j].name as string) ?? 'Coach',
-        score: result.score,
-      })
-    }
-  }
-
   return (
     <div>
-      <h1 className="text-lg font-medium text-foreground mb-4">Compare Coaches</h1>
+      {scopeNote}<h1 className="text-lg font-medium text-foreground mb-4">Compare Coaches</h1>
+      <details className="rounded border p-3"><summary className="cursor-pointer text-sm">Change comparison</summary><CoachPicker key={rawIds.join(',')} options={pickerCoaches} initial={rawIds} context={context} /></details>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4 mb-4">
         <div className="flex flex-wrap items-center gap-2">
           {coachRecords.map((c) => (
@@ -145,67 +119,20 @@ export default async function CoachesComparePage({
             </Link>
           ))}
         </div>
-        <CompareClearButton />
+        <Link href={researchHref("/coaches/compare?ids=", context)} className="text-sm underline">Clear comparison</Link>
       </div>
       <div className="space-y-4">
-        <section className="mb-4 rounded-lg border border-border bg-card p-6">
-          <h2 className="text-lg font-medium text-foreground mb-3">Most Similar Profiles</h2>
-          {peerGroupList.length === 0 ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-sm text-muted-foreground">No data available.</p>
-              <ComputePeerGroupButton coachId={primaryId} />
-            </div>
-          ) : (
-            <div className="grid gap-2">
-              {peerGroupList.map(({ coachId: id, name, score }) => {
-                const peerCoach = peerGroupCoaches?.find((c) => c.id === id) as { intelligence_confidence?: number | null } | undefined
-                const ic = peerCoach?.intelligence_confidence ?? null
-                const icNum = ic != null ? Number(ic) : null
-                const icBadge =
-                  icNum == null
-                    ? 'text-muted-foreground'
-                    : icNum >= 70
-                      ? 'text-green-600 dark:text-green-400'
-                      : icNum >= 40
-                        ? 'text-amber-600 dark:text-amber-400'
-                        : 'text-muted-foreground'
-                const similarityPct = typeof score === 'number' && score <= 1 ? Math.round(score * 100) : Math.round(Number(score) || 0)
-                return (
-                  <div key={id} className="flex items-center justify-between gap-3 text-sm flex-wrap">
-                    <Link href={`/coaches/${id}`} className="text-primary hover:underline font-medium">
-                      {name}
-                    </Link>
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-md border border-border bg-surface px-2 py-0.5 text-xs font-medium tabular-nums text-foreground">
-                        {similarityPct}% similar
-                      </span>
-                      <span className={`text-xs tabular-nums ${icBadge}`} title="Intelligence confidence">
-                        IC {icNum != null ? Math.round(icNum) : '—'}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+        <section className="rounded-lg border border-border bg-card p-4 text-sm">
+          <h2 className="font-medium">Compare recorded information</h2>
+          <p className="mt-2 text-muted-foreground">These profiles may include illustrative or unverified material. Missing information is unknown; a recorded flag is a prompt to investigate, not a finding. Source counts and profile coverage do not establish reliability or appointment suitability.</p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {coachRecords.map((coach) => (
+              <Link key={coach.id} href={researchHref(`/coaches/${coach.id}/fit`, { ...context, coach: coach.id })} className="text-primary underline">
+                Assess {coach.name ?? 'coach'} against an appointment
+              </Link>
+            ))}
+          </div>
         </section>
-        <section className="mb-4">
-          <h2 className="text-sm font-medium text-muted-foreground mb-2">Positioning Map</h2>
-          <PositioningMatrix positions={positioningData} highlightedId={coachRecords[0]?.id ?? null} />
-        </section>
-        {similarityPairs.length > 0 && (
-          <section className="mb-4 rounded-lg border border-border bg-card p-6">
-            <h2 className="text-lg font-medium text-foreground mb-3">Pairwise similarity</h2>
-            <div className="grid gap-2">
-              {similarityPairs.map(({ nameA, nameB, score }) => (
-                <div key={`${nameA}-${nameB}`} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{nameA} vs {nameB}</span>
-                  <span className="font-medium tabular-nums text-foreground">{score}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
         <CompareTable coachRecords={coachRecords} />
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
+import { demoEnvironmentErrors } from '../src/lib/demo-safety.mjs'
 
 function loadEnvFile(path) {
   if (!existsSync(path)) return
@@ -27,6 +28,12 @@ function loadEnvFile(path) {
 
 loadEnvFile('.env.local')
 loadEnvFile('.env')
+
+const demoErrors = demoEnvironmentErrors(process.env)
+if (demoErrors.length) {
+  console.error('Unsafe demo configuration:\n' + demoErrors.map((error) => `- ${error}`).join('\n'))
+  process.exit(1)
+}
 
 const requiredPublicEnv = [
   'NEXT_PUBLIC_SUPABASE_URL',

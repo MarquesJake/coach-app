@@ -1,14 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { KeyRound, LoaderCircle, MailCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { parsePortalRole, passwordUpdateHref, PORTAL_ENTRIES, portalLoginHref, portalRecoveryHref } from '@/lib/organizations/portal-entry'
 
 export default function RecoverPasswordPage() {
+  return <Suspense fallback={<p className="p-8">Loading account recovery...</p>}><RecoveryForm /></Suspense>
+}
+
+function RecoveryForm() {
   const searchParams = useSearchParams()
-  const portal = searchParams.get('portal') === 'coach' ? 'coach' : 'club'
+  const portal = parsePortalRole(searchParams.get('portal'))
+  const destination = searchParams.get('next')
+  const entry = PORTAL_ENTRIES.find(entry => entry.id === portal)
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -16,34 +23,38 @@ export default function RecoverPasswordPage() {
 
   async function requestReset(event: React.FormEvent) {
     event.preventDefault()
+    if (!portal) return
     setLoading(true)
     setError(null)
-    const next = `/auth/update-password?portal=${portal}`
-    const { error: resetError } = await createClient().auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-    })
-    setLoading(false)
-    if (resetError) {
-      setError(resetError.message)
-      return
-    }
-    setSent(true)
+    try {
+      const next = passwordUpdateHref(portal, destination)
+      // Provider responses must not disclose whether this address has an account.
+      await createClient().auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      })
+      setSent(true)
+    } catch { setError('The request could not be confirmed. Check your connection and retry.') }
+    finally { setLoading(false) }
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f6f4ef] px-6 py-10 text-slate-950">
       <div className="w-full max-w-md">
-        <Link href="/" className="text-sm font-semibold text-emerald-950">COACH FIRST</Link>
+        <Link href="/" className="text-sm font-semibold text-emerald-950">GAFFA</Link>
         <div className="mt-8 border-t border-slate-300 pt-7">
-          {sent ? (
+          {!portal ? <>
+            <h1 className="font-serif text-3xl font-semibold">Choose your workspace</h1>
+            <p className="mt-3 text-sm leading-6 text-slate-600">Select the workspace named in your invitation to recover access.</p>
+            <nav aria-label="Account recovery workspace" className="mt-6 grid gap-3">{PORTAL_ENTRIES.map(entry => <Link key={entry.id} href={portalRecoveryHref(entry.id, destination)} className="rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-semibold">{entry.label}</Link>)}</nav>
+          </> : sent ? (
             <>
               <MailCheck className="h-6 w-6 text-emerald-800" />
               <h1 className="mt-4 font-serif text-3xl font-semibold">Check your email</h1>
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                If an account exists for {email}, the private reset link will let you choose a new password.
+                If this address is eligible for recovery and the request can be delivered, you will receive a private reset link. Check your inbox and spam folder. If nothing arrives, contact the person who arranged your invitation.
               </p>
               <Link
-                href={`/${portal}/login`}
+                href={portalLoginHref(portal, destination)}
                 className="mt-6 inline-flex rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold"
               >
                 Back to sign in
@@ -55,7 +66,7 @@ export default function RecoverPasswordPage() {
               <p className="mt-4 text-xs font-semibold uppercase text-emerald-800">Private account recovery</p>
               <h1 className="mt-2 font-serif text-3xl font-semibold">Reset your password</h1>
               <p className="mt-3 text-sm leading-6 text-slate-600">
-                Use the email connected to your {portal === 'club' ? 'club decision room' : 'coach profile'}.
+                Use the email connected to your {entry?.label.toLowerCase()} workspace.
               </p>
               <form onSubmit={requestReset} className="mt-6 space-y-4">
                 <label className="block">
@@ -78,9 +89,10 @@ export default function RecoverPasswordPage() {
                   {loading ? 'Sending reset link' : 'Send reset link'}
                 </button>
               </form>
-              <Link href={`/${portal}/login`} className="mt-5 inline-flex text-xs font-medium text-emerald-900">
+              <Link href={portalLoginHref(portal, destination)} className="mt-5 inline-flex text-xs font-medium text-emerald-900">
                 Return to sign in
               </Link>
+              <Link href="/auth/recover" className="ml-4 mt-5 inline-flex text-xs font-medium text-emerald-900">Choose another workspace</Link>
             </>
           )}
         </div>

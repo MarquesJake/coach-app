@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import test from 'node:test'
 import { resolve } from 'node:path'
+import ts from 'typescript'
+import { legacyVacancyHref } from '../coaches/route-audit.ts'
 
 const inboxContract = readFileSync(resolve('src/lib/intelligence/inbox.ts'), 'utf8')
 const inboxActions = readFileSync(resolve('src/app/(dashboard)/intelligence/actions.ts'), 'utf8')
@@ -106,7 +108,29 @@ test('long external-role forms are staged and preserve unfinished browser drafts
   assert.match(coachProfile, /coach-first:coach-profile:/)
 })
 
-test('legacy vacancy creation redirects into the mandate workflow', () => {
-  assert.match(legacyVacancy, /redirect\('\/mandates\/new'\)/)
+test('legacy vacancy creation redirects into the mandate workflow with safe brief context', async () => {
+  const code = ts.transpileModule(legacyVacancy, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS },
+  }).outputText
+  type Params = Record<string, string | string[] | undefined>
+  const exports = {} as { default: (props: { searchParams: Promise<Params> }) => Promise<never> }
+  const redirect = (destination: string): never => { throw new Error(`Redirect: ${destination}`) }
+  new Function('require', 'exports', code)((name: string) => {
+    if (name === 'next/navigation') return { redirect }
+    if (name === '@/lib/coaches/route-audit') return { legacyVacancyHref }
+    throw new Error(`Unexpected route dependency: ${name}`)
+  }, exports)
+
+  const cases: Array<[Params, string]> = [
+    [{}, '/mandates/new'],
+    [{ club_id: 'club-1', club_name: 'A & B FC', brief_id: 'brief-1' }, '/mandates/new?club_id=club-1&club_name=A+%26+B+FC&brief_id=brief-1'],
+    [{ club_id: 'club-1', returnTo: 'https://outside.example', sourceTier: '1', unknown: 'ignored' }, '/mandates/new?club_id=club-1'],
+    [{ club_id: ['ambiguous-a', 'ambiguous-b'], brief_id: 'brief-1' }, '/mandates/new?brief_id=brief-1'],
+  ]
+  for (const [params, destination] of cases) {
+    await assert.rejects(exports.default({ searchParams: Promise.resolve(params) }), {
+      message: `Redirect: ${destination}`,
+    })
+  }
   assert.doesNotMatch(legacyVacancy, /\.from\('vacancies'\)/)
 })

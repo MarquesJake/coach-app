@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import {
   BriefcaseBusiness,
   FileText,
@@ -9,8 +10,14 @@ import {
 import { StagedAutosaveForm } from '@/components/workflow/staged-autosave-form'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachPortalContext } from '@/lib/organizations/context'
+import { calculateProfileReadiness } from '@/lib/coach-profile-readiness'
 import { MaterialUploadForm } from './_components/material-upload-form'
 import { saveOwnCoachProfileAction, signOutCoachAction } from './actions'
+import { presentCoachMaterial, safeMaterialLink } from '@/lib/coach-portal/material-presentation'
+import { ProfileExitGuard } from './_components/profile-exit-guard'
+
+export const metadata = { title: 'Profile · Coach' }
+
 
 const inputClass =
   'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 placeholder:text-slate-400 focus:border-emerald-800 focus:outline-none'
@@ -92,7 +99,7 @@ export default async function CoachProfilePage(
           <h1 className="mt-4 text-lg font-semibold">Coach access is not active</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             This account is signed in but is not linked to an active coach invitation.
-            Ask Coach First to check the email and access status.
+            Ask Gaffa to check the email and access status.
           </p>
           <form action={signOutCoachAction}>
             <button className="mt-5 inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold">
@@ -105,43 +112,41 @@ export default async function CoachProfilePage(
     )
   }
 
-  const [{ data: coach }, { data: profileData }, { data: materialsData }] = await Promise.all([
+  const [coachResult, profileResult, materialsResult] = await Promise.all([
     supabase.from('coaches').select('id, name, club_current, nationality, role_current').eq('id', context.coachId).single(),
     supabase.from('coach_portal_profiles').select('*').eq('coach_id', context.coachId).maybeSingle(),
     supabase.from('coach_private_materials').select('id, title, material_type, verification_status, created_at, storage_path, external_url, upload_status').eq('coach_id', context.coachId).order('created_at', { ascending: false }),
   ])
-  if (!coach) redirect('/coach/login')
+  if (coachResult.error || profileResult.error || materialsResult.error) throw new Error('Your coach profile or material list could not be loaded. Retry before making changes.')
+  const coach = coachResult.data
+  const profileData = profileResult.data
+  const materialsData = materialsResult.data
+  if (!coach) throw new Error('The linked coach record could not be loaded.')
   const profile = profileData as PortalProfile | null
   const materials = materialsData ?? []
   const status = profile?.portal_status ?? 'invited'
-  const completionFields = [
-    'short_bio', 'football_identity', 'in_possession_model', 'out_of_possession_model',
-    'training_week', 'player_development_proof', 'staff_network', 'reference_permissions',
-    'salary_expectation', 'availability_timeline', 'family_situation', 'relocation_requirements',
-  ]
-  const completed = completionFields.filter((field) => value(profile, field).trim()).length
-  const readiness = Math.min(100, Math.round(((completed + Math.min(3, materials.length)) / 15) * 100))
+  const readiness = calculateProfileReadiness(profile, materials.filter(material => presentCoachMaterial(material).contributesToDepth).length)
 
   return (
-    <main className="min-h-screen bg-[#f6f4ef] text-slate-950">
+    <main className="min-h-screen bg-[#f6f4ef] text-slate-950"><ProfileExitGuard>
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-          <div>
-            <p className="text-xs font-semibold text-emerald-900">COACH FIRST · PRIVATE COACH PROFILE</p>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+          <div className="min-w-0 break-words">
+            <p className="text-xs font-semibold text-emerald-900">GAFFA · PRIVATE COACH PROFILE</p>
             <h1 className="mt-1 font-serif text-2xl font-semibold">{coach.name}</h1>
             <p className="mt-1 text-xs text-slate-500">
               {[coach.club_current, coach.role_current, coach.nationality].filter(Boolean).join(' · ')}
             </p>
           </div>
-          <form action={signOutCoachAction}>
-            <button title="Sign out" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:text-slate-950">
+          <form action={signOutCoachAction} data-role-exit="signout">
+            <button title="Sign out" aria-label="Sign out of coach profile" className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-slate-300 text-slate-600 hover:text-slate-950">
               <LogOut className="h-4 w-4" />
             </button>
           </form>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 py-6 [&>*]:min-w-0 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="space-y-4">
           <section className="rounded-md border border-slate-200 bg-white p-4">
             <p className="text-xs font-semibold text-slate-600">Profile readiness</p>
@@ -155,8 +160,14 @@ export default async function CoachProfilePage(
               <div className="h-full rounded-full bg-emerald-800" style={{ width: `${readiness}%` }} />
             </div>
             <p className="mt-3 text-xs leading-5 text-slate-500">
-              Readiness reflects depth, not approval. Coach First reviews every declaration and file separately.
+              Readiness reflects depth, not approval. Gaffa reviews every declaration and file separately.
             </p>
+          </section>
+          <section id="access-help" className="rounded-md border border-slate-200 bg-white p-4 text-xs leading-5 text-slate-600">
+            <h2 className="font-semibold text-slate-900">Next step and access help</h2>
+            <p className="mt-2">{status === 'submitted' || status === 'under_review' ? 'Gaffa reviews your submitted profile next. Files and appointment circumstances are reviewed separately.' : 'Save private progress, then submit your profile for Gaffa review when ready.'}</p>
+            <p className="mt-2">Contact the Gaffa person who sent your invitation if a submission or access needs attention.</p>
+            <Link href="/auth/update-password?portal=coach&next=%2Fcoach%2Fprofile" className="mt-3 inline-flex underline">Change password</Link>
           </section>
           <section className="rounded-md border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2">
@@ -165,20 +176,20 @@ export default async function CoachProfilePage(
             </div>
             <p className="mt-2 text-xs leading-5 text-slate-500">
               You can see your own submissions. Independent references, source identities,
-              assessment scoring and club recommendations remain private to Coach First.
+              assessment scoring and club recommendations remain private to Gaffa.
             </p>
           </section>
         </aside>
 
         <div className="space-y-5">
           {searchParams.saved && (
-            <p className="rounded-md border border-emerald-700/20 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
-              {searchParams.saved}
+            <p role="status" className="rounded-md border border-emerald-700/20 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+              {searchParams.saved === 'Profile submitted for Gaffa review' ? 'Profile submitted for Gaffa review.' : 'Progress saved privately.'}
             </p>
           )}
           {searchParams.error && (
-            <p className="rounded-md border border-red-700/20 bg-red-50 px-4 py-3 text-sm text-red-900">
-              {searchParams.error}
+            <p role="alert" className="rounded-md border border-red-700/20 bg-red-50 px-4 py-3 text-sm text-red-900">
+              {searchParams.error === 'signout' ? 'Sign-out was not confirmed. Retry before leaving this shared device.' : 'Profile save was not confirmed. Your device draft may be available below; check it before retrying.'}
             </p>
           )}
 
@@ -188,7 +199,7 @@ export default async function CoachProfilePage(
             draftKey={`coach-first:coach-profile:${context.coachId}`}
             saved={Boolean(searchParams.saved)}
             saveLabel="Save private progress"
-            submitLabel="Submit for Coach First review"
+            submitLabel="Submit for Gaffa review"
           >
             <section className="rounded-md border border-slate-200 bg-white p-5">
               <div className="flex items-start justify-between gap-4">
@@ -233,14 +244,14 @@ export default async function CoachProfilePage(
                 <TextArea profile={profile} name="player_development_proof" label="Player-development evidence" />
                 <TextArea profile={profile} name="academy_integration" label="Academy integration" />
                 <TextArea profile={profile} name="recruitment_preferences" label="Recruitment and squad-building preferences" />
-                <TextArea profile={profile} name="reference_permissions" label="Reference permissions" placeholder="Who Coach First may contact, when, and any confidentiality considerations." />
+                <TextArea profile={profile} name="reference_permissions" label="Reference permissions" placeholder="Who Gaffa may contact, when, and any confidentiality considerations." />
               </div>
             </section>
 
             <section className="rounded-md border border-slate-200 bg-white p-5">
               <h2 className="text-lg font-semibold">Appointment circumstances</h2>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                These are private declarations for Coach First review. They are not automatically shown to a club.
+                These are private declarations for Gaffa review. They are not automatically shown to a club.
               </p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Field profile={profile} name="current_salary" label="Current / most recent salary" />
@@ -272,16 +283,18 @@ export default async function CoachProfilePage(
             <div className="mt-5"><MaterialUploadForm /></div>
             <div className="mt-5 divide-y divide-slate-100 border-t border-slate-200">
               {materials.length === 0 ? (
-                <p className="py-6 text-sm text-slate-500">No private material submitted yet.</p>
+                <p className="py-6 text-sm text-slate-500">No private material submitted yet. Add a labelled file, secure link or description above when ready for review.</p>
               ) : materials.map((material) => (
-                <div key={material.id} className="flex items-start justify-between gap-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium">{material.title}</p>
+                <div key={material.id} className="flex flex-col items-start justify-between gap-4 py-3 sm:flex-row">
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-medium">{material.title}</p>
                     <p className="mt-1 text-xs capitalize text-slate-500">
                       {material.material_type.replaceAll('_', ' ')} · submitted {new Date(material.created_at).toLocaleDateString('en-GB')}
                     </p>
+                    <p className="mt-2 max-w-xl text-xs leading-5 text-slate-500">{presentCoachMaterial(material).nextAction}</p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex max-w-full flex-wrap items-center gap-2">
+                    {safeMaterialLink(material.external_url) && <a href={safeMaterialLink(material.external_url)!} target="_blank" rel="noopener noreferrer" className="rounded border border-slate-300 px-2 py-2 text-xs font-medium text-slate-700">Open submitted link</a>}
                     {material.storage_path && material.upload_status === 'uploaded' && (
                       <a href={`/api/private-materials/${material.id}`} target="_blank" rel="noreferrer" className="rounded border border-slate-300 px-2 py-1 text-[11px] font-medium text-slate-700">
                         Open file
@@ -296,13 +309,7 @@ export default async function CoachProfilePage(
                         ? 'border-emerald-700/20 bg-emerald-50 text-emerald-900'
                         : 'border-amber-700/20 bg-amber-50 text-amber-900'
                     }`}>
-                      {material.upload_status === 'failed'
-                        ? 'Upload interrupted - submit again'
-                        : material.upload_status === 'pending_upload'
-                          ? 'Securing upload'
-                          : material.verification_status === 'verified'
-                            ? 'Coach First reviewed'
-                            : 'Awaiting review'}
+                      {presentCoachMaterial(material).label}
                     </span>
                   </div>
                 </div>
@@ -311,6 +318,6 @@ export default async function CoachProfilePage(
           </section>
         </div>
       </div>
-    </main>
+    </ProfileExitGuard></main>
   )
 }

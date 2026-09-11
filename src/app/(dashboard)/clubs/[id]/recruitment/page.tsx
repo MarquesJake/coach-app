@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { ExternalLink, Plus, Trash2, ChevronUp } from 'lucide-react'
+import { assertRouteQueries } from '@/lib/coaches/route-audit'
 import { cn } from '@/lib/utils'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -83,6 +84,10 @@ export default function ClubRecruitmentPage() {
   const [mandates, setMandates] = useState<MandateRow[]>([])
   const [transfers, setTransfers] = useState<TransferRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadedClub, setLoadedClub] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [reload, setReload] = useState(0)
 
   // Transfer filters
   const [dirFilter, setDirFilter] = useState<'all' | 'in' | 'out'>('all')
@@ -105,10 +110,14 @@ export default function ClubRecruitmentPage() {
   })
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError(null)
     async function load() {
+      try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
+      if (!user) throw new Error('Sign in again to load this club.')
 
       const [mandateRes, transferRes] = await Promise.all([
         supabase
@@ -123,13 +132,17 @@ export default function ClubRecruitmentPage() {
           .order('transfer_date', { ascending: false }),
       ])
 
+      assertRouteQueries('Recruitment records', mandateRes, transferRes)
+      if (cancelled) return
       const mandateData = mandateRes.data ?? []
       if (mandateData.length > 0) {
         const mandateIds = mandateData.map((m) => m.id)
-        const { data: shortlistData } = await supabase
+        const { data: shortlistData, error: shortlistError } = await supabase
           .from('mandate_shortlist')
           .select('mandate_id')
           .in('mandate_id', mandateIds)
+        assertRouteQueries('Candidate counts', { error: shortlistError })
+        if (cancelled) return
         const counts: Record<string, number> = {}
         for (const row of shortlistData ?? []) counts[row.mandate_id] = (counts[row.mandate_id] ?? 0) + 1
         setMandates(mandateData.map((m) => ({ ...m, _shortlist_count: counts[m.id] ?? 0 })))
@@ -138,10 +151,15 @@ export default function ClubRecruitmentPage() {
       }
 
       setTransfers((transferRes.data ?? []) as TransferRow[])
-      setLoading(false)
+      } catch {
+        if (!cancelled) setLoadError('Records could not be loaded. Retry before relying on this view.')
+      } finally {
+        if (!cancelled) { setLoadedClub(clubId); setLoading(false) }
+      }
     }
-    load()
-  }, [clubId])
+    void load()
+    return () => { cancelled = true }
+  }, [clubId, reload])
 
   // Derived transfer data
   const seasons = useMemo(() =>
@@ -176,11 +194,13 @@ export default function ClubRecruitmentPage() {
   async function handleAddTransfer() {
     if (!form.player_name.trim()) return
     setSaving(true)
+    setActionError(null)
+    try {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setSaving(false); return }
+    if (!user) throw new Error('Sign in again before saving.')
 
-    const { data } = await supabase.from('club_transfers').insert({
+    const { data, error } = await supabase.from('club_transfers').insert({
       user_id: user.id,
       club_id: clubId,
       player_name: form.player_name.trim(),
@@ -194,21 +214,30 @@ export default function ClubRecruitmentPage() {
       transfer_date: form.transfer_date || null,
       season: form.season.trim() || null,
     }).select().single()
+    if (error || !data) throw new Error('Save failed')
 
     if (data) setTransfers(prev => [data as TransferRow, ...prev])
     setForm({ player_name: '', direction: 'in', fee_band: '', age_at_transfer: '', nationality: '', position: '', other_club: '', transfer_type: '', transfer_date: '', season: '' })
     setShowAddForm(false)
-    setSaving(false)
+    } catch {
+      setActionError('Save could not be confirmed. Your entries have been kept; check before retrying.')
+    } finally { setSaving(false) }
   }
 
   async function handleDeleteTransfer(id: string) {
     if (!confirm('Remove this transfer record?')) return
-    const supabase = createClient()
-    await supabase.from('club_transfers').delete().eq('id', id)
-    setTransfers(prev => prev.filter(t => t.id !== id))
+    setActionError(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('club_transfers').delete().eq('id', id)
+      if (error) throw error
+      setTransfers(prev => prev.filter(t => t.id !== id))
+    } catch { setActionError('Removal could not be confirmed. Reload before retrying.') }
   }
 
-  if (loading) {
+  if (loadError && loadedClub === clubId) return <div role="alert" className="p-6 space-y-3"><p>{loadError}</p><button type="button" onClick={() => setReload(value => value + 1)} className="underline">Retry loading</button></div>
+
+  if (loading || loadedClub !== clubId) {
     return (
       <section className="rounded-lg border border-border bg-card p-6">
         <p className="text-sm text-muted-foreground">Loading…</p>
@@ -221,6 +250,7 @@ export default function ClubRecruitmentPage() {
 
   return (
     <div className="space-y-6">
+      {actionError && <p role="alert" className="text-sm text-red-400">{actionError}</p>}
 
       {/* ── Transfer Activity ────────────────────────────────────────────── */}
       <section className="rounded-lg border border-border bg-card overflow-hidden">
@@ -259,13 +289,13 @@ export default function ClubRecruitmentPage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div>
                 <label className="block text-[10px] font-medium text-muted-foreground mb-1">Player name *</label>
-                <input value={form.player_name} onChange={e => setForm(f => ({ ...f, player_name: e.target.value }))}
+                <input aria-label="player name" value={form.player_name} onChange={e => setForm(f => ({ ...f, player_name: e.target.value }))}
                   className="w-full h-8 rounded border border-border bg-background px-2 text-xs text-foreground"
                   placeholder="Required" />
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-muted-foreground mb-1">Direction</label>
-                <select value={form.direction} onChange={e => setForm(f => ({ ...f, direction: e.target.value as 'in' | 'out' }))}
+                <select aria-label="direction" value={form.direction} onChange={e => setForm(f => ({ ...f, direction: e.target.value as 'in' | 'out' }))}
                   className="w-full h-8 rounded border border-border bg-background px-2 text-xs text-foreground">
                   <option value="in">In (Buy)</option>
                   <option value="out">Out (Sell)</option>
@@ -273,7 +303,7 @@ export default function ClubRecruitmentPage() {
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-muted-foreground mb-1">Fee band</label>
-                <select value={form.fee_band} onChange={e => setForm(f => ({ ...f, fee_band: e.target.value }))}
+                <select aria-label="fee band" value={form.fee_band} onChange={e => setForm(f => ({ ...f, fee_band: e.target.value }))}
                   className="w-full h-8 rounded border border-border bg-background px-2 text-xs text-foreground">
                   <option value="">—</option>
                   {FEE_BANDS.map(b => <option key={b} value={b}>{b}</option>)}
@@ -288,25 +318,25 @@ export default function ClubRecruitmentPage() {
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-muted-foreground mb-1">Nationality</label>
-                <input value={form.nationality} onChange={e => setForm(f => ({ ...f, nationality: e.target.value }))}
+                <input aria-label="nationality" value={form.nationality} onChange={e => setForm(f => ({ ...f, nationality: e.target.value }))}
                   className="w-full h-8 rounded border border-border bg-background px-2 text-xs text-foreground"
                   placeholder="Optional" />
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-muted-foreground mb-1">Position</label>
-                <input value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))}
+                <input aria-label="position" value={form.position} onChange={e => setForm(f => ({ ...f, position: e.target.value }))}
                   className="w-full h-8 rounded border border-border bg-background px-2 text-xs text-foreground"
                   placeholder="Optional" />
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-muted-foreground mb-1">Other club</label>
-                <input value={form.other_club} onChange={e => setForm(f => ({ ...f, other_club: e.target.value }))}
+                <input aria-label="other club" value={form.other_club} onChange={e => setForm(f => ({ ...f, other_club: e.target.value }))}
                   className="w-full h-8 rounded border border-border bg-background px-2 text-xs text-foreground"
                   placeholder="Optional" />
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-muted-foreground mb-1">Transfer type</label>
-                <select value={form.transfer_type} onChange={e => setForm(f => ({ ...f, transfer_type: e.target.value }))}
+                <select aria-label="transfer type" value={form.transfer_type} onChange={e => setForm(f => ({ ...f, transfer_type: e.target.value }))}
                   className="w-full h-8 rounded border border-border bg-background px-2 text-xs text-foreground">
                   <option value="">—</option>
                   {TRANSFER_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -314,7 +344,7 @@ export default function ClubRecruitmentPage() {
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-muted-foreground mb-1">Season</label>
-                <input value={form.season} onChange={e => setForm(f => ({ ...f, season: e.target.value }))}
+                <input aria-label="season" value={form.season} onChange={e => setForm(f => ({ ...f, season: e.target.value }))}
                   className="w-full h-8 rounded border border-border bg-background px-2 text-xs text-foreground"
                   placeholder="e.g. 2024/25" />
               </div>
@@ -361,7 +391,7 @@ export default function ClubRecruitmentPage() {
         ) : filtered.length === 0 ? (
           <div className="px-6 py-8 text-center text-sm text-muted-foreground">No transfers match the current filters.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div role="region" aria-label="Club records" tabIndex={0} className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border bg-surface/50">
@@ -393,8 +423,8 @@ export default function ClubRecruitmentPage() {
                     <td className="px-3 py-2.5 text-muted-foreground">{t.position ?? '—'}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{t.other_club ?? '—'}</td>
                     <td className="px-3 py-2.5">
-                      <button onClick={() => handleDeleteTransfer(t.id)}
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-400 transition-all">
+                      <button aria-label="Remove transfer record" onClick={() => handleDeleteTransfer(t.id)}
+                        className="opacity-100 text-muted-foreground hover:text-red-400 transition-all">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
@@ -497,8 +527,8 @@ export default function ClubRecruitmentPage() {
                   <p className="text-lg font-bold text-foreground tabular-nums leading-none">{mandate._shortlist_count}</p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">candidates</p>
                 </div>
-                <Link href={`/mandates/${mandate.id}/workspace`}
-                  className="shrink-0 inline-flex items-center gap-1.5 text-xs text-primary hover:underline opacity-0 group-hover:opacity-100 transition-opacity">
+                <Link href={`/mandates/${mandate.id}/decision`}
+                  className="shrink-0 inline-flex items-center gap-1.5 text-xs text-primary hover:underline opacity-100 transition-opacity">
                   Open <ExternalLink className="w-3 h-3" />
                 </Link>
               </div>

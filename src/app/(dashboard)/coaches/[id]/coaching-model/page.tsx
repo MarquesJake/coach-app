@@ -1,8 +1,12 @@
+import { CoachAssessment } from '../_components/coach-assessment'
 import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CoachingModelSection } from './_components/coaching-model-section'
 import type { Database } from '@/lib/types/db'
+
+export const metadata = { title: 'Coaching model' }
+
 
 type DerivedMetricsRow = Database['public']['Tables']['coach_derived_metrics']['Row']
 
@@ -12,16 +16,17 @@ export default async function CoachCoachingModelPage(props: { params: Promise<{ 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: coach, error } = await getCoachById(user.id, params.id)
-  if (error || !coach) notFound()
+  const { data: coach, error } = await getCoachById(params.id)
+  if (error) throw new Error('Coach profile could not be loaded. Reload before making changes.')
+  if (!coach) notFound()
 
   const { data: derivedRow } = await supabase.from('coach_derived_metrics').select('avg_squad_age, pct_minutes_u23, pct_minutes_30plus, rotation_index, avg_signing_age, repeat_signings_count, repeat_agents_count, loan_reliance_score, network_density_score').eq('coach_id', params.id).maybeSingle()
 
   return (
-    <CoachingModelSection
+    <div className="space-y-5"><CoachAssessment coachId={params.id} areas={['training_management', 'players_development']}/><CoachingModelSection
       coachId={params.id}
       coach={coach as Record<string, unknown>}
       derivedMetrics={derivedRow as DerivedMetricsRow | null}
-    />
+    /></div>
   )
 }

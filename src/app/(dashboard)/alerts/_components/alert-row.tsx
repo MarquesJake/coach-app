@@ -1,7 +1,10 @@
 'use client'
 
+import { useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { markAlertSeenAction } from '../actions'
+import { alertDestination } from '@/lib/alerts/presentation'
 import { cn } from '@/lib/utils'
 
 type Alert = {
@@ -15,57 +18,44 @@ type Alert = {
   is_seen: boolean
 }
 
-function getHref(a: Alert): string {
-  if (a.entity_type === 'coach') return `/coaches/${a.entity_id}`
-  if (a.entity_type === 'mandate') return `/mandates/${a.entity_id}`
-  return '#'
-}
-
 export function AlertRow({ alert }: { alert: Alert }) {
   const router = useRouter()
-  const href = getHref(alert)
+  const destination = alertDestination(alert.entity_type, alert.entity_id)
+  const [pending, setPending] = useState(false)
+  const busy = useRef(false)
+  const [error, setError] = useState<string | null>(null)
+  const date = new Date(alert.created_at)
 
-  async function handleClick(e: React.MouseEvent) {
-    e.preventDefault()
-    await markAlertSeenAction(alert.id)
-    if (href !== '#') router.push(href)
+  async function markSeen() {
+    if (busy.current) return
+    busy.current = true
+    setPending(true)
+    setError(null)
+    try {
+      const result = await markAlertSeenAction(alert.id)
+      if (result.error) { setError('Could not mark this alert seen. You can still open its record.'); return }
+      router.refresh()
+    } catch {
+      setError('Seen status was not confirmed. Check your connection and retry.')
+    } finally {
+      busy.current = false
+      setPending(false)
+    }
   }
 
   return (
-    <li className={cn('py-3 first:pt-0', alert.is_seen && 'opacity-70')}>
-      <button
-        type="button"
-        onClick={handleClick}
-        className="w-full text-left flex items-start justify-between gap-2 rounded-md -mx-2 px-2 py-1 hover:bg-muted/50 transition-colors"
-      >
+    <li className={cn('py-4 first:pt-0', alert.is_seen && 'opacity-80')}>
+      <article className="flex flex-col items-start justify-between gap-3 sm:flex-row">
         <div className="min-w-0 flex-1">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{alert.alert_type.replace(/_/g, ' ')}</span>
-          {alert.title && (
-            <p className="text-sm font-medium text-foreground mt-0.5">{alert.title}</p>
-          )}
-          <p className="text-sm mt-0.5">
-            {alert.entity_type === 'coach' && (
-              <span className="text-primary hover:underline">Coach profile</span>
-            )}
-            {alert.entity_type === 'mandate' && (
-              <span className="text-primary hover:underline">Mandate</span>
-            )}
-            {alert.entity_type !== 'coach' && alert.entity_type !== 'mandate' && alert.entity_type}
-          </p>
-          {alert.detail && (
-            <p className="text-xs text-muted-foreground mt-0.5">{alert.detail}</p>
-          )}
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {new Date(alert.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-          </p>
+          <p className="text-xs text-muted-foreground">{alert.alert_type.replace(/_/g, ' ')}</p>
+          <h3 className="mt-1 text-sm font-medium">{alert.title || 'Recorded alert'}</h3>
+          {alert.detail && <p className="mt-1 text-sm text-muted-foreground">{alert.detail}</p>}
+          <p className="mt-2 text-xs text-muted-foreground">{Number.isNaN(date.getTime()) ? 'Date not recorded' : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          {destination ? <Link href={destination.href} className="mt-2 inline-flex min-h-10 items-center text-sm text-primary underline">{destination.label}</Link> : <p className="mt-2 text-xs text-muted-foreground">No linked record is available for this alert.</p>}
+          {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
         </div>
-        <div className="shrink-0 flex items-center gap-2">
-          {alert.is_seen && (
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Seen</span>
-          )}
-          {!alert.is_seen && <span className="w-2 h-2 rounded-full bg-primary" aria-label="Unread" />}
-        </div>
-      </button>
+        {alert.is_seen ? <span className="text-xs text-muted-foreground">Seen</span> : <button type="button" onClick={markSeen} disabled={pending} className="min-h-10 shrink-0 rounded-md border border-border px-3 text-sm disabled:opacity-50">{pending ? 'Updating...' : 'Mark seen'}</button>}
+      </article>
     </li>
   )
 }

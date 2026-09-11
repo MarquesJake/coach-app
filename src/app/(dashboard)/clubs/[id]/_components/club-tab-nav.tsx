@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -17,7 +17,7 @@ export function ClubTabNav({ clubId }: { clubId: string }) {
   const base = `/clubs/${clubId}`
 
   return (
-    <div className="flex gap-1 border-b border-border mb-4 mt-2 overflow-x-auto">
+    <nav aria-label="Club profile sections" className="flex gap-1 border-b border-border mb-4 mt-2 overflow-x-auto">
       {TABS.map((tab) => {
         const href = tab.href ? `${base}${tab.href}` : base
         const isActive = pathname === href
@@ -25,6 +25,7 @@ export function ClubTabNav({ clubId }: { clubId: string }) {
           <Link
             key={tab.href || 'overview'}
             href={href}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
               'px-3 py-2 text-xs font-medium border-b-2 -mb-px shrink-0',
               isActive
@@ -36,6 +37,6 @@ export function ClubTabNav({ clubId }: { clubId: string }) {
           </Link>
         )
       })}
-    </div>
+    </nav>
   )
 }

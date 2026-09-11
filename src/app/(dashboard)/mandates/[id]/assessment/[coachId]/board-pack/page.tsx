@@ -10,13 +10,39 @@ import { PrintButton } from './print-button'
 import { claimFieldLabel, claimTypeLabel } from '@/lib/profile-claims'
 import { displayClubName } from '@/lib/display-names'
 import {
-  coachPortalStatusLabel,
   coachPortalVisibilityLabel,
   evidenceStrengthLabel,
   formatEnumLabel,
   stakeholderGroupLabel,
 } from '@/lib/intelligence/display'
 import { canStaffMemberAppearInPack } from '@/lib/coach-appointment'
+import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
+import { deriveAssessmentStatus } from '@/lib/assessment/status'
+import { declarationReviewLabel } from '@/lib/assessment/material-status'
+import { canPrintCircumstances, referencesForPack } from '@/lib/assessment/pack-release'
+
+// The tab title doubles as the default filename when the pack is saved as a
+// PDF, so it names the candidate and the club rather than the page type.
+export async function generateMetadata(
+  props: { params: Promise<{ id: string; coachId: string }> }
+): Promise<{ title: string | { absolute: string } }> {
+  const { id: mandateId, coachId } = await props.params
+  const supabase = await createServerSupabaseClient()
+  const [{ data: mandate }, { data: coach }] = await Promise.all([
+    supabase.from('mandates').select('custom_club_name, clubs(name)').eq('id', mandateId).maybeSingle(),
+    supabase.from('coaches').select('name').eq('id', coachId).maybeSingle(),
+  ])
+  if (!mandate || !coach?.name) return { title: 'Board report' }
+  const club = displayClubName(
+    (mandate as { custom_club_name?: string | null }).custom_club_name,
+    (mandate as { clubs?: { name?: string } | null }).clubs?.name,
+    ''
+  )
+  // Absolute: skip the appointment layout's template so the saved PDF is named
+  // for the candidate and club alone.
+  return { title: { absolute: club ? `${coach.name} – ${club} board report` : `${coach.name} board report` } }
+}
+
 
 // Board-ready Head Coach Assessment Pack: structured HTML print view.
 // Section order mirrors the club-leadership assessment deck format.
@@ -88,8 +114,6 @@ export default async function BoardPackPage(
     assessments,
     evidence,
     recommendationRes,
-    privateMaterials,
-    accessRequests,
     portalProfile,
     portalStaff,
     profileClaims,
@@ -107,7 +131,7 @@ export default async function BoardPackPage(
         .eq('coach_id', coachId),
       supabase
         .from('assessment_evidence')
-        .select('criterion, method, title, detail, source, confidence, verification_status, used_in_recommendation, origin_profile_claim_id, provenance_snapshot')
+        .select('id, criterion, method, title, detail, source, confidence, verification_status, used_in_recommendation, origin_profile_claim_id, provenance_snapshot')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .order('created_at', { ascending: true }),
@@ -118,23 +142,9 @@ export default async function BoardPackPage(
         .eq('coach_id', coachId)
         .maybeSingle(),
       supabase
-        .from('coach_private_materials')
-        .select('id, title, material_type, description, source_label, uploaded_by, confidentiality_status, verification_status')
-        .eq('coach_id', coachId)
-        .order('created_at', { ascending: false })
-        .limit(12),
-      supabase
-        .from('confidential_access_requests')
-        .select('id, requested_by, requester_role, club_context, request_reason, status, requested_at, decided_at')
-        .eq('mandate_id', mandateId)
-        .eq('coach_id', coachId)
-        .order('requested_at', { ascending: false })
-        .limit(5),
-      supabase
         .from('coach_portal_profiles')
-        .select('portal_status, visibility_status, circumstances_visibility, feasibility_review_status, football_identity, training_week, session_design_principles, staff_network, key_staff_likely_to_follow, reference_permissions')
+        .select('portal_status, visibility_status, circumstances_visibility, feasibility_review_status, feasibility_reviewed_at, current_salary, salary_expectation, contract_expiry, release_compensation, staff_cost_expectation, availability_timeline, relocation_requirements, appointment_conditions, football_identity, training_week, session_design_principles, staff_network, key_staff_likely_to_follow, reference_permissions')
         .eq('coach_id', coachId)
-        .eq('user_id', user.id)
         .maybeSingle(),
       supabase
         .from('coach_portal_staff_members')
@@ -169,10 +179,9 @@ export default async function BoardPackPage(
         .eq('coach_id', coachId),
       supabase
         .from('candidate_reference_answers')
-        .select('id, stakeholder_group, reference_name, reference_role, question, answer, confidence, verification_status, would_hire_again, risk_flag')
+        .select('id, evidence_id, stakeholder_group, reference_name, reference_role, question, answer, confidence, verification_status, would_hire_again, risk_flag')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
-        .eq('used_in_recommendation', true)
         .order('created_at', { ascending: true }),
       supabase
         .from('coach_references')
@@ -180,17 +189,24 @@ export default async function BoardPackPage(
         .eq('coach_id', coachId),
     ])
 
-  const recommendation = recommendationRes.data
-  const assessmentByCriterion = new Map((assessments.data ?? []).map((a) => [a.criterion, a]))
+  if (assessments.error || evidence.error || recommendationRes.error) {
+    throw new Error('Report assessment progress could not be loaded. Refresh to retry.')
+  }
+
+  const illustrativeProfile = isIllustrativeEvidence(coach)
+  const status = deriveAssessmentStatus({ coach, assessments: assessments.data ?? [], evidence: evidence.data ?? [], recommendation: recommendationRes.data })
+  const recommendation = status.recommendationRecorded ? recommendationRes.data : null
+  const assessmentByCriterion = new Map((illustrativeProfile ? [] : assessments.data ?? [])
+    .filter((a) => !isIllustrativeEvidence(a)).map((a) => [a.criterion, a]))
   const gbe = calculateGbe(stints.data ?? [], coach.coaching_licence)
 
   // The assessment pack must show the same evidence base the workspace coverage counts:
   // captured evidence marked for the recommendation, plus auto-derived platform evidence.
-  const derived = deriveEvidence({
+  const derived = illustrativeProfile ? [] : deriveEvidence({
     coach,
-    tacticalReports: tacticalReports.data ?? [],
-    backgroundChecks: backgroundChecks.data ?? [],
-    references: references.data ?? [],
+    tacticalReports: illustrativeProfile ? [] : tacticalReports.data ?? [],
+    backgroundChecks: illustrativeProfile ? [] : backgroundChecks.data ?? [],
+    references: (references.data ?? []).filter((row) => !isIllustrativeEvidence(row)),
     stints: stints.data ?? [],
   })
 
@@ -204,13 +220,18 @@ export default async function BoardPackPage(
     ? Math.floor((Date.now() - new Date(coach.date_of_birth).getTime()) / (365.25 * 24 * 3600 * 1000))
     : null
 
-  const evidenceRows = evidence.data ?? []
-  const materialRows = privateMaterials.data ?? []
-  const requestRows = accessRequests.data ?? []
-  const claimRows = (profileClaims.data ?? []) as Array<Record<string, any>>
-  const shareableStaffRows = (portalStaff.data ?? []).filter(canStaffMemberAppearInPack)
-  const latestAccessRequest = requestRows[0]
-  const portalCanBeShared = portalProfile.data?.portal_status === 'approved'
+  const evidenceRows = (evidence.data ?? []).filter((row) => !isIllustrativeEvidence(row))
+  const claimRows = ((profileClaims.data ?? []) as Array<Record<string, any>>).filter((row) => !isIllustrativeEvidence(row))
+  const referenceRows = referencesForPack((structuredReferences.data ?? []).filter((row) => !isIllustrativeEvidence(row)), evidenceRows)
+  const legacyReferenceRows = (references.data ?? []).filter((row) => !isIllustrativeEvidence(row))
+  const omittedIllustrations = illustrativeProfile || evidenceRows.length !== (evidence.data ?? []).length
+    || status.illustrativeCount > 0 || status.illustrativeRecommendation
+    || (structuredReferences.data ?? []).some(isIllustrativeEvidence)
+    || legacyReferenceRows.length !== (references.data ?? []).length
+    || claimRows.length !== (profileClaims.data ?? []).length
+  const releasedCircumstances = !illustrativeProfile && canPrintCircumstances(portalProfile.data) ? portalProfile.data : null
+  const shareableStaffRows = !releasedCircumstances ? [] : (portalStaff.data ?? []).filter(row => canStaffMemberAppearInPack(row) && row.confidentiality_status === 'shareable')
+  const portalCanBeShared = !illustrativeProfile && portalProfile.data?.portal_status === 'approved'
     && ['clubs_on_request', 'shareable'].includes(portalProfile.data.visibility_status)
 
   return (
@@ -250,31 +271,39 @@ export default async function BoardPackPage(
       </div>
 
       {/* Cover */}
-      <div className="print-keep-color rounded-lg print:rounded-none bg-[#101623] text-white px-10 py-14 relative overflow-hidden">
-        <span className="absolute top-6 right-6 bg-emerald-500 text-white text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 rounded-sm">
+      <div className="print-keep-color always-dark rounded-lg print:rounded-none bg-[#101623] text-white px-10 py-14 relative overflow-hidden">
+        <span className="absolute top-6 right-6 bg-emerald-700 text-white text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 rounded-sm">
           CONFIDENTIAL
         </span>
-        <p className="text-3xl font-serif font-bold leading-tight">Head Coach Assessment</p>
+        <h1 className="text-3xl font-serif font-bold leading-tight">Head Coach Assessment<span className="sr-only">: {coach.name}</span></h1>
+        <p className="mt-3 text-sm font-bold text-amber-200">{status.coverLabel}</p>
         <p className="text-3xl font-serif font-bold text-slate-400 leading-tight">{coach.name}</p>
         <div className="w-16 h-0.5 bg-emerald-500 my-6" />
-        <p className="text-sm text-slate-300">Prepared for Club Leadership — {clubName}</p>
+        <p className="text-sm text-slate-300">Mandate context: {clubName}. Recipient release has not been established by this print view.</p>
+        <p className="mt-3 text-xs text-slate-300">{status.recordedLabel} · {status.illustrativeLabel} · {status.reviewedLabel}</p>
+        <p className="mt-2 text-xs text-slate-300">{status.nextAction}</p>
         <p className="text-xs text-slate-400 mt-1">
           Generated {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
 
+      {omittedIllustrations && (
+        <section role="note" className="mt-5 rounded-md border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950 print:break-inside-avoid">
+          <strong>Evidence limitations.</strong> Illustrative assessments, interviews, references and material placeholders are excluded from this pack. Missing findings require real research or authorised diligence; this document is not an appointment recommendation. A generation date is not a data-verification date.
+        </section>
+      )}
       {/* At a glance — Strengths / Risks / Recommendation, per the target deck format */}
       <section className="mt-8 print:break-inside-avoid">
-        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">At a glance</h2>
-        <div className="grid grid-cols-3 gap-5 mt-3">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Decision in brief</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-5 mt-3">
           <div className="border-t-2 border-emerald-500 pt-3">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-600 uppercase">Strengths</p>
+            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-700 dark:text-emerald-400 uppercase">Strengths</p>
             <p className="text-xs text-muted-foreground mt-2 leading-relaxed whitespace-pre-line">
               {recommendation?.key_strengths ?? '—'}
             </p>
           </div>
           <div className="border-t-2 border-emerald-500 pt-3">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-600 uppercase">Risks</p>
+            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-700 dark:text-emerald-400 uppercase">Risks</p>
             <p className="text-xs text-muted-foreground mt-2 leading-relaxed whitespace-pre-line">
               {recommendation?.key_risks ?? '—'}
             </p>
@@ -285,9 +314,9 @@ export default async function BoardPackPage(
             )}
           </div>
           <div className="border-t-2 border-emerald-500 pt-3">
-            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-600 uppercase">Recommendation</p>
+            <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-700 dark:text-emerald-400 uppercase">Recommendation</p>
             <p className="text-lg font-semibold text-foreground mt-1">
-              {recommendation?.verdict ?? 'Not decided'}
+              {status.recommendationLabel}
               {recommendation?.confidence !== null && recommendation?.confidence !== undefined && (
                 <span className="text-sm text-muted-foreground ml-2">{recommendation.confidence}% confidence</span>
               )}
@@ -299,12 +328,20 @@ export default async function BoardPackPage(
         </div>
       </section>
 
+      <section className="mt-6 rounded border border-border p-4 print:break-inside-avoid">
+        <h2 className="font-semibold text-sm">What we still need to check</h2>
+        <p className="mt-2 text-xs text-muted-foreground">{status.nextAction}</p>
+        <p className="mt-2 text-xs text-muted-foreground">Reviewed coverage counts criteria with at least one reviewed record. It does not establish sufficient evidence, resolve conflicts or grant permission to share.</p>
+        <p className="mt-2 text-xs text-muted-foreground">{recommendation?.mitigation ? `Conditions before appointment: ${recommendation.mitigation}` : 'Conditions before appointment have not been established in a non-illustrative recommendation.'}</p>
+        <Link className="mt-3 inline-block text-xs text-primary underline print:hidden" href={`/mandates/${mandateId}/decision`}>Review internal research questions and owners</Link>
+      </section>
+
       {/* Profile + GBE */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
           01 · Coach profile
         </h2>
-        <div className="grid grid-cols-4 gap-4 mt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 print:grid-cols-4 gap-4 mt-3">
           {[
             {
               label: 'Date of birth / age',
@@ -313,10 +350,10 @@ export default async function BoardPackPage(
                 : '—',
             },
             { label: 'Nationality', value: coach.nationality ?? '—' },
-            { label: 'Current club', value: coach.club_current ?? 'Unattached' },
+            { label: 'Current club', value: coach.club_current?.trim() || 'Current club not recorded' },
             { label: 'Licence', value: coach.coaching_licence ?? 'Not recorded' },
             { label: 'Languages', value: coach.languages?.length ? coach.languages.join(', ') : '—' },
-            { label: 'Agent', value: coach.agent_name ?? 'None recorded' },
+            { label: 'Approach route', value: 'Confirm privately with the authorised representative' },
             { label: 'Availability', value: coach.availability_status ?? '—' },
             { label: 'Market status', value: coach.market_status ?? '—' },
             { label: 'Tactical identity', value: coach.tactical_identity ?? coach.preferred_style ?? '—' },
@@ -343,27 +380,25 @@ export default async function BoardPackPage(
         </p>
       </section>
 
-      {/* Appointment feasibility */}
+      {/* Availability and terms */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
-          02 · Appointment feasibility
+          02 · Availability and terms
         </h2>
         <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-          This is the private intelligence layer a club cannot reliably obtain from public data alone: deal context,
-          representative route, staff implications and personal practicalities.
+          Only current, reviewed declarations explicitly approved as shareable appear here.
+          Private and on-request terms require a separate recipient-approved release.
         </p>
-        <div className="grid grid-cols-4 gap-4 mt-3">
+        {!releasedCircumstances && <p className="mt-3 text-sm">Circumstances withheld: current verification and sharing approval are not both recorded.</p>}
+        {releasedCircumstances && <>
+        <div className="grid grid-cols-1 sm:grid-cols-4 print:grid-cols-4 gap-4 mt-3">
           {[
-            { label: 'Contract expiry', value: formatDate(coach.contract_expiry) },
-            { label: 'Release / compensation clause', value: display(coach.release_clause) },
-            { label: 'Current / last salary', value: display(coach.current_salary) },
-            { label: 'Expected salary', value: display(coach.wage_expectation) },
-            { label: 'Estimated club compensation', value: display(coach.compensation_expectation) },
-            { label: 'Staff cost estimate', value: display(coach.staff_cost_estimate) },
-            { label: 'Agent contact', value: display(coach.agent_contact) },
-            { label: 'Availability timeline', value: display(coach.availability_timeline) },
-            { label: 'Family situation', value: display(coach.family_context) },
-            { label: 'Relocation', value: display(coach.relocation_flexibility) },
+            { label: 'Contract expiry', value: formatDate(releasedCircumstances.contract_expiry) },
+            { label: 'Expected salary', value: display(releasedCircumstances.salary_expectation) },
+            { label: 'Estimated club compensation', value: display(releasedCircumstances.release_compensation) },
+            { label: 'Staff cost estimate', value: display(releasedCircumstances.staff_cost_expectation) },
+            { label: 'Availability timeline', value: display(releasedCircumstances.availability_timeline) },
+            { label: 'Practical relocation requirements', value: display(releasedCircumstances.relocation_requirements) },
           ].map((item) => (
             <div key={item.label} className="border-t-2 border-emerald-500/60 pt-2">
               <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
@@ -371,27 +406,13 @@ export default async function BoardPackPage(
             </div>
           ))}
         </div>
-        {(coach.contract_notes || coach.due_diligence_summary || coach.compliance_notes) && (
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            {[
-              { label: 'Contract context', value: coach.contract_notes },
-              { label: 'Due diligence', value: coach.due_diligence_summary },
-              { label: 'Compliance / risk note', value: coach.compliance_notes },
-            ].map((item) => (
-              <div key={item.label} className="border-l-2 border-emerald-500/50 pl-3">
-                <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
-                <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">{display(item.value)}</p>
-              </div>
-            ))}
-          </div>
-        )}
-        {coach.appointment_conditions && (
+        {releasedCircumstances.appointment_conditions && (
           <div className="mt-4 border-l-2 border-emerald-500/50 pl-3">
             <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
               Appointment conditions and practical obstacles
             </p>
             <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">
-              {coach.appointment_conditions}
+              {releasedCircumstances.appointment_conditions}
             </p>
           </div>
         )}
@@ -423,11 +444,10 @@ export default async function BoardPackPage(
           </div>
         )}
         <p className="mt-3 text-[10px] text-muted-foreground/75">
-          {coach.feasibility_reviewed_at
-            ? `Appointment feasibility verified ${formatDate(coach.feasibility_reviewed_at)}.`
-            : 'Appointment feasibility review date not recorded.'}
+          {`Current declarations reviewed ${formatDate(releasedCircumstances.feasibility_reviewed_at)}.`}
           {' '}Commercial terms remain indicative until confirmed with the coach, representative and current club.
         </p>
+        </>}
       </section>
 
       {/* Coach-submitted material */}
@@ -435,11 +455,11 @@ export default async function BoardPackPage(
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
           03 · Coach-submitted depth
         </h2>
-        <div className="grid grid-cols-3 gap-4 mt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-4 mt-3">
           {[
-            { label: 'Portal status', value: coachPortalStatusLabel(portalProfile.data?.portal_status ?? 'not_invited') },
+            { label: 'Declaration review', value: declarationReviewLabel(portalProfile.data) },
             { label: 'Visibility', value: coachPortalVisibilityLabel(portalProfile.data?.visibility_status ?? 'private') },
-            { label: 'Private material', value: `${materialRows.length} item${materialRows.length === 1 ? '' : 's'} logged` },
+            { label: 'Private material', value: 'Separate recipient-approved release required' },
           ].map((item) => (
             <div key={item.label} className="border-t-2 border-emerald-500/60 pt-2">
               <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">{item.label}</p>
@@ -464,7 +484,7 @@ export default async function BoardPackPage(
           </div>
         ) : (
           <p className="mt-4 text-2xs text-muted-foreground">
-            Coach-submitted football detail is held by Coach First but has not been approved for this club-facing pack.
+            Coach-submitted football detail is held by Gaffa but has not been approved for this club-facing pack.
           </p>
         )}
       </section>
@@ -472,7 +492,7 @@ export default async function BoardPackPage(
       {/* Source-backed private claims */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
-          Source-backed private intelligence
+          Confidential findings
         </h2>
         {claimRows.length > 0 ? (
           <div className="mt-3 space-y-2">
@@ -492,7 +512,7 @@ export default async function BoardPackPage(
                 </p>
                 <p className="text-2xs text-muted-foreground/80 mt-1 leading-relaxed">
                   {claim.evidence_summary}
-                  {' Source: anonymised football-network intelligence.'}
+                  {` Source type: ${formatEnumLabel(claim.source_type || 'not_recorded')}.`}
                 </p>
               </div>
             ))}
@@ -598,13 +618,13 @@ export default async function BoardPackPage(
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
           Confidential data room
         </h2>
-        <div className="grid grid-cols-3 gap-4 mt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-4 mt-3">
           <div className="border-t-2 border-emerald-500/60 pt-2">
             <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
               Private material
             </p>
             <p className="text-sm font-semibold text-foreground mt-0.5">
-              {materialRows.length} item{materialRows.length === 1 ? '' : 's'} logged
+              Private material details withheld
             </p>
             <p className="text-2xs text-muted-foreground mt-1">
               Coach presentations, training video, methodology and analyst-held files are controlled separately from
@@ -616,10 +636,10 @@ export default async function BoardPackPage(
               Access status
             </p>
             <p className="text-sm font-semibold text-foreground mt-0.5">
-              {latestAccessRequest ? latestAccessRequest.status : 'No request raised'}
+              Check current recipient access
             </p>
             <p className="text-2xs text-muted-foreground mt-1">
-              {latestAccessRequest?.request_reason ?? 'A club-side request is created when the appointment process moves into private review.'}
+              This document does not grant file access. Current permissions, expiry and revocation are enforced in the club decision room.
             </p>
           </div>
           <div className="border-t-2 border-emerald-500/60 pt-2">
@@ -633,20 +653,7 @@ export default async function BoardPackPage(
             </p>
           </div>
         </div>
-        {materialRows.length > 0 && (
-          <ul className="mt-3 space-y-1">
-            {materialRows.slice(0, 5).map((item) => (
-              <li key={item.id} className="text-2xs text-muted-foreground/80 pl-3 border-l border-border">
-                <span className="text-foreground/80">{item.title}</span>
-                {' — '}
-                {formatEnumLabel(item.material_type)}
-                {item.source_label ? `, ${item.source_label}` : ''}
-                {item.confidentiality_status ? `, ${item.confidentiality_status}` : ''}
-                {item.verification_status === 'verified' ? ' ✓ verified' : ''}
-              </li>
-            ))}
-          </ul>
-        )}
+        <p className="mt-3 text-xs text-muted-foreground">File titles, source labels and private attachments are not published in this generic pack. Use the controlled delivery workflow for approved recipients.</p>
       </section>
 
       {/* References appendix — always present so the assessment-pack shape is complete */}
@@ -654,9 +661,9 @@ export default async function BoardPackPage(
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
           References — character &amp; working relationships
         </h2>
-        {(structuredReferences.data ?? []).length > 0 ? (
+        {referenceRows.length > 0 ? (
           <div className="mt-3 space-y-3">
-            {(structuredReferences.data ?? []).map((ref) => (
+            {referenceRows.map((ref) => (
               <div key={ref.id} className="border-l-2 border-emerald-500/60 pl-3">
                 <p className="text-xs font-semibold text-foreground">
                   {ref.reference_name}
@@ -676,9 +683,9 @@ export default async function BoardPackPage(
               </div>
             ))}
           </div>
-        ) : (references.data ?? []).length > 0 ? (
+        ) : legacyReferenceRows.length > 0 ? (
           <div className="mt-3 space-y-3">
-            {(references.data ?? []).map((ref) => (
+            {legacyReferenceRows.map((ref) => (
               <div key={ref.id} className="border-l-2 border-emerald-500/60 pl-3">
                 <p className="text-xs font-semibold text-foreground">
                   {ref.reference_name}
@@ -717,7 +724,7 @@ export default async function BoardPackPage(
             .join(' · ')}
         </p>
         <p className="text-[9px] text-muted-foreground/50 mt-4 tracking-widest uppercase">
-          Confidential — prepared for club leadership · Generated by Coach First Intelligence OS
+          Confidential — prepared for club leadership · Generated by Gaffa Intelligence OS
         </p>
       </section>
     </div>

@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { redirect } from 'next/navigation'
 import { logActivity } from '@/lib/db/activity'
 import {
@@ -56,7 +57,7 @@ async function requireOwnedMandate(mandateId: string) {
 
 function planPath(mandateId: string, message?: string, kind: 'success' | 'error' = 'success') {
   const query = message ? `?${kind}=${encodeURIComponent(message)}` : ''
-  return `/mandates/${mandateId}/plan${query}`
+  return `/mandates/${mandateId}/decision${query}`
 }
 
 function revalidateMandate(mandateId: string) {
@@ -64,6 +65,7 @@ function revalidateMandate(mandateId: string) {
   revalidatePath('/mandates')
   revalidatePath(`/mandates/${mandateId}`)
   revalidatePath(`/mandates/${mandateId}/plan`)
+  revalidatePath(`/mandates/${mandateId}/decision`)
 }
 
 export async function updateMandatePlanSettingsAction(formData: FormData) {
@@ -236,11 +238,11 @@ export async function saveAppointmentOutcomeAction(formData: FormData) {
       .single(),
     supabase
       .from('mandate_shortlist')
-      .select('coach_id, coaches(name)')
+      .select('coach_id, coaches(name, due_diligence_summary, compliance_notes)')
       .eq('mandate_id', mandateId),
     supabase
       .from('candidate_recommendations')
-      .select('coach_id, verdict, confidence')
+      .select('coach_id, verdict, confidence, summary, key_strengths, key_risks, mitigation')
       .eq('mandate_id', mandateId),
     supabase
       .from('appointment_outcomes')
@@ -272,7 +274,10 @@ export async function saveAppointmentOutcomeAction(formData: FormData) {
       (candidate.coaches as { name?: string } | null)?.name ?? 'Unknown coach',
     ])
   )
-  const lead = selectLeadRecommendation(recommendationsResult.data ?? [])
+  const lead = selectLeadRecommendation((recommendationsResult.data ?? []).filter(recommendation => {
+    const candidate = shortlist.find(row => row.coach_id === recommendation.coach_id)
+    return candidate && deriveAssessmentStatus({ coach: candidate.coaches, recommendation }).recommendationRecorded
+  }))
   const club = mandateResult.data?.clubs as { name?: string } | null
   const clubName = mandateResult.data?.custom_club_name || club?.name || 'Mandate'
   const recordedAt = new Date().toISOString()

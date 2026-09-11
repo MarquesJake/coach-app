@@ -4,11 +4,15 @@ import { ArrowRight, ClipboardList, MessageSquarePlus, Plus } from 'lucide-react
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { formatEnumLabel } from '@/lib/intelligence/display'
+import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
+import { ASSESSMENT_CRITERIA } from '@/lib/assessment/criteria'
 import {
   CORPUS_PILOT_TARGETS,
-  calculateBenchEligibility,
   calculateCorpusPilotProgress,
 } from '@/lib/intelligence/trusted-network'
+
+export const metadata = { title: 'Corpus · Football network' }
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -16,7 +20,7 @@ const phaseLabels: Record<string, string> = {
   not_started: 'Not started',
   early: 'Early research',
   building: 'Building evidence',
-  evidence_ready: 'Evidence ready',
+  evidence_ready: 'Research target reached',
 }
 
 function formatDate(value: string | null) {
@@ -31,34 +35,30 @@ export default async function CorpusOperationsPage() {
   if (!organizationId) return <p className="text-sm text-destructive">Internal analyst access is required.</p>
 
   const db = supabase as any
-  const [
-    { data: entries },
-    { data: coaches },
-    { data: sessions },
-    { data: relationships },
-    { data: claims },
-    { data: campaigns },
-    { data: campaignContacts },
-    { data: contacts },
-  ] = await Promise.all([
+  const results = await Promise.all([
     db.from('trusted_bench_entries').select('*').eq('org_id', organizationId).order('updated_at', { ascending: false }),
     supabase.from('coaches').select('id, name, club_current, nationality, availability_status'),
-    db.from('intelligence_sessions').select('id, coach_id, contact_id, occurred_at, processing_status').eq('org_id', organizationId).not('coach_id', 'is', null),
+    db.from('intelligence_sessions').select('id, coach_id, contact_id, title, analyst_notes, occurred_at, processing_status').eq('org_id', organizationId).not('coach_id', 'is', null),
     db.from('contact_coach_relationships').select('coach_id, contact_id, stakeholder_group, first_hand, independence_confirmed').eq('org_id', organizationId),
-    db.from('profile_claims').select('coach_id, methodology_criteria, evidence_strength, fact_check_status, reviewed_at, review_status').eq('org_id', organizationId).in('review_status', ['accepted', 'applied']).is('deleted_at', null),
+    db.from('profile_claims').select('coach_id, session_id, claimed_value, evidence_summary, methodology_criteria, evidence_strength, fact_check_status, reviewed_at, review_status').eq('org_id', organizationId).is('deleted_at', null),
     db.from('reference_campaigns').select('id, coach_id, status, next_action, next_review_at').eq('org_id', organizationId).in('status', ['draft', 'active', 'paused']),
     db.from('reference_campaign_contacts').select('campaign_id, status, next_action, scheduled_at').eq('org_id', organizationId),
     db.from('football_contacts').select('id, next_follow_up_at').eq('org_id', organizationId).not('next_follow_up_at', 'is', null),
   ])
+  if (results.some((result) => result.error)) throw new Error('Could not load research coverage. Retry before relying on counts or readiness.')
+  const [{ data: entries }, { data: coaches }, { data: sessions }, { data: relationships }, { data: claims }, { data: campaigns }, { data: campaignContacts }, { data: contacts }] = results
+  const illustrativeSessionIds = new Set((sessions ?? []).filter((session: Record<string, unknown>) => isIllustrativeEvidence({ ...session, source_notes: session.analyst_notes })).map((session: Record<string, unknown>) => session.id))
+  const criteriaKeys = new Set<string>(ASSESSMENT_CRITERIA.map((criterion) => criterion.key))
 
   const coachMap = new Map((coaches ?? []).map((coach: Record<string, unknown>) => [coach.id, coach]))
   const now = new Date()
 
   const rows = (entries ?? []).map((entry: Record<string, any>) => {
     const coach = coachMap.get(entry.coach_id) as Record<string, any> | undefined
-    const coachSessions = (sessions ?? []).filter((session: Record<string, unknown>) => session.coach_id === entry.coach_id && !['restricted', 'archived', 'failed'].includes(String(session.processing_status)))
+    const coachSessions = (sessions ?? []).filter((session: Record<string, unknown>) => session.coach_id === entry.coach_id && !illustrativeSessionIds.has(session.id) && !['restricted', 'archived', 'failed'].includes(String(session.processing_status)))
     const coachRelationships = (relationships ?? []).filter((relationship: Record<string, unknown>) => relationship.coach_id === entry.coach_id)
-    const coachClaims = (claims ?? []).filter((claim: Record<string, unknown>) => claim.coach_id === entry.coach_id)
+    const recordedClaims = (claims ?? []).filter((claim: Record<string, unknown>) => claim.coach_id === entry.coach_id && !isIllustrativeEvidence(claim) && !illustrativeSessionIds.has(claim.session_id))
+    const coachClaims = recordedClaims.filter((claim: Record<string, unknown>) => ['accepted', 'applied'].includes(String(claim.review_status)) && claim.reviewed_at && Number.isFinite(new Date(String(claim.reviewed_at)).getTime()) && new Date(String(claim.reviewed_at)) <= now)
     const coachCampaigns = (campaigns ?? []).filter((campaign: Record<string, unknown>) => campaign.coach_id === entry.coach_id)
     const coachCampaignIds = new Set(coachCampaigns.map((campaign: Record<string, string>) => campaign.id))
     const coachCampaignContacts = (campaignContacts ?? []).filter((contact: Record<string, unknown>) => coachCampaignIds.has(String(contact.campaign_id)))
@@ -70,11 +70,10 @@ export default async function CorpusOperationsPage() {
         .filter((relationship: Record<string, boolean>) => relationship.independence_confirmed)
         .map((relationship: Record<string, string>) => relationship.contact_id)
     ).size
-    const stakeholderGroups = new Set(coachRelationships.map((relationship: Record<string, string>) => relationship.stakeholder_group)).size
-    const criteriaCovered = new Set(coachClaims.flatMap((claim: Record<string, string[]>) => claim.methodology_criteria ?? [])).size
+    const stakeholderGroups = new Set(coachRelationships.map((relationship: Record<string, string>) => relationship.stakeholder_group).filter(Boolean)).size
+    const criteriaCovered = new Set(coachClaims.flatMap((claim: Record<string, string[]>) => claim.methodology_criteria ?? []).filter((key: string) => criteriaKeys.has(key))).size
     const corroboratedClaims = coachClaims.filter((claim: Record<string, string>) => claim.evidence_strength === 'corroborated').length
-    const unresolvedLegalItems = coachClaims.filter((claim: Record<string, string>) => claim.fact_check_status === 'requires_legal').length
-    const reviewedDates = coachClaims.map((claim: Record<string, string | null>) => claim.reviewed_at).filter(Boolean).sort()
+    const unresolvedLegalItems = recordedClaims.filter((claim: Record<string, string>) => claim.fact_check_status === 'requires_legal' && claim.review_status !== 'rejected').length
     const latestConversation = coachSessions.map((session: Record<string, string>) => session.occurred_at).filter(Boolean).sort().at(-1) ?? null
     const progress = calculateCorpusPilotProgress({
       conversations: coachSessions.length,
@@ -84,19 +83,6 @@ export default async function CorpusOperationsPage() {
       corroboratedClaims,
       unresolvedLegalItems,
     })
-    const eligibility = calculateBenchEligibility({
-      acceptedClaims: coachClaims.length,
-      firstHandRecommendationCount: coachRelationships.filter((relationship: Record<string, boolean>) => relationship.first_hand).length,
-      independentSourceCount,
-      stakeholderGroups,
-      criteriaCovered,
-      unresolvedLegalItems,
-      lastReviewedAt: reviewedDates.at(-1) ?? null,
-      availabilityReviewedAt: entry.availability_reviewed_at,
-      contractReviewedAt: entry.contract_reviewed_at,
-      staffReviewedAt: entry.staff_reviewed_at,
-      workPermitReviewedAt: entry.work_permit_reviewed_at,
-    }, now)
     const overdueFollowUps = [
       ...coachCampaigns.map((campaign: Record<string, string | null>) => campaign.next_review_at),
       ...coachContactFollowUps.map((contact: Record<string, string | null>) => contact.next_follow_up_at),
@@ -117,10 +103,10 @@ export default async function CorpusOperationsPage() {
       acceptedClaims: coachClaims.length,
       latestConversation,
       progress,
-      eligibility,
+      unresolvedLegalItems,
       overdueFollowUps,
       openCampaignContacts,
-      nextAction: campaignNextAction ?? progress.missing[0] ?? 'Review for stage confirmation',
+      nextAction: unresolvedLegalItems ? 'Resolve legal-review items' : campaignNextAction ?? progress.missing[0] ?? 'Review for stage confirmation',
     }
   }).filter((row: Record<string, unknown>) => row.coach)
 
@@ -133,7 +119,7 @@ export default async function CorpusOperationsPage() {
   const activeRows = rows.filter((row: Record<string, string>) => row.stage !== 'paused')
   const totalConversations = activeRows.reduce((total: number, row: Record<string, number>) => total + row.conversations, 0)
   const evidenceReady = activeRows.filter((row: Record<string, any>) => row.progress.pilotReady).length
-  const placementReady = activeRows.filter((row: Record<string, any>) => row.eligibility.placementReady).length
+  const legalReviewItems = activeRows.reduce((total: number, row: Record<string, number>) => total + row.unresolvedLegalItems, 0)
   const overdueFollowUps = activeRows.reduce((total: number, row: Record<string, number>) => total + row.overdueFollowUps, 0)
 
   return (
@@ -147,14 +133,15 @@ export default async function CorpusOperationsPage() {
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
           <span><strong className="font-semibold text-foreground">{activeRows.length}</strong> <span className="text-muted-foreground">active coaches</span></span>
           <span><strong className="font-semibold text-foreground">{totalConversations}/50</strong> <span className="text-muted-foreground">conversations</span></span>
-          <span><strong className="font-semibold text-foreground">{evidenceReady}</strong> <span className="text-muted-foreground">evidence ready</span></span>
-          <span><strong className="font-semibold text-foreground">{placementReady}</strong> <span className="text-muted-foreground">placement ready</span></span>
+          <span><strong className="font-semibold text-foreground">{evidenceReady}</strong> <span className="text-muted-foreground">research targets reached</span></span>
+          <span><strong className="font-semibold text-foreground">{legalReviewItems}</strong> <span className="text-muted-foreground">unresolved legal-review items</span></span>
           <span className={overdueFollowUps ? 'text-destructive' : ''}><strong className="font-semibold">{overdueFollowUps}</strong> <span className={overdueFollowUps ? '' : 'text-muted-foreground'}>overdue follow-ups</span></span>
         </div>
         <Link href="/coaches/bench" className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-surface-raised"><Plus className="mr-2 h-4 w-4" />Manage research pool</Link>
       </div>
 
-      <div className="overflow-x-auto border border-border bg-card">
+      <p className="text-xs text-muted-foreground">Research coverage is not placement approval or release clearance. Illustrative material is excluded; reviewed findings require a recorded review date. Source links alone are not recommendations.</p>
+      <div className="relative overflow-x-auto border border-border bg-card">
         <table className="w-full min-w-[1180px] text-left text-sm">
           <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
             <tr>
@@ -172,7 +159,7 @@ export default async function CorpusOperationsPage() {
               <tr key={row.id} className={row.stage === 'paused' ? 'opacity-60' : ''}>
                 <td className="px-4 py-4 align-top">
                   <Link href={`/coaches/${row.coach.id}/intelligence`} className="font-medium hover:text-primary">{row.coach.name}</Link>
-                  <p className="mt-1 text-xs text-muted-foreground">{formatEnumLabel(String(row.stage))} · {row.coach.club_current || 'Available'}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Recorded stage: {formatEnumLabel(String(row.stage))} · {row.coach.club_current || 'Club not recorded'}</p>
                 </td>
                 <td className="w-48 px-4 py-4 align-top">
                   <div className="flex items-center justify-between text-xs"><span>{phaseLabels[row.progress.phase]}</span><strong>{row.progress.progressPercent}%</strong></div>

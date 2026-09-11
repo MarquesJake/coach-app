@@ -61,7 +61,7 @@ async function assertCoachOwnership(coachId: string): Promise<string> {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const { data: coach } = await getCoachById(user.id, coachId)
+  const { data: coach } = await getCoachById(coachId)
   if (!coach) redirect('/coaches')
   return user.id
 }
@@ -71,7 +71,7 @@ export async function getMandateFitAction(mandateId: string) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const { data, error } = await getMandateFitFields(user.id, mandateId)
+  const { data, error } = await getMandateFitFields(mandateId)
   if (error) return { data: null, error: error.message }
   return { data, error: null }
 }
@@ -160,9 +160,9 @@ const RISK_FLAG_KEYS = ['legal_risk_flag', 'integrity_risk_flag', 'safeguarding_
 export async function updateCoachCoreAction(coachId: string, payload: Record<string, unknown>): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const userId = await assertCoachOwnership(coachId)
-    const { data: beforeCoach } = await getCoachById(userId, coachId)
+    const { data: beforeCoach } = await getCoachById(coachId)
     const update = sanitizeCoachPayload(payload)
-    const { error } = await updateCoach(userId, coachId, update)
+    const { error } = await updateCoach(coachId, update)
     if (error) return { ok: false, error: error.message }
 
     const beforeData = beforeCoach ? (Object.keys(update) as string[]).reduce<Record<string, unknown>>((acc, k) => {
@@ -246,8 +246,8 @@ export async function updateCoachCoreAction(coachId: string, payload: Record<str
 /** Compute similarity for a coach against all other user coaches and write to coach_similarity. */
 export async function refreshSimilarityForCoachAction(coachId: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const userId = await assertCoachOwnership(coachId)
-    const { data: mainCoach, error: mainErr } = await getCoachById(userId, coachId)
+    await assertCoachOwnership(coachId)
+    const { data: mainCoach, error: mainErr } = await getCoachById(coachId)
     if (mainErr || !mainCoach) return { ok: false, error: 'Coach not found' }
 
     const { data: allCoaches } = await getCoachesForTeam()

@@ -3,6 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { CreateStaffForm } from '../_components/create-staff-form'
 
+export const metadata = { title: 'New · Staff' }
+
+
 export default async function NewStaffPage() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()

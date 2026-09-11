@@ -1,4 +1,3 @@
-// TODO: Future: migrate filtering from user_id to org_id for multi-tenant support.
 
 import { db } from './client'
 
@@ -154,7 +153,7 @@ export async function getMandateBoardSignals(
 }
 
 /** Fetch mandate row with all fields required by mandateToContext() and the scoring engine. */
-export async function getMandateFitFields(userId: string, mandateId: string) {
+export async function getMandateFitFields(mandateId: string) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('mandates')
@@ -169,7 +168,7 @@ export async function getMandateFitFields(userId: string, mandateId: string) {
   return { data, error }
 }
 
-export async function getMandateDetailForUser(userId: string, mandateId: string) {
+export async function getMandateDetail(mandateId: string) {
   const supabase = await db()
 
   const mandateResult = await supabase

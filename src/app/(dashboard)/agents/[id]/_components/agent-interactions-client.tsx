@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { captureAgentResult, incompleteFinding, localDateTime } from '@/lib/agents/forms'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -75,13 +76,14 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
   const searchParams = useSearchParams()
   const highlightedId = searchParams.get('entry')
 
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(searchParams.get('new') === '1')
   const [submitting, setSubmitting] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [channelFilter, setChannelFilter] = useState<string>('')
   const [directionFilter, setDirectionFilter] = useState<string>('')
   const [topicFilter, setTopicFilter] = useState<string>('')
   const [form, setForm] = useState({
-    occurred_at: new Date().toISOString().slice(0, 16),
+    occurred_at: localDateTime(),
     interaction_type: '',
     channel: '',
     direction: '',
@@ -114,6 +116,15 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
   }
 
   async function handleAdd() {
+    if (submitting) return
+    if (!form.occurred_at || !Number.isFinite(new Date(form.occurred_at).getTime())) {
+      setSaveError('Choose a valid conversation date and time')
+      return
+    }
+    if (incompleteFinding(form.claim_value, form.claim_evidence_summary)) {
+      setSaveError('Add both the finding and its evidence summary, or clear both')
+      return
+    }
     const summary = form.summary.trim()
     if (!summary) {
       toastError('Summary is required')
@@ -124,9 +135,10 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
       return
     }
     setSubmitting(true)
+    setSaveError(null)
     const claimValue = form.claim_value.trim()
     const claimEvidence = form.claim_evidence_summary.trim()
-    const result = await createAgentInteractionAction({
+    const result = await captureAgentResult(() => createAgentInteractionAction({
       agent_id: agentId,
       occurred_at: new Date(form.occurred_at).toISOString(),
       interaction_type: form.interaction_type || null,
@@ -152,16 +164,17 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
         verification_status: 'unverified',
         used_in_recommendation: false,
       }] : [],
-    })
+    }))
     setSubmitting(false)
     if (!result.ok) {
+      setSaveError(result.error)
       toastError(result.error)
       return
     }
     toastSuccess('Interaction added')
     setDrawerOpen(false)
     setForm({
-      occurred_at: new Date().toISOString().slice(0, 16),
+      occurred_at: localDateTime(),
       interaction_type: '', channel: '', direction: '', topic: '',
       summary: '', detail: '', sentiment: '', confidence: '',
       reliability_score: '', influence_score: '', follow_up_date: '',
@@ -174,17 +187,20 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this interaction?')) return
-    const result = await deleteAgentInteractionAction(id, agentId)
+    if (!confirm('Remove this entry from the agent log? Its source conversation and review records are retained.')) return
+    const result = await captureAgentResult(() => deleteAgentInteractionAction(id, agentId))
+    setSaveError(result.ok ? null : result.error)
     if (!result.ok) toastError(result.error)
     else {
-      toastSuccess('Interaction deleted')
+      toastSuccess('Entry removed from agent log; source and review records retained')
       router.refresh()
     }
   }
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">Latest 100 log entries. Filters apply to this loaded set. Findings remain unverified until reviewed.</p>
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-muted-foreground text-xs">Channel:</span>
@@ -346,6 +362,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
         <Button onClick={handleAdd} disabled={submitting}>{submitting ? 'Saving…' : 'Save conversation'}</Button>
       }>
         <div className="space-y-4">
+          {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">Date & time</label>

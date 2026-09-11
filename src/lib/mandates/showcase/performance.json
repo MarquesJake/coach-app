@@ -1,0 +1,1690 @@
+{
+  "checked_at": "2026-09-10",
+  "provider": "API-Football / API-Sports",
+  "coverage": "Historical baseline: 2022/23–2024/25; Norway 2023–2024",
+  "periods": [
+    {
+      "id": "de-zerbi-brighton-2023-Full league season",
+      "coach_key": "de-zerbi",
+      "club": "Brighton",
+      "season": "2023/24",
+      "league": "Premier League",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2023-08-12",
+      "end": "2024-05-19",
+      "games": 38,
+      "wins": 12,
+      "draws": 12,
+      "losses": 14,
+      "points": 48,
+      "ppg": 1.26,
+      "gf": 55,
+      "ga": 62,
+      "gd": -7,
+      "gf_per_game": 1.45,
+      "ga_per_game": 1.63,
+      "clean_sheets": 6,
+      "failed_to_score": 10,
+      "home": {
+        "games": 19,
+        "wins": 8,
+        "draws": 6,
+        "losses": 5,
+        "points": 30,
+        "ppg": 1.58
+      },
+      "away": {
+        "games": 19,
+        "wins": 4,
+        "draws": 6,
+        "losses": 9,
+        "points": 18,
+        "ppg": 0.95
+      },
+      "first_half": {
+        "games": 19,
+        "wins": 8,
+        "draws": 6,
+        "losses": 5,
+        "points": 30,
+        "ppg": 1.58
+      },
+      "second_half": {
+        "games": 19,
+        "wins": 4,
+        "draws": 6,
+        "losses": 9,
+        "points": 18,
+        "ppg": 0.95
+      },
+      "trailing_at_ht": {
+        "games": 14,
+        "wins": 0,
+        "draws": 4,
+        "losses": 10,
+        "points": 4,
+        "ppg": 0.29
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=51&season=2023&status=FT",
+      "retrieved_at": "2026-09-09T23:11:32.312Z",
+      "sha256": "fb6c7d153fe7d07274f4967e838afe63b739565715d88e7b9e3dd94b028a122f"
+    },
+    {
+      "id": "de-zerbi-marseille-2024-Full league season",
+      "coach_key": "de-zerbi",
+      "club": "Marseille",
+      "season": "2024/25",
+      "league": "Ligue 1",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2024-08-17",
+      "end": "2025-05-17",
+      "games": 34,
+      "wins": 20,
+      "draws": 5,
+      "losses": 9,
+      "points": 65,
+      "ppg": 1.91,
+      "gf": 74,
+      "ga": 47,
+      "gd": 27,
+      "gf_per_game": 2.18,
+      "ga_per_game": 1.38,
+      "clean_sheets": 5,
+      "failed_to_score": 6,
+      "home": {
+        "games": 17,
+        "wins": 10,
+        "draws": 4,
+        "losses": 3,
+        "points": 34,
+        "ppg": 2.0
+      },
+      "away": {
+        "games": 17,
+        "wins": 10,
+        "draws": 1,
+        "losses": 6,
+        "points": 31,
+        "ppg": 1.82
+      },
+      "first_half": {
+        "games": 17,
+        "wins": 11,
+        "draws": 3,
+        "losses": 3,
+        "points": 36,
+        "ppg": 2.12
+      },
+      "second_half": {
+        "games": 17,
+        "wins": 9,
+        "draws": 2,
+        "losses": 6,
+        "points": 29,
+        "ppg": 1.71
+      },
+      "trailing_at_ht": {
+        "games": 10,
+        "wins": 1,
+        "draws": 1,
+        "losses": 8,
+        "points": 4,
+        "ppg": 0.4
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=81&season=2024&status=FT",
+      "retrieved_at": "2026-09-09T23:11:39.469Z",
+      "sha256": "22113fa650623852607ca0b69b3160f8d38317a39f36a08f0d5bcc1432b534d0"
+    },
+    {
+      "id": "mckenna-ipswich-2022-Full league season",
+      "coach_key": "mckenna",
+      "club": "Ipswich",
+      "season": "2022/23",
+      "league": "League One",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2022-07-30",
+      "end": "2023-05-07",
+      "games": 46,
+      "wins": 28,
+      "draws": 14,
+      "losses": 4,
+      "points": 98,
+      "ppg": 2.13,
+      "gf": 101,
+      "ga": 35,
+      "gd": 66,
+      "gf_per_game": 2.2,
+      "ga_per_game": 0.76,
+      "clean_sheets": 23,
+      "failed_to_score": 3,
+      "home": {
+        "games": 23,
+        "wins": 16,
+        "draws": 6,
+        "losses": 1,
+        "points": 54,
+        "ppg": 2.35
+      },
+      "away": {
+        "games": 23,
+        "wins": 12,
+        "draws": 8,
+        "losses": 3,
+        "points": 44,
+        "ppg": 1.91
+      },
+      "first_half": {
+        "games": 23,
+        "wins": 14,
+        "draws": 6,
+        "losses": 3,
+        "points": 48,
+        "ppg": 2.09
+      },
+      "second_half": {
+        "games": 23,
+        "wins": 14,
+        "draws": 8,
+        "losses": 1,
+        "points": 50,
+        "ppg": 2.17
+      },
+      "trailing_at_ht": {
+        "games": 6,
+        "wins": 2,
+        "draws": 2,
+        "losses": 2,
+        "points": 8,
+        "ppg": 1.33
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=57&season=2022&status=FT",
+      "retrieved_at": "2026-09-09T23:11:46.675Z",
+      "sha256": "9bb5b46b3e5ff94b1225a6a9ecd4f40e1f13db46ea83045a4c1fdaea5d637994"
+    },
+    {
+      "id": "mckenna-ipswich-2023-Full league season",
+      "coach_key": "mckenna",
+      "club": "Ipswich",
+      "season": "2023/24",
+      "league": "Championship",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2023-08-06",
+      "end": "2024-05-04",
+      "games": 46,
+      "wins": 28,
+      "draws": 12,
+      "losses": 6,
+      "points": 96,
+      "ppg": 2.09,
+      "gf": 92,
+      "ga": 57,
+      "gd": 35,
+      "gf_per_game": 2.0,
+      "ga_per_game": 1.24,
+      "clean_sheets": 15,
+      "failed_to_score": 6,
+      "home": {
+        "games": 23,
+        "wins": 16,
+        "draws": 6,
+        "losses": 1,
+        "points": 54,
+        "ppg": 2.35
+      },
+      "away": {
+        "games": 23,
+        "wins": 12,
+        "draws": 6,
+        "losses": 5,
+        "points": 42,
+        "ppg": 1.83
+      },
+      "first_half": {
+        "games": 23,
+        "wins": 16,
+        "draws": 4,
+        "losses": 3,
+        "points": 52,
+        "ppg": 2.26
+      },
+      "second_half": {
+        "games": 23,
+        "wins": 12,
+        "draws": 8,
+        "losses": 3,
+        "points": 44,
+        "ppg": 1.91
+      },
+      "trailing_at_ht": {
+        "games": 11,
+        "wins": 2,
+        "draws": 4,
+        "losses": 5,
+        "points": 10,
+        "ppg": 0.91
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=57&season=2023&status=FT",
+      "retrieved_at": "2026-09-09T23:11:53.804Z",
+      "sha256": "5646683962220690816b08bcf8c8116ea23d07a91d9d7e974fd9bd955725b073"
+    },
+    {
+      "id": "mckenna-ipswich-2024-Full league season",
+      "coach_key": "mckenna",
+      "club": "Ipswich",
+      "season": "2024/25",
+      "league": "Premier League",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2024-08-17",
+      "end": "2025-05-25",
+      "games": 38,
+      "wins": 4,
+      "draws": 10,
+      "losses": 24,
+      "points": 22,
+      "ppg": 0.58,
+      "gf": 36,
+      "ga": 82,
+      "gd": -46,
+      "gf_per_game": 0.95,
+      "ga_per_game": 2.16,
+      "clean_sheets": 2,
+      "failed_to_score": 14,
+      "home": {
+        "games": 19,
+        "wins": 1,
+        "draws": 4,
+        "losses": 14,
+        "points": 7,
+        "ppg": 0.37
+      },
+      "away": {
+        "games": 19,
+        "wins": 3,
+        "draws": 6,
+        "losses": 10,
+        "points": 15,
+        "ppg": 0.79
+      },
+      "first_half": {
+        "games": 19,
+        "wins": 3,
+        "draws": 6,
+        "losses": 10,
+        "points": 15,
+        "ppg": 0.79
+      },
+      "second_half": {
+        "games": 19,
+        "wins": 1,
+        "draws": 4,
+        "losses": 14,
+        "points": 7,
+        "ppg": 0.37
+      },
+      "trailing_at_ht": {
+        "games": 17,
+        "wins": 0,
+        "draws": 3,
+        "losses": 14,
+        "points": 3,
+        "ppg": 0.18
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=57&season=2024&status=FT",
+      "retrieved_at": "2026-09-09T23:12:00.940Z",
+      "sha256": "89200c98958e3e39271eab747a1b98068defb49b4e9549c2a0dbe569aff7586b"
+    },
+    {
+      "id": "hoeness-stuttgart-2022-Before appointment",
+      "coach_key": "hoeness",
+      "club": "VfB Stuttgart",
+      "season": "2022/23",
+      "league": "Bundesliga",
+      "scope": "Before appointment",
+      "baseline": true,
+      "start": "2022-08-07",
+      "end": "2023-04-01",
+      "games": 26,
+      "wins": 4,
+      "draws": 8,
+      "losses": 14,
+      "points": 20,
+      "ppg": 0.77,
+      "gf": 29,
+      "ga": 45,
+      "gd": -16,
+      "gf_per_game": 1.12,
+      "ga_per_game": 1.73,
+      "clean_sheets": 2,
+      "failed_to_score": 8,
+      "home": {
+        "games": 13,
+        "wins": 4,
+        "draws": 3,
+        "losses": 6,
+        "points": 15,
+        "ppg": 1.15
+      },
+      "away": {
+        "games": 13,
+        "wins": 0,
+        "draws": 5,
+        "losses": 8,
+        "points": 5,
+        "ppg": 0.38
+      },
+      "first_half": {
+        "games": 13,
+        "wins": 2,
+        "draws": 5,
+        "losses": 6,
+        "points": 11,
+        "ppg": 0.85
+      },
+      "second_half": {
+        "games": 13,
+        "wins": 2,
+        "draws": 3,
+        "losses": 8,
+        "points": 9,
+        "ppg": 0.69
+      },
+      "trailing_at_ht": {
+        "games": 9,
+        "wins": 0,
+        "draws": 1,
+        "losses": 8,
+        "points": 1,
+        "ppg": 0.11
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=172&season=2022&status=FT",
+      "retrieved_at": "2026-09-09T23:12:08.283Z",
+      "sha256": "c8c4383297efa7a0bfa312554ca7fecdea33ad91c477c100bd8623b477081f98"
+    },
+    {
+      "id": "hoeness-stuttgart-2022-After appointment · 8 games",
+      "coach_key": "hoeness",
+      "club": "VfB Stuttgart",
+      "season": "2022/23",
+      "league": "Bundesliga",
+      "scope": "After appointment · 8 games",
+      "baseline": false,
+      "start": "2023-04-09",
+      "end": "2023-05-27",
+      "games": 8,
+      "wins": 3,
+      "draws": 4,
+      "losses": 1,
+      "points": 13,
+      "ppg": 1.63,
+      "gf": 16,
+      "ga": 12,
+      "gd": 4,
+      "gf_per_game": 2.0,
+      "ga_per_game": 1.5,
+      "clean_sheets": 0,
+      "failed_to_score": 0,
+      "home": {
+        "games": 4,
+        "wins": 1,
+        "draws": 3,
+        "losses": 0,
+        "points": 6,
+        "ppg": 1.5
+      },
+      "away": {
+        "games": 4,
+        "wins": 2,
+        "draws": 1,
+        "losses": 1,
+        "points": 7,
+        "ppg": 1.75
+      },
+      "first_half": {
+        "games": 4,
+        "wins": 2,
+        "draws": 2,
+        "losses": 0,
+        "points": 8,
+        "ppg": 2.0
+      },
+      "second_half": {
+        "games": 4,
+        "wins": 1,
+        "draws": 2,
+        "losses": 1,
+        "points": 5,
+        "ppg": 1.25
+      },
+      "trailing_at_ht": {
+        "games": 3,
+        "wins": 0,
+        "draws": 2,
+        "losses": 1,
+        "points": 2,
+        "ppg": 0.67
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=172&season=2022&status=FT",
+      "retrieved_at": "2026-09-09T23:12:08.283Z",
+      "sha256": "c8c4383297efa7a0bfa312554ca7fecdea33ad91c477c100bd8623b477081f98"
+    },
+    {
+      "id": "hoeness-stuttgart-2023-Full league season",
+      "coach_key": "hoeness",
+      "club": "VfB Stuttgart",
+      "season": "2023/24",
+      "league": "Bundesliga",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2023-08-19",
+      "end": "2024-05-18",
+      "games": 34,
+      "wins": 23,
+      "draws": 4,
+      "losses": 7,
+      "points": 73,
+      "ppg": 2.15,
+      "gf": 78,
+      "ga": 39,
+      "gd": 39,
+      "gf_per_game": 2.29,
+      "ga_per_game": 1.15,
+      "clean_sheets": 12,
+      "failed_to_score": 3,
+      "home": {
+        "games": 17,
+        "wins": 13,
+        "draws": 3,
+        "losses": 1,
+        "points": 42,
+        "ppg": 2.47
+      },
+      "away": {
+        "games": 17,
+        "wins": 10,
+        "draws": 1,
+        "losses": 6,
+        "points": 31,
+        "ppg": 1.82
+      },
+      "first_half": {
+        "games": 17,
+        "wins": 11,
+        "draws": 1,
+        "losses": 5,
+        "points": 34,
+        "ppg": 2.0
+      },
+      "second_half": {
+        "games": 17,
+        "wins": 12,
+        "draws": 3,
+        "losses": 2,
+        "points": 39,
+        "ppg": 2.29
+      },
+      "trailing_at_ht": {
+        "games": 5,
+        "wins": 1,
+        "draws": 0,
+        "losses": 4,
+        "points": 3,
+        "ppg": 0.6
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=172&season=2023&status=FT",
+      "retrieved_at": "2026-09-09T23:12:15.501Z",
+      "sha256": "035e08c3be9c7776a911f96addfd19448ab63fc75c6b4b665ef492662a6fd743"
+    },
+    {
+      "id": "hoeness-stuttgart-2024-Full league season",
+      "coach_key": "hoeness",
+      "club": "VfB Stuttgart",
+      "season": "2024/25",
+      "league": "Bundesliga",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2024-08-24",
+      "end": "2025-05-17",
+      "games": 34,
+      "wins": 14,
+      "draws": 8,
+      "losses": 12,
+      "points": 50,
+      "ppg": 1.47,
+      "gf": 64,
+      "ga": 53,
+      "gd": 11,
+      "gf_per_game": 1.88,
+      "ga_per_game": 1.56,
+      "clean_sheets": 7,
+      "failed_to_score": 6,
+      "home": {
+        "games": 17,
+        "wins": 7,
+        "draws": 2,
+        "losses": 8,
+        "points": 23,
+        "ppg": 1.35
+      },
+      "away": {
+        "games": 17,
+        "wins": 7,
+        "draws": 6,
+        "losses": 4,
+        "points": 27,
+        "ppg": 1.59
+      },
+      "first_half": {
+        "games": 17,
+        "wins": 8,
+        "draws": 5,
+        "losses": 4,
+        "points": 29,
+        "ppg": 1.71
+      },
+      "second_half": {
+        "games": 17,
+        "wins": 6,
+        "draws": 3,
+        "losses": 8,
+        "points": 21,
+        "ppg": 1.24
+      },
+      "trailing_at_ht": {
+        "games": 8,
+        "wins": 3,
+        "draws": 1,
+        "losses": 4,
+        "points": 10,
+        "ppg": 1.25
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=172&season=2024&status=FT",
+      "retrieved_at": "2026-09-09T23:12:22.656Z",
+      "sha256": "271101208f1447af249f57f43fab76211d3b6ff0d1c152370414b37b47d71957"
+    },
+    {
+      "id": "silva-fulham-2022-Full league season",
+      "coach_key": "silva",
+      "club": "Fulham",
+      "season": "2022/23",
+      "league": "Premier League",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2022-08-06",
+      "end": "2023-05-28",
+      "games": 38,
+      "wins": 15,
+      "draws": 7,
+      "losses": 16,
+      "points": 52,
+      "ppg": 1.37,
+      "gf": 55,
+      "ga": 53,
+      "gd": 2,
+      "gf_per_game": 1.45,
+      "ga_per_game": 1.39,
+      "clean_sheets": 9,
+      "failed_to_score": 9,
+      "home": {
+        "games": 19,
+        "wins": 8,
+        "draws": 5,
+        "losses": 6,
+        "points": 29,
+        "ppg": 1.53
+      },
+      "away": {
+        "games": 19,
+        "wins": 7,
+        "draws": 2,
+        "losses": 10,
+        "points": 23,
+        "ppg": 1.21
+      },
+      "first_half": {
+        "games": 19,
+        "wins": 9,
+        "draws": 4,
+        "losses": 6,
+        "points": 31,
+        "ppg": 1.63
+      },
+      "second_half": {
+        "games": 19,
+        "wins": 6,
+        "draws": 3,
+        "losses": 10,
+        "points": 21,
+        "ppg": 1.11
+      },
+      "trailing_at_ht": {
+        "games": 12,
+        "wins": 1,
+        "draws": 2,
+        "losses": 9,
+        "points": 5,
+        "ppg": 0.42
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=36&season=2022&status=FT",
+      "retrieved_at": "2026-09-09T23:12:29.813Z",
+      "sha256": "064fceffb8e84a21dda833398e021d1943c2e92144d020281c80e4958b6b439e"
+    },
+    {
+      "id": "silva-fulham-2023-Full league season",
+      "coach_key": "silva",
+      "club": "Fulham",
+      "season": "2023/24",
+      "league": "Premier League",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2023-08-12",
+      "end": "2024-05-19",
+      "games": 38,
+      "wins": 13,
+      "draws": 8,
+      "losses": 17,
+      "points": 47,
+      "ppg": 1.24,
+      "gf": 55,
+      "ga": 61,
+      "gd": -6,
+      "gf_per_game": 1.45,
+      "ga_per_game": 1.61,
+      "clean_sheets": 10,
+      "failed_to_score": 13,
+      "home": {
+        "games": 19,
+        "wins": 9,
+        "draws": 2,
+        "losses": 8,
+        "points": 29,
+        "ppg": 1.53
+      },
+      "away": {
+        "games": 19,
+        "wins": 4,
+        "draws": 6,
+        "losses": 9,
+        "points": 18,
+        "ppg": 0.95
+      },
+      "first_half": {
+        "games": 19,
+        "wins": 6,
+        "draws": 3,
+        "losses": 10,
+        "points": 21,
+        "ppg": 1.11
+      },
+      "second_half": {
+        "games": 19,
+        "wins": 7,
+        "draws": 5,
+        "losses": 7,
+        "points": 26,
+        "ppg": 1.37
+      },
+      "trailing_at_ht": {
+        "games": 11,
+        "wins": 0,
+        "draws": 1,
+        "losses": 10,
+        "points": 1,
+        "ppg": 0.09
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=36&season=2023&status=FT",
+      "retrieved_at": "2026-09-09T23:12:36.943Z",
+      "sha256": "9b4a03b63e3ace9ab6d30deccf306f0e2ee2dcd393e8a0864ec11f816664908c"
+    },
+    {
+      "id": "silva-fulham-2024-Full league season",
+      "coach_key": "silva",
+      "club": "Fulham",
+      "season": "2024/25",
+      "league": "Premier League",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2024-08-16",
+      "end": "2025-05-25",
+      "games": 38,
+      "wins": 15,
+      "draws": 9,
+      "losses": 14,
+      "points": 54,
+      "ppg": 1.42,
+      "gf": 54,
+      "ga": 54,
+      "gd": 0,
+      "gf_per_game": 1.42,
+      "ga_per_game": 1.42,
+      "clean_sheets": 5,
+      "failed_to_score": 7,
+      "home": {
+        "games": 19,
+        "wins": 7,
+        "draws": 5,
+        "losses": 7,
+        "points": 26,
+        "ppg": 1.37
+      },
+      "away": {
+        "games": 19,
+        "wins": 8,
+        "draws": 4,
+        "losses": 7,
+        "points": 28,
+        "ppg": 1.47
+      },
+      "first_half": {
+        "games": 19,
+        "wins": 7,
+        "draws": 8,
+        "losses": 4,
+        "points": 29,
+        "ppg": 1.53
+      },
+      "second_half": {
+        "games": 19,
+        "wins": 8,
+        "draws": 1,
+        "losses": 10,
+        "points": 25,
+        "ppg": 1.32
+      },
+      "trailing_at_ht": {
+        "games": 12,
+        "wins": 5,
+        "draws": 1,
+        "losses": 6,
+        "points": 16,
+        "ppg": 1.33
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=36&season=2024&status=FT",
+      "retrieved_at": "2026-09-09T23:12:44.079Z",
+      "sha256": "335cdc95587a1f2b12061e10a082a7424823493ff14776dcc8f4083d27034328"
+    },
+    {
+      "id": "terzic-dortmund-2022-Full league season",
+      "coach_key": "terzic",
+      "club": "Borussia Dortmund",
+      "season": "2022/23",
+      "league": "Bundesliga",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2022-08-06",
+      "end": "2023-05-27",
+      "games": 34,
+      "wins": 22,
+      "draws": 5,
+      "losses": 7,
+      "points": 71,
+      "ppg": 2.09,
+      "gf": 83,
+      "ga": 44,
+      "gd": 39,
+      "gf_per_game": 2.44,
+      "ga_per_game": 1.29,
+      "clean_sheets": 12,
+      "failed_to_score": 3,
+      "home": {
+        "games": 17,
+        "wins": 14,
+        "draws": 2,
+        "losses": 1,
+        "points": 44,
+        "ppg": 2.59
+      },
+      "away": {
+        "games": 17,
+        "wins": 8,
+        "draws": 3,
+        "losses": 6,
+        "points": 27,
+        "ppg": 1.59
+      },
+      "first_half": {
+        "games": 17,
+        "wins": 10,
+        "draws": 1,
+        "losses": 6,
+        "points": 31,
+        "ppg": 1.82
+      },
+      "second_half": {
+        "games": 17,
+        "wins": 12,
+        "draws": 4,
+        "losses": 1,
+        "points": 40,
+        "ppg": 2.35
+      },
+      "trailing_at_ht": {
+        "games": 8,
+        "wins": 1,
+        "draws": 2,
+        "losses": 5,
+        "points": 5,
+        "ppg": 0.63
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=165&season=2022&status=FT",
+      "retrieved_at": "2026-09-09T23:12:51.223Z",
+      "sha256": "953decff8e19ffddcfd44cb5616de6cc22eb929a6fcde55ebd7386855e28757d"
+    },
+    {
+      "id": "terzic-dortmund-2023-Full league season",
+      "coach_key": "terzic",
+      "club": "Borussia Dortmund",
+      "season": "2023/24",
+      "league": "Bundesliga",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2023-08-19",
+      "end": "2024-05-18",
+      "games": 34,
+      "wins": 18,
+      "draws": 9,
+      "losses": 7,
+      "points": 63,
+      "ppg": 1.85,
+      "gf": 68,
+      "ga": 43,
+      "gd": 25,
+      "gf_per_game": 2.0,
+      "ga_per_game": 1.26,
+      "clean_sheets": 10,
+      "failed_to_score": 4,
+      "home": {
+        "games": 17,
+        "wins": 10,
+        "draws": 3,
+        "losses": 4,
+        "points": 33,
+        "ppg": 1.94
+      },
+      "away": {
+        "games": 17,
+        "wins": 8,
+        "draws": 6,
+        "losses": 3,
+        "points": 30,
+        "ppg": 1.76
+      },
+      "first_half": {
+        "games": 17,
+        "wins": 8,
+        "draws": 6,
+        "losses": 3,
+        "points": 30,
+        "ppg": 1.76
+      },
+      "second_half": {
+        "games": 17,
+        "wins": 10,
+        "draws": 3,
+        "losses": 4,
+        "points": 33,
+        "ppg": 1.94
+      },
+      "trailing_at_ht": {
+        "games": 7,
+        "wins": 2,
+        "draws": 2,
+        "losses": 3,
+        "points": 8,
+        "ppg": 1.14
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=165&season=2023&status=FT",
+      "retrieved_at": "2026-09-09T23:12:58.356Z",
+      "sha256": "2bab6dd46168f791c3d2e727c127178ae9efcdb62bdb7b55905b56dc3bf2f6f3"
+    },
+    {
+      "id": "knutsen-bodo-2023-Full league season",
+      "coach_key": "knutsen",
+      "club": "Bodo/Glimt",
+      "season": "2023",
+      "league": "Eliteserien",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2023-04-10",
+      "end": "2023-12-03",
+      "games": 30,
+      "wins": 22,
+      "draws": 4,
+      "losses": 4,
+      "points": 70,
+      "ppg": 2.33,
+      "gf": 78,
+      "ga": 38,
+      "gd": 40,
+      "gf_per_game": 2.6,
+      "ga_per_game": 1.27,
+      "clean_sheets": 10,
+      "failed_to_score": 2,
+      "home": {
+        "games": 15,
+        "wins": 12,
+        "draws": 2,
+        "losses": 1,
+        "points": 38,
+        "ppg": 2.53
+      },
+      "away": {
+        "games": 15,
+        "wins": 10,
+        "draws": 2,
+        "losses": 3,
+        "points": 32,
+        "ppg": 2.13
+      },
+      "first_half": {
+        "games": 15,
+        "wins": 12,
+        "draws": 2,
+        "losses": 1,
+        "points": 38,
+        "ppg": 2.53
+      },
+      "second_half": {
+        "games": 15,
+        "wins": 10,
+        "draws": 2,
+        "losses": 3,
+        "points": 32,
+        "ppg": 2.13
+      },
+      "trailing_at_ht": {
+        "games": 7,
+        "wins": 1,
+        "draws": 3,
+        "losses": 3,
+        "points": 6,
+        "ppg": 0.86
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=327&season=2023&status=FT",
+      "retrieved_at": "2026-09-09T23:13:05.505Z",
+      "sha256": "cefc9db4b1c264fe907e22e9ca2cd6dfde4ac1cb91c5d1a6d5b4a1df701de8ba"
+    },
+    {
+      "id": "knutsen-bodo-2024-Full league season",
+      "coach_key": "knutsen",
+      "club": "Bodo/Glimt",
+      "season": "2024",
+      "league": "Eliteserien",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2024-04-01",
+      "end": "2024-12-01",
+      "games": 30,
+      "wins": 18,
+      "draws": 8,
+      "losses": 4,
+      "points": 62,
+      "ppg": 2.07,
+      "gf": 71,
+      "ga": 31,
+      "gd": 40,
+      "gf_per_game": 2.37,
+      "ga_per_game": 1.03,
+      "clean_sheets": 12,
+      "failed_to_score": 2,
+      "home": {
+        "games": 15,
+        "wins": 10,
+        "draws": 4,
+        "losses": 1,
+        "points": 34,
+        "ppg": 2.27
+      },
+      "away": {
+        "games": 15,
+        "wins": 8,
+        "draws": 4,
+        "losses": 3,
+        "points": 28,
+        "ppg": 1.87
+      },
+      "first_half": {
+        "games": 15,
+        "wins": 10,
+        "draws": 3,
+        "losses": 2,
+        "points": 33,
+        "ppg": 2.2
+      },
+      "second_half": {
+        "games": 15,
+        "wins": 8,
+        "draws": 5,
+        "losses": 2,
+        "points": 29,
+        "ppg": 1.93
+      },
+      "trailing_at_ht": {
+        "games": 7,
+        "wins": 1,
+        "draws": 3,
+        "losses": 3,
+        "points": 6,
+        "ppg": 0.86
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=327&season=2024&status=FT",
+      "retrieved_at": "2026-09-09T23:13:12.651Z",
+      "sha256": "fd683738df4632acbc676309ab935226585830aed706ee19c3d3c3ace46c83a1"
+    },
+    {
+      "id": "farioli-nice-2023-Full league season",
+      "coach_key": "farioli",
+      "club": "Nice",
+      "season": "2023/24",
+      "league": "Ligue 1",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2023-08-11",
+      "end": "2024-05-19",
+      "games": 34,
+      "wins": 15,
+      "draws": 10,
+      "losses": 9,
+      "points": 55,
+      "ppg": 1.62,
+      "gf": 40,
+      "ga": 29,
+      "gd": 11,
+      "gf_per_game": 1.18,
+      "ga_per_game": 0.85,
+      "clean_sheets": 17,
+      "failed_to_score": 9,
+      "home": {
+        "games": 17,
+        "wins": 9,
+        "draws": 4,
+        "losses": 4,
+        "points": 31,
+        "ppg": 1.82
+      },
+      "away": {
+        "games": 17,
+        "wins": 6,
+        "draws": 6,
+        "losses": 5,
+        "points": 24,
+        "ppg": 1.41
+      },
+      "first_half": {
+        "games": 17,
+        "wins": 10,
+        "draws": 5,
+        "losses": 2,
+        "points": 35,
+        "ppg": 2.06
+      },
+      "second_half": {
+        "games": 17,
+        "wins": 5,
+        "draws": 5,
+        "losses": 7,
+        "points": 20,
+        "ppg": 1.18
+      },
+      "trailing_at_ht": {
+        "games": 7,
+        "wins": 0,
+        "draws": 0,
+        "losses": 7,
+        "points": 0,
+        "ppg": 0.0
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=84&season=2023&status=FT",
+      "retrieved_at": "2026-09-09T23:13:34.070Z",
+      "sha256": "5f36e3f6ab68e8721e3395ec68821ce70d0100ffeb387a6283f43f5bf923f2aa"
+    },
+    {
+      "id": "farioli-ajax-2023-Previous season · other coaches",
+      "coach_key": "farioli",
+      "club": "Ajax",
+      "season": "2023/24",
+      "league": "Eredivisie",
+      "scope": "Previous season · other coaches",
+      "baseline": true,
+      "start": "2023-08-12",
+      "end": "2024-05-19",
+      "games": 34,
+      "wins": 15,
+      "draws": 11,
+      "losses": 8,
+      "points": 56,
+      "ppg": 1.65,
+      "gf": 74,
+      "ga": 61,
+      "gd": 13,
+      "gf_per_game": 2.18,
+      "ga_per_game": 1.79,
+      "clean_sheets": 5,
+      "failed_to_score": 4,
+      "home": {
+        "games": 17,
+        "wins": 9,
+        "draws": 6,
+        "losses": 2,
+        "points": 33,
+        "ppg": 1.94
+      },
+      "away": {
+        "games": 17,
+        "wins": 6,
+        "draws": 5,
+        "losses": 6,
+        "points": 23,
+        "ppg": 1.35
+      },
+      "first_half": {
+        "games": 17,
+        "wins": 8,
+        "draws": 4,
+        "losses": 5,
+        "points": 28,
+        "ppg": 1.65
+      },
+      "second_half": {
+        "games": 17,
+        "wins": 7,
+        "draws": 7,
+        "losses": 3,
+        "points": 28,
+        "ppg": 1.65
+      },
+      "trailing_at_ht": {
+        "games": 9,
+        "wins": 1,
+        "draws": 1,
+        "losses": 7,
+        "points": 4,
+        "ppg": 0.44
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=194&season=2023&status=FT",
+      "retrieved_at": "2026-09-09T23:13:19.808Z",
+      "sha256": "205dfc6740b3e098a3f856158d5f11247dd1a700b9781c526bf3569198a4eb44"
+    },
+    {
+      "id": "farioli-ajax-2024-Full league season",
+      "coach_key": "farioli",
+      "club": "Ajax",
+      "season": "2024/25",
+      "league": "Eredivisie",
+      "scope": "Full league season",
+      "baseline": false,
+      "start": "2024-08-11",
+      "end": "2025-05-18",
+      "games": 34,
+      "wins": 24,
+      "draws": 6,
+      "losses": 4,
+      "points": 78,
+      "ppg": 2.29,
+      "gf": 67,
+      "ga": 32,
+      "gd": 35,
+      "gf_per_game": 1.97,
+      "ga_per_game": 0.94,
+      "clean_sheets": 16,
+      "failed_to_score": 2,
+      "home": {
+        "games": 17,
+        "wins": 13,
+        "draws": 3,
+        "losses": 1,
+        "points": 42,
+        "ppg": 2.47
+      },
+      "away": {
+        "games": 17,
+        "wins": 11,
+        "draws": 3,
+        "losses": 3,
+        "points": 36,
+        "ppg": 2.12
+      },
+      "first_half": {
+        "games": 17,
+        "wins": 12,
+        "draws": 3,
+        "losses": 2,
+        "points": 39,
+        "ppg": 2.29
+      },
+      "second_half": {
+        "games": 17,
+        "wins": 12,
+        "draws": 3,
+        "losses": 2,
+        "points": 39,
+        "ppg": 2.29
+      },
+      "trailing_at_ht": {
+        "games": 3,
+        "wins": 1,
+        "draws": 1,
+        "losses": 1,
+        "points": 4,
+        "ppg": 1.33
+      },
+      "source_url": "https://v3.football.api-sports.io/fixtures?team=194&season=2024&status=FT",
+      "retrieved_at": "2026-09-09T23:13:26.929Z",
+      "sha256": "23291012346cbb4ddcb51200efe1a12c1183354ea0f7369ab5604f408025dc18"
+    }
+  ],
+  "notes": {
+    "de-zerbi": {
+      "signal": "Different outcomes in different environments",
+      "support": "Brighton’s 48 points in 2023/24 and Marseille’s 65 in 2024/25 give us two complete league samples. The Marseille attack scored 74 times. That supports investigating attacking implementation across clubs.",
+      "challenge": "Brighton took 30 points from the first 19 league games and 18 from the second 19. The incumbent benchmark needs to address sustaining output, not just a convincing football idea. These leagues and squads are different.",
+      "question": "Which changes sustained chance creation, and which depended on squad availability or opposition?"
+    },
+    "mckenna": {
+      "signal": "Strong promotion evidence; top-flight test unresolved",
+      "support": "Ipswich earned 98 points in League One and 96 in the Championship, scoring 101 and 92 goals respectively. This is a concrete reason to research development, attacking organisation and installation of a model.",
+      "challenge": "In the 2024/25 Premier League they took 22 points from 38 games and conceded 82 goals. The division change prevents a simple before/after verdict, but it directly challenges an immediate top-flight stabilisation case.",
+      "question": "What would he change about defensive protection and adaptation speed with a different squad?"
+    },
+    "hoeness": {
+      "signal": "A real turnaround, followed by a substantial drop",
+      "support": "Stuttgart earned 20 points in 26 league games before the April 2023 appointment and 13 in the final eight under Hoeneß. The following full season brought 73 points and a +39 goal difference.",
+      "challenge": "The next league season produced 50 points and +11. The initial eight-game sample is small; recruitment, departures, availability and Europe must be examined before attributing the changes to coaching.",
+      "question": "Which parts of the improvement survived changes to the squad and schedule?"
+    },
+    "knutsen": {
+      "signal": "Repeated domestic output; transferability still open",
+      "support": "Bodø/Glimt recorded 70 points and 78 goals in 2023, then 62 points and 71 goals in 2024, both over 30 league games. Goals conceded fell from 38 to 31.",
+      "challenge": "These are Norwegian calendar-year seasons in an established club setting. A higher points-per-game figure is not evidence that he is a better Premier League appointment than the other coaches.",
+      "question": "What can be installed in six weeks outside the supporting system in which those results were achieved?"
+    },
+    "silva": {
+      "signal": "A steadier Premier League comparison",
+      "support": "Fulham took 52, 47 and 54 points in the three league seasons from 2022/23 to 2024/25. This provides three complete samples in the competition relevant to the mandate.",
+      "challenge": "The corresponding goal differences were +2, −6 and 0. That supports a practical league benchmark, but does not establish the attacking ceiling or improvement Tottenham would require.",
+      "question": "What would materially raise performance beyond a stable mid-table level?"
+    },
+    "terzic": {
+      "signal": "Look beyond the memorable European run",
+      "support": "Dortmund earned 71 league points in 2022/23 and 63 in 2023/24. Their own annual report confirms the latter season also included a Champions League final.",
+      "challenge": "League goals scored fell from 83 to 68 while goals conceded were almost unchanged, 44 to 43. Knockout progress and weekly attacking output should be assessed separately.",
+      "question": "How would he create consistently against opponents who concede territory?"
+    },
+    "farioli": {
+      "signal": "A measurable defensive improvement",
+      "support": "Ajax went from 56 points and 61 goals conceded in 2023/24 under other coaches to 78 points and 32 conceded in Farioli’s 2024/25 season. Nice’s preceding season under him also finished with only 29 conceded in 34 games.",
+      "challenge": "Ajax’s league goals scored fell from 74 to 67. The improvement supports a defensive-control research case more directly than an attacking-uplift claim. Squad changes and the club’s resources remain unadjusted.",
+      "question": "Can stronger control be combined with the chance creation this Tottenham scenario needs?"
+    }
+  },
+  "sources": [
+    {
+      "coach": "de-zerbi",
+      "title": "Brighton: 2023/24 analytical review",
+      "url": "https://www.brightonandhovealbion.com/media-article/Albion-Analytics%27-202324-season-review",
+      "note": "Club-published contextual analysis; checks the first/second-half points split and discusses fixture load."
+    },
+    {
+      "coach": "de-zerbi",
+      "title": "Ligue 1: Marseille’s six-place improvement",
+      "url": "https://ligue1.com/fr/articles/l1_article_2628-plus-fortes-progressions-ou-se-situent-les-performances-de-l-om-et-strasbourg-l1",
+      "note": "Independent competition account of the 2024/25 improvement; fixture totals are derived separately from the provider."
+    },
+    {
+      "coach": "mckenna",
+      "title": "Premier League: Ipswich promotion table",
+      "url": "https://www.premierleague.com/en/news/3993185",
+      "note": "Confirms 46 games, 28 wins, 12 draws, six losses and 96 Championship points."
+    },
+    {
+      "coach": "mckenna",
+      "title": "Premier League: Ipswich tactical data, 2023/24",
+      "url": "https://www.premierleague.com/en/news/4034722",
+      "note": "Published 1 July 2024. Season-specific high turnovers, substitute goals and set-play output; not a current performance feed."
+    },
+    {
+      "coach": "hoeness",
+      "title": "Stuttgart: April 2023 appointment",
+      "url": "https://www.vfb.de/en/vfb/latest/news/professionals/2223/sebastian-hoeness-uebernimmt-als-cheftrainer/",
+      "note": "Sets the coaching-spell boundary. Relegation play-offs are excluded from the league split."
+    },
+    {
+      "coach": "hoeness",
+      "title": "Bundesliga: final 2024/25 table",
+      "url": "https://www.bundesliga.com/de/bundesliga/tabelle/2024-2025/6/table",
+      "note": "Checks Stuttgart’s 34 games, 50 points and 64:53 goals."
+    },
+    {
+      "coach": "silva",
+      "title": "Premier League: Fulham’s final 2024/25 match",
+      "url": "https://www.premierleague.com/en/news/4320894/report",
+      "note": "Confirms Fulham’s final 54 points and 11th place. Position is contextual, not used in a cross-league score."
+    },
+    {
+      "coach": "terzic",
+      "title": "Dortmund: 2023/24 annual report, sporting results",
+      "url": "https://bericht.bvb.de/geschaeftsbericht/2023-2024/konzernlagebericht/geschaeftsverlauf/sportliche-entwicklung.html",
+      "note": "Checks both seasons’ league wins, draws, losses, goals and points; separately describes the European run."
+    },
+    {
+      "coach": "knutsen",
+      "title": "Norwegian FA: 2024 final table",
+      "url": "https://www.fotball.no/turneringer/eliteserien/2024/bodoglimt-er-seriemester/",
+      "note": "Checks 30 games, 18 wins, eight draws, four losses, 71:31 goals and 62 points."
+    },
+    {
+      "coach": "farioli",
+      "title": "Ajax: Farioli’s Eredivisie season in numbers",
+      "url": "https://www.ajax.nl/artikelen/dit-was-het-eredivisie-seizoen-onder-francesco-farioli/",
+      "note": "Checks the reduction from 61 to 32 conceded and the points-per-game improvement. Teenagers used is a player count, not a minutes share."
+    },
+    {
+      "coach": "farioli",
+      "title": "Nice: final 2023/24 league position",
+      "url": "https://www.ogcnice.com/fr/article/127094/le-classement-final-de-la-saison-2023-24.html",
+      "note": "Confirms fifth place and 55 points under Farioli."
+    }
+  ],
+  "extras": [
+    {
+      "coach": "mckenna",
+      "title": "An actual tactical reason to investigate",
+      "text": "The Premier League’s 2023/24 analysis reports 382 high turnovers, 77 shots from high turnovers, 23 substitute goals and 19 set-piece goals for Ipswich. Those provide specific questions about pressing, the bench and set-play preparation. They do not prove the same output will transfer to the Premier League.",
+      "source": "https://www.premierleague.com/en/news/4034722"
+    },
+    {
+      "coach": "farioli",
+      "title": "Youth involvement: use the right denominator",
+      "text": "Ajax reports that eight teenagers were used in the 2024/25 Eredivisie season. This is a player count, not a share of minutes. It is a starting point for investigating opportunity, not proof of individual development.",
+      "source": "https://www.ajax.nl/artikelen/dit-was-het-eredivisie-seizoen-onder-francesco-farioli/"
+    },
+    {
+      "coach": "de-zerbi",
+      "title": "Context for the drop in league output",
+      "text": "Brighton’s club review describes the first European campaign, substantial injury disruption and 143 starting-line-up changes in 2023/24. These are reasons to investigate the workload and continuity around the results; they are not an adjustment already applied to the figures.",
+      "source": "https://www.brightonandhovealbion.com/media-article/Albion-Analytics%27-202324-season-review"
+    }
+  ],
+  "quality": {
+    "periods": 19,
+    "club_seasons": 18,
+    "coach_fixture_observations": 648,
+    "unique_fixtures": 640,
+    "checks": [
+      {
+        "period": "de-zerbi-brighton-2023-Full league season",
+        "expected_games": 38,
+        "actual_games": 38,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "de-zerbi-marseille-2024-Full league season",
+        "expected_games": 34,
+        "actual_games": 34,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "mckenna-ipswich-2022-Full league season",
+        "expected_games": 46,
+        "actual_games": 46,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "mckenna-ipswich-2023-Full league season",
+        "expected_games": 46,
+        "actual_games": 46,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "mckenna-ipswich-2024-Full league season",
+        "expected_games": 38,
+        "actual_games": 38,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "hoeness-stuttgart-2022-Before appointment",
+        "expected_games": 26,
+        "actual_games": 26,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "hoeness-stuttgart-2022-After appointment · 8 games",
+        "expected_games": 8,
+        "actual_games": 8,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "hoeness-stuttgart-2023-Full league season",
+        "expected_games": 34,
+        "actual_games": 34,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "hoeness-stuttgart-2024-Full league season",
+        "expected_games": 34,
+        "actual_games": 34,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "silva-fulham-2022-Full league season",
+        "expected_games": 38,
+        "actual_games": 38,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "silva-fulham-2023-Full league season",
+        "expected_games": 38,
+        "actual_games": 38,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "silva-fulham-2024-Full league season",
+        "expected_games": 38,
+        "actual_games": 38,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "terzic-dortmund-2022-Full league season",
+        "expected_games": 34,
+        "actual_games": 34,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "terzic-dortmund-2023-Full league season",
+        "expected_games": 34,
+        "actual_games": 34,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "knutsen-bodo-2023-Full league season",
+        "expected_games": 30,
+        "actual_games": 30,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "knutsen-bodo-2024-Full league season",
+        "expected_games": 30,
+        "actual_games": 30,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "farioli-nice-2023-Full league season",
+        "expected_games": 34,
+        "actual_games": 34,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "farioli-ajax-2023-Previous season · other coaches",
+        "expected_games": 34,
+        "actual_games": 34,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      },
+      {
+        "period": "farioli-ajax-2024-Full league season",
+        "expected_games": 34,
+        "actual_games": 34,
+        "duplicate_ids": 0,
+        "missing_scores": 0,
+        "invalid_scores": 0
+      }
+    ],
+    "source_files": {
+      "brighton-2023-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=51&season=2023&status=FT",
+        "retrieved_at": "2026-09-09T23:11:32.312Z",
+        "sha256": "fb6c7d153fe7d07274f4967e838afe63b739565715d88e7b9e3dd94b028a122f",
+        "excluded_rows": 16
+      },
+      "marseille-2024-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=81&season=2024&status=FT",
+        "retrieved_at": "2026-09-09T23:11:39.469Z",
+        "sha256": "22113fa650623852607ca0b69b3160f8d38317a39f36a08f0d5bcc1432b534d0",
+        "excluded_rows": 6
+      },
+      "ipswich-2022-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=57&season=2022&status=FT",
+        "retrieved_at": "2026-09-09T23:11:46.675Z",
+        "sha256": "9bb5b46b3e5ff94b1225a6a9ecd4f40e1f13db46ea83045a4c1fdaea5d637994",
+        "excluded_rows": 15
+      },
+      "ipswich-2023-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=57&season=2023&status=FT",
+        "retrieved_at": "2026-09-09T23:11:53.804Z",
+        "sha256": "5646683962220690816b08bcf8c8116ea23d07a91d9d7e974fd9bd955725b073",
+        "excluded_rows": 13
+      },
+      "ipswich-2024-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=57&season=2024&status=FT",
+        "retrieved_at": "2026-09-09T23:12:00.940Z",
+        "sha256": "89200c98958e3e39271eab747a1b98068defb49b4e9549c2a0dbe569aff7586b",
+        "excluded_rows": 5
+      },
+      "stuttgart-2022-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=172&season=2022&status=FT",
+        "retrieved_at": "2026-09-09T23:12:08.283Z",
+        "sha256": "c8c4383297efa7a0bfa312554ca7fecdea33ad91c477c100bd8623b477081f98",
+        "excluded_rows": 15
+      },
+      "stuttgart-2023-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=172&season=2023&status=FT",
+        "retrieved_at": "2026-09-09T23:12:15.501Z",
+        "sha256": "035e08c3be9c7776a911f96addfd19448ab63fc75c6b4b665ef492662a6fd743",
+        "excluded_rows": 13
+      },
+      "stuttgart-2024-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=172&season=2024&status=FT",
+        "retrieved_at": "2026-09-09T23:12:22.656Z",
+        "sha256": "271101208f1447af249f57f43fab76211d3b6ff0d1c152370414b37b47d71957",
+        "excluded_rows": 22
+      },
+      "fulham-2022-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=36&season=2022&status=FT",
+        "retrieved_at": "2026-09-09T23:12:29.813Z",
+        "sha256": "064fceffb8e84a21dda833398e021d1943c2e92144d020281c80e4958b6b439e",
+        "excluded_rows": 11
+      },
+      "fulham-2023-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=36&season=2023&status=FT",
+        "retrieved_at": "2026-09-09T23:12:36.943Z",
+        "sha256": "9b4a03b63e3ace9ab6d30deccf306f0e2ee2dcd393e8a0864ec11f816664908c",
+        "excluded_rows": 10
+      },
+      "fulham-2024-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=36&season=2024&status=FT",
+        "retrieved_at": "2026-09-09T23:12:44.079Z",
+        "sha256": "335cdc95587a1f2b12061e10a082a7424823493ff14776dcc8f4083d27034328",
+        "excluded_rows": 7
+      },
+      "dortmund-2022-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=165&season=2022&status=FT",
+        "retrieved_at": "2026-09-09T23:12:51.223Z",
+        "sha256": "953decff8e19ffddcfd44cb5616de6cc22eb929a6fcde55ebd7386855e28757d",
+        "excluded_rows": 23
+      },
+      "dortmund-2023-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=165&season=2023&status=FT",
+        "retrieved_at": "2026-09-09T23:12:58.356Z",
+        "sha256": "2bab6dd46168f791c3d2e727c127178ae9efcdb62bdb7b55905b56dc3bf2f6f3",
+        "excluded_rows": 27
+      },
+      "bodo-2023-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=327&season=2023&status=FT",
+        "retrieved_at": "2026-09-09T23:13:05.505Z",
+        "sha256": "cefc9db4b1c264fe907e22e9ca2cd6dfde4ac1cb91c5d1a6d5b4a1df701de8ba",
+        "excluded_rows": 27
+      },
+      "bodo-2024-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=327&season=2024&status=FT",
+        "retrieved_at": "2026-09-09T23:13:12.651Z",
+        "sha256": "fd683738df4632acbc676309ab935226585830aed706ee19c3d3c3ace46c83a1",
+        "excluded_rows": 30
+      },
+      "nice-2023-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=84&season=2023&status=FT",
+        "retrieved_at": "2026-09-09T23:13:34.070Z",
+        "sha256": "5f36e3f6ab68e8721e3395ec68821ce70d0100ffeb387a6283f43f5bf923f2aa",
+        "excluded_rows": 8
+      },
+      "ajax-2023-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=194&season=2023&status=FT",
+        "retrieved_at": "2026-09-09T23:13:19.808Z",
+        "sha256": "205dfc6740b3e098a3f856158d5f11247dd1a700b9781c526bf3569198a4eb44",
+        "excluded_rows": 17
+      },
+      "ajax-2024-fixtures.json": {
+        "url": "https://v3.football.api-sports.io/fixtures?team=194&season=2024&status=FT",
+        "retrieved_at": "2026-09-09T23:13:26.929Z",
+        "sha256": "23291012346cbb4ddcb51200efe1a12c1183354ea0f7369ab5604f408025dc18",
+        "excluded_rows": 25
+      }
+    }
+  },
+  "limitations": [
+    "The free API plan rejected the 2025 season request. This dataset does not establish 2025/26 or current 2026/27 performance.",
+    "League results only. Friendlies, domestic cups, European matches and relegation play-offs are excluded.",
+    "Points per game = (3 × wins + draws) ÷ games. It is not adjusted for resources or league strength.",
+    "A club result is not a causal estimate of the head coach’s impact. No wage, transfer-spend, injury, opposition-strength or expected-goals adjustment has been applied.",
+    "Half-time recovery means results in matches where the team trailed at the interval. It is not points recovered from every losing position and does not measure substitution quality.",
+    "Data does not establish private character, training quality, candidate interest or appointment feasibility."
+  ]
+}

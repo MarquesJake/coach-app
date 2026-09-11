@@ -1,0 +1,4 @@
+create index club_brief_amendments_requested_by_idx on public.club_brief_amendments(requested_by);
+create index club_brief_amendments_reviewed_by_idx on public.club_brief_amendments(reviewed_by);
+create index coach_research_questions_created_by_idx on public.coach_research_questions(created_by);
+create index coach_research_questions_updated_by_idx on public.coach_research_questions(updated_by);

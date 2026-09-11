@@ -26,13 +26,16 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const { data: coach, error } = await getCoachById(user.id, params.id)
+  const { data: coach, error } = await getCoachById(params.id)
   if (error || !coach) {
     return new Response('Not found', { status: 404 })
   }
 
   const c = coach as Record<string, unknown>
-  const name = escapeHtml((c.preferred_name ?? c.name) as string) || 'Coach'
+  // Full name first: preferred_name is a short known-as form ("Kieran") and
+  // does not identify the coach on a document that leaves the app. Kept raw
+  // here and escaped once at output.
+  const name = ((c.name ?? c.preferred_name) as string | null)?.trim() || 'Coach'
 
   const derivedMetricsQuery = supabase.from('coach_derived_metrics').select('*').eq('coach_id', params.id).maybeSingle()
   const [{ data: stints }, { data: derivedRow }, { data: evidence }] = await Promise.all([
@@ -52,7 +55,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Coach Dossier – ${escapeHtml(name)}</title>
+  <title>Profile report – ${escapeHtml(name)}</title>
   <style>
     body { font-family: system-ui, sans-serif; font-size: 12px; line-height: 1.4; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 24px; }
     h1 { font-size: 18px; margin: 0 0 8px; }
@@ -62,12 +65,14 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     th { font-weight: 600; color: #666; }
     .muted { color: #666; }
     .score { font-weight: 600; }
+    .note { border-left: 3px solid #b45309; background: #fffbeb; padding: 8px 12px; color: #78350f; }
     @media print { body { padding: 16px; } }
   </style>
 </head>
 <body>
-  <h1>Coach Dossier</h1>
-  <p class="muted">${escapeHtml(name)} · Generated for board use</p>
+  <h1>Profile report: ${escapeHtml(name)}</h1>
+  <p class="muted">Internal working copy · Generated ${escapeHtml(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}</p>
+  <p class="note">Scores below are values recorded on the profile. They are not reviewed assessments and are not an appointment recommendation. Use the appointment board pack for decision material.</p>
 
   <h2>Executive Summary</h2>
   <table>

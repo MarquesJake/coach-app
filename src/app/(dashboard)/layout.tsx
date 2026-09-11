@@ -6,6 +6,7 @@ import {
   resolveWorkspaceHome,
 } from '@/lib/organizations/access'
 import { Sidebar } from './_components/sidebar'
+import { DemoNotice } from '@/components/demo-notice'
 
 export default async function DashboardLayout({
   children,
@@ -35,11 +36,14 @@ export default async function DashboardLayout({
   // analyst joins a populated application rather than an empty setup form.
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="gaffa-workspace min-h-screen bg-background">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-card focus:p-3">Skip to content</a>
       <Sidebar />
-      <div className="pt-14 md:pl-[220px] md:pt-0">
-        <main className="min-h-screen">
-          <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 sm:py-6">
+      <div className="pt-14 md:pl-[220px] md:pt-0 print:!pl-0 print:!pt-0">
+        <main id="main-content" tabIndex={-1} className="min-h-screen min-w-0">
+          <div className="gaffa-content">
+            <DemoNotice />
+            <p className="gaffa-notice"><strong>Prototype</strong><span>Imported facts and appointment scenarios need review.</span><a href="/investor-guide" className="underline underline-offset-2">Sources and limitations</a></p>
             {children}
           </div>
         </main>

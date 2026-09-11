@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { captureAgentResult } from '@/lib/agents/forms'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
@@ -31,39 +32,44 @@ export function AgentClubsClient({
   const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [form, setForm] = useState({ club_id: '', relationship_type: 'Intermediary', relationship_strength: 60, last_active_on: '', notes: '' })
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [form, setForm] = useState({ club_id: '', relationship_type: 'Intermediary', relationship_strength: '', last_active_on: '', notes: '' })
 
   const linkedClubIds = links.map((l) => l.club_id)
   const availableClubs = clubsOptions.filter((c) => !linkedClubIds.includes(c.id))
 
   async function handleAdd() {
+    if (submitting) return
     if (!form.club_id.trim()) {
       toastError('Select a club')
       return
     }
     setSubmitting(true)
-    const result = await upsertAgentClubRelationshipAction({
+    setSaveError(null)
+    const result = await captureAgentResult(() => upsertAgentClubRelationshipAction({
       agent_id: agentId,
       club_id: form.club_id,
       relationship_type: form.relationship_type,
-      relationship_strength: form.relationship_strength,
+      relationship_strength: form.relationship_strength === '' ? null : Number(form.relationship_strength),
       last_active_on: form.last_active_on.trim() || null,
       notes: form.notes.trim() || null,
-    })
+    }))
     setSubmitting(false)
     if (!result.ok) {
+      setSaveError(result.error)
       toastError(result.error)
       return
     }
     toastSuccess('Relationship saved')
     setDrawerOpen(false)
-    setForm({ club_id: '', relationship_type: 'Intermediary', relationship_strength: 60, last_active_on: '', notes: '' })
+    setForm({ club_id: '', relationship_type: 'Intermediary', relationship_strength: '', last_active_on: '', notes: '' })
     router.refresh()
   }
 
   async function handleDelete(linkId: string, clubId: string) {
     if (!confirm('Remove this club relationship?')) return
-    const result = await deleteAgentClubRelationshipAction(linkId, agentId, clubId)
+    const result = await captureAgentResult(() => deleteAgentClubRelationshipAction(linkId, agentId, clubId))
+    setSaveError(result.ok ? null : result.error)
     if (!result.ok) toastError(result.error)
     else {
       toastSuccess('Relationship removed')
@@ -73,6 +79,7 @@ export function AgentClubsClient({
 
   return (
     <div className="space-y-4">
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <div className="flex justify-end">
         <Button variant="outline" className="text-xs" onClick={() => setDrawerOpen(true)} disabled={availableClubs.length === 0}>
           <Plus className="w-4 h-4 mr-1" />
@@ -80,11 +87,12 @@ export function AgentClubsClient({
         </Button>
       </div>
       <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <p className="p-3 text-xs text-muted-foreground">Ratings are recorded analyst estimates, not verified facts. Manage records in the <Link className="text-primary underline" href="/clubs">directory</Link>.</p>
         {links.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">No clubs linked. Add a club relationship above.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[680px] text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface/50">
                   <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">Club</th>
@@ -124,6 +132,7 @@ export function AgentClubsClient({
         <Button onClick={handleAdd} disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</Button>
       }>
         <div className="space-y-4">
+          {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Club</label>
             <select value={form.club_id} onChange={(e) => setForm((f) => ({ ...f, club_id: e.target.value }))} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm">
@@ -143,7 +152,7 @@ export function AgentClubsClient({
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Strength (0–100)</label>
-            <input type="range" min={0} max={100} value={form.relationship_strength} onChange={(e) => setForm((f) => ({ ...f, relationship_strength: parseInt(e.target.value, 10) }))} className="w-full" />
+            <input aria-label="Recorded relationship strength, optional" type="number" min={0} max={100} value={form.relationship_strength} onChange={(e) => setForm((f) => ({ ...f, relationship_strength: e.target.value }))} placeholder="Not recorded" className="w-full rounded border border-border bg-background px-3 py-2" />
             <span className="text-xs text-muted-foreground">{form.relationship_strength}</span>
           </div>
           <div>

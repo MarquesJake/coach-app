@@ -24,7 +24,7 @@ async function claimInvitation(tokenHash: string): Promise<CompleteCoachInvitati
   })
   if (error) {
     await supabase.auth.signOut()
-    return { ok: false, error: error.message }
+    return { ok: false, error: 'This invitation could not be accepted. Confirm the invited account or ask Gaffa to check the link.' }
   }
   await supabase.rpc('record_coach_first_login')
   return { ok: true }
@@ -66,14 +66,14 @@ export async function completeCoachInvitationAction(
         emailRedirectTo: `${await siteOrigin()}/auth/callback?next=${encodeURIComponent(`/coach/invite/${rawToken}`)}`,
       },
     })
-    if (error) return { ok: false, error: error.message }
+    if (error) return { ok: false, error: 'Account setup could not be confirmed. Try existing-account sign in or recovery, or ask your Gaffa contact for help.' }
     if (!data.session) return { ok: true, checkEmail: true }
     return claimInvitation(tokenHash)
   }
 
   if (mode === 'sign_in') {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { ok: false, error: error.message }
+    if (error) return { ok: false, error: 'Sign-in failed. Check the invited email and password, then retry.' }
     return claimInvitation(tokenHash)
   }
 
@@ -81,6 +81,6 @@ export async function completeCoachInvitationAction(
 }
 
 export async function signOutFromCoachInvitationAction() {
-  await (await createServerSupabaseClient()).auth.signOut()
-  return { ok: true }
+  const { error } = await (await createServerSupabaseClient()).auth.signOut()
+  return { ok: !error }
 }

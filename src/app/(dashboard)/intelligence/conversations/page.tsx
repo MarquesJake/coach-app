@@ -1,14 +1,19 @@
 import Link from 'next/link'
+import { readResearchContext, contextFromResearchNote, researchHref, type ResearchParams } from '@/lib/research-context'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { formatEnumLabel } from '@/lib/intelligence/display'
 import { ConversationCaptureClient } from '../_components/conversation-capture-client'
 
+export const metadata = { title: 'Conversations · Research & sources' }
+
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export default async function ConversationsPage(props: { searchParams?: Promise<{ coach?: string; contact?: string }> }) {
+export default async function ConversationsPage(props: { searchParams?: Promise<ResearchParams> }) {
   const searchParams = await props.searchParams;
+  const context = readResearchContext(searchParams ?? {})
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -30,10 +35,12 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
     if (['accepted', 'applied'].includes(claim.review_status)) current.accepted += 1
     claimCounts.set(claim.session_id, current)
   }
-  const selectedCoachId = (coaches ?? []).some((coach) => coach.id === searchParams?.coach) ? searchParams?.coach : undefined
-  const selectedContactId = (contacts ?? []).some((contact: { id: string }) => contact.id === searchParams?.contact) ? searchParams?.contact : undefined
+  const selectedCoachId = (coaches ?? []).some((coach) => coach.id === context.coach) ? context.coach : undefined
+  const selectedContactId = typeof searchParams?.contact === 'string' && (contacts ?? []).some((contact: { id: string }) => contact.id === searchParams.contact) ? searchParams.contact : undefined
+  const sessionHref = (session: Record<string, any>, path: string) => researchHref(path, { ...contextFromResearchNote(session.analyst_notes), coach: session.coach_id ?? undefined })
   return (
     <div className="space-y-4">
+      <h1 className="sr-only">Source conversations</h1>
       <ConversationCaptureClient
         organizationId={organizationId}
         contacts={contacts ?? []}
@@ -50,7 +57,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <Link
-                    href={`/intelligence/review?session=${session.id}`}
+                    href={sessionHref(session, `/intelligence/review?session=${session.id}`)}
                     className="font-medium hover:text-primary"
                   >
                     {String(session.title)}
@@ -76,7 +83,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
                   <dd className="mt-0.5">
                     {session.coach_id ? (
                       <Link
-                        href={`/coaches/${session.coach_id}/intelligence`}
+                        href={sessionHref(session, `/coaches/${session.coach_id}/intelligence`)}
                         className="hover:text-primary"
                       >
                         {String(coachMap.get(session.coach_id) || 'Coach')}
@@ -88,7 +95,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
                 </div>
               </dl>
               <Link
-                href={`/intelligence/review?session=${session.id}`}
+                href={sessionHref(session, `/intelligence/review?session=${session.id}`)}
                 className="mt-4 inline-flex text-xs font-medium text-primary"
               >
                 Review findings · {counts.accepted}/{counts.total} reviewed
@@ -121,7 +128,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
                 <tr key={session.id}>
                   <td className="px-4 py-3">
                     <Link
-                      href={`/intelligence/review?session=${session.id}`}
+                      href={sessionHref(session, `/intelligence/review?session=${session.id}`)}
                       className="font-medium hover:text-primary"
                     >
                       {String(session.title)}
@@ -137,7 +144,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
                   <td className="px-4 py-3">
                     {session.coach_id ? (
                       <Link
-                        href={`/coaches/${session.coach_id}/intelligence`}
+                        href={sessionHref(session, `/coaches/${session.coach_id}/intelligence`)}
                         className="hover:text-primary"
                       >
                         {String(coachMap.get(session.coach_id) || 'Coach')}

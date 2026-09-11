@@ -83,7 +83,7 @@ test('active internal membership is the sole grant of analyst entry', () => {
     const access = classifyOrganizationAccess([{ role, status: 'active' }])
     assert.equal(canEnterAnalystApplication(access), true, `${role} should enter`)
     assert.equal(access.hasNoWorkspaceIdentity, false)
-    assert.equal(resolveWorkspaceHome(access), '/dashboard/overview')
+    assert.equal(resolveWorkspaceHome(access), '/dashboard')
   }
 })
 

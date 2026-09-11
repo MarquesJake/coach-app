@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, TrendingUp, TrendingDown, Minus, Plus, Trash2 } from 'lucide-react'
+import { assertRouteQueries } from '@/lib/coaches/route-audit'
 import { cn } from '@/lib/utils'
 
 type SeasonRow = {
@@ -63,7 +64,7 @@ function positionOrdinal(n: number) {
 }
 
 function formatFee(amount: number | null, currency: string | null) {
-  if (!amount) return null
+  if (amount == null) return null
   const m = amount / 1_000_000
   return `${currency ?? '€'}${m >= 1 ? m.toFixed(1) + 'M' : (amount / 1000).toFixed(0) + 'K'}`
 }
@@ -82,6 +83,10 @@ export default function ClubPathwayPage() {
   const [transfers, setTransfers] = useState<TransferRow[]>([])
   const [pathwayRows, setPathwayRows] = useState<PathwayRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadedClub, setLoadedClub] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [reload, setReload] = useState(0)
   const [transferFilter, setTransferFilter] = useState<'all' | 'in' | 'out'>('all')
   const [seasonFilter, setSeasonFilter] = useState<string>('all')
   const [transferLimit, setTransferLimit] = useState(50)
@@ -92,9 +97,13 @@ export default function ClubPathwayPage() {
   })
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setLoadError(null)
     async function load() {
+      try {
       const supabase = createClient()
-      const [{ data: seasonData }, { data: transferData }, { data: pathwayData }] = await Promise.all([
+      const [{ data: seasonData, error: seasonError }, { data: transferData, error: transferError }, { data: pathwayData, error: pathwayError }] = await Promise.all([
         supabase
           .from('club_season_results')
           .select('id, season, league_label, league_position, points, goals_for, goals_against, data_source')
@@ -111,15 +120,24 @@ export default function ClubPathwayPage() {
           .eq('club_id', clubId)
           .order('season', { ascending: false }),
       ])
+      assertRouteQueries('Club pathway', { error: seasonError }, { error: transferError }, { error: pathwayError })
+      if (cancelled) return
       setResults((seasonData ?? []) as SeasonRow[])
       setTransfers((transferData ?? []) as TransferRow[])
       setPathwayRows((pathwayData ?? []) as PathwayRow[])
-      setLoading(false)
+      } catch {
+        if (!cancelled) setLoadError('Records could not be loaded. Retry before relying on this view.')
+      } finally {
+        if (!cancelled) { setLoadedClub(clubId); setLoading(false) }
+      }
     }
-    load()
-  }, [clubId])
+    void load()
+    return () => { cancelled = true }
+  }, [clubId, reload])
 
-  if (loading) {
+  if (loadError && loadedClub === clubId) return <div role="alert" className="p-6 space-y-3"><p>{loadError}</p><button type="button" onClick={() => setReload(value => value + 1)} className="underline">Retry loading</button></div>
+
+  if (loading || loadedClub !== clubId) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -160,10 +178,12 @@ export default function ClubPathwayPage() {
   async function handleAddPathway() {
     if (!pathwayForm.season.trim()) return
     setSavingPathway(true)
+    setActionError(null)
+    try {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setSavingPathway(false); return }
-    const { data } = await supabase.from('club_pathway_data').upsert({
+    if (!user) throw new Error('Sign in again before saving.')
+    const { data, error } = await supabase.from('club_pathway_data').upsert({
       user_id: user.id,
       club_id: clubId,
       season: pathwayForm.season.trim(),
@@ -172,6 +192,8 @@ export default function ClubPathwayPage() {
       internal_promotions: pathwayForm.internal_promotions ? parseInt(pathwayForm.internal_promotions) : null,
       notes: pathwayForm.notes.trim() || null,
     }, { onConflict: 'club_id,season' }).select().single()
+    if (error || !data) throw new Error('Save failed')
+    if (error || !data) throw new Error('Save failed')
     if (data) {
       setPathwayRows(prev => {
         const existing = prev.findIndex(r => r.season === data.season)
@@ -181,18 +203,25 @@ export default function ClubPathwayPage() {
     }
     setPathwayForm({ season: '', academy_debuts: '', u21_minutes_percentage: '', internal_promotions: '', notes: '' })
     setShowPathwayForm(false)
-    setSavingPathway(false)
+    } catch {
+      setActionError('Save could not be confirmed. Your entries have been kept; check before retrying.')
+    } finally { setSavingPathway(false) }
   }
 
   async function handleDeletePathway(id: string) {
     if (!confirm('Remove this pathway record?')) return
-    const supabase = createClient()
-    await supabase.from('club_pathway_data').delete().eq('id', id)
-    setPathwayRows(prev => prev.filter(r => r.id !== id))
+    setActionError(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('club_pathway_data').delete().eq('id', id)
+      if (error) throw error
+      setPathwayRows(prev => prev.filter(r => r.id !== id))
+    } catch { setActionError('Removal could not be confirmed. Reload before retrying.') }
   }
 
   return (
     <div className="space-y-6">
+      {actionError && <p role="alert" className="text-sm text-red-400">{actionError}</p>}
 
       {/* League journey */}
       <section className="rounded-lg border border-border bg-card overflow-hidden">
@@ -207,7 +236,7 @@ export default function ClubPathwayPage() {
             <p className="text-xs text-muted-foreground mt-1">Run standings sync to pull historical data.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div role="region" aria-label="Club records" tabIndex={0} className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface/50">
@@ -328,7 +357,7 @@ export default function ClubPathwayPage() {
             <p className="text-xs text-muted-foreground mt-1">Add season-by-season academy metrics above.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div role="region" aria-label="Club records" tabIndex={0} className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface/50">
@@ -368,8 +397,8 @@ export default function ClubPathwayPage() {
                     </td>
                     <td className="px-5 py-3 text-muted-foreground text-xs max-w-xs truncate">{row.notes ?? '—'}</td>
                     <td className="px-3 py-3">
-                      <button onClick={() => handleDeletePathway(row.id)}
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-400 transition-all">
+                      <button aria-label="Remove pathway record" onClick={() => handleDeletePathway(row.id)}
+                        className="opacity-100 text-muted-foreground hover:text-red-400 transition-all">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
@@ -432,7 +461,7 @@ export default function ClubPathwayPage() {
             <p className="text-sm text-muted-foreground">No transfers match the current filter.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div role="region" aria-label="Club records" tabIndex={0} className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface/50">

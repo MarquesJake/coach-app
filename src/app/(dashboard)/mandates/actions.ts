@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { getMandateDetailForUser } from '@/lib/db/mandate'
-import { getDefaultPipelineStage, isValidPipelineStage, MANDATE_PIPELINE_STAGES, sanitisePipelineStage } from '@/lib/constants/mandateStages'
+import { getMandateDetail } from '@/lib/db/mandate'
+import { getDefaultPipelineStage, MANDATE_PIPELINE_STAGES, sanitisePipelineStage } from '@/lib/constants/mandateStages'
+import { moveMandateRecord, deleteMandateRecord } from '@/lib/mandates/board-mutations'
 import { logActivity } from '@/lib/db/activity'
 import type { Database } from '@/lib/types/db'
 
@@ -84,12 +85,12 @@ function isUuid(value: string): boolean {
 
 /** Delete a mandate (ownership checked). Returns { ok: true } or { ok: false, error: string }. */
 export async function deleteMandateAction(mandateId: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
   if (!isUuid(mandateId)) return { ok: false, error: 'Invalid mandate' }
-  const { mandateResult } = await getMandateDetailForUser(user.id, mandateId)
+  const { mandateResult } = await getMandateDetail(mandateId)
   if (mandateResult.error || !mandateResult.data) return { ok: false, error: 'Mandate not found or access denied' }
-  const { error: deleteError } = await supabase.from('mandates').delete().eq('id', mandateId)
-  if (deleteError) return { ok: false, error: deleteError.message }
+  const result = await deleteMandateRecord(supabase, mandateId)
+  if (!result.ok) return result
   revalidatePath('/mandates')
   return { ok: true }
 }
@@ -549,30 +550,27 @@ export async function updateMandateAction(formData: FormData) {
 
 export async function updateMandateStageAction(
   mandateId: string,
-  pipelineStage: string
+  pipelineStage: string,
+  expectedStage?: string | null
 ): Promise<{ error?: string }> {
   try {
     const { supabase } = await requireUser()
+    if (!isUuid(mandateId)) return { error: 'Invalid mandate' }
+    const result = await moveMandateRecord(supabase, mandateId, pipelineStage, expectedStage)
+    if (result.error) return result
     const sanitized = sanitisePipelineStage(pipelineStage)
-    if (!isValidPipelineStage(sanitized)) {
-      return { error: 'Invalid pipeline stage' }
-    }
-    const { error } = await supabase
-      .from('mandates')
-      .update({ pipeline_stage: sanitized })
-      .eq('id', mandateId)
-    if (error) return { error: error.message }
 
-    await logActivity({
+    try { await logActivity({
       entityType: 'mandate',
       entityId: mandateId,
       actionType: 'stage_changed',
       description: `Pipeline stage updated`,
       metadata: { pipeline_stage: sanitized },
-    })
+    }) } catch { /* Stage persisted; logging failure must not roll back the UI. */ }
 
     revalidatePath('/mandates')
     revalidatePath(`/mandates/${mandateId}`)
+    revalidatePath(`/mandates/${mandateId}/plan`)
     return {}
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Failed to update stage' }
@@ -601,6 +599,7 @@ export async function addCandidateToWorkspaceAction(mandateId: string, coachId: 
   }
 
   revalidatePath(`/mandates/${mandateId}/workspace`)
+  revalidatePath(`/mandates/${mandateId}/candidates`)
   return {}
 }
 
@@ -610,19 +609,25 @@ const NETWORK_SOURCE_VALUES = ['Data search', 'Direct recommendation', 'Network 
 const NETWORK_RELATIONSHIP_VALUES = ['Direct', 'Indirect', 'Cold'] as const
 
 export async function updateShortlistWorkspaceAction(formData: FormData) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
   const shortlistId = toText(formData.get('shortlist_id'))
   const mandateId = toText(formData.get('mandate_id'))
   if (!shortlistId || !mandateId) return { error: 'Missing fields' }
 
-  // Verify ownership
+  const { data: canEdit, error: accessError } = await supabase.rpc('is_internal_operator', {
+    allowed_roles: ['owner', 'admin', 'analyst'],
+  })
+  if (accessError || !canEdit) return { error: 'Internal team access required' }
+
+  // Shared internal work is not restricted to the original record creator.
   const { data: entry } = await supabase
     .from('mandate_shortlist')
-    .select('id, mandates!inner(user_id)')
+    .select('id, status')
     .eq('id', shortlistId)
+    .eq('mandate_id', mandateId)
     .single()
 
-  if (!entry || (entry.mandates as { user_id: string }).user_id !== user.id) {
+  if (!entry) {
     return { error: 'Not found' }
   }
 
@@ -638,33 +643,49 @@ export async function updateShortlistWorkspaceAction(formData: FormData) {
     fit_network: cleanEnum(toText(formData.get('fit_network')), FIT_SIGNAL_VALUES) ?? null,
     fit_notes: cleanText(formData.get('fit_notes')) ?? null,
   }
+  if (formData.has('status')) {
+    const status = cleanEnum(toText(formData.get('status')), SHORTLIST_STATUS_VALUES)
+    if (!status && toText(formData.get('status')) !== entry.status) return { error: 'Choose a valid candidate workflow status.' }
+    if (status) update.status = status
+  }
+  if (formData.has('notes')) update.notes = cleanText(formData.get('notes')) ?? null
 
   const { error } = await supabase
     .from('mandate_shortlist')
     .update(update)
     .eq('id', shortlistId)
+    .eq('mandate_id', mandateId)
+    .select('id')
+    .single()
 
   if (error) return { error: error.message }
 
   revalidatePath(`/mandates/${mandateId}`)
   revalidatePath(`/mandates/${mandateId}/workspace`)
+  revalidatePath(`/mandates/${mandateId}/candidates`)
+  revalidatePath(`/mandates/${mandateId}/decision`)
   return {}
 }
 
 export async function removeShortlistCandidateAction(formData: FormData) {
-  const { supabase, user } = await requireUser()
+  const { supabase } = await requireUser()
   const shortlistId = toText(formData.get('shortlist_id'))
   const mandateId = toText(formData.get('mandate_id'))
   if (!shortlistId || !mandateId) return { error: 'Missing fields' }
 
+  const { data: canEdit, error: accessError } = await supabase.rpc('is_internal_operator', {
+    allowed_roles: ['owner', 'admin', 'analyst'],
+  })
+  if (accessError || !canEdit) return { error: 'Internal team access required' }
+
   const { data: entry } = await supabase
     .from('mandate_shortlist')
-    .select('id, coach_id, mandates!inner(user_id)')
+    .select('id, coach_id')
     .eq('id', shortlistId)
     .eq('mandate_id', mandateId)
     .single()
 
-  if (!entry || (entry.mandates as { user_id: string }).user_id !== user.id) {
+  if (!entry) {
     return { error: 'Not found' }
   }
 
@@ -673,6 +694,8 @@ export async function removeShortlistCandidateAction(formData: FormData) {
     .delete()
     .eq('id', shortlistId)
     .eq('mandate_id', mandateId)
+    .select('id')
+    .single()
 
   if (error) return { error: error.message }
 
@@ -688,5 +711,7 @@ export async function removeShortlistCandidateAction(formData: FormData) {
   revalidatePath(`/mandates/${mandateId}`)
   revalidatePath(`/mandates/${mandateId}/workspace`)
   revalidatePath(`/mandates/${mandateId}/assessment`)
+  revalidatePath(`/mandates/${mandateId}/candidates`)
+  revalidatePath(`/mandates/${mandateId}/decision`)
   return {}
 }

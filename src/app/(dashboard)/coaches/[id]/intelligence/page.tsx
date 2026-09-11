@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import { assertRouteQueries } from '@/lib/coaches/route-audit'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { getCoachById } from '@/lib/db/coaches'
@@ -10,6 +11,9 @@ import {
 } from '@/lib/intelligence/display'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+
+export const metadata = { title: 'Research & sources' }
+
 
 const METHODOLOGY_CRITERIA = [
   'coach_profile',
@@ -34,12 +38,13 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: coach, error } = await getCoachById(user.id, params.id)
-  if (error || !coach) notFound()
+  const { data: coach, error } = await getCoachById(params.id)
+  if (error) throw new Error('Coach profile could not be loaded. Reload before making changes.')
+  if (!coach) notFound()
 
   const organizationId = await getInternalOrganizationId(user.id)
-  const empty = Promise.resolve({ data: [] })
-  const emptyOne = Promise.resolve({ data: null })
+  const empty = Promise.resolve({ data: [], error: null })
+  const emptyOne = Promise.resolve({ data: null, error: null })
   const [signalsRes, claimsRes, sourceRelationshipsRes, claimRelationshipsRes, referenceRoundsRes, benchRes] = await Promise.all([
     supabase
       .from('intelligence_items')
@@ -66,6 +71,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
       : emptyOne,
   ])
 
+  assertRouteQueries('Coach intelligence', signalsRes, claimsRes, sourceRelationshipsRes, claimRelationshipsRes, referenceRoundsRes, benchRes)
   const findings = claimsRes.data ?? []
   const sourceRelationships = sourceRelationshipsRes.data ?? []
   const stakeholderGroups = new Set(sourceRelationships.map((row) => row.stakeholder_group))
@@ -82,7 +88,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
       <section className="border border-border bg-card">
         <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Trusted intelligence</h2>
+            <h2 className="text-sm font-semibold text-foreground">Reviewed findings</h2>
             <p className="text-xs text-muted-foreground">Reviewed human intelligence only. Source identity remains internal.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -94,7 +100,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
 
         <div className="grid divide-y divide-border sm:grid-cols-4 sm:divide-x sm:divide-y-0">
           <div className="p-4"><p className="text-2xl font-semibold">{findings.length}</p><p className="text-xs text-muted-foreground">Findings</p></div>
-          <div className="p-4"><p className="text-2xl font-semibold">{sourceCount}</p><p className="text-xs text-muted-foreground">Independent sources</p></div>
+          <div className="p-4"><p className="text-2xl font-semibold">{sourceCount}</p><p className="text-xs text-muted-foreground">Recorded sources</p></div>
           <div className="p-4"><p className="text-2xl font-semibold">{stakeholderGroups.size}</p><p className="text-xs text-muted-foreground">Stakeholder groups</p></div>
           <div className="p-4"><p className="text-2xl font-semibold">{criteriaCovered.size}/9</p><p className="text-xs text-muted-foreground">Criteria covered</p></div>
         </div>
@@ -133,7 +139,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
 
       <section className="border border-border bg-card">
         <div className="border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-foreground">Latest intel</h2>
+          <h2 className="text-sm font-semibold text-foreground">Latest findings</h2>
           <p className="text-xs text-muted-foreground">Current public or time-sensitive signals. These do not enter an assessment without review.</p>
         </div>
         <div className="divide-y divide-border">

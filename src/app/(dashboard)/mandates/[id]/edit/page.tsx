@@ -2,6 +2,9 @@ import { notFound, redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MandateBuilderForm } from '../../_components/mandate-builder-form'
 
+export const metadata = { title: 'Edit brief' }
+
+
 export default async function MandateEditPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createServerSupabaseClient()
@@ -11,7 +14,7 @@ export default async function MandateEditPage(props: { params: Promise<{ id: str
   const { data: mandate, error } = await supabase
     .from('mandates')
     .select(`
-      id, strategic_objective, tactical_model_required, pressing_intensity_required,
+      id, decision_brief, strategic_objective, tactical_model_required, pressing_intensity_required,
       build_preference_required, leadership_profile_required, budget_band,
       succession_timeline, board_risk_appetite, language_requirements, relocation_required,
       service_model, engagement_owner,
@@ -37,6 +40,7 @@ export default async function MandateEditPage(props: { params: Promise<{ id: str
         clubName={clubName}
         backHref={`/mandates/${params.id}/plan`}
         initialValues={{
+          decision_brief: mandate.decision_brief,
           strategic_objective: mandate.strategic_objective ?? undefined,
           tactical_model_required: mandate.tactical_model_required ?? undefined,
           pressing_intensity_required: mandate.pressing_intensity_required ?? undefined,

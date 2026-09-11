@@ -7,11 +7,13 @@ import type { Database } from '@/lib/types/db'
 import type { MandateContext, UrgencyLevel, LeadershipArchetype } from './mandate-adapter'
 import { WEIGHTS } from './mandate-adapter'
 import { getDimLabel, computeSubScores } from './explanation'
-import type { DimScore, MandateDimScores, ExclusionReason } from './explanation'
+import type { DimScore, MandateDimScores, ExclusionReason as RecordedExclusionReason } from './explanation'
+import { getAvailabilityTier, availabilityVerificationGate, type AvailabilityTier, type AvailabilityVerificationGate } from './availability'
 import { computeIntelligenceAdjustment, type CoachIntelSignals, type IntelligenceAdjustment } from '@/lib/intelligence/coach-intel-signals'
 
 type Vacancy = Database['public']['Tables']['vacancies']['Row']
 type Coach = Database['public']['Tables']['coaches']['Row']
+type ExclusionReason = RecordedExclusionReason | AvailabilityVerificationGate
 
 // —— Weights for overall_score (must sum to 1.0 with risk as subtractive)
 const OVERALL_WEIGHTS = {
@@ -655,19 +657,7 @@ function computeMandateBudgetFit(ctx: MandateContext, coach: Coach): number | nu
 // Availability (4-tier model with urgency interaction matrix)
 // ——————————————————————————————————————————————————
 
-type AvailabilityTier = 'READY_NOW' | 'ACCESSIBLE' | 'STRETCH' | 'NOT_VIABLE'
-
-function getAvailabilityTier(status: string | null): AvailabilityTier {
-  // Normalise case before matching — seed data may have 'Under Contract' vs 'Under contract'
-  const s = status?.toLowerCase().trim() ?? ''
-  if (s === 'available') return 'READY_NOW'
-  if (s === 'open to offers' || s === 'under contract - interested') return 'ACCESSIBLE'
-  if (s === 'under contract') return 'STRETCH'
-  if (s === 'not available') return 'NOT_VIABLE'
-  return 'STRETCH' // null or unknown treated as STRETCH
-}
-
-const AVAILABILITY_MATRIX: Record<AvailabilityTier, Record<UrgencyLevel, number>> = {
+const AVAILABILITY_MATRIX: Record<Exclude<AvailabilityTier, 'UNKNOWN'>, Record<UrgencyLevel, number>> = {
   READY_NOW:  { URGENT: 100, MEDIUM: 100, STANDARD: 100, LOW: 100 },
   ACCESSIBLE: { URGENT: 75,  MEDIUM: 70,  STANDARD: 65,  LOW: 60  },
   STRETCH:    { URGENT: 35,  MEDIUM: 25,  STANDARD: 35,  LOW: 50  },
@@ -677,10 +667,10 @@ const AVAILABILITY_MATRIX: Record<AvailabilityTier, Record<UrgencyLevel, number>
 function computeMandateAvailabilityScore(
   ctx: MandateContext,
   coach: Coach
-): { score: number; ie: boolean } {
-  const ie = !coach.available_status
+): { score: number | null; ie: boolean } {
   const tier = getAvailabilityTier(coach.available_status)
-  return { score: AVAILABILITY_MATRIX[tier][ctx.urgency], ie }
+  if (tier === 'UNKNOWN') return { score: null, ie: true }
+  return { score: AVAILABILITY_MATRIX[tier][ctx.urgency], ie: false }
 }
 
 // ——————————————————————————————————————————————————
@@ -728,14 +718,17 @@ function checkFlagHardFilters(ctx: MandateContext, coach: Coach): ExclusionReaso
     return { code: 'SAFEGUARDING_FLAG', label: 'Safeguarding concern' }
   }
 
+  const verificationGate = availabilityVerificationGate(coach.available_status, ctx.urgency)
+  if (verificationGate) return verificationGate
+
+  const tier = getAvailabilityTier(coach.available_status)
   if (
-    coach.available_status === 'Not available' &&
+    tier === 'NOT_VIABLE' &&
     (ctx.urgency === 'URGENT' || ctx.urgency === 'MEDIUM')
   ) {
     return { code: 'NOT_AVAILABLE_URGENT', label: 'Not available — urgent mandate' }
   }
 
-  const tier = getAvailabilityTier(coach.available_status)
   if (tier === 'STRETCH' && ctx.urgency === 'URGENT') {
     return {
       code: 'STRETCH_URGENT_FILTER',

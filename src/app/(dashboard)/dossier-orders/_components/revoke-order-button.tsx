@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { LoaderCircle, LockKeyhole } from 'lucide-react'
 import { revokeDossierAccessAction } from '../actions'
 
@@ -8,20 +8,31 @@ export function RevokeOrderButton({ orderId }: { orderId: string }) {
   const [pending, startTransition] = useTransition()
   const [message, setMessage] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const busy = useRef(false)
 
   function revoke() {
+    if (busy.current) return
+    busy.current = true
+    setMessage(null)
     startTransition(async () => {
+      try {
       const data = new FormData()
       data.set('order_id', orderId)
       const result = await revokeDossierAccessAction(data)
       setMessage(result.ok ? 'Access revoked.' : result.error)
       if (result.ok) setConfirming(false)
+      } catch {
+        setMessage('Revocation was not confirmed. Check the connection and access status before retrying.')
+      } finally {
+        busy.current = false
+      }
     })
   }
 
   if (confirming) {
     return (
       <div className="flex flex-wrap items-center justify-end gap-2">
+        {message && <p role="alert" className="w-full text-xs text-red-950">{message}</p>}
         <span className="text-xs font-medium text-red-950">Lock all released files now?</span>
         <button type="button" disabled={pending} onClick={() => setConfirming(false)} className="rounded-md border border-border bg-card px-3 py-2 text-xs font-medium text-foreground disabled:opacity-50">Keep access</button>
         <button type="button" disabled={pending} onClick={revoke} className="inline-flex items-center gap-2 rounded-md bg-red-800 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{pending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <LockKeyhole className="h-3.5 w-3.5" />}Confirm revoke</button>

@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getClubPortalContext, getOrganizationAccessProfile } from '@/lib/organizations/context'
 import { ClubSidebar } from './_components/club-sidebar'
 import { InactiveClubSignOut } from './_components/inactive-club-sign-out'
+import { DemoNotice } from '@/components/demo-notice'
 
 export default async function ClubLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient()
@@ -20,7 +21,7 @@ export default async function ClubLayout({ children }: { children: React.ReactNo
         <div className="max-w-md rounded-md border border-border bg-card p-6 text-center">
           <ShieldAlert className="mx-auto h-6 w-6 text-amber-600" />
           <h1 className="mt-4 text-lg font-semibold text-foreground">Club access is not active</h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Your sign-in works, but this account has not yet been assigned to a club decision room. Ask Coach First to confirm the club and your role.</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Your sign-in works, but this account has not yet been assigned to a club decision room. Ask Gaffa to confirm the club and your role.</p>
           <InactiveClubSignOut><LogOut className="h-4 w-4" />Sign out</InactiveClubSignOut>
         </div>
       </main>
@@ -28,13 +29,13 @@ export default async function ClubLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="gaffa-workspace min-h-screen bg-background">
       <ClubSidebar
         organizationName={context.organizationName}
         showInternalWorkspaceLink={organizationAccess.hasActiveInternalAccess}
       />
       <div className="pt-14 md:pl-[220px] md:pt-0">
-        <main className="mx-auto min-h-screen max-w-[1280px] px-4 py-5 sm:px-6 md:px-7 md:py-7">{children}</main>
+        <main className="gaffa-content min-h-screen"><DemoNotice />{children}</main>
       </div>
     </div>
   )

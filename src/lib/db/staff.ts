@@ -16,13 +16,13 @@ export async function getStaffForTeam() {
   return { data: (data ?? []) as StaffRow[], error }
 }
 
-export async function getStaffById(userId: string, staffId: string) {
+export async function getStaffById(staffId: string) {
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('staff')
     .select('*')
     .eq('id', staffId)
-    .single()
+    .maybeSingle()
   return { data: data as StaffRow | null, error }
 }
 
@@ -35,7 +35,7 @@ export async function createStaff(userId: string, input: { full_name: string; pr
     .single()
 }
 
-export async function updateStaff(userId: string, staffId: string, input: StaffUpdate) {
+export async function updateStaff(staffId: string, input: StaffUpdate) {
   const supabase = await createServerSupabaseClient()
   return supabase.from('staff').update(input).eq('id', staffId).select().single()
 }

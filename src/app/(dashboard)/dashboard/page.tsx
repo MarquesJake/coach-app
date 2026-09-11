@@ -1,4 +1,6 @@
+import { ResearchQueue } from '@/components/research-queue'
 import Link from 'next/link'
+import { loadAppointmentNextActions } from '@/lib/mandates/appointment-next-action.server'
 import { redirect } from 'next/navigation'
 import {
   ArrowUpRight,
@@ -41,12 +43,15 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import { completeDeskItemAction } from './actions'
 
+export const metadata = { title: 'Today' }
+
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const FILTER_LABELS: Record<OperationsFilter, string> = {
   all: 'All',
   attention: 'Needs action',
-  mandates: 'Appointments',
+  mandates: 'Mandate actions',
   review: 'Review',
   sources: 'Agents & sources',
   releases: 'Releases',
@@ -63,7 +68,7 @@ const STATE_LABELS: Record<OperationsState, string> = {
 }
 
 const PROVENANCE_LABELS: Record<OperationsProvenance, string> = {
-  internal_work: 'Coach First',
+  internal_work: 'Gaffa',
   independent_source: 'Independent source',
   agent_supplied: 'Agent supplied',
   coach_submitted: 'Coach submitted',
@@ -354,7 +359,6 @@ export default async function DashboardPage(
     supabase
       .from('coach_portal_profiles')
       .select('id, coach_id, portal_status, feasibility_review_status, submitted_at, updated_at')
-      .eq('user_id', user.id)
       .or('portal_status.in.(submitted,in_review),feasibility_review_status.in.(submitted,in_review)'),
     organizationId
       ? db
@@ -399,7 +403,7 @@ export default async function DashboardPage(
       lane: 'mandates',
       title: action.item,
       detail: [action.notes, coachName ? `Linked to ${coachName}` : null, action.blocked_reason].filter(Boolean).join(' · ') || 'Appointment plan action',
-      context: mandateMap.get(action.mandate_id) ?? 'Appointment',
+      context: mandateMap.get(action.mandate_id) ?? 'Mandate',
       owner: action.assigned_to ?? 'Unassigned',
       href: `/mandates/${action.mandate_id}/plan#actions`,
       dueAt: action.due_date,
@@ -514,7 +518,7 @@ export default async function DashboardPage(
       context: inbox.coach_id
         ? coachMap.get(inbox.coach_id) ?? 'Coach'
         : inbox.mandate_id
-          ? mandateMap.get(inbox.mandate_id) ?? 'Appointment'
+          ? mandateMap.get(inbox.mandate_id) ?? 'Mandate'
           : inbox.agent_id
             ? agentMap.get(inbox.agent_id) ?? 'Agent'
             : inbox.source_name || 'Market intelligence',
@@ -598,7 +602,7 @@ export default async function DashboardPage(
       detail: outcome.decision_verdict
         ? `Compare the live outcome with the ${outcome.decision_verdict} recommendation.`
         : 'Record what happened and what the evidence got right or wrong.',
-      context: mandateMap.get(outcome.mandate_id) ?? 'Appointment',
+      context: mandateMap.get(outcome.mandate_id) ?? 'Mandate',
       owner: 'Engagement owner',
       href: `/mandates/${outcome.mandate_id}/plan`,
       dueAt: outcome.next_review_at,
@@ -625,18 +629,20 @@ export default async function DashboardPage(
     if (!item.parentId) continue
     actionsByMandate.set(item.parentId, [...(actionsByMandate.get(item.parentId) ?? []), item])
   }
+  const appointmentPlans = await loadAppointmentNextActions(activeMandates.map(mandate => mandate.id))
 
   return (
     <div className="mx-auto max-w-[1280px]">
       <header className="flex flex-col justify-between gap-4 border-b border-border pb-5 lg:flex-row lg:items-end">
         <div>
-          <p className="text-[10px] font-semibold uppercase text-muted-foreground">Coach First operations</p>
-          <h1 className="mt-1 font-serif text-3xl font-semibold text-foreground">Today</h1>
+          <p className="text-[10px] font-semibold uppercase text-muted-foreground">Gaffa operations</p>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-foreground">Today</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link href="/club-briefs" className="inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-xs font-medium text-foreground">Submitted club briefs</Link>
           <Link href="/intelligence/conversations" className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-secondary/50">
             <MessageSquareText className="h-3.5 w-3.5" />
             Log conversation
@@ -652,6 +658,7 @@ export default async function DashboardPage(
         </div>
       </header>
 
+
       {(searchParams?.success || searchParams?.error) && (
         <div className={cn(
           'mt-4 rounded-md border px-4 py-3 text-sm',
@@ -663,30 +670,33 @@ export default async function DashboardPage(
         </div>
       )}
 
-      <div className="grid grid-cols-2 border-b border-border sm:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-3 border-b border-border xl:grid-cols-6">
         {[
           { label: 'Need action', value: counts.attention, icon: CircleAlert },
           { label: 'Overdue', value: counts.overdue, icon: Clock3 },
-          { label: 'Appointments', value: counts.mandates, icon: BriefcaseBusiness },
+          { label: 'Mandate actions', value: counts.mandates, icon: BriefcaseBusiness },
           { label: 'In review', value: counts.review, icon: SearchCheck },
           { label: 'Agents & sources', value: counts.sources, icon: Users },
           { label: 'Coach submissions', value: counts.coach, icon: UploadCloud },
         ].map(({ label, value, icon: Icon }) => (
-          <div key={label} className="border-r border-border px-3 py-4 last:border-r-0 sm:px-4">
+          <div key={label} className="border-r border-border px-3 py-6 sm:px-4 max-xl:[&:nth-child(3n)]:border-r-0 xl:last:border-r-0">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Icon className="h-3.5 w-3.5" />
               <span className="text-[11px]">{label}</span>
             </div>
-            <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">{value}</p>
+            <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums text-foreground sm:text-3xl">{value}</p>
           </div>
         ))}
       </div>
 
-      <nav className="flex gap-1 overflow-x-auto border-b border-border py-3" aria-label="Operations filters">
+      {/* Wraps rather than scrolls: seven chips with counts overflowed even at
+          desktop widths, hiding most counts behind a horizontal scrollbar. */}
+      <nav className="flex flex-wrap gap-1 border-b border-border py-3" aria-label="Operations filters">
         {OPERATIONS_FILTERS.map((option) => (
           <Link
             key={option}
             href={option === 'all' ? '/dashboard' : `/dashboard?filter=${option}`}
+            aria-current={filter === option ? 'page' : undefined}
             className={cn(
               'shrink-0 rounded-md px-3 py-2 text-xs font-medium',
               filter === option
@@ -744,6 +754,7 @@ export default async function DashboardPage(
         )}
       </section>
 
+      <ResearchQueue />
       <section className="mt-8">
         <div className="flex items-end justify-between border-b border-border pb-3">
           <div>
@@ -756,32 +767,33 @@ export default async function DashboardPage(
           <div className="divide-y divide-border">
             {activeMandates.map((mandate) => {
               const mandateActions = actionsByMandate.get(mandate.id) ?? []
-              const nextAction = mandateActions[0]
+              const nextAction = appointmentPlans.get(mandate.id)?.nextAction
               const serviceLabel = isServiceModel(mandate.service_model)
                 ? SERVICE_MODEL_LABELS[mandate.service_model]
                 : 'Appointment process'
               return (
                 <Link
                   key={mandate.id}
-                  href={`/mandates/${mandate.id}/plan`}
+                  href={nextAction?.href ?? `/mandates/${mandate.id}/decision`}
                   className="grid gap-2 py-4 hover:bg-secondary/20 sm:grid-cols-[minmax(0,1fr)_190px_150px_110px] sm:items-center"
                 >
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{mandateMap.get(mandate.id)}</p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {nextAction ? `Next: ${nextAction.title}` : 'No open manual actions'}
+                      {nextAction ? `Next: ${nextAction.label}` : 'Next action unavailable; refresh to confirm progress'}
                     </p>
+                    {nextAction && <p className="mt-1 text-xs text-muted-foreground">{nextAction.detail}</p>}
                   </div>
                   <div>
                     <p className="text-xs text-foreground">{serviceLabel}</p>
                     <p className="mt-1 text-[11px] text-muted-foreground">{getStageLabel(mandate.pipeline_stage ?? 'identified')}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-foreground">{mandate.engagement_owner ?? 'Unassigned'}</p>
+                    <p className="text-xs text-foreground">{nextAction?.owner ?? 'Owner not assigned'}</p>
                     <p className="mt-1 text-[11px] text-muted-foreground">{mandateActions.length} open action{mandateActions.length === 1 ? '' : 's'}</p>
                   </div>
                   <div className="flex items-center justify-between gap-2 sm:justify-end">
-                    <span className="text-xs text-muted-foreground">{formatDate(mandate.target_completion_date)}</span>
+                    <span className="text-xs text-muted-foreground">{nextAction?.dueDate ? formatDate(nextAction.dueDate) : 'No due date'}</span>
                     <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
                   </div>
                 </Link>

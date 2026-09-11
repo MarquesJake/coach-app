@@ -3,16 +3,20 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { RiskSection } from '../_components/risk-section'
 
+export const metadata = { title: 'Risk' }
+
+
 export default async function CoachRiskPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: coach, error } = await getCoachById(user.id, params.id)
-  if (error || !coach) notFound()
+  const { data: coach, error } = await getCoachById(params.id)
+  if (error) throw new Error('Coach profile could not be loaded. Reload before making changes.')
+  if (!coach) notFound()
 
-  const { data: evidence } = await supabase
+  const { data: evidence, error: evidenceError } = await supabase
     .from('intelligence_items')
     .select('id, title, detail, category, confidence, occurred_at, source_name, source_type, verified')
     .eq('entity_type', 'coach')
@@ -21,8 +25,9 @@ export default async function CoachRiskPage(props: { params: Promise<{ id: strin
     .limit(50)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: dueDiligenceItems } = await (supabase as any).from('coach_due_diligence_items').select('*').eq('coach_id', params.id).order('created_at', { ascending: false })
+  const { data: dueDiligenceItems, error: diligenceError } = await (supabase as any).from('coach_due_diligence_items').select('*').eq('coach_id', params.id).order('created_at', { ascending: false })
 
+  if (evidenceError || diligenceError) throw new Error('Diligence evidence could not be loaded. Reload before relying on this view.')
   const categories = ['Tactical', 'Leadership', 'Recruitment', 'Media', 'Legal', 'Integrity', 'Staff', 'Performance', 'Market'] as const
   const evidenceList = (evidence ?? []) as { category: string | null; confidence: number | null }[]
   const coverageByCategory = categories.map((cat) => {

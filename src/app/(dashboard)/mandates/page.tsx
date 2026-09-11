@@ -10,6 +10,10 @@ import { getMandatesForTeam, getMandateBoardSignals } from '@/lib/db/mandate'
 import type { BoardSignal } from '@/lib/db/mandate'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { displayClubName } from '@/lib/display-names'
+import { loadAppointmentNextActions } from '@/lib/mandates/appointment-next-action.server'
+
+export const metadata = { title: 'Mandates' }
+
 
 type MandatesForUserRow = NonNullable<Awaited<ReturnType<typeof getMandatesForTeam>>['data']>[number]
 
@@ -38,7 +42,10 @@ export default async function MandatesPage() {
   const mandateIds = rawMandates.map((m) => m.id)
 
   // Fetch board signals in parallel with mandate data already loaded
-  const signals: BoardSignal[] = await getMandateBoardSignals(user.id, mandateIds)
+  const [signals, appointmentPlans]: [BoardSignal[], Awaited<ReturnType<typeof loadAppointmentNextActions>>] = await Promise.all([
+    getMandateBoardSignals(user.id, mandateIds),
+    loadAppointmentNextActions(mandateIds),
+  ])
   const signalMap = new Map(signals.map((s) => [s.mandateId, s]))
 
   const forBoard: MandateForBoard[] = rawMandates.map((m) => ({
@@ -59,6 +66,8 @@ export default async function MandatesPage() {
     clubs: clubForMandate(m.clubs),
     mandate_shortlist: m.mandate_shortlist ?? null,
     signal: signalMap.get(m.id) ?? null,
+    nextAction: appointmentPlans.get(m.id)?.nextAction ?? null,
+    briefCompleteness: appointmentPlans.get(m.id)?.brief ?? null,
   }))
 
   const displayReadyMandates = forBoard.map((mandate) => ({
@@ -74,11 +83,7 @@ export default async function MandatesPage() {
       <MandateToasts />
       <div className="flex items-start justify-between gap-4 shrink-0 mb-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Executive search desk</p>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground">Mandates</h1>
-          <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
-            Track each club brief from early succession signal to shortlist, interview and board recommendation.
-          </p>
+          <h2 className="text-lg font-semibold tracking-tight text-foreground">Mandate pipeline</h2>
         </div>
         <Link
           href="/mandates/new"

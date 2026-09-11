@@ -5,7 +5,7 @@ export default function DashboardLoading() {
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Coach First Intelligence OS</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Gaffa Intelligence OS</p>
               <h1 className="mt-2 text-xl font-semibold text-foreground">Building the appointment room</h1>
               <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
                 Pulling mandate context, private intelligence, evidence coverage and board-pack readiness into one view.

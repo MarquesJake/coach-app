@@ -243,7 +243,7 @@ export function CareerTab({
     <div className="space-y-4">
       {/* ── Career Stats Bar ─────────────────────────────────────────────── */}
       {totalRoles > 0 && (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { label: 'Total roles', value: String(totalRoles) },
             { label: 'Avg tenure', value: avgTenure ? `${avgTenure} yrs` : '—' },
@@ -251,7 +251,7 @@ export function CareerTab({
             { label: 'Avg win rate', value: avgWR != null ? `${avgWR}%` : '—' },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-lg border border-border bg-card p-4 text-center">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
+              <p className="text-xs text-muted-foreground mb-2">{label}</p>
               <p className="text-lg font-semibold text-foreground">{value}</p>
             </div>
           ))}
@@ -385,7 +385,7 @@ export function CareerTab({
       {/* ── Career Trajectory ─────────────────────────────────────────────── */}
       {trajectory && (
         <section className="rounded-lg border border-border bg-card p-4">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Career trajectory</p>
+          <p className="text-xs text-muted-foreground mb-2">Career trajectory</p>
           <p
             className={
               trajectory.direction === 'up'

@@ -1,5 +1,7 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { copySessionCookies, loginPathFor } from './session-cookies'
+import { demoBlocksIntegration } from '@/lib/demo-safety.mjs'
 import {
   canEnterAnalystApplication,
   classifyOrganizationAccess,
@@ -11,6 +13,9 @@ import {
 } from '@/lib/organizations/access'
 
 export async function updateSession(request: NextRequest) {
+  if (demoBlocksIntegration(request.nextUrl.pathname, process.env.DEMO_MODE)) {
+    return NextResponse.json({ error: 'Live integrations are disabled in the investor demo. Use the prepared sample data.' }, { status: 403 })
+  }
   // Forward pathname to server components via request header
   request.headers.set('x-pathname', request.nextUrl.pathname)
 
@@ -25,32 +30,31 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({ name, value: '', ...options })
+        setAll(cookies) {
+          // Refresh tokens can span several cookies. Rebuilding the response for
+          // each chunk loses earlier chunks and breaks the next navigation.
+          const previousCookies = response.cookies.getAll()
+          cookies.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request: { headers: request.headers } })
+          previousCookies.forEach((cookie) => response.cookies.set(cookie))
+          cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+          response.headers.set('Cache-Control', 'private, no-store')
         },
       },
     }
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+
+  function redirectWithSession(url: URL) {
+    const redirect = NextResponse.redirect(url)
+    copySessionCookies(response.cookies, redirect.cookies)
+    redirect.headers.set('Cache-Control', 'private, no-store')
+    return redirect
+  }
 
   const pathname = request.nextUrl.pathname
   const isClubInvite = pathname.startsWith('/club/invite/')
@@ -63,15 +67,29 @@ export async function updateSession(request: NextRequest) {
     !isPublicPath
   ) {
     const url = request.nextUrl.clone()
-    url.pathname = pathname.startsWith('/club')
-      ? '/club/login'
-      : pathname.startsWith('/coach')
-        ? '/coach/login'
-        : '/login'
-    return NextResponse.redirect(url)
+    url.pathname = loginPathFor(pathname)
+    return redirectWithSession(url)
   }
 
   if (!user) return response
+
+  // Read grants from the database on every request, not user-editable metadata
+  // or a stale JWT. Even expired investors remain outside the staff application.
+  const { data: investorGrant } = await supabase.from('investor_access')
+    .select('user_id').eq('user_id', user.id).maybeSingle()
+  if (investorGrant) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Internal APIs are unavailable to evaluation accounts.' }, { status: 403 })
+    }
+    if (pathname === '/investor' || pathname.startsWith('/investor/') || pathname.startsWith('/auth/')) {
+      response.headers.set('Cache-Control', 'private, no-store')
+      return response
+    }
+    const url = request.nextUrl.clone()
+    url.pathname = '/investor'
+    url.search = ''
+    return redirectWithSession(url)
+  }
 
   const { data: memberships } = await supabase
     .from('organization_memberships')
@@ -130,19 +148,19 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/club'
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
   if (access.isCoachOnlyIdentity && isAnalystRoute(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/coach/profile'
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
   if (!canEnterAnalystApplication(access) && isAnalystRoute(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = resolveWorkspaceHome(access)
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
 
   // An account without any workspace has exactly one reachable destination.
@@ -156,13 +174,13 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = NO_WORKSPACE_PATH
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
   if (!access.hasNoWorkspaceIdentity && pathname === NO_WORKSPACE_PATH) {
     const url = request.nextUrl.clone()
     url.pathname = resolveWorkspaceHome(access)
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
 
   const isClubOnboarding = pathname === '/club/onboarding'
@@ -179,7 +197,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/club/onboarding'
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
   if (
     access.isCoachOnlyIdentity &&
@@ -193,7 +211,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/coach/onboarding'
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
   if (
     access.isClubOnlyIdentity &&
@@ -204,7 +222,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/club'
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
   if (
     access.isCoachOnlyIdentity &&
@@ -215,21 +233,21 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/coach/profile'
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
 
   if (pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = resolveWorkspaceHome(access)
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
 
   if (pathname === '/club/login') {
     const url = request.nextUrl.clone()
-    url.pathname = access.hasActiveClubAccess ? '/club' : access.hasActiveInternalAccess ? '/dashboard/overview' : '/club'
+    url.pathname = access.hasActiveClubAccess ? '/club' : access.hasActiveInternalAccess ? '/dashboard' : '/club'
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
 
   if (pathname === '/coach/login') {
@@ -240,7 +258,7 @@ export async function updateSession(request: NextRequest) {
         ? '/dashboard'
         : '/coach/profile'
     url.search = ''
-    return NextResponse.redirect(url)
+    return redirectWithSession(url)
   }
 
   return response

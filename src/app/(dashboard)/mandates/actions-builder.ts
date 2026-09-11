@@ -4,7 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/db/activity'
+import { parseDecisionBrief } from '@/lib/mandates/decision-brief'
+import type { Json } from '@/lib/types/database'
 import { isServiceModel } from '@/lib/mandates/appointment-plan'
+import { getInternalOrganizationId } from '@/lib/organizations/context'
 
 function toText(value: FormDataEntryValue | null): string {
   return typeof value === 'string' ? value.trim() : ''
@@ -34,6 +37,14 @@ async function requireUser() {
 
 export async function createMandateBuilderAction(formData: FormData) {
   const { supabase, user } = await requireUser()
+  const sourceBriefId = toText(formData.get('source_brief_id'))
+  const organizationId = await getInternalOrganizationId(user.id)
+  if (!organizationId) return { ok: false as const, error: 'Internal team access is required.' }
+  const sourceResult = sourceBriefId ? await supabase.from('club_briefs').select('id,club_id').eq('id', sourceBriefId).eq('service_organization_id', organizationId).is('linked_mandate_id', null).in('status', ['submitted', 'in_review']).maybeSingle() : { data: null, error: null }
+  if (sourceBriefId && (sourceResult.error || !sourceResult.data)) return { ok: false as const, error: 'The source brief has changed or is unavailable. Return to club intake before creating an appointment.' }
+  if (sourceResult.data && sourceResult.data.club_id !== toText(formData.get('club_id_or_name'))) return { ok: false as const, error: 'An appointment created from a submitted brief must use the same club.' }
+  let decisionBrief: Json
+  try { decisionBrief = parseDecisionBrief(JSON.parse(toText(formData.get('decision_brief')) || '{}')) } catch { return { ok: false as const, error: 'Check appointment requirements and priorities before saving.' } }
 
   const clubIdOrName = toText(formData.get('club_id_or_name'))
   const strategicObjective = toText(formData.get('strategic_objective'))
@@ -45,7 +56,7 @@ export async function createMandateBuilderAction(formData: FormData) {
   const successionTimeline = toText(formData.get('succession_timeline'))
   const boardRiskAppetite = toText(formData.get('board_risk_appetite'))
   const languageRequirements = toList(formData.get('language_requirements'))
-  const relocationRequired = formData.get('relocation_required') === 'true'
+  const relocationRequired = formData.get('relocation_required') === 'true' ? true : formData.get('relocation_required') === 'false' ? false : null
   const serviceModelInput = toText(formData.get('service_model'))
   const serviceModel = isServiceModel(serviceModelInput) ? serviceModelInput : null
   const engagementOwner = toText(formData.get('engagement_owner'))
@@ -60,10 +71,10 @@ export async function createMandateBuilderAction(formData: FormData) {
       !serviceModel || !engagementOwner || !engagementDate || !targetCompletionDate ||
       !appointmentSituation || keyStakeholders.length === 0 ||
       !['Standard', 'High', 'Board Only'].includes(confidentialityLevel)) {
-    redirect('/mandates/new?error=Please+complete+all+required+fields')
+    return { ok: false as const, error: 'Please complete all required fields' }
   }
   if (new Date(engagementDate).getTime() > new Date(targetCompletionDate).getTime()) {
-    redirect('/mandates/new?error=Target+date+must+be+on+or+after+the+engagement+date')
+    return { ok: false as const, error: 'Target date must be on or after the engagement date' }
   }
 
   // ── Resolve club ──────────────────────────────────────────────────────────
@@ -75,14 +86,15 @@ export async function createMandateBuilderAction(formData: FormData) {
   } else if (isUuid(clubIdOrName)) {
     const { data: club } = await supabase
       .from('clubs').select('id').eq('id', clubIdOrName).single()
-    if (!club) redirect('/mandates/new?error=Club+not+found')
+    if (!club) return { ok: false as const, error: 'Club not found' }
     clubId = club.id
   } else if (clubIdOrName) {
     const { data: newClub } = await supabase
       .from('clubs')
       .insert({ user_id: user.id, name: clubIdOrName, league: 'Other', country: 'TBC' })
       .select('id').single()
-    if (newClub) clubId = newClub.id
+    if (!newClub) return { ok: false as const, error: 'Could not save the club. Your brief has not been created.' }
+    clubId = newClub.id
   }
 
   const { data: mandate, error } = await supabase
@@ -99,6 +111,7 @@ export async function createMandateBuilderAction(formData: FormData) {
       ownership_structure: appointmentSituation,
       key_stakeholders: keyStakeholders,
       confidentiality_level: confidentialityLevel,
+      decision_brief: decisionBrief,
       strategic_objective: strategicObjective,
       tactical_model_required: tacticalModel,
       pressing_intensity_required: pressingIntensity,
@@ -115,7 +128,7 @@ export async function createMandateBuilderAction(formData: FormData) {
     .select('id').single()
 
   if (error || !mandate) {
-    redirect(`/mandates/new?error=${encodeURIComponent(error?.message ?? 'Could not create mandate')}`)
+    return { ok: false as const, error: 'Could not create the brief. Your draft has been kept; please retry.' }
   }
 
   await logActivity({
@@ -123,11 +136,11 @@ export async function createMandateBuilderAction(formData: FormData) {
     entityId: mandate.id,
     actionType: 'created',
     description: 'Mandate created',
-    metadata: clubId ? { club_id: clubId } : { custom_club_name: customClubName },
+    metadata: { ...(clubId ? { club_id: clubId } : { custom_club_name: customClubName }), ...(sourceBriefId ? { source_brief_id: sourceBriefId, source_acceptance: 'pending' } : {}) },
   })
 
   revalidatePath('/mandates')
-  redirect(`/mandates/${mandate.id}/plan?success=Mandate+created`)
+  return { ok: true as const, redirectTo: sourceBriefId ? `/club-briefs?brief_id=${encodeURIComponent(sourceBriefId)}&created_mandate=${mandate.id}#brief-${encodeURIComponent(sourceBriefId)}` : `/mandates/${mandate.id}/decision?success=Appointment+created` }
 }
 
 // ── Update ───────────────────────────────────────────────────────────────────
@@ -135,6 +148,8 @@ export async function createMandateBuilderAction(formData: FormData) {
 export async function updateMandateBuilderAction(formData: FormData) {
   const { supabase } = await requireUser()
 
+  let decisionBrief: Json
+  try { decisionBrief = parseDecisionBrief(JSON.parse(toText(formData.get('decision_brief')) || '{}')) } catch { throw new Error('Invalid appointment requirements') }
   const mandateId = toText(formData.get('mandate_id'))
   if (!mandateId) redirect('/mandates?error=Missing+mandate+id')
 
@@ -151,7 +166,7 @@ export async function updateMandateBuilderAction(formData: FormData) {
   const successionTimeline = toText(formData.get('succession_timeline'))
   const boardRiskAppetite = toText(formData.get('board_risk_appetite'))
   const languageRequirements = toList(formData.get('language_requirements'))
-  const relocationRequired = formData.get('relocation_required') === 'true'
+  const relocationRequired = formData.get('relocation_required') === 'true' ? true : formData.get('relocation_required') === 'false' ? false : null
   const serviceModelInput = toText(formData.get('service_model'))
   const serviceModel = isServiceModel(serviceModelInput) ? serviceModelInput : null
   const engagementOwner = toText(formData.get('engagement_owner'))
@@ -175,6 +190,7 @@ export async function updateMandateBuilderAction(formData: FormData) {
   const { error } = await supabase
     .from('mandates')
     .update({
+      decision_brief: decisionBrief,
       strategic_objective: strategicObjective || undefined,
       tactical_model_required: tacticalModel || undefined,
       pressing_intensity_required: pressingIntensity || undefined,
@@ -183,7 +199,7 @@ export async function updateMandateBuilderAction(formData: FormData) {
       budget_band: budgetBand || undefined,
       succession_timeline: successionTimeline || undefined,
       board_risk_appetite: boardRiskAppetite || undefined,
-      language_requirements: languageRequirements.length > 0 ? languageRequirements : undefined,
+      language_requirements: languageRequirements,
       relocation_required: relocationRequired,
       service_model: serviceModel,
       engagement_owner: engagementOwner,
@@ -203,6 +219,8 @@ export async function updateMandateBuilderAction(formData: FormData) {
   revalidatePath(`/mandates/${mandateId}`)
   revalidatePath(`/mandates/${mandateId}/plan`)
   revalidatePath(`/mandates/${mandateId}/workspace`)
+  revalidatePath(`/mandates/${mandateId}/decision`)
+  revalidatePath(`/mandates/${mandateId}/candidates`)
   revalidatePath(`/mandates/${mandateId}/longlist`)
-  redirect(`/mandates/${mandateId}/plan?success=Mandate+updated`)
+  redirect(`/mandates/${mandateId}/decision?success=Appointment+updated`)
 }

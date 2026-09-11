@@ -1,5 +1,6 @@
 import { SectionShell } from '../_components/section-shell'
-import { INTELLIGENCE_SUBNAV } from '../_components/module-nav'
+import { ResearchSectionNav } from './_components/research-section-nav'
+import { ResearchContextBanner } from '../coaches/_components/research-context-link'
 
 export default function IntelligenceLayout({
   children,
@@ -8,11 +9,12 @@ export default function IntelligenceLayout({
 }) {
   return (
     <SectionShell
-      title="Intelligence"
+      title="Research & sources"
       description="Current signals, conversations and reviewed findings"
-      subnav={INTELLIGENCE_SUBNAV}
       sticky
     >
+      <ResearchSectionNav/>
+      <ResearchContextBanner/>
       {children}
     </SectionShell>
   )

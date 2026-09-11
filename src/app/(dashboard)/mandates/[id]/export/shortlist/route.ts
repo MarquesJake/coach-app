@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { getMandateDetailForUser } from '@/lib/db/mandate'
+import { getMandateDetail } from '@/lib/db/mandate'
 import { displayClubName } from '@/lib/display-names'
 
 function escapeHtml(s: string | null | undefined): string {
@@ -35,10 +35,11 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const { mandateResult, shortlistResult } = await getMandateDetailForUser(user.id, params.id)
+  const { mandateResult, shortlistResult } = await getMandateDetail(params.id)
   if (mandateResult.error || !mandateResult.data) {
     return new Response('Not found', { status: 404 })
   }
+  if (!shortlistResult || shortlistResult.error) return new Response('The shortlist could not be loaded. Please retry.', { status: 503 })
 
   const mandate = mandateResult.data as Record<string, unknown> & {
     custom_club_name?: string | null
@@ -72,7 +73,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
   </style>
 </head>
 <body>
-  <h1>Mandate Shortlist</h1>
+  <h1>Internal Mandate Shortlist</h1>
+  <p><strong>DRAFT WORKING LIST - NOT AN APPROVED BOARD REPORT</strong></p>
+  <p class="muted">Stored workflow entries, not evidence-backed suitability findings. Entries may include illustrative material or unreviewed imports. Use the Board report workflow for assessed recommendations and controlled release.</p>
   <p class="muted">${escapeHtml(String(clubName))} · Confidential</p>
 
   <h2>Club context</h2>
@@ -92,25 +95,23 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
   <h2>Shortlist</h2>
   ${shortlist.length > 0
     ? `<table>
-  <thead><tr><th>Coach</th><th>Club / status</th><th>Nationality</th><th>Fit score</th><th>Risk</th><th>Status</th></tr></thead>
+  <thead><tr><th>Coach</th><th>Club / status</th><th>Nationality</th><th>Workflow status</th></tr></thead>
   <tbody>
 ${shortlist.map((row) => {
   const coach = row.coaches
   const name = coach?.name ?? 'Unknown'
-  const club = coach?.club_current || 'Free agent'
+  const club = coach?.club_current?.trim() || 'Current club not recorded'
   const nat = coach?.nationality ?? '—'
   return `    <tr>
       <td>${escapeHtml(name)}</td>
       <td>${escapeHtml(club)}</td>
       <td>${escapeHtml(nat)}</td>
-      <td>${row.placement_probability}%</td>
-      <td>${escapeHtml(row.risk_rating)}</td>
       <td>${escapeHtml(row.status)}</td>
     </tr>`
 }).join('\n')}
   </tbody>
 </table>`
-    : '<p class="muted">No data available.</p>'}
+    : '<p class="muted">No candidates saved yet. Return to Candidates to begin.</p>'}
 
   <p class="muted" style="margin-top: 32px;">Confidential. For internal use only.</p>
 </body>

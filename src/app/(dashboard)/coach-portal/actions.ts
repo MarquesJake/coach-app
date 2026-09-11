@@ -6,6 +6,8 @@ import { sendInvitationEmail } from '@/lib/email/invitations'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { circumstancesTextPatch } from '@/lib/coach-circumstances-edit'
+import { deriveMaterialStatus } from '@/lib/assessment/material-status'
 import {
   CIRCUMSTANCES_VISIBILITIES,
   FEASIBILITY_REVIEW_STATUSES,
@@ -60,6 +62,9 @@ function dateValue(formData: FormData, key: string): string | null {
 async function requireUser() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { supabase, user: null }
+  const { data: internal } = await supabase.rpc('is_internal_operator', { allowed_roles: ['owner', 'admin', 'analyst'] })
+  if (!internal) return { supabase, user: null }
   return { supabase, user }
 }
 
@@ -106,9 +111,13 @@ export async function saveCoachPortalProfileAction(formData: FormData): Promise<
     : null
   const reviewedAt = portalStatus === 'approved' || portalStatus === 'needs_update' ? now : null
 
+  const { data: existingProfile, error: profileReadError } = await supabase
+    .from('coach_portal_profiles').select('user_id').eq('coach_id', coachId).maybeSingle()
+  if (profileReadError) return { ok: false, error: 'Failed to load coach portal profile' }
+
   const { error } = await supabase.from('coach_portal_profiles').upsert(
     {
-      user_id: user.id,
+      user_id: existingProfile?.user_id ?? user.id,
       coach_id: coachId,
       portal_status: portalStatus,
       visibility_status: visibilityStatus,
@@ -177,22 +186,25 @@ export async function saveCoachCareerCircumstancesAction(formData: FormData): Pr
   )
   const now = new Date().toISOString()
 
-  const { error } = await supabase.from('coach_portal_profiles').upsert({
-    user_id: user.id,
-    coach_id: coachId,
+  const { data: existing, error: readError } = await supabase.from('coach_portal_profiles')
+    .select('id, user_id, updated_at').eq('coach_id', coachId).maybeSingle()
+  if (readError) return { ok: false, error: 'Unable to load the current declarations. Nothing was saved.' }
+  if (existing && text(formData, 'profile_revision') !== existing.updated_at) {
+    return { ok: false, error: 'These declarations changed or the form is out of date. Reload before editing.' }
+  }
+  const payload = {
     feasibility_review_status: reviewStatus === 'verified' ? 'in_review' : reviewStatus,
     circumstances_visibility: visibility,
-    current_salary: text(formData, 'current_salary'),
-    salary_expectation: text(formData, 'salary_expectation'),
-    contract_expiry: dateValue(formData, 'contract_expiry'),
-    release_compensation: text(formData, 'release_compensation'),
-    availability_timeline: text(formData, 'availability_timeline'),
-    family_situation: text(formData, 'family_situation'),
-    relocation_requirements: text(formData, 'relocation_requirements'),
-    staff_cost_expectation: text(formData, 'staff_cost_expectation'),
-    appointment_conditions: text(formData, 'appointment_conditions'),
+    ...circumstancesTextPatch(formData),
+    ...(formData.has('contract_expiry') ? { contract_expiry: dateValue(formData, 'contract_expiry') } : {}),
+    feasibility_reviewed_at: null,
+    feasibility_reviewed_by: null,
     updated_at: now,
-  }, { onConflict: 'coach_id' })
+  }
+  const query = existing
+    ? supabase.from('coach_portal_profiles').update(payload).eq('id', existing.id).eq('updated_at', existing.updated_at)
+    : supabase.from('coach_portal_profiles').insert({ ...payload, user_id: user.id, coach_id: coachId })
+  const { error } = await query.select('id').single()
 
   if (error) return { ok: false, error: 'Failed to save career circumstances' }
   revalidateCoachWorkspace(coachId)
@@ -371,6 +383,15 @@ export async function updateCoachPortalMaterialVerificationAction(formData: Form
   if (!materialId || !coachId) return { ok: false, error: 'Missing material context' }
   if (!(await ownsCoach(supabase, user.id, coachId))) return { ok: false, error: 'Coach not found' }
 
+  if (verificationStatus === 'verified') {
+    const { data: material, error: materialError } = await supabase.from('coach_private_materials')
+      .select('title, description, source_label, storage_path, upload_status, external_url')
+      .eq('id', materialId).eq('coach_id', coachId).single()
+    if (materialError || !material || !deriveMaterialStatus(material).canReview) {
+      return { ok: false, error: 'Review requires a real uploaded file or external link. Illustrative entries and metadata alone cannot be verified.' }
+    }
+  }
+
   const { error } = await supabase
     .from('coach_private_materials')
     .update({
@@ -379,7 +400,8 @@ export async function updateCoachPortalMaterialVerificationAction(formData: Form
     })
     .eq('id', materialId)
     .eq('coach_id', coachId)
-    .eq('user_id', user.id)
+    .select('id')
+    .single()
 
   if (error) return { ok: false, error: 'Failed to update material verification' }
 
@@ -390,7 +412,10 @@ export async function updateCoachPortalMaterialVerificationAction(formData: Form
 }
 
 export async function updateCoachPortalMaterialVerificationFormAction(formData: FormData): Promise<void> {
-  await updateCoachPortalMaterialVerificationAction(formData)
+  const result = await updateCoachPortalMaterialVerificationAction(formData)
+  const coachId = text(formData, 'coach_id') ?? ''
+  const message = result.ok ? 'Material review saved. Recipient release permissions must be checked separately.' : result.error
+  redirect(`/coach-portal/${encodeURIComponent(coachId)}?materialReview=${encodeURIComponent(message)}#material-${encodeURIComponent(text(formData, 'material_id') ?? '')}`)
 }
 
 export async function updateCoachPortalAccessStatusAction(formData: FormData): Promise<ActionResult> {

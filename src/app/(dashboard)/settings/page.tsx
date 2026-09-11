@@ -1,5 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+
+export const metadata = { title: 'Settings' }
+
 
 export default async function SettingsPage() {
   const supabase = await createServerSupabaseClient()
@@ -16,14 +20,19 @@ export default async function SettingsPage() {
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Admin only workspace controls for defaults, timezone and feature toggles.
+          Available workspace controls and where to find them.
         </p>
       </div>
 
       <div className="card-surface rounded-xl p-8">
         <p className="text-sm text-muted-foreground">
-          Settings options will be available here. Configure default currency, default league, default timezone and feature toggles.
+          Currency, timezone and feature-toggle settings are not available in this prototype. There is nothing to save on this page. Appearance can be changed using the theme control in the navigation.
         </p>
+        <nav aria-label="Available workspace controls" className="mt-5 flex flex-wrap gap-4 text-sm underline">
+          <Link href="/config">Manage configuration lists</Link>
+          <Link href="/dashboard">Return to Today</Link>
+          <Link href="/investor-guide">Sources and limitations</Link>
+        </nav>
       </div>
     </div>
   )

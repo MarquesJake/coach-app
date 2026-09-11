@@ -15,7 +15,7 @@ test('invitation tokens are fixed-length hex and stored only as SHA-256 digests'
 })
 test('auth callback redirects cannot leave the application origin', () => {
   assert.equal(safeAuthRedirectPath('/club/invite/token'), '/club/invite/token')
-  assert.equal(safeAuthRedirectPath('https://attacker.example'), '/dashboard/overview')
-  assert.equal(safeAuthRedirectPath('//attacker.example'), '/dashboard/overview')
-  assert.equal(safeAuthRedirectPath(null), '/dashboard/overview')
+  assert.equal(safeAuthRedirectPath('https://attacker.example'), '/dashboard')
+  assert.equal(safeAuthRedirectPath('//attacker.example'), '/dashboard')
+  assert.equal(safeAuthRedirectPath(null), '/dashboard')
 })

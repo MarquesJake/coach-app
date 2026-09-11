@@ -29,21 +29,22 @@ function toList(value: string) {
     .filter(Boolean)
 }
 
-export async function saveSuccessionPlanAction(formData: FormData) {
+export async function saveSuccessionPlanAction(formData: FormData): Promise<{ error: string | null }> {
+  try {
   const clubId = toText(formData.get('club_id'))
-  if (!clubId) redirect('/succession?error=Missing+club')
+  if (!clubId) return { error: 'Club is missing. Your draft has not been saved.' }
 
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) return { error: 'Your session has expired. Sign in again in another tab, then retry this draft.' }
 
-  const { data: club } = await supabase
+  const { data: club, error: clubError } = await supabase
     .from('clubs')
     .select('id')
     .eq('id', clubId)
     .single()
 
-  if (!club) redirect('/succession?error=Club+not+found')
+  if (clubError || !club) return { error: 'Club access could not be confirmed. Your draft is kept; retry after checking access.' }
 
   const status = toText(formData.get('status')) || 'watching'
   const priority = toText(formData.get('priority')) || 'medium'
@@ -55,6 +56,10 @@ export async function saveSuccessionPlanAction(formData: FormData) {
   const ownerName = toText(formData.get('owner_name')) || null
   const notes = toText(formData.get('notes')) || null
   const riskTriggers = toList(toText(formData.get('risk_triggers')))
+  if (!['watching', 'active_planning', 'mandate_ready', 'converted', 'paused', 'archived'].includes(status)
+    || !['low', 'medium', 'high', 'urgent'].includes(priority)
+    || !['unknown', 'secure', 'watch', 'at_risk', 'vacant'].includes(managerSecurity)) return { error: 'Choose a valid status, priority and manager security.' }
+  if (nextReviewDate && (!/^\d{4}-\d{2}-\d{2}$/.test(nextReviewDate) || !Number.isFinite(Date.parse(nextReviewDate)) || new Date(nextReviewDate).toISOString().slice(0, 10) !== nextReviewDate)) return { error: 'Enter a valid next review date.' }
 
   const { error } = await supabase.from('succession_plans').upsert(
     {
@@ -77,12 +82,15 @@ export async function saveSuccessionPlanAction(formData: FormData) {
   )
 
   if (error) {
-    redirect(`/succession/${clubId}?error=${encodeURIComponent(error.message)}`)
+    return { error: 'The plan could not be saved. Your draft is kept. Check access and retry.' }
   }
 
   revalidatePath('/succession')
   revalidatePath(`/succession/${clubId}`)
-  redirect(`/succession/${clubId}?success=Succession+plan+saved`)
+  return { error: null }
+  } catch {
+    return { error: 'Save could not be confirmed. Your draft is kept. Check the saved plan before retrying.' }
+  }
 }
 
 export async function convertSuccessionPlanToMandateAction(formData: FormData) {

@@ -1,14 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { KeyRound, LoaderCircle } from 'lucide-react'
 import { classifyOrganizationAccess } from '@/lib/organizations/access'
 import { createClient } from '@/lib/supabase/client'
+import { authenticatedPortalDestination, parsePortalRole, portalRecoveryHref } from '@/lib/organizations/portal-entry'
 
 export default function UpdatePasswordPage() {
+  return <Suspense fallback={<p className="p-8">Loading password update...</p>}><UpdatePasswordForm /></Suspense>
+}
+
+function UpdatePasswordForm() {
   const searchParams = useSearchParams()
-  const requestedPortal = searchParams.get('portal')
+  const requestedPortal = parsePortalRole(searchParams.get('portal'))
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,32 +34,28 @@ export default function UpdatePasswordPage() {
     }
 
     setLoading(true)
-    const supabase = createClient()
-    const { error: updateError } = await supabase.auth.updateUser({ password })
-    if (updateError) {
-      setError(updateError.message)
-      setLoading(false)
-      return
-    }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data: memberships } = user
-      ? await supabase.from('organization_memberships').select('role, status').eq('user_id', user.id)
-      : { data: null }
-    const access = classifyOrganizationAccess(memberships)
-    const destination = access.hasActiveClubAccess || requestedPortal === 'club'
-      ? '/club'
-      : access.hasActiveCoachAccess || requestedPortal === 'coach'
-        ? '/coach/profile'
-        : '/dashboard/overview'
-    router.push(destination)
-    router.refresh()
+    try {
+      const supabase = createClient()
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) { setError('Your recovery session could not be confirmed. Request a fresh recovery link.'); return }
+      const [memberships, investor] = await Promise.all([
+        supabase.from('organization_memberships').select('role, status').eq('user_id', user.id),
+        supabase.from('investor_access').select('user_id').eq('user_id', user.id).maybeSingle(),
+      ])
+      if (memberships.error || investor.error) { setError('Workspace access could not be confirmed. Your password has not been changed; retry.'); return }
+      const destination = authenticatedPortalDestination(requestedPortal, searchParams.get('next'), classifyOrganizationAccess(memberships.data), Boolean(investor.data))
+      const { error: updateError } = await supabase.auth.updateUser({ password })
+      if (updateError) { setError('Password update was not confirmed. Retry or request a fresh recovery link.'); return }
+      router.replace(destination)
+      router.refresh()
+    } catch { setError('Password update was not confirmed. Check your connection before retrying.') }
+    finally { setLoading(false) }
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f6f4ef] px-6 py-10 text-slate-950">
       <div className="w-full max-w-md">
-        <p className="text-sm font-semibold text-emerald-950">COACH FIRST</p>
+        <p className="text-sm font-semibold text-emerald-950">GAFFA</p>
         <div className="mt-8 border-t border-slate-300 pt-7">
           <KeyRound className="h-6 w-6 text-emerald-800" />
           <p className="mt-4 text-xs font-semibold uppercase text-emerald-800">Secure account</p>
@@ -95,6 +97,7 @@ export default function UpdatePasswordPage() {
               {loading ? 'Updating password' : 'Update password'}
             </button>
           </form>
+          <Link href={requestedPortal ? portalRecoveryHref(requestedPortal, searchParams.get('next')) : '/auth/recover'} className="mt-5 inline-flex text-sm font-medium text-emerald-900 underline">Request a fresh recovery link</Link>
         </div>
       </div>
     </main>

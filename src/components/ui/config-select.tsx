@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { createConfigAction } from '@/app/(dashboard)/config/actions'
 import type { ConfigTableName } from '@/lib/db/config'
+import { configSelection } from '@/lib/ui/config-selection'
 
 export type ConfigOption = { id: string; name: string }
 
@@ -55,6 +56,7 @@ export function ConfigSelect({
   const [open, setOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(0)
   const [adding, setAdding] = useState(false)
+  const addingRef = useRef(false)
   const listId = useId()
   const listRef = useRef<HTMLUListElement>(null)
 
@@ -89,10 +91,11 @@ export function ConfigSelect({
   }
 
   async function handleAddToConfig() {
-    if (!query) return
+    if (!query || addingRef.current) return
+    addingRef.current = true
     setAdding(true)
+    try {
     const { data, error } = await createConfigAction(configTable, { name: query })
-    setAdding(false)
     if (error) {
       toastError(error)
       return
@@ -102,9 +105,16 @@ export function ConfigSelect({
       setCreatedThisSession((prev) => prev.concat({ id: (data as { id: string }).id, name: (data as { name: string }).name }))
     }
     commitValue(query)
+    } catch {
+      toastError('Option was not saved. Your text is still here; reconnect and retry or use it as free text.')
+    } finally {
+      addingRef.current = false
+      setAdding(false)
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
+    if (adding) { e.preventDefault(); return }
     if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
       setOpen(true)
       setFocusedIndex(0)
@@ -122,39 +132,18 @@ export function ConfigSelect({
       return
     }
     if (e.key === 'Enter' && open) {
-      if (showAddOptions) {
-        if (freeTextOnly && focusedIndex === 0) {
-          commitValue(query)
-          e.preventDefault()
-          return
-        }
-        if (!freeTextOnly && focusedIndex === 0) {
-          handleAddToConfig()
-          e.preventDefault()
-          return
-        }
-        if (!freeTextOnly && focusedIndex === 1) {
-          commitValue(query)
-          e.preventDefault()
-          return
-        }
-        if (freeTextOnly) {
-          commitValue(query)
-          e.preventDefault()
-          return
-        }
-      }
-      const opt = filtered[focusedIndex]
-      if (opt) {
-        commitValue(opt.name)
-        e.preventDefault()
-      }
+      e.preventDefault()
+      const selection = configSelection(focusedIndex, filtered.length, showAddOptions, freeTextOnly)
+      if (selection?.kind === 'add') void handleAddToConfig()
+      else if (selection?.kind === 'text') commitValue(query)
+      else if (selection?.kind === 'option') commitValue(filtered[selection.index].name)
       return
     }
     if (e.key === 'Escape') {
       setOpen(false)
       setFocusedIndex(0)
       e.preventDefault()
+      e.stopPropagation()
     }
   }
 
@@ -167,7 +156,11 @@ export function ConfigSelect({
         aria-expanded={open}
         aria-controls={listId}
         aria-autocomplete="list"
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? configLabel}
+        aria-activedescendant={open && optionCount > 0 ? `${listId}-option-${focusedIndex}` : undefined}
+        required={required}
+        readOnly={adding}
+        aria-busy={adding}
         value={inputValue}
         onChange={(e) => {
           const v = e.target.value
@@ -183,7 +176,7 @@ export function ConfigSelect({
         placeholder={placeholder}
       />
       {name != null && (
-        <input type="hidden" name={name} value={inputValue} required={required} readOnly aria-hidden />
+        <input type="hidden" name={name} value={inputValue} readOnly aria-hidden />
       )}
       {open && (
         <ul
@@ -201,6 +194,7 @@ export function ConfigSelect({
             <>
               {!freeTextOnly && (
                 <li
+                  id={`${listId}-option-0`}
                   role="option"
                   aria-selected={focusedIndex === 0}
                   className={cn(
@@ -216,6 +210,7 @@ export function ConfigSelect({
                 </li>
               )}
               <li
+                id={`${listId}-option-${freeTextOnly ? 0 : 1}`}
                 role="option"
                 aria-selected={focusedIndex === (freeTextOnly ? 0 : 1)}
                 className={cn(
@@ -224,6 +219,7 @@ export function ConfigSelect({
                 )}
                 onMouseDown={(e) => {
                   e.preventDefault()
+                  if (addingRef.current) return
                   commitValue(query)
                 }}
               >
@@ -236,6 +232,7 @@ export function ConfigSelect({
             return (
               <li
                 key={opt.id}
+                id={`${listId}-option-${idx}`}
                 role="option"
                 aria-selected={focusedIndex === idx}
                 className={cn(
@@ -244,6 +241,7 @@ export function ConfigSelect({
                 )}
                 onMouseDown={(e) => {
                   e.preventDefault()
+                  if (addingRef.current) return
                   commitValue(opt.name)
                 }}
               >
