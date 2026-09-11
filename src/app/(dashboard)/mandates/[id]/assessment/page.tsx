@@ -1,3 +1,4 @@
+import { finalEvaluationFor } from '@/lib/assessment/deep-dive'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -201,6 +202,9 @@ export default async function MandateAssessmentIndexPage(
                     {status.recommendationLabel}
                     {rec?.confidence !== null && rec?.confidence !== undefined && (
                       <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}%</span>
+                    )}
+                    {finalEvaluationFor(mandateId, row.coach_id) && (
+                      <span className="mt-0.5 block text-2xs font-normal text-muted-foreground">Probability of success {finalEvaluationFor(mandateId, row.coach_id)!.probabilityOfSuccess}%</span>
                     )}
                   </span>
                   <div className="flex flex-wrap items-start gap-3">

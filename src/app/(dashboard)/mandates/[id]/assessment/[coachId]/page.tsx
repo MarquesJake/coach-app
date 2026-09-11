@@ -18,6 +18,8 @@ import {
   type ReferenceAnswerRow,
 } from './_components/assessment-workspace-client'
 
+import { deepDiveFor, finalEvaluationFor } from '@/lib/assessment/deep-dive'
+
 export const metadata = { title: 'Assessment' }
 
 
@@ -200,6 +202,8 @@ export default async function CandidateAssessmentPage(
         mandateId={mandateId}
         coachId={coachId}
         coachName={coach.name}
+        deepDive={deepDiveFor(coachId)}
+        finalEvaluation={finalEvaluationFor(mandateId, coachId)}
         coachProvenance={{ due_diligence_summary: coach.due_diligence_summary, compliance_notes: coach.compliance_notes }}
         assessments={(assessments.data ?? []) as AssessmentRow[]}
         evidence={(evidence.data ?? []) as EvidenceRow[]}

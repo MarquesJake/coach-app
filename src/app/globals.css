@@ -453,6 +453,7 @@ select option {
 .gaffa-workspace table { font-size: 13px; }
 .gaffa-workspace table th { font-weight: 500; color: var(--muted-foreground); }
 .gaffa-workspace table td { padding-top: 14px; padding-bottom: 14px; }
+.gaffa-workspace .deep-dive table td { padding-top: 5px; padding-bottom: 5px; }
 @media (max-width: 767px) {
   .gaffa-content { padding: 20px 16px 48px; }
   .gaffa-panel { padding: 20px; border-radius: 12px; }

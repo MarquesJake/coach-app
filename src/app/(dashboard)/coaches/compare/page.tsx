@@ -1,3 +1,4 @@
+import { DeepDiveCompare } from '@/components/assessment/deep-dive-compare'
 import { assertRouteQueries } from '@/lib/coaches/route-audit'
 import { CoachPicker } from './_components/coach-picker'
 import { redirect } from 'next/navigation'
@@ -133,6 +134,7 @@ export default async function CoachesComparePage({
             ))}
           </div>
         </section>
+        <DeepDiveCompare coaches={coachRecords.map(c => ({ id: c.id, name: c.name ?? null }))} mandateId={context.mandate} />
         <CompareTable coachRecords={coachRecords} />
       </div>
     </div>
