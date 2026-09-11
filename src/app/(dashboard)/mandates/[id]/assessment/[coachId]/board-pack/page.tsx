@@ -289,7 +289,7 @@ export default async function BoardPackPage(
 
       {omittedIllustrations && (
         <section role="note" className="mt-5 rounded-md border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950 print:break-inside-avoid">
-          <strong>Evidence limitations.</strong> Illustrative assessments, interviews, references and material placeholders are excluded from this pack. Missing findings require real research or authorised diligence; this document is not an appointment recommendation. A generation date is not a data-verification date.
+          <strong>Evidence limitations.</strong> Some assessments, interviews or references are not included in this report yet. Gaps need more research before this becomes a recommendation.
         </section>
       )}
       {/* At a glance — Strengths / Risks / Recommendation, per the target deck format */}
@@ -331,9 +331,9 @@ export default async function BoardPackPage(
       <section className="mt-6 rounded border border-border p-4 print:break-inside-avoid">
         <h2 className="font-semibold text-sm">What we still need to check</h2>
         <p className="mt-2 text-xs text-muted-foreground">{status.nextAction}</p>
-        <p className="mt-2 text-xs text-muted-foreground">Reviewed coverage counts criteria with at least one reviewed record. It does not establish sufficient evidence, resolve conflicts or grant permission to share.</p>
+        <p className="mt-2 text-xs text-muted-foreground">An area counts as covered once it has at least one checked piece of evidence. That doesn’t mean the evidence is complete, or that it can be shared.</p>
         <p className="mt-2 text-xs text-muted-foreground">{recommendation?.mitigation ? `Conditions before appointment: ${recommendation.mitigation}` : 'Conditions before appointment have not been recorded.'}</p>
-        <Link className="mt-3 inline-block text-xs text-primary underline print:hidden" href={`/mandates/${mandateId}/decision`}>Review internal research questions and owners</Link>
+        <Link className="mt-3 inline-block text-xs text-primary underline print:hidden" href={`/mandates/${mandateId}/decision`}>See the research questions and who owns them</Link>
       </section>
 
       {/* Profile + GBE */}
@@ -386,10 +386,9 @@ export default async function BoardPackPage(
           02 · Availability and terms
         </h2>
         <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-          Only current, reviewed declarations explicitly approved as shareable appear here.
-          Private and on-request terms require a separate recipient-approved release.
+          Only up-to-date, checked details the coach has agreed can be shared appear here. Private terms need separate approval before they are released.
         </p>
-        {!releasedCircumstances && <p className="mt-3 text-sm">Circumstances withheld: current verification and sharing approval are not both recorded.</p>}
+        {!releasedCircumstances && <p className="mt-3 text-sm">Details withheld until they are confirmed and cleared for sharing.</p>}
         {releasedCircumstances && <>
         <div className="grid grid-cols-1 sm:grid-cols-4 print:grid-cols-4 gap-4 mt-3">
           {[
@@ -409,7 +408,7 @@ export default async function BoardPackPage(
         {releasedCircumstances.appointment_conditions && (
           <div className="mt-4 border-l-2 border-emerald-500/50 pl-3">
             <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
-              Appointment conditions and practical obstacles
+              What the deal needs, and what could stop it
             </p>
             <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">
               {releasedCircumstances.appointment_conditions}
@@ -419,7 +418,7 @@ export default async function BoardPackPage(
         {shareableStaffRows.length > 0 && (
           <div className="mt-5">
             <p className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 uppercase">
-              Verified proposed staff package
+              Confirmed staff package
             </p>
             <div className="mt-2 divide-y divide-border border-y border-border">
               {shareableStaffRows.map((member) => (
@@ -484,7 +483,7 @@ export default async function BoardPackPage(
           </div>
         ) : (
           <p className="mt-4 text-2xs text-muted-foreground">
-            Coach-submitted football detail is held by Gaffa but has not been approved for this club-facing pack.
+            Gaffa holds more football detail from the coach, but it hasn’t been cleared for this report.
           </p>
         )}
       </section>
@@ -519,8 +518,7 @@ export default async function BoardPackPage(
           </div>
         ) : (
           <p className="text-2xs text-muted-foreground mt-3">
-            No source-backed private claims are currently included in this recommendation. Agent calls, references and
-            analyst notes can be reviewed before they update the coach profile or board recommendation.
+            No private intelligence is included in this recommendation yet. Agent calls, references and analyst notes are checked before they go into the profile or the report.
           </p>
         )}
       </section>
@@ -627,8 +625,7 @@ export default async function BoardPackPage(
               Private material details withheld
             </p>
             <p className="text-2xs text-muted-foreground mt-1">
-              Coach presentations, training video, methodology and analyst-held files are controlled separately from
-              this assessment pack.
+              The coach’s presentations, training video, methods and our analysts’ files are released separately from this report.
             </p>
           </div>
           <div className="border-t-2 border-emerald-500/60 pt-2">
@@ -636,10 +633,10 @@ export default async function BoardPackPage(
               Access status
             </p>
             <p className="text-sm font-semibold text-foreground mt-0.5">
-              Check current recipient access
+              Check who has access
             </p>
             <p className="text-2xs text-muted-foreground mt-1">
-              This document does not grant file access. Current permissions, expiry and revocation are enforced in the club decision room.
+              This report doesn’t give access to files. Access, expiry and withdrawal are handled in the club’s decision room.
             </p>
           </div>
           <div className="border-t-2 border-emerald-500/60 pt-2">
@@ -648,12 +645,11 @@ export default async function BoardPackPage(
             </p>
             <p className="text-sm font-semibold text-foreground mt-0.5">Training-ground reality</p>
             <p className="text-2xs text-muted-foreground mt-1">
-              This layer captures what a normal database does not: how the coach presents, trains, prepares and explains
-              the work.
+              What a normal database can’t tell you: how the coach presents, trains, prepares and explains his work.
             </p>
           </div>
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">File titles, source labels and private attachments are not published in this generic pack. Use the controlled delivery workflow for approved recipients.</p>
+        <p className="mt-3 text-xs text-muted-foreground">File names, sources and attachments aren’t shown in this report. Approved clubs receive them through the secure release process.</p>
       </section>
 
       {/* References appendix — always present so the assessment-pack shape is complete */}
@@ -703,8 +699,7 @@ export default async function BoardPackPage(
           </div>
         ) : (
           <p className="text-2xs text-muted-foreground mt-3">
-            Pending structured references — stakeholder interviews (owners, staff, players, industry, media) are
-            collected in the structured references stage before appointment.
+            References still to come — owners, staff, players, industry contacts and media are spoken to before any appointment.
           </p>
         )}
       </section>
@@ -724,7 +719,7 @@ export default async function BoardPackPage(
             .join(' · ')}
         </p>
         <p className="text-[9px] text-muted-foreground/50 mt-4 tracking-widest uppercase">
-          Confidential — prepared for club leadership · Generated by Gaffa Intelligence OS
+          Confidential — prepared for the club’s board by Gaffa
         </p>
       </section>
     </div>

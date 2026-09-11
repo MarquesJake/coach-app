@@ -62,7 +62,7 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
     .eq('mandate_id', params.id)
     .order('created_at', { ascending: true })
 
-  if (shortlistError) throw new Error('Candidates could not be loaded. Refresh to retry; no candidates were changed.')
+  if (shortlistError) throw new Error('Candidates didn’t load. Refresh to try again — nothing has been changed.')
   const shortlistRows = shortlist ?? []
   const shortlistCoachIds = shortlistRows.map((row) => row.coach_id)
 

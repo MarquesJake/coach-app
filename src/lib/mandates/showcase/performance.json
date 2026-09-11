@@ -1280,45 +1280,45 @@
   "notes": {
     "de-zerbi": {
       "signal": "Different outcomes in different environments",
-      "support": "Brighton’s 48 points in 2023/24 and Marseille’s 65 in 2024/25 give us two complete league samples. The Marseille attack scored 74 times. That supports investigating attacking implementation across clubs.",
-      "challenge": "Brighton took 30 points from the first 19 league games and 18 from the second 19. The incumbent benchmark needs to address sustaining output, not just a convincing football idea. These leagues and squads are different.",
-      "question": "Which changes sustained chance creation, and which depended on squad availability or opposition?"
+      "support": "48 points with Brighton in 2023/24 and 65 with Marseille in 2024/25 — two full league seasons. Marseille scored 74. His attacking ideas have worked at more than one club.",
+      "challenge": "Brighton took 30 points from the first 19 games and only 18 from the second 19. The question is whether he can keep it going over a season, not just whether the idea is good. Different leagues and squads, though.",
+      "question": "What kept the chances coming, and what depended on who was fit or who they played?"
     },
     "mckenna": {
-      "signal": "Strong promotion evidence; top-flight test unresolved",
-      "support": "Ipswich earned 98 points in League One and 96 in the Championship, scoring 101 and 92 goals respectively. This is a concrete reason to research development, attacking organisation and installation of a model.",
-      "challenge": "In the 2024/25 Premier League they took 22 points from 38 games and conceded 82 goals. The division change prevents a simple before/after verdict, but it directly challenges an immediate top-flight stabilisation case.",
-      "question": "What would he change about defensive protection and adaptation speed with a different squad?"
+      "signal": "Proven in promotions; Premier League still a question",
+      "support": "98 points in League One and 96 in the Championship, scoring 101 and 92. Clear evidence he can build an attacking team and get a model in quickly.",
+      "challenge": "In the 2024/25 Premier League they took 22 points from 38 games and conceded 82. A step up in division, so not a straight comparison — but it is a real doubt over whether he can steady a Premier League side quickly.",
+      "question": "With a different squad, what would he change to be harder to beat and adapt faster?"
     },
     "hoeness": {
       "signal": "A real turnaround, followed by a substantial drop",
-      "support": "Stuttgart earned 20 points in 26 league games before the April 2023 appointment and 13 in the final eight under Hoeneß. The following full season brought 73 points and a +39 goal difference.",
-      "challenge": "The next league season produced 50 points and +11. The initial eight-game sample is small; recruitment, departures, availability and Europe must be examined before attributing the changes to coaching.",
-      "question": "Which parts of the improvement survived changes to the squad and schedule?"
+      "support": "Stuttgart had 20 points from 26 games before he arrived in April 2023, then took 13 from the last eight. The next full season: 73 points and +39 goal difference.",
+      "challenge": "The season after that dropped to 50 points and +11. Eight games is a small sample, and signings, sales, injuries and Europe all need weighing before we credit the coaching.",
+      "question": "What part of the improvement held up once the squad and fixture load changed?"
     },
     "knutsen": {
-      "signal": "Repeated domestic output; transferability still open",
-      "support": "Bodø/Glimt recorded 70 points and 78 goals in 2023, then 62 points and 71 goals in 2024, both over 30 league games. Goals conceded fell from 38 to 31.",
-      "challenge": "These are Norwegian calendar-year seasons in an established club setting. A higher points-per-game figure is not evidence that he is a better Premier League appointment than the other coaches.",
-      "question": "What can be installed in six weeks outside the supporting system in which those results were achieved?"
+      "signal": "Consistent at home; unproven elsewhere",
+      "support": "70 points and 78 goals in 2023, then 62 points and 71 goals in 2024, both from 30 games. Goals conceded down from 38 to 31.",
+      "challenge": "That is the Norwegian league, at a club built around him. A better points-per-game does not make him a better Premier League appointment than the others.",
+      "question": "What could he put in place in six weeks without the set-up that produced those results?"
     },
     "silva": {
       "signal": "A steadier Premier League comparison",
-      "support": "Fulham took 52, 47 and 54 points in the three league seasons from 2022/23 to 2024/25. This provides three complete samples in the competition relevant to the mandate.",
-      "challenge": "The corresponding goal differences were +2, −6 and 0. That supports a practical league benchmark, but does not establish the attacking ceiling or improvement Tottenham would require.",
-      "question": "What would materially raise performance beyond a stable mid-table level?"
+      "support": "52, 47 and 54 points with Fulham from 2022/23 to 2024/25 — three full Premier League seasons.",
+      "challenge": "Goal differences of +2, −6 and 0. Solid and reliable, but it does not show the attacking level or step up Tottenham need.",
+      "question": "What would take a team beyond steady mid-table?"
     },
     "terzic": {
       "signal": "Look beyond the memorable European run",
-      "support": "Dortmund earned 71 league points in 2022/23 and 63 in 2023/24. Their own annual report confirms the latter season also included a Champions League final.",
-      "challenge": "League goals scored fell from 83 to 68 while goals conceded were almost unchanged, 44 to 43. Knockout progress and weekly attacking output should be assessed separately.",
-      "question": "How would he create consistently against opponents who concede territory?"
+      "support": "71 points in 2022/23 and 63 in 2023/24 — the second season also included a Champions League final.",
+      "challenge": "League goals dropped from 83 to 68 while goals conceded barely moved (44 to 43). Judge the cup runs and the weekly attacking output separately.",
+      "question": "How would he create chances regularly against teams who sit deep?"
     },
     "farioli": {
       "signal": "A measurable defensive improvement",
-      "support": "Ajax went from 56 points and 61 goals conceded in 2023/24 under other coaches to 78 points and 32 conceded in Farioli’s 2024/25 season. Nice’s preceding season under him also finished with only 29 conceded in 34 games.",
-      "challenge": "Ajax’s league goals scored fell from 74 to 67. The improvement supports a defensive-control research case more directly than an attacking-uplift claim. Squad changes and the club’s resources remain unadjusted.",
-      "question": "Can stronger control be combined with the chance creation this Tottenham scenario needs?"
+      "support": "Ajax went from 56 points and 61 conceded in 2023/24 to 78 points and 32 conceded in his one season. His Nice side before that conceded just 29 in 34 games.",
+      "challenge": "But Ajax’s goals scored fell from 74 to 67. It points to a coach who makes teams hard to beat more than one who adds goals. Squad changes and budget not yet allowed for.",
+      "question": "Can he make Spurs harder to beat and still create the chances they need?"
     }
   },
   "sources": [
@@ -1393,19 +1393,19 @@
     {
       "coach": "mckenna",
       "title": "An actual tactical reason to investigate",
-      "text": "The Premier League’s 2023/24 analysis reports 382 high turnovers, 77 shots from high turnovers, 23 substitute goals and 19 set-piece goals for Ipswich. Those provide specific questions about pressing, the bench and set-play preparation. They do not prove the same output will transfer to the Premier League.",
+      "text": "The Premier League’s 2023/24 figures show Ipswich won the ball high 382 times, had 77 shots from it, scored 23 goals from substitutes and 19 from set pieces. Good questions to ask about his pressing, use of the bench and set pieces — not proof it carries over.",
       "source": "https://www.premierleague.com/en/news/4034722"
     },
     {
       "coach": "farioli",
       "title": "Youth involvement: use the right denominator",
-      "text": "Ajax reports that eight teenagers were used in the 2024/25 Eredivisie season. This is a player count, not a share of minutes. It is a starting point for investigating opportunity, not proof of individual development.",
+      "text": "Ajax used eight teenagers in the 2024/25 Eredivisie. That is a head count, not minutes played — a starting point, not proof he developed them.",
       "source": "https://www.ajax.nl/artikelen/dit-was-het-eredivisie-seizoen-onder-francesco-farioli/"
     },
     {
       "coach": "de-zerbi",
       "title": "Context for the drop in league output",
-      "text": "Brighton’s club review describes the first European campaign, substantial injury disruption and 143 starting-line-up changes in 2023/24. These are reasons to investigate the workload and continuity around the results; they are not an adjustment already applied to the figures.",
+      "text": "Brighton’s review of 2023/24 mentions their first European campaign, heavy injuries and 143 changes to the starting line-up. Worth weighing against the results; not yet factored into the figures.",
       "source": "https://www.brightonandhovealbion.com/media-article/Albion-Analytics%27-202324-season-review"
     }
   ],
@@ -1680,11 +1680,11 @@
     }
   },
   "limitations": [
-    "The free API plan rejected the 2025 season request. This dataset does not establish 2025/26 or current 2026/27 performance.",
+    "Our data plan does not include the 2025 season, so this does not cover 2025/26 or the current 2026/27 season.",
     "League results only. Friendlies, domestic cups, European matches and relegation play-offs are excluded.",
     "Points per game = (3 × wins + draws) ÷ games. It is not adjusted for resources or league strength.",
-    "A club result is not a causal estimate of the head coach’s impact. No wage, transfer-spend, injury, opposition-strength or expected-goals adjustment has been applied.",
-    "Half-time recovery means results in matches where the team trailed at the interval. It is not points recovered from every losing position and does not measure substitution quality.",
-    "Data does not establish private character, training quality, candidate interest or appointment feasibility."
+    "Club results do not prove what the coach himself added. Nothing here is adjusted for wages, transfer spend, injuries, opposition or expected-goals (xG).",
+    "Half-time recovery means results in games where the team were behind at the break. It does not cover every losing position and does not measure the quality of substitutions.",
+    "Data cannot tell us about character, training quality, whether a coach is interested or whether a deal is possible."
   ]
 }

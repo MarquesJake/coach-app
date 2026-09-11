@@ -258,8 +258,7 @@ export default async function CoachPortalDetailPage(
             Coach-facing profile
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            This is the information a coach, agent or representative would provide directly. It does not replace
-            analyst judgement; it gives Gaffa private depth to verify, challenge and package for clubs.
+            What the coach, his agent or representative tell us directly. It doesn’t replace our own judgement — it gives Gaffa more detail to check, challenge and present to clubs.
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card p-5">
@@ -284,16 +283,16 @@ export default async function CoachPortalDetailPage(
 
       <section className="rounded-lg border border-border bg-card p-5 space-y-3">
         <h3 className="text-sm font-semibold">{declarationReviewLabel(profile)}</h3>
-        <p className="text-xs text-muted-foreground">Profile completeness measures filled fields. Declaration review does not verify every statement, establish an uploaded file or authorize release to a recipient.</p>
-        <p className="text-xs text-muted-foreground">Review the declaration and material below, then continue the relevant appointment assessment. Sharing requires a separate release decision.</p>
+        <p className="text-xs text-muted-foreground">Completeness just counts filled-in fields. Reviewing the profile doesn’t confirm every statement or mean anything can be shared.</p>
+        <p className="text-xs text-muted-foreground">Check the profile and material below, then carry on with the assessment. Sharing with a club is a separate decision.</p>
         <div className="flex flex-wrap gap-3">
           {(shortlistRes.data ?? []).map(row => (
             <Link key={row.mandate_id} href={`/mandates/${row.mandate_id}/assessment/${coach.id}`} className="text-xs font-medium text-primary underline">
               Continue assessment · {displayClubName(row.mandates?.custom_club_name, row.mandates?.clubs?.name, 'Mandate')}
             </Link>
           ))}
-          {shortlistRes.error ? <p className="text-xs text-muted-foreground">Mandate links could not load. Refresh to retry.</p> : !shortlistRes.data?.length && <Link href={`/coaches/${coach.id}/mandate-fit`} className="text-xs text-primary underline">Review appointment fit</Link>}
-          <Link href="/dossier-orders" className="text-xs text-primary underline">Check recipient release eligibility</Link>
+          {shortlistRes.error ? <p className="text-xs text-muted-foreground">Mandates didn’t load. Refresh to try again.</p> : !shortlistRes.data?.length && <Link href={`/coaches/${coach.id}/mandate-fit`} className="text-xs text-primary underline">Review appointment fit</Link>}
+          <Link href="/dossier-orders" className="text-xs text-primary underline">Check what can be shared</Link>
         </div>
       </section>
 
@@ -302,7 +301,7 @@ export default async function CoachPortalDetailPage(
         <div className="border-b border-border px-5 py-4">
           <h3 className="text-sm font-semibold text-foreground">Coach account access</h3>
           <p className="mt-0.5 text-2xs text-muted-foreground">
-            Invite the coach or one named representative into the coach-owned profile. This never exposes independent intelligence or assessment conclusions.
+            Invite the coach, or one named representative, to their own profile. They never see our intelligence or assessments.
           </p>
         </div>
         <div className="px-5 py-4">
@@ -352,7 +351,7 @@ export default async function CoachPortalDetailPage(
           <div>
             <h3 className="text-sm font-semibold text-foreground">Profile completeness checklist</h3>
             <p className="mt-0.5 text-2xs text-muted-foreground">
-              Filled declarations and uploaded material are intake signals. They do not establish accuracy, permission to contact references or recipient release eligibility.
+              A filled-in profile and uploaded material are a start. They don’t confirm accuracy, permission to speak to referees or that anything can be shared.
             </p>
           </div>
           {requestedMaterials > 0 && (
@@ -406,7 +405,7 @@ export default async function CoachPortalDetailPage(
             <div>
               <h3 className="text-sm font-semibold text-foreground">Portal controls</h3>
               <p className="text-2xs text-muted-foreground mt-0.5">
-                Record declaration review and visibility preferences. These do not grant access to files.
+                Record the profile review and who it can be shown to. This doesn’t give anyone access to files.
               </p>
             </div>
             <button
@@ -500,7 +499,7 @@ export default async function CoachPortalDetailPage(
           <div>
             <h3 className="text-sm font-semibold text-foreground">Add material metadata or a link</h3>
             <p className="text-2xs text-muted-foreground mt-0.5">
-              This form records a description or external link, not an uploaded file. Coach uploads arrive through the secure coach account and require separate review and recipient permission.
+              This saves a description or link, not a file. Coaches upload files through their own secure account, and each needs checking and permission before it is shared.
             </p>
           </div>
           <div className="grid grid-cols-[1fr_160px] gap-3">
@@ -516,7 +515,7 @@ export default async function CoachPortalDetailPage(
               <option value="other">Other</option>
             </select>
           </div>
-          <textarea name="description" rows={4} placeholder="What is inside it, who supplied it, and what football judgement it supports..." className={textAreaClass} />
+          <textarea name="description" rows={4} placeholder="What’s in it, who supplied it and what it tells us about the coach..." className={textAreaClass} />
           <div className="grid grid-cols-2 gap-3">
             <input name="external_url" placeholder="Secure link / file URL" className={inputClass} />
             <input name="source_label" placeholder="Source / owner" className={inputClass} />
@@ -530,7 +529,7 @@ export default async function CoachPortalDetailPage(
               <option value="unknown">Unknown</option>
             </select>
             <select name="confidentiality_status" defaultValue="available" className={inputClass}>
-              <option value="available">Reported available - release not authorized</option>
+              <option value="available">Available — not yet cleared to share</option>
               <option value="requested">Requested</option>
               <option value="missing">Missing</option>
               <option value="withheld">Withheld</option>
@@ -612,7 +611,7 @@ export default async function CoachPortalDetailPage(
           <div>
             <h3 className="text-sm font-semibold text-foreground">Confidential release queue</h3>
             <p className="mt-0.5 text-2xs text-muted-foreground">
-              Club requests for the coach&apos;s private room, tracked separately from the assessment pack.
+              Clubs asking to see the coach’s private material, tracked separately from the report.
             </p>
           </div>
           <Link href="/intelligence" className="text-xs font-medium text-primary hover:underline">
@@ -622,7 +621,7 @@ export default async function CoachPortalDetailPage(
         <div className="mt-4 space-y-3">
           {accessRequests.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No club has requested confidential access for this coach yet. Requests are created from a candidate assessment when a process moves into serious review.
+              No club has asked for confidential access yet. Requests come from an assessment once a club is serious.
             </p>
           ) : (
             accessRequests.map((request) => {

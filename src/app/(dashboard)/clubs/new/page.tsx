@@ -145,8 +145,8 @@ export default function NewClubPage() {
     toastSuccess('Club created')
     // Enrichment is separate from creation: a failed refresh must not invite a duplicate save.
     void fetch(`/api/integrations/clubs/enrich/${data.id}`, { method: 'POST' })
-      .then(response => { if (!response.ok) toastError('Club saved, but automatic enrichment failed. Use Sync on the club profile to retry.') })
-      .catch(() => toastError('Club saved, but automatic enrichment could not be confirmed. Check the club profile before retrying Sync.'))
+      .then(response => { if (!response.ok) toastError('Club saved, but the data import failed. Press Sync on the club profile to try again.') })
+      .catch(() => toastError('Club saved, but we couldn’t confirm the data import. Check the club profile before pressing Sync again.'))
     router.push(`/clubs/${data.id}`)
     router.refresh()
     } catch { setSaveError('Creation could not be confirmed. Your entries are kept. Check the club directory before retrying to avoid a duplicate.') }

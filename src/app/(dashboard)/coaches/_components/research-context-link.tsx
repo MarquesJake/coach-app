@@ -25,6 +25,6 @@ export function ResearchContextBanner() {
     <Link href={resume} className="text-primary underline">{context.question ? 'Return to research question' : 'Return to appointment'}</Link>
     {context.briefVersion && <span>Brief version {context.briefVersion}</span>}
     {context.returnTo && context.returnTo !== resume && <Link href={context.returnTo} className="text-primary underline">Continue appointment work</Link>}
-    <span className="text-muted-foreground">Research context retained. Findings still require review.</span>
+    <span className="text-muted-foreground">Research kept. Findings still need checking.</span>
   </div>
 }

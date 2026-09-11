@@ -10,7 +10,7 @@ export default function IntelligenceLayout({
   return (
     <SectionShell
       title="Research & sources"
-      description="Current signals, conversations and reviewed findings"
+      description="Latest intel, conversations and checked findings"
       sticky
     >
       <ResearchSectionNav/>

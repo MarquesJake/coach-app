@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s · Gaffa",
   },
   description:
-    "The football intelligence OS for manager search, mandate delivery, and relationship intelligence.",
+    "Gaffa helps clubs find, assess and appoint the right head coach.",
 };
 
 export default function RootLayout({

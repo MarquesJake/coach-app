@@ -93,7 +93,7 @@ test('network form rejects safely, retains inputs and blocks double-submit befor
   page.submit(form, data); page.submit(form, data)
   assert.equal(count, 1)
   reject(new Error('Transport down')); await page.flush()
-  assert.match(textOf(page.render()), /could not be confirmed/)
+  assert.match(textOf(page.render()), /(could not be confirmed|Couldn’t confirm)/)
   assert.equal(data.get('title'), 'Retain this draft')
   assert.ok(!page.calls.includes('reset'))
   assert.ok(!page.calls.includes('refresh'))
@@ -106,7 +106,7 @@ test('network validation failure retains the draft and confirmed saves are not r
     })
     page.submit(page.render()); await page.flush()
     const feedback = elements(page.render()).find(element => element.props.role === (ok ? 'status' : 'alert'))
-    assert.match(textOf(feedback), ok ? /Saved, but this view could not refresh/ : /Validation failed/)
+    assert.match(textOf(feedback), ok ? /Saved, but the page didn’t refresh/ : /Validation failed/)
     assert.equal(page.calls.includes('reset'), ok)
   }
 })
@@ -143,7 +143,7 @@ test('blocked or corrupt local storage does not crash capture or overwrite store
 test('autosave and clear failures retain the in-memory draft and show storage-specific feedback', () => {
   const page = conversation({ setFails: true, removeFails: true })
   page.effects(); page.timers.forEach(timer => timer())
-  assert.match(textOf(page.render()), /Local draft saving is unavailable/)
+  assert.match(textOf(page.render()), /Drafts can’t be saved on this device/)
   const clear = elements(page.render()).find(element => element.type === 'button' && textOf(element).includes('Clear draft'))
   clear.props.onClick()
   assert.match(textOf(page.render()), /could not be cleared/)
@@ -153,7 +153,7 @@ test('autosave and clear failures retain the in-memory draft and show storage-sp
 test('upload rejection restores pending controls without discarding text or file', async () => {
   const page = conversation({ uploadFails: true })
   page.selectFile(); await page.save()
-  assert.match(textOf(page.render()), /could not be confirmed/)
+  assert.match(textOf(page.render()), /(could not be confirmed|Couldn’t confirm)/)
   assert.equal(elements(page.render()).find(element => element.type === 'fieldset').props.disabled, false)
   assert.equal(page.slots[0].analystNotes, draft.analystNotes)
   assert.deepEqual(page.storageCalls, ['upload'])
@@ -163,10 +163,10 @@ test('failed session action reuses its confirmed upload, and local cleanup failu
   let fail = true
   const page = conversation({ removeFails: true, action: async () => { if (fail) throw Error('Session offline'); return { ok: true, id: 'session' } } })
   page.selectFile(); await page.save()
-  assert.match(textOf(page.render()), /could not be confirmed/)
+  assert.match(textOf(page.render()), /(could not be confirmed|Couldn’t confirm)/)
   fail = false; await page.save()
   assert.equal(page.storageCalls.filter(call => call === 'upload').length, 1)
-  assert.match(textOf(page.render()), /Conversation saved, but the local draft could not be removed/)
+  assert.match(textOf(page.render()), /Conversation saved, but the draft couldn’t be cleared/)
   assert.ok(elements(page.render()).some(element => element.props.href === '/intelligence/review?session=session'))
   await page.save()
   assert.equal(page.storageCalls.filter(call => call === 'save').length, 2)
@@ -196,7 +196,7 @@ test('every review form handles rejection without React action resets or reloads
     assert.equal(form.props.action, undefined)
     const data = new FormData(); data.set('claimed_value', 'Retained finding'); data.set('criteria', '')
     page.submit(form, data); page.submit(form, data); await page.flush()
-    assert.match(textOf(page.render()), /could not be confirmed/)
+    assert.match(textOf(page.render()), /(could not be confirmed|Couldn’t confirm)/)
     assert.equal(data.get('claimed_value'), 'Retained finding')
   }
   assert.equal(Object.values(counts).reduce((a, b) => a + b, 0), 9)
@@ -217,7 +217,7 @@ test('confirmed review-form submission cannot be replayed unchanged, even if ref
   const data = new FormData(); data.set('claimed_value', 'Finding to keep')
   const event = { preventDefault() {}, currentTarget: { data } }
   form.props.onSubmit(event); await page.flush()
-  assert.match(textOf(page.render()), /Saved, but the list could not refresh/)
+  assert.match(textOf(page.render()), /Saved, but the list didn’t refresh/)
   form.props.onSubmit(event); await page.flush()
   assert.equal(saves, 1)
   assert.match(textOf(page.render()), /already saved/)
@@ -278,5 +278,5 @@ test('corpus excludes illustrative and unreviewed findings, keeps pending legal 
   assert.match(html, /Resolve legal-review items/)
   assert.match(html, /Club not recorded/)
   assert.doesNotMatch(html, />placement ready<|>Available</)
-  assert.match(html, /Research coverage is not placement approval/)
+  assert.match(html, /More research doesn’t mean a coach is approved/)
 })

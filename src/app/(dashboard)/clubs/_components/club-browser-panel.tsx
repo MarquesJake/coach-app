@@ -111,7 +111,7 @@ export function ClubBrowserPanel() {
           <div className="border-t border-border px-2.5 py-2 space-y-2">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-300">Internal sync</p>
             <p className="text-[10px] leading-relaxed text-muted-foreground">
-              Refresh English clubs from API-Football when preparing or repairing the internal club database.
+              Update English clubs from API-Football.
             </p>
             <button
               type="button"
@@ -264,7 +264,7 @@ export function ClubBrowserPanel() {
             <p className="text-[10px] text-muted-foreground">
               {query || tierFilter || leagueFilter || countryFilter
                 ? 'Clear a filter to return to the full club landscape.'
-                : 'Add a club to anchor mandates, coach fit and market intelligence.'}
+                : 'Add a club to link mandates, coach fit and market intelligence to it.'}
             </p>
             {!query && !tierFilter && !leagueFilter && !countryFilter && (
               <Link href="/clubs/new" className="text-xs text-primary hover:underline">
@@ -350,7 +350,7 @@ export function ClubBrowserPanel() {
 
       {/* Footer count */}
       <div className="px-4 py-2 border-t border-border shrink-0">
-        {!loading && !error && clubs.length === 500 && <p className="text-[10px] text-muted-foreground">Showing the first 500 loaded clubs; filters search this subset.</p>}
+        {!loading && !error && clubs.length === 500 && <p className="text-[10px] text-muted-foreground">Showing the first 500 clubs; filters search these.</p>}
         <p className="text-[10px] text-muted-foreground/60">
           {error ? 'Club count unavailable' : loading ? 'Loading clubs' : `${filtered.length} club${filtered.length !== 1 ? 's' : ''}${query || tierFilter || leagueFilter || countryFilter ? ` found` : ''}`}
         </p>

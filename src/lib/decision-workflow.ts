@@ -31,7 +31,7 @@ export function summariseEvidence(rows: EvidenceRecord[], now = Date.now()) {
     if (state === 'Needs refresh') counts.stale++
     if (state === 'Source missing') counts.missingSource++
   }
-  return { ...counts, label: counts.disputed ? 'Conflicting evidence' : counts.verified ? `${counts.verified} current verified record${counts.verified === 1 ? '' : 's'}` : 'Research required' }
+  return { ...counts, label: counts.disputed ? 'Conflicting evidence' : counts.verified ? `${counts.verified} checked source${counts.verified === 1 ? '' : 's'}` : 'Needs research' }
 }
 
 export const RESEARCH_DOMAINS = ['Conditions for success', 'Football methods', 'Career context', 'Leadership under pressure', 'Working relationships', 'Appointment feasibility', 'Counterargument'] as const

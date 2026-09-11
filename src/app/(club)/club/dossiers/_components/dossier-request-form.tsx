@@ -16,7 +16,7 @@ export function DossierRequestForm({ offerId }: { offerId: string }) {
     setError(null)
     startTransition(async () => {
       try { await submitDossierOrderAction(data) }
-      catch (cause) { unstable_rethrow(cause); setError('Request was not confirmed. Your intended use is retained; check your connection and club role before retrying.') }
+      catch (cause) { unstable_rethrow(cause); setError('Couldn’t confirm the request. What you wrote is kept — check your connection and access, then try again.') }
       finally { submitting.current = false }
     })
   }}>

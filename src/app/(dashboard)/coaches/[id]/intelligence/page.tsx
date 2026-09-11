@@ -89,7 +89,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
         <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Reviewed findings</h2>
-            <p className="text-xs text-muted-foreground">Reviewed human intelligence only. Source identity remains internal.</p>
+            <p className="text-xs text-muted-foreground">Only intelligence we have checked. Who told us stays internal.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {benchRes.data?.stage && <Badge variant="success">{formatEnumLabel(benchRes.data.stage)}</Badge>}
@@ -140,7 +140,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
       <section className="border border-border bg-card">
         <div className="border-b border-border px-4 py-3">
           <h2 className="text-sm font-semibold text-foreground">Latest findings</h2>
-          <p className="text-xs text-muted-foreground">Current public or time-sensitive signals. These do not enter an assessment without review.</p>
+          <p className="text-xs text-muted-foreground">Latest public news and time-sensitive signals. Nothing goes into an assessment until it has been checked.</p>
         </div>
         <div className="divide-y divide-border">
           {(signalsRes.data ?? []).map((signal) => (
@@ -153,7 +153,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
               <p className="mt-2 text-xs text-muted-foreground">{[signal.source_type, signal.source_name, signal.verified ? 'Source checked' : 'Needs review'].filter(Boolean).join(' · ')}</p>
             </div>
           ))}
-          {!(signalsRes.data ?? []).length && <p className="px-4 py-8 text-center text-sm text-muted-foreground">No current signals. Use Inbox for public sources or log a conversation for trusted human intelligence.</p>}
+          {!(signalsRes.data ?? []).length && <p className="px-4 py-8 text-center text-sm text-muted-foreground">Nothing new. Add public news in the Inbox, or log a conversation with a trusted contact.</p>}
         </div>
       </section>
     </div>

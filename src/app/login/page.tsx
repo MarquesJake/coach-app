@@ -113,7 +113,7 @@ function InternalLogin() {
 
           <div className="mt-6 border-t border-border pt-5 text-center">
             <p className="text-xs leading-5 text-muted-foreground">
-              Club and coach accounts use their private invitation and dedicated sign-in page.
+              Clubs and coaches sign in through their own invitation link.
             </p>
             <nav aria-label="Choose your workspace" className="mt-3 flex flex-wrap justify-center gap-3 text-xs text-primary">
               {PORTAL_ENTRIES.filter(entry => entry.id !== 'internal').map(entry => <Link key={entry.id} href={portalLoginHref(entry.id, searchParams.get('next'))} className="underline">{entry.label}</Link>)}

@@ -187,19 +187,19 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Remove this entry from the agent log? Its source conversation and review records are retained.')) return
+    if (!confirm('Remove this from the agent log? The conversation and review records are kept.')) return
     const result = await captureAgentResult(() => deleteAgentInteractionAction(id, agentId))
     setSaveError(result.ok ? null : result.error)
     if (!result.ok) toastError(result.error)
     else {
-      toastSuccess('Entry removed from agent log; source and review records retained')
+      toastSuccess('Removed from the agent log — conversation and review records kept')
       router.refresh()
     }
   }
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">Latest 100 log entries. Filters apply to this loaded set. Findings remain unverified until reviewed.</p>
+      <p className="text-xs text-muted-foreground">The latest 100 entries. Findings aren’t confirmed until they’ve been reviewed.</p>
       {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -456,7 +456,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
             <div>
               <p className="text-xs font-semibold text-foreground">Finding from this call</p>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
-                Optional. Use this when the call changes what we believe about a coach.
+                Optional. Use this when the call changes our view of a coach.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -491,7 +491,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
                 value={form.claim_evidence_summary}
                 onChange={(e) => setForm((f) => ({ ...f, claim_evidence_summary: e.target.value }))}
                 className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm min-h-[76px] resize-none"
-                placeholder="What was said, by whom, and why we trust or challenge it."
+                placeholder="What was said, by whom, and why we believe it or not."
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -507,7 +507,7 @@ export function AgentInteractionsClient({ agentId, interactions, claims, coaches
               </div>
             </div>
             <p className="text-[10px] leading-4 text-muted-foreground">
-              Agent information is saved as a single-source draft. Review it in Coach research before it can affect a profile or assessment.
+              What an agent tells us is saved as a one-source draft. Review it in Coach research before it goes into a profile or assessment.
             </p>
           </div>
 

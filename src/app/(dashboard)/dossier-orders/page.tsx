@@ -54,7 +54,7 @@ export default async function DossierOrdersPage() {
 
   return (
     <div className="mx-auto max-w-[1200px]">
-      <div className="border-b border-border pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Commercial and release control</p><h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Report release desk</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">A request begins the commercial conversation. This desk decides which coach-owned files are released, to whom and for how long.</p></div>
+      <div className="border-b border-border pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Sales and releases</p><h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Report release desk</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">A club request starts the conversation. Here you decide which of the coach’s files are released, to which club and for how long.</p></div>
 
       <section className="mt-6 space-y-4">
         {(orders ?? []).map((order) => {
@@ -88,22 +88,22 @@ export default async function DossierOrdersPage() {
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-md border border-emerald-700/20 bg-emerald-50 p-4">
                   <div className="flex items-start gap-2">
                     <ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-800" />
-                    <div><p className="text-xs font-semibold text-emerald-950">Club access is active</p><p className="mt-1 text-xs text-emerald-900">Selected materials are visible in the club decision room.</p></div>
+                    <div><p className="text-xs font-semibold text-emerald-950">Club access is active</p><p className="mt-1 text-xs text-emerald-900">The chosen files are now visible in the club’s decision room.</p></div>
                   </div>
                   <RevokeOrderButton orderId={order.id} />
                 </div>
               ) : release.canRelease && recipientName ? (
                 <ReleaseOrderForm orderId={order.id} coachId={order.coach_id} materials={orderMaterials} />
               ) : release.canRelease ? (
-                <p className="mt-4 rounded-md border border-amber-300 p-3 text-sm">An authorised operator must confirm the recipient before approving this release. Recipient details are not visible to this account. Quote request <span className="break-all font-mono">{order.id}</span> to your internal owner or administrator.</p>
+                <p className="mt-4 rounded-md border border-amber-300 p-3 text-sm">An authorised colleague has to confirm the club before this release is approved. You can’t see the club details from this account. Quote request <span className="break-all font-mono">{order.id}</span> to your internal owner or administrator.</p>
               ) : null}
             </article>
           )
         })}
-        {!orders?.length && <div className="rounded-md border border-border bg-card px-5 py-10 text-center"><PackageCheck className="mx-auto h-5 w-5 text-muted-foreground" /><p className="mt-3 text-sm font-medium text-foreground">No club purchase requests yet</p><p className="mt-1 text-xs text-muted-foreground">Only published previews are visible to their assigned clubs; a draft does not grant access.</p></div>}
+        {!orders?.length && <div className="rounded-md border border-border bg-card px-5 py-10 text-center"><PackageCheck className="mx-auto h-5 w-5 text-muted-foreground" /><p className="mt-3 text-sm font-medium text-foreground">No club purchase requests yet</p><p className="mt-1 text-xs text-muted-foreground">Clubs only see published previews — drafts stay hidden.</p></div>}
       </section>
 
-      <section className="mt-8 overflow-hidden rounded-md border border-border bg-card"><div className="flex items-center gap-2 border-b border-border px-5 py-3"><FileLock2 className="h-4 w-4 text-primary" /><h2 className="text-sm font-semibold text-foreground">Club previews and drafts</h2></div><div className="divide-y divide-border/60">{(offers ?? []).map((offer) => <div key={offer.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_160px_120px_100px] sm:items-center"><div><p className="text-sm font-medium text-foreground">{offer.coach_name}</p><p className="mt-0.5 text-xs text-muted-foreground">{offer.headline}</p></div><span className="text-xs text-muted-foreground">{buyerMap.get(offer.buyer_organization_id) ?? 'Assigned club'}</span><span className="text-xs font-medium capitalize text-foreground">{offer.status}</span>{offer.mandate_id ? <Link href={`/mandates/${offer.mandate_id}/pack`} className="inline-flex min-h-10 items-center text-xs font-medium text-primary">Open pack desk</Link> : <span className="text-xs text-muted-foreground">Appointment not linked</span>}</div>)}</div>{!offers.length && <div className="p-5 text-sm text-muted-foreground">No club previews have been prepared. <Link href="/mandates" className="inline-flex min-h-10 items-center underline">Open an appointment to prepare a report</Link></div>}</section>
+      <section className="mt-8 overflow-hidden rounded-md border border-border bg-card"><div className="flex items-center gap-2 border-b border-border px-5 py-3"><FileLock2 className="h-4 w-4 text-primary" /><h2 className="text-sm font-semibold text-foreground">Club previews and drafts</h2></div><div className="divide-y divide-border/60">{(offers ?? []).map((offer) => <div key={offer.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_160px_120px_100px] sm:items-center"><div><p className="text-sm font-medium text-foreground">{offer.coach_name}</p><p className="mt-0.5 text-xs text-muted-foreground">{offer.headline}</p></div><span className="text-xs text-muted-foreground">{buyerMap.get(offer.buyer_organization_id) ?? 'Assigned club'}</span><span className="text-xs font-medium capitalize text-foreground">{offer.status}</span>{offer.mandate_id ? <Link href={`/mandates/${offer.mandate_id}/pack`} className="inline-flex min-h-10 items-center text-xs font-medium text-primary">Open pack desk</Link> : <span className="text-xs text-muted-foreground">Appointment not linked</span>}</div>)}</div>{!offers.length && <div className="p-5 text-sm text-muted-foreground">No club previews have been prepared. <Link href="/mandates" className="inline-flex min-h-10 items-center underline">Open a mandate to prepare a report</Link></div>}</section>
     </div>
   )
 }

@@ -16,7 +16,7 @@ export default async function IntelligenceInboxPage({ searchParams }: { searchPa
   if (context.coach) questionQuery = questionQuery.eq('coach_id', context.coach)
   questionQuery = context.mandate ? questionQuery.eq('mandate_id', context.mandate) : questionQuery.is('mandate_id', null)
   const questions = await questionQuery
-  if (questions.error) return <p role="alert">Research questions could not be loaded. Reload before capturing question-specific material.</p>
+  if (questions.error) return <p role="alert">Research questions didn’t load. Refresh before logging anything against a question.</p>
 
   const [
     inboxRes,

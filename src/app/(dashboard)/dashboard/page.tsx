@@ -82,13 +82,13 @@ const FILTER_EMPTY_STATES: Record<
 > = {
   all: {
     title: 'The desk is clear',
-    detail: 'No open operational work is waiting across appointments, reviews, releases or coach submissions.',
+    detail: 'Nothing waiting — mandates, reviews, releases and coach submissions are all up to date.',
     href: '/mandates/new',
     cta: 'Create a mandate',
   },
   attention: {
     title: 'No urgent work is waiting',
-    detail: 'Blocked, overdue, due-today and review items will appear here as soon as the desk needs intervention.',
+    detail: 'Anything blocked, overdue, due today or needing a review will show here.',
     href: '/dashboard',
     cta: 'View all work',
   },
@@ -106,7 +106,7 @@ const FILTER_EMPTY_STATES: Record<
   },
   sources: {
     title: 'No source follow-ups are open',
-    detail: 'Agent callbacks, trusted network follow-ups and reference round actions are all up to date.',
+    detail: 'Agent callbacks, network follow-ups and references are all up to date.',
     href: '/network',
     cta: 'Open network',
   },
@@ -118,7 +118,7 @@ const FILTER_EMPTY_STATES: Record<
   },
   coach: {
     title: 'No coach submissions are waiting',
-    detail: 'Coach-owned profile updates, feasibility reviews and material submissions will surface here for analyst review.',
+    detail: 'Coach profile updates, availability checks and new material will show here for an analyst to review.',
     href: '/coach-portal',
     cta: 'Open coach access',
   },
@@ -578,7 +578,7 @@ export default async function DashboardPage(
       lane: 'coach',
       title: `Review ${circumstances ? 'appointment circumstances' : 'coach submission'}`,
       detail: circumstances
-        ? 'Contract, salary, family, relocation and proposed staff require analyst review.'
+        ? 'Contract, salary, family, relocation and staff details need an analyst to check them.'
         : 'Coach-owned profile and materials require analyst review.',
       context: coachMap.get(profile.coach_id) ?? 'Coach portal',
       owner: 'Coach-side review',
@@ -759,7 +759,7 @@ export default async function DashboardPage(
         <div className="flex items-end justify-between border-b border-border pb-3">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Live appointments</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Mandate ownership, service level and next human action.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Who owns each mandate, the service and what happens next.</p>
           </div>
           <Link href="/mandates" className="text-xs font-medium text-primary hover:underline">Open mandate board</Link>
         </div>
@@ -780,7 +780,7 @@ export default async function DashboardPage(
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{mandateMap.get(mandate.id)}</p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {nextAction ? `Next: ${nextAction.label}` : 'Next action unavailable; refresh to confirm progress'}
+                      {nextAction ? `Next: ${nextAction.label}` : 'Next step not loaded — refresh to check'}
                     </p>
                     {nextAction && <p className="mt-1 text-xs text-muted-foreground">{nextAction.detail}</p>}
                   </div>

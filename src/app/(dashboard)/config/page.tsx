@@ -43,7 +43,7 @@ export default async function ConfigPage() {
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Admin-only system data that drives dropdowns and scoring. Use this area only when maintaining platform configuration.
+          Admin settings for the dropdown lists and scoring. Only change these if you manage the system.
         </p>
       </div>
 

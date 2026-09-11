@@ -153,7 +153,7 @@ export function StagedAutosaveForm({
         await action(data)
       } catch (error) {
         unstable_rethrow(error)
-        setSaveError('Save not confirmed. Your draft remains here; reconnect and retry. If your session expired, sign in again before retrying.')
+        setSaveError('Couldn’t confirm it saved. Your draft is still here — try again, signing back in first if you need to.')
       } finally {
         submittingRef.current = false
       }

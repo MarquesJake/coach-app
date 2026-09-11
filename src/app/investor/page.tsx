@@ -15,7 +15,7 @@ export default async function InvestorPage() {
   if (accessError) throw new Error('Evaluation access could not be confirmed. Retry loading.')
   if (!investorAccessIsActive(access)) return <main className="mx-auto max-w-xl space-y-5 px-6 py-24">
     <h1 className="font-serif text-3xl">Evaluation access unavailable</h1>
-    <p>Your access has expired, been revoked, or has not been provisioned. Ask your presenter to check it.</p>
+    <p>Your access has ended or hasn’t been set up yet. Ask your Gaffa contact to check it.</p>
     <UnavailableInvestorAccess />
   </main>
   const { data: saved, error } = await supabase.from('investor_workspaces').select('*').eq('user_id', user.id).maybeSingle()

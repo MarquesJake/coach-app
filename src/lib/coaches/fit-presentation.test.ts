@@ -48,7 +48,7 @@ function fixture(result: typeof fit | null, pending = false, selection = 'appoin
 
 test('Fit requires shortlist membership before linking to assessment', () => {
   const { html } = fixture(fit)
-  assert.match(html, /Add to shortlist first to continue assessment/)
+  assert.match(html, /Add him to the shortlist to carry on the assessment/)
   assert.doesNotMatch(html, /\/assessment\//)
   assert.match(html, />Add to shortlist</)
 })

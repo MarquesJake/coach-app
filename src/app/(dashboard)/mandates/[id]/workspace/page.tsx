@@ -29,7 +29,7 @@ export default async function AppointmentBrief({ params }: { params: Promise<{ i
   return <div className="mx-auto max-w-[1200px] space-y-5">
     <MandateTabNav mandateId={id} />
     <header className="flex flex-wrap items-start justify-between gap-4">
-      <div><p className="gaffa-eyebrow">Mandate brief</p><h1 className="mt-2 font-serif text-2xl">{displayClubName(brief.custom_club_name, brief.clubs?.name)}</h1><p className="mt-2 text-sm text-muted-foreground">The requirements candidates will be assessed against. Candidate decisions live in Candidates, not in this brief.</p></div>
+      <div><p className="gaffa-eyebrow">Mandate brief</p><h1 className="mt-2 font-serif text-2xl">{displayClubName(brief.custom_club_name, brief.clubs?.name)}</h1><p className="mt-2 text-sm text-muted-foreground">What every candidate is judged against. Decisions on candidates are made in the Candidates tab.</p></div>
       <Link className="gaffa-action gaffa-action-secondary" href={`/mandates/${id}/edit`}>Review or amend requirements</Link>
     </header>
     <MandateBriefNotice mandateId={id} />

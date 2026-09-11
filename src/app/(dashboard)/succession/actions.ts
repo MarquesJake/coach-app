@@ -36,7 +36,7 @@ export async function saveSuccessionPlanAction(formData: FormData): Promise<{ er
 
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Your session has expired. Sign in again in another tab, then retry this draft.' }
+  if (!user) return { error: 'You’ve been signed out. Sign in again in another tab, then try again.' }
 
   const { data: club, error: clubError } = await supabase
     .from('clubs')
@@ -44,7 +44,7 @@ export async function saveSuccessionPlanAction(formData: FormData): Promise<{ er
     .eq('id', clubId)
     .single()
 
-  if (clubError || !club) return { error: 'Club access could not be confirmed. Your draft is kept; retry after checking access.' }
+  if (clubError || !club) return { error: 'Couldn’t confirm your access to this club. Your draft is kept — check access and try again.' }
 
   const status = toText(formData.get('status')) || 'watching'
   const priority = toText(formData.get('priority')) || 'medium'
@@ -219,7 +219,7 @@ export async function convertSuccessionPlanToMandateAction(formData: FormData) {
   await supabase.from('mandate_deliverables').insert([
     {
       mandate_id: mandate.id,
-      item: 'Verify board mood, current manager security and decision timeline',
+      item: 'Check the board’s mood, how safe the manager is and when a decision might come',
       due_date: daysFromNow(7),
       status: 'Not Started',
     },

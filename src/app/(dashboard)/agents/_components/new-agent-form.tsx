@@ -136,7 +136,7 @@ export function NewAgentForm() {
       <div className="rounded-md border border-border bg-muted/20 p-4">
         <p className="text-xs font-semibold text-foreground">Contact route *</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          Add at least one route you can genuinely use for calls, follow-ups and permissions.
+          Add at least one way you can actually reach them.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           <label>

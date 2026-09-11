@@ -91,9 +91,9 @@ function buildExecutiveBrief(
   if (top5.length > 0) {
     const best = top5[0]
     const name = best.coaches?.name ?? 'Leading candidate'
-    lines.push(`Proceed with focused engagement on ${name} and the next two ranked candidates. Review financial and cultural fit before board presentation.`)
+    lines.push(`Focus on ${name} and the next two ranked candidates. Check the cost and cultural fit before presenting to the board.`)
   } else {
-    lines.push('Run matching to generate a shortlist, then review and refine criteria if needed.')
+    lines.push('Run matching to build a shortlist, then adjust the criteria if needed.')
   }
 
   return lines.join('\n')

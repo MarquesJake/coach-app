@@ -20,13 +20,13 @@ export default async function SettingsPage() {
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Available workspace controls and where to find them.
+          What you can change, and where.
         </p>
       </div>
 
       <div className="card-surface rounded-xl p-8">
         <p className="text-sm text-muted-foreground">
-          Currency, timezone and feature-toggle settings are not configurable yet. There is nothing to save on this page. Appearance can be changed using the theme control in the navigation.
+          Currency, time zone and feature settings can’t be changed yet. Switch between light and dark mode with the button in the sidebar.
         </p>
         <nav aria-label="Available workspace controls" className="mt-5 flex flex-wrap gap-4 text-sm underline">
           <Link href="/config">Manage configuration lists</Link>

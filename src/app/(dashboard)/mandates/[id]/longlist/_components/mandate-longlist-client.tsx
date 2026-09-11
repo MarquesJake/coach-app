@@ -102,7 +102,7 @@ export function MandateLonglistClient({
         toastError(result.error)
       }
     } catch {
-      toastError('Addition was not confirmed. Reconnect and retry; an existing candidate will not be added twice.')
+      toastError('Couldn’t confirm he was added. Check your connection and try again — he won’t be added twice.')
     } finally {
       setAddingId(null)
     }

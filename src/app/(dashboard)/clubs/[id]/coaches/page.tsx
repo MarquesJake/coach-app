@@ -174,7 +174,7 @@ function CoachingHistory({ clubId }: { clubId: string }) {
         {loadError ? <div role="alert" className="p-6 space-y-2 text-sm"><p>{loadError}</p><button type="button" onClick={retry} className="underline">Retry loading history</button></div> : loading ? <p role="status" className="p-6 text-sm">Loading history...</p> : rows.length === 0 ? (
           <div className="px-6 py-8 text-center">
             <p className="text-sm text-muted-foreground">No coaching history yet.</p>
-            <p className="text-xs text-muted-foreground mt-1">Add entries to build a picture of this club&apos;s managerial past.</p>
+            <p className="text-xs text-muted-foreground mt-1">Add past managers to build up the club’s history.</p>
           </div>
         ) : (
           <div role="region" aria-label="Coaching history records" tabIndex={0} className="overflow-x-auto">

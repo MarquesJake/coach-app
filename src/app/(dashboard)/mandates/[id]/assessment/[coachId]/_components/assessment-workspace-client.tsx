@@ -176,7 +176,7 @@ function StructuredInterviewPanel({
       <div>
         <h3 className="text-sm font-semibold text-foreground">Structured interview</h3>
         <p className="text-2xs text-muted-foreground mt-0.5">
-          Question-bank capture for how the coach thinks, adapts and fits this club.
+          Record how the coach thinks, adapts and fits this club.
         </p>
       </div>
 
@@ -195,12 +195,12 @@ function StructuredInterviewPanel({
         </div>
         <input name="interviewer" placeholder="Interviewer (optional)" className={inputClass} />
         <textarea name="custom_question" rows={2} maxLength={1000} aria-label="Bespoke interview question" placeholder="Optional: replace the template with the exact club-specific question asked" className={inputClass} />
-        <label className="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" name="review_confirmed" value="true" />I have checked the source and accuracy of this captured answer. Otherwise save as unverified background.</label>
+        <label className="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" name="review_confirmed" value="true" />I have checked where this answer came from and that it is accurate. Otherwise it is saved as unconfirmed background.</label>
         <textarea
           name="answer"
           rows={4}
           required
-          placeholder="Capture the answer, football judgement, and any follow-up needed..."
+          placeholder="His answer, your football judgement and any follow-up needed..."
           className={inputClass}
         />
         <select name="used_in_recommendation" defaultValue="true" className={inputClass}>
@@ -222,7 +222,7 @@ function StructuredInterviewPanel({
         </p>
         {visible.length === 0 ? (
           <p className="text-2xs text-muted-foreground">
-            No structured interview answers yet. Start with the three revealing questions before final board sign-off.
+            No interview answers yet. Start with the three questions that tell you most before the board signs off.
           </p>
         ) : (
           visible.map((answer) => {
@@ -284,7 +284,7 @@ function StructuredReferencesPanel({
       <div>
         <h3 className="text-sm font-semibold text-foreground">Reference process</h3>
         <p className="text-2xs text-muted-foreground mt-0.5">
-          Cross-check owners, staff, players, network and media for repeated football patterns.
+          Compare what owners, staff, players, contacts and media say, and look for patterns.
         </p>
       </div>
 
@@ -303,12 +303,12 @@ function StructuredReferencesPanel({
           <input name="reference_role" placeholder="Role / relationship" className={inputClass} />
         </div>
         <textarea name="custom_question" rows={2} maxLength={1000} aria-label="Bespoke reference question" placeholder="Optional: replace the template with the exact question asked" className={inputClass} />
-        <label className="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" name="review_confirmed" value="true" />I have checked the source and accuracy of this captured answer. Otherwise save as unverified background.</label>
+        <label className="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" name="review_confirmed" value="true" />I have checked where this answer came from and that it is accurate. Otherwise it is saved as unconfirmed background.</label>
         <textarea
           name="answer"
           rows={4}
           required
-          placeholder="Capture the pattern, not just the quote. What would matter in this dressing room?"
+          placeholder="Note the pattern, not just the quote. What would matter in this dressing room?"
           className={inputClass}
         />
         <div className="grid grid-cols-[1fr_110px] gap-2">
@@ -345,7 +345,7 @@ function StructuredReferencesPanel({
         </p>
         {visible.length === 0 ? (
           <p className="text-2xs text-muted-foreground">
-            No structured reference answers yet. Use the five valuable questions to expose repeated strengths, weaknesses and appointment risk.
+            No references yet. Use the five key questions to find the strengths, weaknesses and risks that keep coming up.
           </p>
         ) : (
           visible.map((answer) => {
@@ -400,12 +400,11 @@ function ConfidentialDataRoomPanel({
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-500/80">
-            Confidential coach data room
+            Confidential coach material
           </p>
-          <h3 className="text-sm font-semibold text-foreground mt-1">Private football depth behind the assessment</h3>
+          <h3 className="text-sm font-semibold text-foreground mt-1">The detail behind the assessment</h3>
           <p className="text-2xs text-muted-foreground mt-1 max-w-2xl">
-            Log coach presentations, training video, methodology and analyst-held material. The club-side request records
-            when a mandate wants to move beyond the assessment pack into controlled private access.
+            Log the coach’s presentations, training video, methods and our analysts’ files. Clubs request access here when they want more than the assessment report.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
@@ -429,7 +428,7 @@ function ConfidentialDataRoomPanel({
           <input type="hidden" name="mandate_id" value={mandateId} />
           <input type="hidden" name="coach_id" value={coachId} />
           <p className="text-xs font-semibold text-foreground">Log material metadata or a link</p>
-          <p className="text-2xs text-muted-foreground">This form does not upload a file or authorize recipient access.</p>
+          <p className="text-2xs text-muted-foreground">This form doesn’t upload a file or give anyone access.</p>
           <div className="grid grid-cols-[1fr_150px] gap-2">
             <input name="title" required placeholder="e.g. Coach methodology deck" className={inputClass} />
             <select name="material_type" defaultValue="presentation" className={inputClass}>
@@ -441,7 +440,7 @@ function ConfidentialDataRoomPanel({
           <textarea
             name="description"
             rows={3}
-            placeholder="What is inside it, why it matters, and what it proves about the coach..."
+            placeholder="What’s in it, why it matters and what it shows about the coach..."
             className={inputClass}
           />
           <div className="grid grid-cols-2 gap-2">
@@ -492,7 +491,7 @@ function ConfidentialDataRoomPanel({
             name="request_reason"
             rows={4}
             required
-            placeholder="Why does the club need private access now? What decision would this unlock?"
+            placeholder="Why does the club need to see this now? What decision would it help them make?"
             className={inputClass}
           />
           <button
@@ -512,7 +511,7 @@ function ConfidentialDataRoomPanel({
           </p>
           {materials.length === 0 ? (
             <p className="text-2xs text-muted-foreground">
-              No private material logged yet. This is where coach-supplied presentations, training sessions and methodology live.
+              No private material yet. The coach’s presentations, training sessions and methods go here.
             </p>
           ) : (
             materials.slice(0, 5).map((item) => (
@@ -543,7 +542,7 @@ function ConfidentialDataRoomPanel({
           </p>
           {accessRequests.length === 0 ? (
             <p className="text-2xs text-muted-foreground">
-              No confidential access request yet. Use this when a club moves from assessment to serious next-stage review.
+              No access requests yet. Use this when a club is serious and wants to see more.
             </p>
           ) : (
             accessRequests.slice(0, 5).map((request) => (
@@ -749,7 +748,7 @@ export function AssessmentWorkspaceClient({
           </p>
           <p className="text-2xs text-muted-foreground">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-500/90 mr-2">Evidence gaps</span>
-            {gapCriteria.length > 0 ? gapCriteria.map((c) => c.label).join(', ') : 'All criteria have a verified record; assess sufficiency and conflicts'}
+            {gapCriteria.length > 0 ? gapCriteria.map((c) => c.label).join(', ') : 'Every area has confirmed evidence — now check there is enough and resolve any disagreements'}
           </p>
           <p className="text-2xs text-muted-foreground lg:text-right">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mr-2">Decision confidence</span>
@@ -799,7 +798,7 @@ export function AssessmentWorkspaceClient({
         <div className="px-5 py-3 border-b border-border">
           <h2 className="text-sm font-semibold text-foreground">Assessment matrix</h2>
           <p className="text-2xs text-muted-foreground mt-0.5">
-            Source records across 9 criteria and 8 methods. Only verified evidence counts towards the coverage summary. Grey profile-derived records are research leads; a filled cell does not establish sufficiency.
+            Evidence across the 9 areas and 8 methods. Only confirmed evidence counts in the summary. Grey entries come from the profile and are leads to follow up; a filled box doesn’t mean there’s enough evidence.
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -877,7 +876,7 @@ export function AssessmentWorkspaceClient({
               {selectedMeta.num}. {selectedMeta.label}
             </h3>
             <p className="text-2xs text-muted-foreground mt-0.5">{selectedMeta.question}</p>
-            {status.illustrativeCriteria.includes(selected) && <p className="mt-2 text-xs text-amber-500">Illustrative assessment: excluded from recorded counts and reports.</p>}
+            {status.illustrativeCriteria.includes(selected) && <p className="mt-2 text-xs text-amber-500">Not counted in the totals or reports.</p>}
           </div>
           <form onSubmit={submit(saveAssessmentAction)} className="space-y-3">
             <input type="hidden" name="mandate_id" value={mandateId} />
@@ -1114,7 +1113,7 @@ export function AssessmentWorkspaceClient({
         <h3 className="text-sm font-semibold text-foreground">Human recommendation</h3>
         <p className="mt-2 text-xs text-muted-foreground">{status.recommendationLabel}. Saving a recommendation does not approve the evidence or authorize sharing.</p>
         <p className="text-2xs text-muted-foreground mt-0.5 mb-3">
-          Analyst conclusion — structured by the 9-criteria methodology and supported by the evidence above. This is what the Head Coach Assessment Pack is built around.
+          The analyst’s conclusion across the nine areas, backed by the evidence above. The board report is built around this.
         </p>
         <form onSubmit={submit(saveRecommendationAction)} className="space-y-3">
           <input type="hidden" name="mandate_id" value={mandateId} />
@@ -1145,11 +1144,11 @@ export function AssessmentWorkspaceClient({
             </div>
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Key risks</label>
-              <textarea name="key_risks" placeholder="Strongest counterargument, conflicting evidence and what remains unknown" rows={3} defaultValue={recommendation?.key_risks ?? ''} className={inputClass} />
+              <textarea name="key_risks" placeholder="The case against, conflicting evidence and what we still don’t know" rows={3} defaultValue={recommendation?.key_risks ?? ''} className={inputClass} />
             </div>
             <div>
               <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Mitigation</label>
-              <textarea name="mitigation" placeholder="Conditions required for success, checks before appointment, owner and review date" rows={3} defaultValue={recommendation?.mitigation ?? ''} className={inputClass} />
+              <textarea name="mitigation" placeholder="What he needs to succeed, checks before appointing, who owns it and when we review" rows={3} defaultValue={recommendation?.mitigation ?? ''} className={inputClass} />
             </div>
           </div>
           <button

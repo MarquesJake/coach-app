@@ -70,7 +70,7 @@ export function ClubStabilitySection({ clubId }: { clubId: string }) {
       <div className="px-6 py-5 space-y-4">
         {!m.has_sufficient_data ? (
           <p className="text-sm text-muted-foreground">
-            Add at least 2 coaching history entries with start dates to compute stability metrics.
+            Add at least two past managers with start dates to see how stable the club is.
           </p>
         ) : (
           <>

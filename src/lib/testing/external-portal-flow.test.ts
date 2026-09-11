@@ -106,7 +106,7 @@ test('recorded zero remains visible and truly empty lists offer the brief as the
   const offer = { ...fixtures.dossier_offers[0], confidence: 0 }
   for (const file of dossierPages) assert.ok((await renderPage(file, { dossier_offers: [offer] })).includes('0%'))
   const empty = await renderPage(dossierPages[1], { dossier_offers: [] })
-  assert.match(empty, /No dossiers have been published/)
+  assert.match(empty, /No reports have been shared with you yet/)
   assert.match(empty, /href="\/club\/brief"/)
 })
 
@@ -127,11 +127,11 @@ test('a linked submitted brief is agreed on home, intake and readable brief, inc
 test('intake preselects the new same-club appointment without claiming acceptance', async () => {
   const data = { club_briefs: [{ ...original, linked_mandate_id: null }] }
   const html = await renderPage('(dashboard)/club-briefs/page.tsx', data, undefined, { brief_id: 'brief', created_mandate: 'mandate' })
-  assert.match(html, /Appointment created, awaiting acceptance/)
+  assert.match(html, /Mandate created\. It’s selected below/)
   assert.match(html, /value="mandate" selected=""/)
   assert.ok(!html.includes('Agreed version'))
   const unrelated = await renderPage('(dashboard)/club-briefs/page.tsx', data, undefined, { brief_id: 'other', created_mandate: 'mandate' })
-  assert.ok(!unrelated.includes('awaiting acceptance'))
+  assert.ok(!unrelated.includes('Mandate created.'))
   assert.ok(!unrelated.includes('value="mandate" selected=""'))
 })
 
@@ -142,7 +142,7 @@ test('coach load failures never become a blank editable profile or a repeated lo
   for (const table of ['external_identity_profiles', 'coaches']) {
     await assert.rejects(renderPage('coach/onboarding/page.tsx', {}, table), /could not be loaded/)
   }
-  assert.match(await renderPage('coach/profile/page.tsx'), /No private material submitted yet/)
+  assert.match(await renderPage('coach/profile/page.tsx'), /Nothing sent yet/)
 })
 
 test('investor grant errors show a load failure while genuinely absent access offers account recovery', async () => {

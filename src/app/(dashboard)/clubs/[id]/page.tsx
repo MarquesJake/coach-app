@@ -403,7 +403,7 @@ export default function ClubOverviewPage() {
         <div>
           <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club intelligence profile</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Board-facing context for mandate work. Internal edit controls are collapsed below.
+            Background on the club for mandate work. Editing is tucked away below.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -435,7 +435,7 @@ export default function ClubOverviewPage() {
       {/* ── Layer A continued: Club identity form ──────────────────────────── */}
       <details className="rounded-lg border border-border bg-card p-6">
         <summary className="cursor-pointer text-sm font-medium text-foreground">Admin controls: club details</summary>
-        <p className="text-xs text-muted-foreground mt-1 mb-4">Raw identity fields and destructive controls. Keep collapsed during client meetings.</p>
+        <p className="text-xs text-muted-foreground mt-1 mb-4">Club details and delete options. Keep this closed in client meetings.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
@@ -536,7 +536,7 @@ export default function ClubOverviewPage() {
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={3}
-              placeholder="Brief overview — auto-filled from TheSportsDB on import"
+              placeholder="Short overview — filled in from TheSportsDB on import"
               className="mt-1 w-full rounded bg-surface border border-border px-3 py-2 text-sm"
             />
           </label>
@@ -563,7 +563,7 @@ export default function ClubOverviewPage() {
       {/* ── Layer B: Internal intelligence ─────────────────────────────────── */}
       <details className="rounded-lg border border-border bg-card p-6">
         <summary className="cursor-pointer text-sm font-medium text-foreground">Admin controls: internal intelligence</summary>
-        <p className="text-xs text-muted-foreground mt-1 mb-4">Bespoke assessment fields. Never overwritten by external sync.</p>
+        <p className="text-xs text-muted-foreground mt-1 mb-4">Our own notes on the club. Never overwritten by data imports.</p>
         <form onSubmit={handleSaveIntel} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
@@ -668,7 +668,7 @@ export default function ClubOverviewPage() {
               value={intel.environment_assessment}
               onChange={(e) => setIntel((f) => ({ ...f, environment_assessment: e.target.value }))}
               rows={3}
-              placeholder="Subjective assessment of the club environment — culture, stakeholder dynamics, working conditions…"
+              placeholder="Your read on the club — culture, who has influence, working conditions…"
               className="mt-1 w-full rounded bg-surface border border-border px-3 py-2 text-sm"
             />
           </label>

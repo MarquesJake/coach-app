@@ -106,7 +106,7 @@ export function ConfigSelect({
     }
     commitValue(query)
     } catch {
-      toastError('Option was not saved. Your text is still here; reconnect and retry or use it as free text.')
+      toastError('The option didn’t save. Your text is still here — try again, or just use it as it is.')
     } finally {
       addingRef.current = false
       setAdding(false)

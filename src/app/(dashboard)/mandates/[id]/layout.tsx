@@ -41,10 +41,10 @@ export default async function AppointmentLayout({ children, params }: {
         <Link href={`/mandates/${id}/decision`} className="font-semibold text-primary underline-offset-4 hover:underline">{displayClubName(appointment.custom_club_name, appointment.clubs?.name)}</Link>
         <span className="ml-2 text-muted-foreground">{getStageLabel(appointment.pipeline_stage ?? 'identified')}</span>
         <p className="mt-1 text-xs text-muted-foreground">Owner: {appointment.engagement_owner?.trim() || 'Unassigned'} · Target: {appointment.target_completion_date || 'Not agreed'}</p>
-        {briefs.error || amendments.error ? <p role="alert" className="mt-1 text-xs text-amber-700 dark:text-amber-400">Club brief version unavailable. Check intake before relying on these requirements.</p> : briefs.data?.length ? briefs.data.map(brief => {
+        {briefs.error || amendments.error ? <p role="alert" className="mt-1 text-xs text-amber-700 dark:text-amber-400">Club brief version not found. Check the brief before relying on these requirements.</p> : briefs.data?.length ? briefs.data.map(brief => {
           const agreed = effectiveBrief(brief, (amendments.data ?? []).filter(row => row.brief_id === brief.id))
           return <p className="mt-1 text-xs text-muted-foreground" key={brief.id}>{agreed.snapshot.role_title || 'Role not recorded'} · Club brief v{agreed.version}{(amendments.data ?? []).some(row => row.brief_id === brief.id && row.status === 'pending') ? ' · Amendment awaiting review' : ''}</p>
-        }) : <p className="mt-1 text-xs text-muted-foreground">Internal brief · No agreed club submission linked</p>}
+        }) : <p className="mt-1 text-xs text-muted-foreground">Internal brief</p>}
       </div>
     </aside>
     {children}

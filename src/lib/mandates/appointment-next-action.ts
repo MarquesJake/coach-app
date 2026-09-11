@@ -84,8 +84,8 @@ export function deriveAppointmentNextAction(mandate: AppointmentMandate, data: A
   }
   const releaseGate = gates.find(gate => gate.key === 'release')!
   if (releaseGate.status !== 'not_required') releaseGate.detail = activeReleases.length
-    ? `${activeReleases.length} recipient release${activeReleases.length === 1 ? '' : 's'} with active, unexpired access. File permissions remain separately enforced.`
-    : 'No active recipient release is confirmed. Review the order, grant and expiry; a dossier preview is not a release.'
+    ? `${activeReleases.length} recipient release${activeReleases.length === 1 ? '' : 's'} with live access.`
+    : 'No club has live access yet. Check the order, the access granted and the expiry — a preview isn’t a release.'
   const selected = getNextFootballAction(gates, workItems, now)
   const hrefSuffix = selected.hrefSuffix.startsWith('#') ? `/decision${selected.hrefSuffix}` : selected.hrefSuffix.replace(/^\/plan(?=#|$)/, '/decision')
   // Resolve manual identity through the same engine instead of copying its priority rules.

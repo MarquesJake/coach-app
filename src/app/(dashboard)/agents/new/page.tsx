@@ -16,7 +16,7 @@ export default async function NewAgentPage() {
       <div className="mb-6">
         <Link href="/agents" className="text-xs text-muted-foreground hover:text-foreground">← Agents</Link>
         <h1 className="text-lg font-semibold text-foreground mt-1">Add agent</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Create a new agent profile and link to coaches and clubs.</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Add an agent and link them to coaches and clubs.</p>
       </div>
       <NewAgentForm />
     </div>

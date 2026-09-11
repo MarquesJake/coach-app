@@ -22,7 +22,7 @@ export async function publishDossierOfferAction(formData: FormData): Promise<Act
   const feeInput = String(formData.get('price_pounds') ?? '').trim()
   const pricePounds = Number(feeInput)
   if (!mandateId || !coachId || !buyerOrganizationId) return { ok: false, error: 'Missing offer context' }
-  if (!feeInput || !Number.isFinite(pricePounds) || pricePounds < 0 || !Number.isSafeInteger(Math.round(pricePounds * 100))) return { ok: false, error: 'Enter the agreed dossier fee, including zero for a free preview' }
+  if (!feeInput || !Number.isFinite(pricePounds) || pricePounds < 0 || !Number.isSafeInteger(Math.round(pricePounds * 100))) return { ok: false, error: 'Enter the agreed fee (0 for a free preview)' }
   const sellerOrganizationId = await getInternalOrganizationId(user.id)
   if (!sellerOrganizationId) return { ok: false, error: 'Internal organisation is not configured' }
 
@@ -57,7 +57,7 @@ export async function publishDossierOfferAction(formData: FormData): Promise<Act
     status: 'draft',
     headline: `${coach.name} — Head Coach Assessment`,
     preview_summary: recommendation.summary ?? 'A structured appointment recommendation based on Gaffa evidence and football judgement.',
-    fit_summary: 'Assessed against the club brief, squad context, leadership environment and nine-criterion Head Coach Assessment Methodology.',
+    fit_summary: 'Assessed against the club’s brief, the squad, the leadership set-up and Gaffa’s nine-area head-coach assessment.',
     key_strengths: recommendation.key_strengths,
     key_risks: recommendation.key_risks,
     verdict: recommendation.verdict,

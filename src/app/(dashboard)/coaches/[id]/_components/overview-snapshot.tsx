@@ -171,7 +171,7 @@ function AppointmentFeasibility({ coach, coachId }: { coach: CoachRecord; coachI
         <div>
           <h2 className="text-lg font-medium text-foreground">Availability and terms</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Verified contract, financial, family and staff context used in club assessments.
+            Confirmed contract, money, family and staff details used in club assessments.
           </p>
         </div>
         <Link

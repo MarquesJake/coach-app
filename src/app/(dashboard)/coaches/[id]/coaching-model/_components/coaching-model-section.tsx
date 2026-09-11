@@ -74,7 +74,7 @@ export function CoachingModelSection({ coach, derivedMetrics = null }: { coachId
   const recruitmentDensity = derivedMetrics?.network_density_score ?? null
 
   return (
-    <div className="space-y-4"><p className="rounded-lg border p-4 text-sm text-muted-foreground">Recorded methods describe a working hypothesis. Scores appear only where a metric is recorded; a style label does not establish intensity or effectiveness. Check the source, period and squad context before using a metric in an appointment.</p>
+    <div className="space-y-4"><p className="rounded-lg border p-4 text-sm text-muted-foreground">This is our working view of how he coaches. Scores only show where we have a real number — a style label alone doesn’t tell you how intense or effective it is. Check the source, dates and squad before using a number in an appointment.</p>
       {/* Squad DNA */}
       <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-lg font-medium text-foreground mb-4">Squad DNA</h2>
@@ -145,7 +145,7 @@ export function CoachingModelSection({ coach, derivedMetrics = null }: { coachId
       </section>
 
       <p className="text-xs text-muted-foreground">
-        Metrics are indicative. Full coaching model will be driven by match and squad data when integrated.
+        Numbers are a guide. Match and squad data will feed this once connected.
       </p>
     </div>
   )

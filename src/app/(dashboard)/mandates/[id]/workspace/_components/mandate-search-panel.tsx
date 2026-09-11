@@ -129,7 +129,7 @@ function ExcludedModal({
         </div>
 
         <p className="text-[10px] text-muted-foreground leading-relaxed border-l-2 border-border pl-3">
-          Exclusions reflect the mandate&apos;s urgency, board risk appetite, and relocation requirements — not a quality judgement.
+          Coaches left out because of the timing, the board’s appetite for risk or relocation — not because of their quality.
         </p>
 
         <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
@@ -221,7 +221,7 @@ export function MandateSearchPanel({
         <div>
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Curated longlist</h2>
           <p className="mt-0.5 text-[10px] text-muted-foreground">
-            Generated suggestions require analyst review. Scores are heuristics, not verified suitability.
+            Suggestions need an analyst to check them. Scores are a guide, not a verdict.
           </p>
           {hasData && (
             <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -265,7 +265,7 @@ export function MandateSearchPanel({
           </div>
           <p className="text-xs font-medium text-foreground">No recommendations yet</p>
           <p className="text-[10px] text-muted-foreground leading-relaxed">
-            Score and rank all coaches against this mandate&apos;s requirements.
+            Score and rank every coach against this brief.
           </p>
           <button
             type="button"

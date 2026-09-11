@@ -40,7 +40,7 @@ export default async function ClubAccessPage(props: { params: Promise<{ id: stri
         <div className="mt-6 rounded-md border border-border bg-card p-7">
           <KeyRound className="h-6 w-6 text-primary" />
           <h2 className="mt-4 font-serif text-2xl font-semibold text-foreground">Open a private club room</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Create the organisation boundary before inviting a club owner, sporting director or board viewer. This does not publish a dossier or grant confidential material.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Set up the club’s account before inviting an owner, sporting director or board member. This doesn’t share any reports or confidential material.</p>
           <form action={createClubOrganizationAction} className="mt-5">
             <input type="hidden" name="club_id" value={club.id} />
             <button className="rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Create club decision room</button>
@@ -64,12 +64,12 @@ export default async function ClubAccessPage(props: { params: Promise<{ id: stri
     <div className="mx-auto max-w-[1080px]">
       <Link href={`/clubs/${club.id}`} className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Back to {club.name}</Link>
       <div className="mt-5 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
-        <div><p className="text-[10px] font-semibold uppercase text-muted-foreground">Identity and access</p><h2 className="mt-2 font-serif text-2xl font-semibold text-foreground">{organization.name} club room</h2><p className="mt-2 text-sm text-muted-foreground">Invite-only accounts, role assignment and a traceable access history.</p></div>
+        <div><p className="text-[10px] font-semibold uppercase text-muted-foreground">Identity and access</p><h2 className="mt-2 font-serif text-2xl font-semibold text-foreground">{organization.name} club room</h2><p className="mt-2 text-sm text-muted-foreground">Invite-only accounts, roles and a record of who has access.</p></div>
         <span className="inline-flex items-center gap-2 rounded border border-emerald-700/20 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-900"><ShieldCheck className="h-4 w-4" />{organization.status}</span>
       </div>
 
       <section className="mt-6 rounded-md border border-border bg-card p-5">
-        <div className="mb-4"><h2 className="text-sm font-semibold text-foreground">Invite a club user</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">The recipient can create or connect an account only through the generated single-use link.</p></div>
+        <div className="mb-4"><h2 className="text-sm font-semibold text-foreground">Invite a club user</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">They can only sign up through the one-time link.</p></div>
         <InviteClubUserForm clubId={club.id} organizationId={organization.id} />
       </section>
 
@@ -117,7 +117,7 @@ export default async function ClubAccessPage(props: { params: Promise<{ id: stri
 
       <section className="mt-5 overflow-hidden rounded-md border border-border bg-card">
         <div className="border-b border-border px-5 py-3"><h2 className="text-sm font-semibold text-foreground">Access audit</h2></div>
-        <div className="divide-y divide-border/60">{(events ?? []).length === 0 && <p className="px-5 py-5 text-xs text-muted-foreground">Audit events will appear as invitations are issued and claimed.</p>}{(events ?? []).map((event) => <div key={event.id} className="grid gap-1 px-5 py-3 sm:grid-cols-[180px_minmax(0,1fr)_150px] sm:items-center"><span className="text-xs font-medium capitalize text-foreground">{event.event_type.replaceAll('_', ' ')}</span><span className="truncate text-xs text-muted-foreground">{typeof event.metadata === 'object' && event.metadata && 'email' in event.metadata ? String(event.metadata.email) : 'Organisation access event'}</span><time className="text-xs text-muted-foreground">{new Date(event.occurred_at).toLocaleString('en-GB')}</time></div>)}</div>
+        <div className="divide-y divide-border/60">{(events ?? []).length === 0 && <p className="px-5 py-5 text-xs text-muted-foreground">Invitations sent and accepted will show here.</p>}{(events ?? []).map((event) => <div key={event.id} className="grid gap-1 px-5 py-3 sm:grid-cols-[180px_minmax(0,1fr)_150px] sm:items-center"><span className="text-xs font-medium capitalize text-foreground">{event.event_type.replaceAll('_', ' ')}</span><span className="truncate text-xs text-muted-foreground">{typeof event.metadata === 'object' && event.metadata && 'email' in event.metadata ? String(event.metadata.email) : 'Organisation access event'}</span><time className="text-xs text-muted-foreground">{new Date(event.occurred_at).toLocaleString('en-GB')}</time></div>)}</div>
       </section>
     </div>
   )

@@ -14,10 +14,10 @@ export function VerifiedExampleCard({ example, showProfileLink = false }: { exam
       {sample && <div className="rounded border border-border bg-card p-3 text-sm">
         <p className="font-semibold">{example.leagueSampleSeason ?? 'Season not established'} observed league sample: {sample.played} games · {sample.points} points · {sample.ppg?.toFixed(2)} PPG</p>
         <ul className="mt-2 grid gap-1 sm:grid-cols-2">{example.leagueSample!.map(match => <li key={match.opponent}>{match.opponent}: {match.goalsFor}-{match.goalsAgainst} (Barnet score first)</li>)}</ul>
-        <p className="mt-2 text-xs text-muted-foreground">Calculated from the cited results, not provider Elo, a whole-career rating, or an estimate of the manager&apos;s causal impact. Five matches are a small sample, not a live season table or final-season total.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Worked out from the results listed — not an Elo rating, not his whole career and not a measure of his personal impact. Five games is a small sample.</p>
       </div>}
       <p className="text-sm"><strong>Why it matters:</strong> {example.use}</p>
-      <p className="text-xs text-muted-foreground">Not established by this snapshot: recruitment availability, salary expectations, private references, coach consent or a client relationship.</p>
+      <p className="text-xs text-muted-foreground">This doesn’t tell us whether he’s available, what he’d cost, what referees say or whether he’s interested.</p>
       {showProfileLink && <Link href={`/coaches/${example.coachId}`} className="inline-block text-sm underline">Open existing profile</Link>}
     </section>
   )

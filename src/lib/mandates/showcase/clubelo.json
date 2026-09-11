@@ -8358,7 +8358,7 @@
       "startLabel": "31 Mar 2026",
       "startSource": "https://www.premierleague.com/en/news/4623591/spurs-appoint-roberto-de-zerbi-as-new-head-coach",
       "endSource": null,
-      "question": "Does any improvement survive beyond the first few matches? Read the recent league and cup results alongside this rating."
+      "question": "Does the improvement last beyond the first few games? Read this alongside the recent league and cup results."
     },
     {
       "id": "de-zerbi-brighton",
@@ -8371,7 +8371,7 @@
       "startLabel": "18 Sep 2022",
       "startSource": "https://www.premierleague.com/en/news/2796882",
       "endSource": "https://www.premierleague.com/en/news/4016262",
-      "question": "How much of the peak was sustained, and what changed with the squad and European workload?"
+      "question": "How much of the peak did they hold on to, and what changed with the squad and the European games?"
     },
     {
       "id": "mckenna-ipswich",
@@ -8384,7 +8384,7 @@
       "startLabel": "16 Dec 2021",
       "startSource": "https://www.itfc.co.uk/news/2021/december/kieran-mckenna-named-ipswich-town-manager/",
       "endSource": "https://www.itfc.co.uk/news/2026/june/10/kieran-mckenna-to-step-down-as-ipswich-town-manager/",
-      "question": "Examine the promotion rise, Premier League setback and subsequent recovery separately. What would transfer to Tottenham?"
+      "question": "Look at the promotions, the Premier League struggle and the recovery separately. What would carry over to Tottenham?"
     },
     {
       "id": "hoeness-stuttgart",
@@ -8397,7 +8397,7 @@
       "startLabel": "3 Apr 2023",
       "startSource": "https://www.vfb.de/en/vfb/latest/news/professionals/2223/sebastian-hoeness-uebernimmt-als-cheftrainer/",
       "endSource": null,
-      "question": "Was the improvement sustained after the initial turnaround, and through changes in players and competition?"
+      "question": "Did the improvement last after the first turnaround, through changes in players and competitions?"
     },
     {
       "id": "knutsen-bodo",
@@ -8410,7 +8410,7 @@
       "startLabel": "2018 (year only)",
       "startSource": "https://www.glimt.no/nyheter/kjetil-knutsen-mottar-kniksens-aerespris--ikke-noe-kodd-na",
       "endSource": null,
-      "question": "Test how much depends on the club structure and established playing model. This chart starts well after he became head coach."
+      "question": "How much depends on the club set-up and a model that is already embedded? This chart starts well after he took over."
     },
     {
       "id": "silva-fulham",
@@ -8423,7 +8423,7 @@
       "startLabel": "1 Jul 2021",
       "startSource": "https://www.fulhamfc.com/news/2021/july/Fulham-Appoint-Marco-Silva/",
       "endSource": "https://www.fulhamfc.com/news/2026/june/02/marco-silva-to-leave-fulham/",
-      "question": "Does the longer trend support reliable Premier League improvement, and how much further could that model take a stronger squad?"
+      "question": "Does the longer trend point to reliable Premier League improvement — and how much further could he take a stronger squad?"
     },
     {
       "id": "terzic-dortmund",
@@ -8436,7 +8436,7 @@
       "startLabel": "1 Jul 2022",
       "startSource": "https://www.bundesliga.com/en/bundesliga/news/history-of-borussia-dortmund-head-coaches-klopp-tuchel-hitzfeld-34802",
       "endSource": "https://aktie.bvb.de/en/news/borussia-dortmund-und-edin-terzic-beenden-ihre-zusammenarbeit-mit-sofortiger-wirkung/38e0a13a-c0d1-468a-b8d9-035db39bfc95",
-      "question": "Separate the European run from the domestic trajectory. A strong tournament does not by itself establish repeatable league performance."
+      "question": "Look at the European run and the league form separately. A great cup run does not prove consistent league performance."
     },
     {
       "id": "farioli-porto",
@@ -8449,7 +8449,7 @@
       "startLabel": "6 Jul 2025",
       "startSource": "https://www.fcporto.pt/pt/noticias/20250706-pt-francesco-farioli-e-o-novo-treinador-do-fc-porto",
       "endSource": null,
-      "question": "Does the pattern repeat in a different league and squad? Use the Ajax spell as a separate comparison, not a joined career rating."
+      "question": "Does the same pattern show in a different league with a different squad? Treat the Ajax spell as its own comparison."
     },
     {
       "id": "farioli-ajax",
@@ -8462,7 +8462,7 @@
       "startLabel": "11 Jun 2024",
       "startSource": "https://www.ajax.nl/artikelen/francesco-farioli-nieuwe-trainer-ajax",
       "endSource": "https://english.ajax.nl/articles/francesco-farioli-decides-to-leave-ajax",
-      "question": "Did the improvement persist through the run-in? Inspect the end of the spell as carefully as the peak."
+      "question": "Did it last through the run-in? Look at the end of the spell as closely as the peak."
     }
   ]
 }

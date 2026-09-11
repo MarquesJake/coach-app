@@ -22,7 +22,7 @@ export default async function ClubAccountPage() {
 
   return (
     <div className="mx-auto max-w-[900px] break-words">
-      <div className="border-b border-border pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Access and governance</p><h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Club account</h1><p className="mt-2 text-sm text-muted-foreground">Organisation identity, seats and the permissions attached to this decision room.</p></div>
+      <div className="border-b border-border pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Access and governance</p><h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Club account</h1><p className="mt-2 text-sm text-muted-foreground">Your club’s account, who has access and what they can see.</p></div>
       <section className="mt-6 rounded-md border border-border bg-card p-5"><div className="flex items-start gap-4"><div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground"><Building2 className="h-5 w-5" /></div><div><h2 className="text-base font-semibold text-foreground">{context.organizationName}</h2><p className="mt-1 text-xs text-muted-foreground">Club organisation · {context.organizationSlug}</p><div className="mt-3 inline-flex items-center gap-1.5 rounded border border-emerald-700/20 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-900"><ShieldCheck className="h-3.5 w-3.5" />Active decision room</div></div></div></section>
       <section className="mt-5 overflow-hidden rounded-md border border-border bg-card">
         <div className="flex items-center gap-2 border-b border-border px-5 py-3">
@@ -30,7 +30,7 @@ export default async function ClubAccountPage() {
           <h2 className="text-sm font-semibold text-foreground">People with access</h2>
         </div>
         <div className="divide-y divide-border/60">
-          {!memberships?.length && <p className="px-5 py-6 text-sm text-muted-foreground">No membership rows were returned for this account. Ask your Gaffa contact to confirm the organisation seats.</p>}
+          {!memberships?.length && <p className="px-5 py-6 text-sm text-muted-foreground">We couldn’t find your club membership. Ask your Gaffa contact to check it.</p>}
           {(memberships ?? []).map((membership) => {
             const identity = identityByUser.get(membership.user_id)
             const isInternalPreview =
@@ -66,11 +66,11 @@ export default async function ClubAccountPage() {
           })}
         </div>
       </section>
-      <p className="mt-4 text-xs leading-5 text-muted-foreground">Additional members are invited by Gaffa during onboarding so the right board, sporting and ownership roles receive access without forwarding confidential files.</p>
+      <p className="mt-4 text-xs leading-5 text-muted-foreground">Gaffa invites your colleagues directly, so the right board, football and ownership people get access without files being forwarded.</p>
       <section id="access-help" className="mt-6 rounded-md border border-border bg-card p-5">
         <h2 className="font-serif text-xl">Help with controlled access</h2>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">Contact the Gaffa person who arranged your invitation using your existing private correspondence. Quote {context.organizationName}, the coach name and the request reference shown on the dossier. Ask for a release review or renewal and explain the intended board use.</p>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">If you cannot find that contact, ask your club director or organisation owner to reconnect you. Gaffa must confirm the scope and permissions before files can reopen.</p>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">If you can’t reach them, ask your club director or owner to put you back in touch. Gaffa has to confirm access before files reopen.</p>
       </section>
     </div>
   )

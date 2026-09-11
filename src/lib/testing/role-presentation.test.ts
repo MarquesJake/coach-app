@@ -23,7 +23,7 @@ test('longlist rows wrap on phones and expose named keyboard controls', () => {
   assert(page.includes('flex flex-wrap items-center gap-3 xl:flex-nowrap'))
   assert(page.includes('aria-expanded={isExpanded}'))
   assert(page.includes('fit details for'))
-  assert(page.includes('Addition was not confirmed.'))
+  assert(page.includes('Couldn’t confirm he was added.'))
   assert(page.includes('finally {\n      setAddingId(null)'))
 })
 
@@ -39,5 +39,5 @@ test('generic board packs do not publish stale access-request status or recipien
   const pack = read('(dashboard)/mandates/[id]/assessment/[coachId]/board-pack/page.tsx')
   assert(!pack.includes(".from('confidential_access_requests')"))
   assert(!pack.includes('latestAccessRequest'))
-  assert(pack.includes('This document does not grant file access.'))
+  assert(pack.includes('This report doesn’t give access to files.'))
 })

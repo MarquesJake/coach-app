@@ -33,13 +33,13 @@ export default async function CoachesComparePage({
     context.mandate ? supabase.from('mandate_shortlist').select('coach_id').eq('mandate_id', context.mandate) : Promise.resolve({ data: [], error: null }),
     context.mandate ? supabase.from('mandate_longlist').select('coach_id').eq('mandate_id', context.mandate) : Promise.resolve({ data: [], error: null }),
   ])
-  if (directory.error || shortlist.error || pool.error) return <p role="alert">Comparison choices could not be loaded. Reload before selecting candidates.</p>
+  if (directory.error || shortlist.error || pool.error) return <p role="alert">The coaches didn’t load. Refresh before choosing.</p>
   const pickerCoaches = researchedCoachChoices(directory.data ?? [], counts, reviews)
   const candidates = [...(shortlist.data ?? []), ...(pool.data ?? [])].map(row => row.coach_id)
   const requested = typeof params.ids === 'string' ? params.ids : undefined
   const rawIds = selectedComparisonIds(requested, candidates, pickerCoaches.map(coach => coach.id), MAX_COMPARE)
   const excluded = (requested?.split(/[\s,]+/).filter(Boolean) ?? candidates).filter(id => !pickerCoaches.some(coach => coach.id === id))
-  const scopeNote = <div className="mb-4 space-y-2 text-sm"><p>Researched coach records only. Research depth does not establish verification or suitability.</p>{excluded.length > 0 && <p role="status">Some requested records need research or identity review before comparison. No identities were substituted.</p>}{context.mandate && <Link href={researchHref(`/mandates/${context.mandate}/candidates`, context)} className="underline">Return to appointment candidates</Link>}<Link href="/coaches/identity-review" className="block underline">Review identities</Link></div>
+  const scopeNote = <div className="mb-4 space-y-2 text-sm"><p>Researched coaches only. More research doesn’t automatically mean confirmed or suitable.</p>{excluded.length > 0 && <p role="status">Some coaches need more research or an identity check before they can be compared.</p>}{context.mandate && <Link href={researchHref(`/mandates/${context.mandate}/candidates`, context)} className="underline">Back to candidates</Link>}<Link href="/coaches/identity-review" className="block underline">Review identities</Link></div>
   if (rawIds.length < 2) {
     return (
       <div className="rounded-lg border border-border bg-card p-6">
@@ -124,7 +124,7 @@ export default async function CoachesComparePage({
       <div className="space-y-4">
         <section className="rounded-lg border border-border bg-card p-4 text-sm">
           <h2 className="font-medium">Compare recorded information</h2>
-          <p className="mt-2 text-muted-foreground">These profiles may include unverified material. Missing information is unknown; a recorded flag is a prompt to investigate, not a finding. Source counts and profile coverage do not establish reliability or appointment suitability.</p>
+          <p className="mt-2 text-muted-foreground">Some of this is still to be confirmed. Gaps mean we don’t know yet, and a flag is something to look into, not a verdict. More sources doesn’t automatically mean more reliable.</p>
           <div className="mt-3 flex flex-wrap gap-3">
             {coachRecords.map((coach) => (
               <Link key={coach.id} href={researchHref(`/coaches/${coach.id}/fit`, { ...context, coach: coach.id })} className="text-primary underline">

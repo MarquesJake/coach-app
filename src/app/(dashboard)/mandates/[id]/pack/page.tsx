@@ -67,7 +67,7 @@ export default async function MandatePackPage(props: { params: Promise<{ id: str
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Board output</p>
           <h1 className="mt-1 font-serif text-2xl font-semibold text-foreground">Board reports · {clubName}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Review the recommendation, preview the report and approve sharing with the club.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Check the recommendation, preview the report and approve sharing it with the club.</p>
         </div>
         <Link href="/dossier-orders" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary/50">
           <PackageCheck className="h-3.5 w-3.5" />
@@ -75,7 +75,7 @@ export default async function MandatePackPage(props: { params: Promise<{ id: str
         </Link>
       </div>
 
-      {isTottenhamScenario(params.id, mandate.custom_club_name) && <Link href={`/mandates/${params.id}/showcase#brief`} className="gaffa-panel mt-6 flex items-center justify-between gap-5 border-primary/30"><div><p className="gaffa-eyebrow">Internal scenario · example only</p><h2 className="mt-2 font-serif text-2xl">Open the Tottenham discussion paper</h2><p className="mt-2 text-sm text-muted-foreground">A printable example brief with seven coach dossiers. Separate from approved reports for club release.</p></div><ArrowRight className="h-5 w-5 shrink-0"/></Link>}
+      {isTottenhamScenario(params.id, mandate.custom_club_name) && <Link href={`/mandates/${params.id}/showcase#brief`} className="gaffa-panel mt-6 flex items-center justify-between gap-5 border-primary/30"><div><p className="gaffa-eyebrow">Board presentation</p><h2 className="mt-2 font-serif text-2xl">Open the Tottenham succession study</h2><p className="mt-2 text-sm text-muted-foreground">A printable board brief with seven coach dossiers.</p></div><ArrowRight className="h-5 w-5 shrink-0"/></Link>}
       <div className="mt-6 space-y-3">
         {coachIds.map(coachId => {
           const recommendation = (recommendations ?? []).find(row => row.coach_id === coachId)
@@ -135,7 +135,7 @@ export default async function MandatePackPage(props: { params: Promise<{ id: str
             </section>
           )
         })}
-        {!coachIds.length && <div className="rounded-md border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">Add a candidate to the shortlist to start a draft assessment report.</div>}
+        {!coachIds.length && <div className="rounded-md border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">Add a coach to the shortlist to start a report.</div>}
       </div>
     </div>
   )

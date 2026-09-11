@@ -11,7 +11,7 @@ test('staged saves preserve uncontrolled inputs and the selected submit intent o
   assert(source.includes('event.preventDefault()'))
   assert(source.includes('new FormData(form, submitter)'))
   assert(source.includes('unstable_rethrow(error)'))
-  assert(source.includes('Save not confirmed. Your draft remains here'))
+  assert(source.includes('Couldn’t confirm it saved. Your draft is still here'))
   assert(source.includes('submittingRef.current'))
 })
 

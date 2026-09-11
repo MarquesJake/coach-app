@@ -113,13 +113,13 @@ export default async function MandateAssessmentIndexPage(
       <MandateTabNav mandateId={mandateId} />
       <h1 className="text-lg font-semibold text-foreground">Candidate assessment · {clubName}</h1>
       <p className="text-xs text-muted-foreground mt-0.5">
-        Recorded assessments and reviewed evidence are counted separately. A recorded human recommendation does not authorize publication.
+        Assessments and checked evidence are counted separately. A recommendation still needs approval before it is shared.
       </p>
 
       {decisionSet.length > 0 && (
         <div className="mt-6">
           <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-            Recorded human recommendations · internal review
+            Our recommendations · internal
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
             {decisionSet.map(({ tag, tone, c }) => (
@@ -158,7 +158,7 @@ export default async function MandateAssessmentIndexPage(
         <div className="divide-y divide-border/50">
           {!shortlist?.length ? (
             <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-              No shortlisted candidates yet. Add coaches to the shortlist first — assessment runs on shortlisted candidates.
+              No one on the shortlist yet. Add coaches to the shortlist to start assessing them.
               <Link href={`/mandates/${mandateId}/candidates`} className="mt-3 flex min-h-10 items-center justify-center text-primary underline">Choose candidates</Link>
             </div>
           ) : (

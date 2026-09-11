@@ -304,7 +304,7 @@ export function StaffNetworkSection({
           </div>
           {linkDefaults?.existingLink && !editing && (
             <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
-              This coach already has a link with this staff member. You are adding another collaboration period; or edit the existing one from the table.
+              He already has a link with this staff member. This adds another spell working together — or edit the existing one in the table.
             </p>
           )}
           <div>

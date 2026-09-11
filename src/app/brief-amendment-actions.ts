@@ -18,7 +18,7 @@ async function refreshBrief(briefId: string) {
 function requestError(error: { code?: string; message: string }) {
   if (error.code === '23505') return 'There is already a pending request. Reload to review it before submitting another.'
   if (error.code === 'P0001') return error.message
-  return 'The request could not be saved. Your entries are still here. Check your connection and club access, then retry.'
+  return 'The request didn’t save. What you wrote is still here — check your connection and access, then try again.'
 }
 
 export async function requestBriefAmendmentAction(form: FormData) {
@@ -60,7 +60,7 @@ export async function decideBriefAmendmentAction(form: FormData) {
   const { data, error } = await db.from('club_brief_amendments')
     .update({ status, decision_note: note, next_action: nextAction })
     .eq('id', String(form.get('amendment_id') ?? '')).eq('brief_id', briefId).eq('status', 'pending').select('id').maybeSingle()
-  if (error) return { error: error.code === 'P0001' ? error.message : 'The decision could not be saved. Your notes are still here. Check your connection and access, then retry.' }
+  if (error) return { error: error.code === 'P0001' ? error.message : 'The decision didn’t save. Your notes are still here — check your connection and access, then try again.' }
   if (!data) return { error: 'This request has already been decided or your access changed. Reload to see the current history.' }
   await refreshBrief(briefId)
   return { success: status === 'accepted' ? 'Amendment accepted as the next agreed version. Follow the recorded next action to review the mandate and candidate work.' : 'Amendment declined. The agreed wording is unchanged.' }

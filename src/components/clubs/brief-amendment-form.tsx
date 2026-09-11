@@ -27,7 +27,7 @@ export function ReliableBriefForm({ action, children }: { action: Action; childr
         setResult(response)
         if (response.success) { form.reset(); router.refresh() }
       } catch {
-        setResult({ error: 'The save was interrupted. Your entries are still here. Check your connection, then retry. If it already reached Gaffa, reload to see the recorded request or decision.' })
+        setResult({ error: 'The save was interrupted. What you wrote is still here. Check your connection and try again — or refresh to see if it already reached Gaffa.' })
       } finally { inFlight.current = false }
     })
   }

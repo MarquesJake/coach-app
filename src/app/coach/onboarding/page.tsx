@@ -38,7 +38,7 @@ export default async function CoachOnboardingPage() {
           <div className="max-w-md py-12">
             <p className="text-xs font-semibold uppercase text-emerald-800">Private coach access</p>
             <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight">
-              Put a trusted identity behind the coach&apos;s work.
+              Confirm who you are before adding your work.
             </h1>
             <p className="mt-4 text-sm leading-6 text-slate-600">
               This account controls coach-supplied information for {coach.name}. It does
@@ -47,19 +47,19 @@ export default async function CoachOnboardingPage() {
             <div className="mt-8 space-y-4 border-t border-emerald-950/15 pt-5">
               <div className="flex gap-3 text-xs leading-5 text-slate-600">
                 <UserRoundCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-800" />
-                Coach and representative accounts are separately identified.
+                Coaches and their representatives each have their own account.
               </div>
               <div className="flex gap-3 text-xs leading-5 text-slate-600">
                 <FileCheck2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-800" />
-                Every submitted file remains marked as coach-supplied until reviewed.
+                Everything you send is marked as coming from you until Gaffa has reviewed it.
               </div>
               <div className="flex gap-3 text-xs leading-5 text-slate-600">
                 <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-emerald-800" />
-                Private material is not released automatically to a club.
+                Nothing private is shared with a club without your say-so.
               </div>
             </div>
           </div>
-          <p className="text-xs text-slate-500">Invite-only · coach-controlled · reviewed by Gaffa</p>
+          <p className="text-xs text-slate-500">Invite only · you control it · reviewed by Gaffa</p>
         </section>
 
         <section className="flex items-center bg-white px-6 py-10 lg:px-12">
@@ -67,7 +67,7 @@ export default async function CoachOnboardingPage() {
             <p className="text-xs font-semibold uppercase text-emerald-800">First login</p>
             <h2 className="mt-2 text-2xl font-semibold">Complete your account</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Confirm whether you are the coach or an authorised representative before adding private work.
+              Tell us whether you’re the coach or his representative before adding anything private.
             </p>
             <div className="mt-6">
               <CoachOnboardingForm

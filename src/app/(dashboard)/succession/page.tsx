@@ -97,7 +97,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
     <div className="space-y-5">
       {feedback.error && <p role="alert" className="rounded border p-3 text-sm text-destructive">{feedback.error}</p>}
       {feedback.success && <p role="status" className="rounded border p-3 text-sm">{feedback.success}</p>}
-      <p className="text-sm text-muted-foreground">Exploratory indicators are computed from recorded fields, not sourced appointment-fit assessments. Review the evidence and confirm the brief before adding candidates.</p>
+      <p className="text-sm text-muted-foreground">Early signals worked out from what we have on file — not a full assessment. Check the evidence and confirm the brief before adding candidates.</p>
       <section className="rounded-lg border border-border bg-card p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -107,7 +107,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Succession planning</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Track clubs before they sack a manager, before a formal search opens, and before the market knows. This is where club intelligence becomes a shadow shortlist.
+              Track clubs before they sack a manager, before a search opens and before the market knows. This is where club intelligence becomes a quiet shortlist.
             </p>
           </div>
           <Link
@@ -171,7 +171,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
                       {item.rationale.length > 0 ? item.rationale.map((reason) => (
                         <p key={reason} className="text-xs leading-5 text-muted-foreground">- {reason}</p>
                       )) : (
-                        <p className="text-xs leading-5 text-muted-foreground">No strong pressure recorded in the loaded signals. This does not confirm manager security.</p>
+                        <p className="text-xs leading-5 text-muted-foreground">No strong pressure showing — but that doesn’t mean the manager is safe.</p>
                       )}
                     </div>
                     <p className="mt-3 rounded border border-primary/20 bg-primary/10 px-3 py-2 text-xs leading-5 text-primary">
@@ -186,7 +186,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
                     </div>
                     {item.suggestedCoaches.length === 0 ? (
                       <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                        Capture club context first, then run a mandate-style scan when the target profile is clearer.
+                        Add the club’s situation first, then run a scan once it’s clearer what kind of coach they need.
                       </p>
                     ) : (
                       <div className="mt-3 grid gap-2">
@@ -244,9 +244,9 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">How this should work</p>
             <div className="mt-3 space-y-3 text-xs leading-5 text-muted-foreground">
-              <p>Clubs do not have to become mandates immediately. First they can sit here as succession watch items.</p>
-              <p>Every signal should answer one question: is this a future appointment situation, and what kind of coach would survive it?</p>
-              <p>When the club becomes real, you already have a shadow shortlist, source history and evidence gaps.</p>
+              <p>A club doesn’t have to become a mandate straight away — it can sit here on the watch list first.</p>
+              <p>Every signal answers one question: is a job likely to come up, and what kind of coach would succeed there?</p>
+              <p>When the job comes up, you already have a quiet shortlist, the background and a list of what’s missing.</p>
             </div>
           </div>
           <div className="rounded-lg border border-border bg-card p-4">

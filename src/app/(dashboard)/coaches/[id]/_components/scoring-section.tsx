@@ -172,10 +172,10 @@ export function ScoringSection({
             </div>
             <div className="pt-2 border-t border-border/50 text-sm text-muted-foreground">
               {completenessPercent < 40 && (
-                <p>Low profile completeness may reduce ranking accuracy.</p>
+                <p>The profile is thin, so the ranking may be less accurate.</p>
               )}
               {evidenceCount < 3 && (
-                <p className={completenessPercent < 40 ? 'mt-1' : ''}>Limited intelligence coverage.</p>
+                <p className={completenessPercent < 40 ? 'mt-1' : ''}>Not much intelligence yet.</p>
               )}
               {completenessPercent >= 40 && evidenceCount >= 3 && (
                 <p>No advisory notes.</p>
@@ -184,7 +184,7 @@ export function ScoringSection({
           </div>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground italic">Weighting system will be added later.</p>
+      <p className="text-xs text-muted-foreground italic">Weightings coming soon.</p>
     </div>
   )
 }

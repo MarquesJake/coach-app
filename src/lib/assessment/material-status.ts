@@ -16,9 +16,9 @@ export function deriveMaterialStatus(material: Material) {
     canReview: !illustrative && (uploaded || linked),
     label: illustrative ? 'Illustrative entry - no real file established'
       : uploaded ? reviewedUpload ? 'Uploaded file - review recorded' : 'Uploaded file - review required'
-        : linked ? 'External link - no uploaded file' : 'Metadata only - no uploaded file',
+        : linked ? 'External link - no uploaded file' : 'Description only - no file uploaded',
     releaseLabel: material.confidentiality_status === 'withheld' ? 'Withheld from release'
-      : 'Recipient release eligibility requires a separate permission check',
+      : 'Needs separate permission before it can be shared',
   }
 }
 
