@@ -59,7 +59,7 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
         toast.success(message)
         router.refresh()
       } catch {
-        setFeedback({ error: !confirmed, text: confirmed ? 'Saved, but the list could not refresh. Reload to check the saved record.' : 'Save could not be confirmed. Your entries are retained. Check the saved record before retrying.' })
+        setFeedback({ error: !confirmed, text: confirmed ? 'Saved, but the list didn’t refresh. Reload to check.' : 'Save could not be confirmed. Your entries are retained. Check the saved record before retrying.' })
       } finally {
         busy.current = false
       }
@@ -116,7 +116,7 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
               name="evidence_summary"
               required
               rows={3}
-              placeholder="What supports it, and what context or follow-up matters?"
+              placeholder="What backs it up, and what context or follow-up matters?"
               className="rounded-md border border-border bg-background px-3 py-2 text-sm"
             />
             <select name="criteria" className={inputClass}>

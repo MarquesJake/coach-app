@@ -40,7 +40,7 @@ export function CoachInvitationForm({
       }
       router.push('/coach/onboarding')
       router.refresh()
-      } catch { setError('Coach access was not confirmed. Your form is retained; check your connection and retry.') }
+      } catch { setError('Couldn’t confirm your access. Your details are kept — check your connection and try again.') }
     })
   }
 

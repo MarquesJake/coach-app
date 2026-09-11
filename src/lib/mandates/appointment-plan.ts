@@ -11,17 +11,17 @@ export type ServiceModel = (typeof SERVICE_MODELS)[number]
 export const SERVICE_MODEL_LABELS: Record<ServiceModel, string> = {
   full_service_search: 'Full appointment process',
   curated_shortlist: 'Gaffa shortlist',
-  named_coach_diligence: 'Named-coach diligence',
+  named_coach_diligence: 'Checks on named coaches',
   succession_intelligence: 'Succession planning',
   confidential_dossier: 'Confidential dossier',
 }
 
 export const SERVICE_MODEL_DESCRIPTIONS: Record<ServiceModel, string> = {
-  full_service_search: 'Gaffa runs identification, assessment, interviews, feasibility and appointment support.',
+  full_service_search: 'Gaffa finds the candidates, assesses them, runs the interviews, checks the deal is possible and supports the appointment.',
   curated_shortlist: 'Gaffa builds and assesses a club-ready shortlist.',
-  named_coach_diligence: 'The club supplies names; Gaffa tests each option in depth.',
+  named_coach_diligence: 'The club gives us names; Gaffa tests each one in depth.',
   succession_intelligence: 'Build options and intelligence before a vacancy becomes public.',
-  confidential_dossier: 'Prepare and control release of one decision-ready coach dossier.',
+  confidential_dossier: 'Prepare one full coach report and control who sees it.',
 }
 
 export const ACTION_CATEGORIES = [
@@ -42,10 +42,10 @@ export type ActionCategory = (typeof ACTION_CATEGORIES)[number]
 export const ACTION_CATEGORY_LABELS: Record<ActionCategory, string> = {
   brief: 'Brief',
   market: 'Market',
-  diligence: 'Diligence',
+  diligence: 'Background checks',
   assessment: 'Assessment',
   interview_references: 'Interviews & references',
-  feasibility: 'Appointment feasibility',
+  feasibility: 'Contract and availability',
   board: 'Board decision',
   release: 'Confidential release',
   commercial: 'Commercial',
@@ -155,7 +155,7 @@ export function calculateAppointmentGates(facts: AppointmentPlanFacts): Appointm
       key: 'brief',
       label: 'Club brief',
       status: facts.briefComplete ? 'complete' : 'attention',
-      detail: facts.briefComplete ? 'Football, leadership and appointment constraints recorded.' : 'Complete the football brief and operating constraints.',
+      detail: facts.briefComplete ? 'Football, leadership and practical requirements recorded.' : 'Complete the football brief and operating constraints.',
       hrefSuffix: '/workspace',
     },
     {
@@ -193,8 +193,8 @@ export function calculateAppointmentGates(facts: AppointmentPlanFacts): Appointm
         : 'not_required',
       detail: target.feasibilityRequired
         ? facts.leadFeasibilityVerified
-          ? `${leadNamed}'s contract, expectations, family and staff position are verified.`
-          : 'Verify contract, compensation, salary, family, relocation and staff requirements.'
+          ? `${leadNamed}’s contract, expectations, family and staff position are confirmed.`
+          : 'Confirm contract, compensation, salary, family, relocation and staff requirements.'
         : 'Full feasibility can wait until a live appointment process starts.',
       hrefSuffix: facts.leadCoachId ? `/assessment/${facts.leadCoachId}` : '/assessment',
     },

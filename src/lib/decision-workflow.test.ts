@@ -12,7 +12,7 @@ test('dated verification remains distinct from disputes and stale evidence', () 
   assert.equal(evidenceStatus(row, now), 'Verified record')
   assert.equal(evidenceStatus({ ...row, corroboration_status: 'disputed' }, now), 'Disputed')
   assert.equal(evidenceStatus({ ...row, occurred_at: '2026-01-01' }, now), 'Needs refresh')
-  assert.equal(summariseEvidence([], now).label, 'Research required')
+  assert.equal(summariseEvidence([], now).label, 'Needs research')
   assert.equal(summariseEvidence([{ ...row, source_name: 'Demo data' }], now).verified, 0)
 })
 test('research cannot be marked answered without a conclusion and linked finding', () => {

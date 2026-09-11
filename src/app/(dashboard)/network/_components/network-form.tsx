@@ -32,7 +32,7 @@ export function NetworkForm({ children, action, success, onSaved }: {
         onSaved?.(result.id)
         router.refresh()
       } catch (error) {
-        setFeedback({ error: !confirmed, text: confirmed ? 'Saved, but this view could not refresh. Reload to check the saved record before adding another.' : error instanceof Error && /Choose a valid|Select a network/.test(error.message) ? error.message : 'Save could not be confirmed. Your entries are still here. Check the saved record before retrying.' })
+        setFeedback({ error: !confirmed, text: confirmed ? 'Saved, but the page didn’t refresh. Reload to check before adding another.' : error instanceof Error && /Choose a valid|Select a network/.test(error.message) ? error.message : 'Save could not be confirmed. Your entries are still here. Check the saved record before retrying.' })
       } finally { busy.current = false }
     })
   }}>

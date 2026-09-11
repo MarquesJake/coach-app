@@ -55,7 +55,7 @@ export function NetworkDirectoryClient({ contacts, coaches }: { contacts: Contac
             <select aria-label="Attribution permission" name="default_attribution_permission" className={inputClass} defaultValue="internal_only"><option value="internal_only">Internal only</option><option value="anonymised_external">Anonymised externally</option><option value="attributed_external">Attribution approved</option></select>
             <label className="text-xs text-muted-foreground">Follow-up date and time<input name="next_follow_up_at" type="datetime-local" className={inputClass} /></label>
             <input name="follow_up_note" placeholder="Next action" className={`${inputClass} sm:col-span-2`} />
-            <p className="text-xs text-muted-foreground sm:col-span-2">Reliability is an analyst judgement, not verified evidence. Contact details and permissions remain private until deliberately reviewed.</p>
+            <p className="text-xs text-muted-foreground sm:col-span-2">Reliability is our judgement, not a confirmed fact. Contact details and permissions stay private until reviewed.</p>
             <div className="flex items-center justify-end sm:col-span-2"><Button type="submit"><UserRoundPlus className="mr-2 h-4 w-4" />Add contact</Button></div>
           </NetworkForm>
         </details>

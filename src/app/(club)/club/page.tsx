@@ -40,25 +40,25 @@ export default async function ClubHomePage() {
       <div className="border-b border-border pb-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Confidential appointment work</p>
         <h1 className="mt-2 font-serif text-3xl font-semibold text-foreground">{context.organizationName} decision room</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Set the football brief, review Gaffa recommendations, and control access to confidential dossiers.</p>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Set your football brief, see Gaffa’s recommendations and control who sees the confidential reports.</p>
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         <Link href="/club/brief" className="rounded-md border border-border bg-card p-4 transition-colors hover:bg-secondary/30">
           <div className="flex items-center justify-between"><ClipboardList className="h-4 w-4 text-primary" /><span className="text-[10px] uppercase text-muted-foreground">{handoff.label}</span></div>
           <h2 className="mt-4 text-sm font-semibold text-foreground">Club brief</h2>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">{agreed.snapshot.title ?? 'Define the role, football model, squad context and decision process.'}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">{agreed.snapshot.title ?? 'The job, the football, the squad and how you’ll decide.'}</p>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">{agreed.snapshot.role_title ?? 'Head Coach'} · Next: {handoff.owner}. {handoff.nextAction}</p>
         </Link>
         <Link href="/club/dossiers" className="rounded-md border border-border bg-card p-4 transition-colors hover:bg-secondary/30">
           <div className="flex items-center justify-between"><FileLock2 className="h-4 w-4 text-primary" /><span className="text-[10px] tabular-nums text-muted-foreground">{offers?.length ?? 0} available</span></div>
           <h2 className="mt-4 text-sm font-semibold text-foreground">Assessment dossiers</h2>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">Club-framed recommendations with evidence, risks and controlled coach material.</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">Recommendations for your club, with the evidence, the risks and the coach’s own material.</p>
         </Link>
         <Link href="/club/dossiers" className="rounded-md border border-border bg-card p-4 transition-colors hover:bg-secondary/30">
           <div className="flex items-center justify-between"><LockKeyhole className="h-4 w-4 text-primary" /><span className="text-[10px] tabular-nums text-muted-foreground">{activeOrders} active</span></div>
           <h2 className="mt-4 text-sm font-semibold text-foreground">Confidential access</h2>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">Released files remain permissioned, time-limited and visible only to your club.</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">Released files are for your club only and access runs out after a set time.</p>
         </Link>
       </div>
 
@@ -83,7 +83,7 @@ export default async function ClubHomePage() {
               </Link>
             )
           })}
-          {!offers?.length && <p className="px-5 py-8 text-center text-sm text-muted-foreground">Gaffa has not published a dossier preview yet. <Link href="/club/brief" className="underline">Review your brief and the next handoff.</Link></p>}
+          {!offers?.length && <p className="px-5 py-8 text-center text-sm text-muted-foreground">No reports shared with you yet. <Link href="/club/brief" className="underline">Review your brief and the next handoff.</Link></p>}
         </div>
       </section>
     </div>

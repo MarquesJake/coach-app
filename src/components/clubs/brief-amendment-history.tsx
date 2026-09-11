@@ -27,7 +27,7 @@ export function BriefAmendmentHistory({ amendments, canReview = false }: { amend
     {canReview && amendment.status === 'pending' && <ReliableBriefForm action={decideBriefAmendmentAction}>
       <input type="hidden" name="brief_id" value={amendment.brief_id} />
       <input type="hidden" name="amendment_id" value={amendment.id} />
-      <p className="text-xs text-muted-foreground">Your reason and next action are visible to the club. Acceptance creates the next agreed version. Review the impact on mandate criteria, candidate comparisons and any previously prepared packs.</p>
+      <p className="text-xs text-muted-foreground">The club can see your reason and next step. Accepting creates a new agreed version of the brief — check how it affects the mandate, the candidate comparisons and any reports already prepared.</p>
       <label className="block text-sm font-medium">Decision reason<textarea name="decision_note" required maxLength={4000} rows={3} className="mt-1 block w-full rounded border border-input bg-background p-2 font-normal" /></label>
       <label className="block text-sm font-medium">Next action and responsible person<textarea name="next_action" required maxLength={4000} rows={2} className="mt-1 block w-full rounded border border-input bg-background p-2 font-normal" /></label>
       <div className="flex flex-wrap gap-3">

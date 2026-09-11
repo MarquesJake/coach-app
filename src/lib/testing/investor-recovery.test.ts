@@ -20,5 +20,5 @@ test('release desk does not offer approval when recipient identity is not visibl
   const source = readFileSync(new URL('../../app/(dashboard)/dossier-orders/page.tsx', import.meta.url), 'utf8')
   assert.ok(source.includes('release.canRelease && recipientName'))
   assert.ok(source.includes('Recipient identity restricted'))
-  assert.ok(source.includes('An authorised operator must confirm the recipient'))
+  assert.ok(source.includes('An authorised colleague has to confirm the club'))
 })

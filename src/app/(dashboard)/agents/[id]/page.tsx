@@ -156,7 +156,7 @@ export default async function AgentOverviewPage({ params }: { params: Promise<{ 
             <h2 className="text-sm font-semibold text-foreground">Next conversation</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Capture what was said, separate representation from independent evidence, and send any coach finding through Review.
+            Log what was said, keep an agent’s pitch separate from independent evidence, and send any finding on a coach to Review.
           </p>
         </div>
         <Link href={`/agents/${id}/interactions`} className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90">

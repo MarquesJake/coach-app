@@ -8,7 +8,7 @@ export function ClaimDataButton({ totalUnowned }: { totalUnowned: number }) {
   const [loading, setLoading] = useState(false)
 
   async function handleClaim() {
-    if (loading || !window.confirm('Attribute all listed unowned records to your account? Only continue if you are responsible for these records.')) return
+    if (loading || !window.confirm('Assign all these unowned records to your account? Only do this if they’re yours.')) return
     setLoading(true)
     try {
       const result = await claimUnownedRowsAction()

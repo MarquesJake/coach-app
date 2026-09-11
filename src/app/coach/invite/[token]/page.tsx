@@ -59,7 +59,7 @@ export default async function CoachInvitationPage(props: { params: Promise<{ tok
               </div>
               <CoachInvitationForm token={params.token} hasSession={Boolean(user)} currentEmail={user?.email ?? null} />
               <p className="mt-5 text-[11px] leading-5 text-slate-500">
-                After accepting the invitation, you will confirm your identity and private-use acknowledgements before opening the profile.
+                Once you accept, you’ll confirm who you are and agree how the profile is used before opening it.
               </p>
             </>
           ) : (
@@ -67,7 +67,7 @@ export default async function CoachInvitationPage(props: { params: Promise<{ tok
               <LockKeyhole className="h-6 w-6 text-slate-500" />
               <h2 className="mt-4 text-lg font-semibold">Invitation unavailable</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                This link is invalid, expired, already claimed or revoked. Ask Gaffa for a new invitation.
+                This link has expired or already been used. Ask Gaffa for a new invitation.
               </p>
               <Link href="/coach/login" className="mt-5 inline-flex rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold">
                 Coach sign in

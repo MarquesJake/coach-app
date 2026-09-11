@@ -204,7 +204,7 @@ export default function ClubPathwayPage() {
     setPathwayForm({ season: '', academy_debuts: '', u21_minutes_percentage: '', internal_promotions: '', notes: '' })
     setShowPathwayForm(false)
     } catch {
-      setActionError('Save could not be confirmed. Your entries have been kept; check before retrying.')
+      setActionError('Couldn’t confirm it saved. Your entries are kept — check before trying again.')
     } finally { setSavingPathway(false) }
   }
 
@@ -454,7 +454,7 @@ export default function ClubPathwayPage() {
         {transfers.length === 0 ? (
           <div className="px-6 py-10 text-center">
             <p className="text-sm text-muted-foreground">No transfer data yet.</p>
-            <p className="text-xs text-muted-foreground mt-1">Visit the club overview page to trigger a sync.</p>
+            <p className="text-xs text-muted-foreground mt-1">Open the club overview to pull in the data.</p>
           </div>
         ) : filteredTransfers.length === 0 ? (
           <div className="px-6 py-8 text-center">

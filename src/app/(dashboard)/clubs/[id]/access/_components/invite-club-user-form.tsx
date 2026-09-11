@@ -82,7 +82,7 @@ export function InviteClubUserForm({
           <p className="mt-2 text-[11px] leading-5 text-emerald-900/75">
             {emailStatus === 'sent'
               ? 'The invitation was sent to the intended recipient. The link expires in seven days.'
-              : 'Email delivery is not configured or did not complete. Send this link to the intended recipient; it expires in seven days.'}
+              : 'The email didn’t send. Send this link to them yourself — it lasts seven days.'}
           </p>
         </div>
       )}

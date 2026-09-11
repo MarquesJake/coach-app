@@ -87,7 +87,7 @@ export function AgentClubsClient({
         </Button>
       </div>
       <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <p className="p-3 text-xs text-muted-foreground">Ratings are recorded analyst estimates, not verified facts. Manage records in the <Link className="text-primary underline" href="/clubs">directory</Link>.</p>
+        <p className="p-3 text-xs text-muted-foreground">Ratings are our analysts’ estimates, not confirmed facts. Manage records in the <Link className="text-primary underline" href="/clubs">directory</Link>.</p>
         {links.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">No clubs linked. Add a club relationship above.</div>
         ) : (

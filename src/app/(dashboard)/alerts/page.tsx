@@ -47,11 +47,11 @@ export default async function AlertsPage({
             </Link>
           </div>
         </div>
-        {error ? <div role="alert" className="rounded-lg border border-destructive/30 p-4"><p>Alerts could not be loaded. This is not an all-clear.</p><a href={`/alerts?filter=${filter}`} className="mt-3 inline-flex min-h-10 items-center text-sm underline">Retry loading alerts</a></div> : list.length === 0 ? (
+        {error ? <div role="alert" className="rounded-lg border border-destructive/30 p-4"><p>Alerts didn’t load — this isn’t an all-clear.</p><a href={`/alerts?filter=${filter}`} className="mt-3 inline-flex min-h-10 items-center text-sm underline">Retry loading alerts</a></div> : list.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-surface/40 px-4 py-8 text-center">
             <p className="text-sm font-medium text-foreground">{filter === 'unseen' ? 'No unseen alerts' : 'No alerts recorded'}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              This list shows recorded alerts, not a guarantee that all football risks have been checked.
+              These are the alerts we have — not a guarantee every risk has been checked.
             </p>
             <Link href={filter === 'unseen' ? '/alerts?filter=all' : '/dashboard'} className="mt-3 inline-flex min-h-10 items-center text-sm underline">{filter === 'unseen' ? 'View all alerts' : 'Return to Today'}</Link>
           </div>

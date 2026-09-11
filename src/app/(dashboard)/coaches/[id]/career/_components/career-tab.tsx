@@ -399,7 +399,7 @@ export function CareerTab({
             {trajectory.label}
           </p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            Based on league level of first vs last 3 roles
+            Based on the level of his first and last three jobs
           </p>
         </section>
       )}
@@ -433,7 +433,7 @@ export function CareerTab({
               <option value="">No linked club</option>
               {clubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}
             </select>
-            <p className="mt-1 text-[11px] text-muted-foreground">Links season history for manager-context analysis. Leave blank when the club record is ambiguous.</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Links the club’s season results to this job. Leave blank if you’re not sure which club record it is.</p>
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Club name</label>

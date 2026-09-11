@@ -181,7 +181,7 @@ export function SourceConfidenceFields({ namePrefix = '', initial, disabled }: P
             </div>
           </div>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-1">Verified at is set automatically when you save with Verified on.</p>
+        <p className="text-[10px] text-muted-foreground mt-1">The date checked is filled in when you save with Verified switched on.</p>
       </div>
     </>
   )

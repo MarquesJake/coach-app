@@ -112,10 +112,10 @@ export function ConfigCrud({ table, title, backHref, initialItems, loadError = f
     <div className="mx-auto max-w-[1400px] space-y-5" aria-busy={loading}>
       <Link href={backHref} className="inline-flex min-h-10 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Back to configuration</Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h1 className="text-lg font-semibold text-foreground">{title}</h1><p className="mt-1 text-sm text-muted-foreground">Maintain your saved options. Use inactive to retain an option without offering it for new selections.</p></div>
+        <div><h1 className="text-lg font-semibold text-foreground">{title}</h1><p className="mt-1 text-sm text-muted-foreground">Manage the options in each list. Set one to inactive to keep it without offering it for new records.</p></div>
         <button type="button" onClick={() => openForm(null)} disabled={loading || loadError} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"><Plus className="h-4 w-4" />Add new</button>
       </div>
-      {loadError && <div role="alert" className="rounded-lg border border-destructive/30 p-4"><p>The list could not be loaded. No empty-list result has been assumed.</p><button type="button" onClick={() => router.refresh()} className="mt-3 min-h-10 underline">Retry loading</button></div>}
+      {loadError && <div role="alert" className="rounded-lg border border-destructive/30 p-4"><p>The list didn’t load. Refresh to try again.</p><button type="button" onClick={() => router.refresh()} className="mt-3 min-h-10 underline">Retry loading</button></div>}
       {error && <p role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{error}</p>}
       {message && <p role="status" className="rounded-lg border border-primary/20 p-3 text-sm">{message}</p>}
       {!loadError && initialItems.length === 0 && !showForm && <EmptyState title="No saved options yet" description={`Use Add new to record ${title.toLowerCase()}.`} />}

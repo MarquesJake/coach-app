@@ -165,7 +165,7 @@ export default async function IntelligencePage() {
           <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Research</p>
           <h2 className="mt-2 font-serif text-2xl font-semibold text-foreground">Current work</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Review new information, check sources and follow up open questions.
+            Review what’s new, check sources and chase open questions.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -193,14 +193,14 @@ export default async function IntelligencePage() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Live signals</p>
               <h2 className="mt-1 text-base font-semibold text-foreground">Recent findings</h2>
             </div>
-            <p className="text-xs text-muted-foreground">Assessment evidence, references and private materials live in their relevant workspaces.</p>
+            <p className="text-xs text-muted-foreground">Assessment evidence, references and private material sit in their own sections.</p>
           </div>
 
           {signals.length === 0 ? (
             <div className="flex min-h-[360px] flex-col items-center justify-center px-6 text-center">
               <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted/40"><CheckCircle2 className="h-5 w-5 text-emerald-700" /></span>
               <h3 className="mt-4 text-base font-semibold text-foreground">The live feed is clear</h3>
-              <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Capture the next real conversation or triage a new source. It will enter the evidence process before it appears as a usable signal.</p>
+              <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Log your next conversation or sort a new source. It gets checked before it shows up as usable intel.</p>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
                 <Link href="/intelligence/conversations" className="inline-flex h-9 items-center gap-2 bg-primary px-3 text-sm font-semibold text-primary-foreground"><MessageSquarePlus className="h-4 w-4" />Record conversation</Link>
                 <Link href="/intelligence/inbox" className="inline-flex h-9 items-center gap-2 border border-border bg-card px-3 text-sm font-medium text-foreground"><Inbox className="h-4 w-4" />Review inbox</Link>
@@ -237,11 +237,11 @@ export default async function IntelligencePage() {
           <section className="border border-border bg-card p-5">
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Evidence rule</p></div>
             <p className="mt-3 text-sm font-semibold leading-6 text-foreground">A signal is not a recommendation.</p>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">Raw notes are captured first. An analyst reviews findings, records confidence and provenance, then explicitly uses approved evidence in a mandate.</p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Notes go in first. An analyst reviews the findings, records how confident we are and where it came from, then uses the approved evidence in a mandate.</p>
           </section>
           <section className="border border-border bg-card p-5">
             <div className="flex items-center gap-2"><Network className="h-4 w-4 text-primary" /><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Next network move</p></div>
-            <p className="mt-3 text-sm font-semibold leading-6 text-foreground">{nextCampaign ?? 'Start with a contact, not a generic research task.'}</p>
+            <p className="mt-3 text-sm font-semibold leading-6 text-foreground">{nextCampaign ?? 'Start with a person, not a general research task.'}</p>
             <Link href="/network" className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">Open Football Network <ArrowRight className="h-3.5 w-3.5" /></Link>
           </section>
         </aside>

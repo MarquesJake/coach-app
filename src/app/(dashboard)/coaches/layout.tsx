@@ -14,7 +14,7 @@ export default function CoachesLayout({
   return (
     <SectionShell
       title="Coaches"
-      description="Coach database, compare and watchlist"
+      description="Coach database, comparisons and watchlist"
       subnav={COACHES_SUBNAV}
       sticky
     >

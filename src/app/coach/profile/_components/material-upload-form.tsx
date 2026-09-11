@@ -100,7 +100,7 @@ export function MaterialUploadForm() {
     const externalUrl = String(formData.get('external_url') ?? '').trim()
     const description = String(formData.get('description') ?? '').trim()
     if (!title || (!file && !externalUrl && !description)) {
-      setMessage('Add a title and either a private file, secure link or useful description.')
+      setMessage('Add a title and a file, a secure link or a short description.')
       return
     }
 
@@ -176,7 +176,7 @@ export function MaterialUploadForm() {
       }
       completeSubmission()
     } catch {
-      setMessage('Submission was not confirmed. Your form is retained. If an upload finished, retry its confirmation; otherwise check the material list before submitting again.')
+      setMessage('Couldn’t confirm it was sent. Your details are kept — check your material list before sending again.')
     } finally {
       inFlight.current = false
       setPending(false)
@@ -188,7 +188,7 @@ export function MaterialUploadForm() {
     setConfirmationId(null)
     setFile(null)
     formRef.current?.reset()
-    setMessage('Material submitted for Gaffa review. Profile edits are separate; save them before leaving.')
+    setMessage('Sent to Gaffa to review. Remember to save any profile changes before leaving.')
     toast.success('Material submitted for Gaffa review')
     router.refresh()
   }

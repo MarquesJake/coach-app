@@ -322,7 +322,7 @@ function recommendationConfidence(primary: BoardCandidate, secondary: BoardCandi
 
 function alternativeOptionLine(secondary: BoardCandidate | null): string {
   return secondary
-    ? 'Compare the recorded evidence directly; ranking alone does not establish suitability or availability.'
+    ? 'Compare the evidence side by side — a ranking alone doesn’t tell you who is suitable or available.'
     : 'No assessed alternative is recorded.'
 }
 
@@ -476,7 +476,7 @@ function BoardRecommendation({
         <div className="mt-3 rounded-lg border border-dashed border-border bg-surface/40 px-4 py-5">
           <p className="text-sm font-semibold text-foreground">No assessed candidates ready for a board decision</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Candidates can be reviewed below. Record evidence and assessments first; a shortlist entry alone does not establish suitability.
+            Review the candidates below. Add evidence and assessments first — being on the shortlist doesn’t make someone suitable.
           </p>
         </div>
       </section>
@@ -491,8 +491,8 @@ function BoardRecommendation({
           <h2 className="mt-1 text-base font-semibold text-foreground">{heading}</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {primary.hasHumanRecommendation
-              ? 'Recorded analyst judgement. Review the verdict and its supporting evidence; this is not independent verification.'
-              : 'Current ordering of assessed candidates, not a board recommendation or a confirmation of availability.'}
+              ? 'Our analyst’s judgement. Check the verdict and the evidence behind it.'
+              : 'How the assessed candidates currently rank — not a recommendation, and not confirmation they’re available.'}
           </p>
           <p className="mt-1 text-xs font-medium text-foreground">
             {recommendationTradeOff(primary)}
@@ -513,7 +513,7 @@ function BoardRecommendation({
           )}
           {isMarginal && (
             <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-500">
-              Decision remains marginal between top candidates based on current evidence
+              On current evidence there’s little between the top candidates
             </span>
           )}
         </div>
@@ -606,7 +606,7 @@ function displayEvidenceSnippet(snippet: string) {
     return 'Recruitment history points to repeated work with players still in development age bands.'
   }
   if (/stint|club context|Repeatable/i.test(snippet)) {
-    return 'Development evidence appears across more than one club context, reducing the chance this is a one-club artefact.'
+    return 'He has developed players at more than one club, so it isn’t a one-off.'
   }
   if (/Manual development score/i.test(snippet)) {
     return snippet.replace('Manual development score is', 'Scout profile carries a development score of')
@@ -616,13 +616,13 @@ function displayEvidenceSnippet(snippet: string) {
 
 function displayRiskNote(note: string) {
   if (/optional evidence|missing optional|not present|transfer and career progression/i.test(note)) {
-    return 'Player level transfer and career progression evidence is not yet connected, so this should be treated as an early signal rather than a final judgement.'
+    return 'We haven’t yet linked player transfers and career progress, so treat this as an early sign, not a final judgement.'
   }
   if (/low source coverage|profile level/i.test(note)) {
-    return 'Evidence is mainly profile level, with limited player level validation at this stage.'
+    return 'Evidence comes mainly from his profile; little checked against individual players so far.'
   }
   if (/quantitative|limited/i.test(note)) {
-    return 'Quantitative player development evidence is limited, so analyst validation is still required.'
+    return 'There’s not much hard data on player development yet, so an analyst needs to check it.'
   }
   if (/confidence|sparse/i.test(note)) {
     return 'Confidence is constrained by sparse source coverage and should be treated as an early signal.'
@@ -685,7 +685,7 @@ function scanCopy(objective: string | null) {
     title: 'Development scan',
     active: true,
     description: 'Evidence backed suggestions for mandates focused on developing young players. Nothing is added to the longlist until you approve it.',
-    empty: 'Run a development scan to surface coaches whose profiles show youth development, academy pathway, or player growth signals.',
+    empty: 'Run a development scan to find coaches with a record of developing young players and bringing academy players through.',
   }
 }
 
@@ -1181,7 +1181,7 @@ function IntelligenceSummary({
         <div className="rounded border border-dashed border-border bg-surface/40 px-3 py-3">
           <p className="text-xs font-medium text-foreground">No verified intelligence attached</p>
           <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-            Add availability, agent, media or performance notes to strengthen the board recommendation.
+            Add notes on availability, agents, media or performance to strengthen the recommendation.
           </p>
         </div>
       </section>
@@ -1363,7 +1363,7 @@ function FitAssessment({
         </div>
         <p className="text-sm font-medium text-foreground">Select a candidate to assess fit</p>
         <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-          Open a pipeline candidate or scored recommendation to compare tactical fit, provenance, intelligence confidence and decision risk.
+          Open a candidate to compare tactical fit, sources, how solid the intelligence is and the risks.
         </p>
       </div>
     )
@@ -1483,7 +1483,7 @@ function FitAssessment({
       </div>
 
       {saveError && <p role="alert" className="text-sm text-red-600">{saveError}</p>}
-      {intelError && <p role="alert" className="text-sm text-amber-700">Source signals could not be loaded. This is not a finding of no evidence. Reload or open the candidate research before relying on the fit summary.</p>}
+      {intelError && <p role="alert" className="text-sm text-amber-700">Sources didn’t load — that doesn’t mean there’s no evidence. Refresh, or open the candidate’s research, before relying on this.</p>}
       <form onChange={() => { setSaved(false); onDirtyChange(true) }} onSubmit={(event) => {
         event.preventDefault()
         void handleSubmit(new FormData(event.currentTarget))
@@ -1510,10 +1510,10 @@ function FitAssessment({
         <section className="space-y-3">
           <label className="block text-xs font-semibold">Workflow status<select name="status" defaultValue={candidate.status} className="mt-2 h-10 w-full rounded border border-border bg-surface px-2 text-sm">{Array.from(new Set([candidate.status, 'Under Review', 'Shortlisted', 'In Negotiations', 'Declined'])).map(status => <option key={status} value={status}>{status}</option>)}</select></label>
           <label className="block text-xs font-semibold">Candidate workflow notes<textarea name="notes" defaultValue={candidate.notes ?? ''} rows={3} className="mt-2 w-full rounded border border-border bg-surface p-3 text-sm" /></label>
-          <p className="text-xs text-muted-foreground">These are internal process notes, not evidence verification or permission to contact the coach.</p>
+          <p className="text-xs text-muted-foreground">Internal notes only — not confirmed evidence, and not permission to contact the coach.</p>
         </section>
         <section className="space-y-3">
-          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Network provenance</h3>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">How we found him</h3>
           <div className="space-y-1">
             <label className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">How identified</label>
             <select
@@ -1668,7 +1668,7 @@ function CandidatePipeline({
         <div className="rounded-lg border border-dashed border-border bg-surface/40 px-3 py-5 text-center">
           <p className="text-xs font-medium text-foreground">No shortlist decisions yet</p>
           <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-            Switch to Scored to review ranked coaches, then add credible options into the decision pipeline.
+            Switch to Scored to see the ranked coaches, then add the strongest options.
           </p>
         </div>
       )}
@@ -1787,7 +1787,7 @@ export function MandateWorkspaceClient({
   )
   const decisionCoverageLabel =
     decisionCoverage.status === 'board_ready'
-      ? 'Recorded coverage complete, release review required'
+      ? 'All areas covered — needs approval before sharing'
       : decisionCoverage.status === 'empty'
         ? 'No decision set'
         : 'Coverage developing'
@@ -1901,10 +1901,10 @@ export function MandateWorkspaceClient({
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Candidates</p>
             <h1 className="mt-1 text-lg font-semibold text-foreground">{clubName}</h1>
             <p className="mt-1 text-xs text-muted-foreground">
-              Select a candidate, record the shortlist decision, then continue to their evidence and assessment.
+              Pick a candidate, record the shortlist decision, then move on to their evidence and assessment.
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Candidates are workflow entries, not endorsements. Review their recorded sources and analyst decisions before drawing conclusions.
+              Being listed isn’t an endorsement. Check the sources and our notes before drawing conclusions.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -1942,7 +1942,7 @@ export function MandateWorkspaceClient({
               </span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Recorded assessment work only, not independent verification. Criterion-level provenance remains visible in the assessment pack.
+              Our assessment work so far. The sources for each area are in the report.
             </p>
           </div>
           <dl className="grid grid-cols-2 gap-x-5 gap-y-2 sm:grid-cols-4">
@@ -1972,13 +1972,13 @@ export function MandateWorkspaceClient({
         </div>
       </details>
 
-      <details className="order-4 rounded-lg border border-border bg-card p-4"><summary className="mb-3 cursor-pointer text-sm font-semibold">Recorded candidate comparison, not release approval</summary><BoardRecommendation
+      <details className="order-4 rounded-lg border border-border bg-card p-4"><summary className="mb-3 cursor-pointer text-sm font-semibold">Candidate comparison — not yet cleared to share</summary><BoardRecommendation
         shortlist={shortlist}
         longlistEntries={longlistEntries}
         mandateObjective={mandate.strategic_objective}
         onSelectCandidate={handleSelectBoardCandidate}
       /></details>
-      <details className="order-5 rounded-lg border border-border bg-card p-4"><summary className="mb-3 cursor-pointer text-sm font-semibold">Explore development-focused suggestions</summary><SuggestedLonglistPanel
+      <details className="order-5 rounded-lg border border-border bg-card p-4"><summary className="mb-3 cursor-pointer text-sm font-semibold">See coaches who develop players</summary><SuggestedLonglistPanel
         mandateId={mandate.id}
         mandateObjective={mandate.strategic_objective}
         suggestions={suggestions}
@@ -2008,7 +2008,7 @@ export function MandateWorkspaceClient({
           </div>
           <div className="p-4">
             {selectedCandidate && <div className="mb-4 flex flex-wrap gap-2 border-b border-border pb-4"><Link className="gaffa-action gaffa-action-primary" href={`/mandates/${mandate.id}/assessment/${selectedCandidate.coach_id}`}>Continue assessment</Link><Link className="gaffa-action gaffa-action-secondary" href={`/coaches/${selectedCandidate.coach_id}/research?mandate=${mandate.id}`}>Research this candidate</Link></div>}
-            {candidateDirty && <p role="status" className="mb-3 text-sm text-amber-700">Unsaved candidate changes. Save before continuing to assessment.</p>}
+            {candidateDirty && <p role="status" className="mb-3 text-sm text-amber-700">You have unsaved changes. Save before moving on to the assessment.</p>}
             {renderCenter()}
           </div>
         </div>

@@ -100,7 +100,7 @@ const DESTINATION_HELP: Record<string, string> = {
   agent_interaction: 'Should be logged as a relationship/conversation record.',
   reference_answer: 'Should be captured through the structured reference process.',
   interview_answer: 'Should be captured through the structured interview process.',
-  watch_only: 'Useful context, but not enough to affect recommendation or profile.',
+  watch_only: 'Useful background, but not enough to change the recommendation or profile.',
 }
 
 const DESTINATION_ACTION_LABEL: Record<string, string> = {
@@ -128,7 +128,7 @@ const CAPTURE_PLAYBOOK = [
   },
   {
     title: 'Football reference',
-    detail: 'What the coach is like on the grass, dressing-room credibility, pressure behaviour.',
+    detail: 'What he’s like on the grass, how the dressing room sees him, how he handles pressure.',
     destination: 'Reference form, then assessment evidence',
   },
   {
@@ -344,7 +344,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
     }
     router.refresh()
     } catch {
-      setActionError('Routing was not confirmed. Refresh the queue before retrying; a record may already have been created.')
+      setActionError('Couldn’t confirm it went through. Refresh before trying again — it may already have been saved.')
     } finally {
       busy.current = false
       setPendingItem(null)
@@ -355,17 +355,17 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
     <div className="space-y-5">
       {actionError && !showForm && <p role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{actionError}</p>}
       {dirty && !showForm && <div role="status" className="rounded-lg border border-primary/20 p-3 text-sm">You have unsaved capture notes on this page. <button type="button" onClick={() => setShowForm(true)} className="min-h-10 underline">Continue capture</button></div>}
-      {captured && <p role="status" className="rounded-lg border border-primary/20 p-3 text-sm">Source captured as unreviewed. Find it in the queue below, then create and review a draft finding.</p>}
+      {captured && <p role="status" className="rounded-lg border border-primary/20 p-3 text-sm">Saved for review. Find it in the list below, then turn it into a finding.</p>}
       <section className="rounded-lg border border-border bg-card px-5 py-5">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-primary">
               <FileInput className="h-3 w-3" />
-              Capture once, route everywhere
+              Log it once, use it everywhere
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Capture and route sources</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Capture public sources and incoming material, map them to the methodology, then route them to latest intel or a draft finding. Human conversations are logged separately and every finding requires review.
+              Log public sources and anything that comes in, tag it to the right assessment area, then send it to the latest intel or turn it into a finding. Conversations are logged separately, and every finding is reviewed.
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Metric label="Open items" value={openCount} />
@@ -377,8 +377,8 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
           <div className="rounded-md border border-border bg-background/40 p-4">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Why this matters</p>
             <div className="mt-3 space-y-2 text-xs leading-5 text-muted-foreground">
-              <p>Public data gets a club to a shortlist. Private football intelligence explains whether the coach can actually work in that environment.</p>
-              <p>The inbox keeps that judgement auditable: who said it, how close they are, how sensitive it is, and where it should surface.</p>
+              <p>Public data gets you a shortlist. Private football intelligence tells you whether the coach can actually work at that club.</p>
+              <p>The inbox keeps a record: who said it, how close they are to it, how sensitive it is and where it should be used.</p>
             </div>
           </div>
         </div>
@@ -553,7 +553,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
 
       <Drawer open={showForm} onClose={() => { if (!busy.current) setShowForm(false) }} title="Capture raw intelligence" panelClassName="max-w-4xl">
           <form onSubmit={event => { event.preventDefault(); void createInboxItem() }} onChange={() => { setDirty(true); setCaptured(false) }} aria-busy={submitting}>
-            <p className="text-sm text-muted-foreground">Get the football information down first. Closing keeps your notes on this page, but they are not saved until capture succeeds.</p>
+            <p className="text-sm text-muted-foreground">Get the football information down first. Closing keeps your notes on the page, but nothing is saved until you press save.</p>
             {actionError && <p role="alert" className="mt-3 rounded border border-destructive/30 p-3 text-sm text-destructive">{actionError}</p>}
             <fieldset disabled={submitting || pendingItem !== null}>
 
@@ -586,11 +586,11 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
             </div>
 
             <Field label="Headline *" className="mt-3">
-              <input required value={form.headline} onChange={(event) => update('headline', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="What did you obtain? Give the source material a short title." />
+              <input required value={form.headline} onChange={(event) => update('headline', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="What have you got? Give it a short title." />
             </Field>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               <Field label="Raw notes / transcript">
-                <textarea value={form.raw_detail} onChange={(event) => update('raw_detail', event.target.value)} className="min-h-[140px] w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="Paste call notes, transcript, source extract or rough observation." />
+                <textarea value={form.raw_detail} onChange={(event) => update('raw_detail', event.target.value)} className="min-h-[140px] w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="Paste call notes, a transcript, an extract or a rough note." />
               </Field>
               <Field label="Extracted football signal">
                 <textarea value={form.extracted_signal} onChange={(event) => update('extracted_signal', event.target.value)} className="min-h-[140px] w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="What matters? Contract, staff, dressing room, training detail, pressure behaviour, family, relocation, tactical fit..." />
@@ -619,8 +619,8 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
                 {questions.filter(q => q.coach_id === form.coach_id).map(q => <option key={q.id} value={q.id}>{q.question}</option>)}
               </select>
             </Field>
-            <p className="mt-2 text-xs text-muted-foreground">Saved as unreviewed, internal research. Review before using it in a conclusion.</p>
-            <details className="mt-4 rounded border p-3"><summary className="cursor-pointer text-sm">Specialist classification and routing</summary>
+            <p className="mt-2 text-xs text-muted-foreground">Saved as internal research, not yet reviewed. Check it before using it.</p>
+            <details className="mt-4 rounded border p-3"><summary className="cursor-pointer text-sm">Tagging and where it goes</summary>
             <div className="mt-5 grid gap-3 md:grid-cols-3">
               <Field label="Intake type">
                 <select value={form.intake_type} onChange={(event) => update('intake_type', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
@@ -647,7 +647,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
                 </select>
               </Field>
               <Field label="Verification">
-                <p className="py-2 text-sm">Unreviewed. Verification happens during review.</p>
+                <p className="py-2 text-sm">Not yet reviewed — it gets checked at review.</p>
               </Field>
               <Field label="Confidence">
                 <input type="number" min={0} max={100} value={form.confidence} onChange={(event) => update('confidence', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="0-100" />
@@ -709,10 +709,10 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
             </div>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               <Field label="Analyst notes">
-                <textarea value={form.analyst_notes} onChange={(event) => update('analyst_notes', event.target.value)} className="min-h-[84px] w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="Internal judgement, doubts, corroboration needed." />
+                <textarea value={form.analyst_notes} onChange={(event) => update('analyst_notes', event.target.value)} className="min-h-[84px] w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="Your view, any doubts, what needs backing up." />
               </Field>
               <Field label="Next action">
-                <textarea value={form.next_action} onChange={(event) => update('next_action', event.target.value)} className="min-h-[84px] w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="Who to call, what to verify, which pack/profile it should support." />
+                <textarea value={form.next_action} onChange={(event) => update('next_action', event.target.value)} className="min-h-[84px] w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="Who to call, what to check, which report or profile it’s for." />
               </Field>
             </div>
 

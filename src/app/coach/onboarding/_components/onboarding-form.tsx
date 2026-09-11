@@ -20,7 +20,7 @@ export function CoachOnboardingForm({ action, organizationName, defaultTitle }: 
     setError(null)
     startTransition(async () => {
       try { setError((await action({}, data)).error ?? null) }
-      catch (cause) { unstable_rethrow(cause); setError('Account setup was not confirmed. Your entries are retained; reconnect and retry.') }
+      catch (cause) { unstable_rethrow(cause); setError('Couldn’t confirm your account was set up. Your details are kept — try again.') }
       finally { submitting.current = false }
     })
   }}>
@@ -33,7 +33,7 @@ export function CoachOnboardingForm({ action, organizationName, defaultTitle }: 
       <div className="space-y-4 rounded border border-emerald-900/15 bg-emerald-50 p-4">
         <h3 className="text-sm font-semibold">Private-access acknowledgements</h3>
         <label className="flex items-start gap-3 text-xs leading-5"><input name="accepted_confidentiality" type="checkbox" required className="mt-1 shrink-0" /><span>I will treat information made available through {organizationName} as confidential and will not forward access or download material for unrelated use.</span></label>
-        <label className="flex items-start gap-3 text-xs leading-5"><input name="accepted_intended_use" type="checkbox" required className="mt-1 shrink-0" /><span>I understand this account is for maintaining coach-owned information and submitting work for Gaffa review.</span></label>
+        <label className="flex items-start gap-3 text-xs leading-5"><input name="accepted_intended_use" type="checkbox" required className="mt-1 shrink-0" /><span>I understand this account is for keeping my profile up to date and sending work to Gaffa to review.</span></label>
       </div>
     </fieldset>
     {error && <p role="alert" className="rounded border border-red-700/20 bg-red-50 p-3 text-sm text-red-900">{error}</p>}

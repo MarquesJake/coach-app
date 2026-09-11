@@ -29,17 +29,17 @@ const profileStages = [
   {
     key: 'identity',
     label: 'Identity & career',
-    description: 'Your factual career position, contact route and preferred appointment context.',
+    description: 'Where you are now, how to reach you and the kind of job you want.',
   },
   {
     key: 'football',
     label: 'Football model',
-    description: 'Explain the game model through behaviours, adaptations and evidence.',
+    description: 'Explain how your teams play — what the players do, how you adapt, and the proof.',
   },
   {
     key: 'practice',
     label: 'Coaching practice',
-    description: 'Show how the football idea lives in training, development and recruitment.',
+    description: 'Show how your football comes through in training, player development and recruitment.',
   },
   {
     key: 'circumstances',
@@ -98,7 +98,7 @@ export default async function CoachProfilePage(
           <LockKeyhole className="h-6 w-6 text-slate-500" />
           <h1 className="mt-4 text-lg font-semibold">Coach access is not active</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            This account is signed in but is not linked to an active coach invitation.
+            You’re signed in, but this account isn’t linked to a coach invitation.
             Ask Gaffa to check the email and access status.
           </p>
           <form action={signOutCoachAction}>
@@ -160,12 +160,12 @@ export default async function CoachProfilePage(
               <div className="h-full rounded-full bg-emerald-800" style={{ width: `${readiness}%` }} />
             </div>
             <p className="mt-3 text-xs leading-5 text-slate-500">
-              Readiness reflects depth, not approval. Gaffa reviews every declaration and file separately.
+              This shows how complete your profile is, not whether it’s approved. Gaffa reviews everything you send.
             </p>
           </section>
           <section id="access-help" className="rounded-md border border-slate-200 bg-white p-4 text-xs leading-5 text-slate-600">
             <h2 className="font-semibold text-slate-900">Next step and access help</h2>
-            <p className="mt-2">{status === 'submitted' || status === 'under_review' ? 'Gaffa reviews your submitted profile next. Files and appointment circumstances are reviewed separately.' : 'Save private progress, then submit your profile for Gaffa review when ready.'}</p>
+            <p className="mt-2">{status === 'submitted' || status === 'under_review' ? 'Gaffa reviews your submitted profile next. Files and appointment circumstances are reviewed separately.' : 'Save as you go, then send your profile to Gaffa when you’re ready.'}</p>
             <p className="mt-2">Contact the Gaffa person who sent your invitation if a submission or access needs attention.</p>
             <Link href="/auth/update-password?portal=coach&next=%2Fcoach%2Fprofile" className="mt-3 inline-flex underline">Change password</Link>
           </section>
@@ -189,7 +189,7 @@ export default async function CoachProfilePage(
           )}
           {searchParams.error && (
             <p role="alert" className="rounded-md border border-red-700/20 bg-red-50 px-4 py-3 text-sm text-red-900">
-              {searchParams.error === 'signout' ? 'Sign-out was not confirmed. Retry before leaving this shared device.' : 'Profile save was not confirmed. Your device draft may be available below; check it before retrying.'}
+              {searchParams.error === 'signout' ? 'Sign-out was not confirmed. Retry before leaving this shared device.' : 'Couldn’t confirm your profile saved. A draft may be saved on this device below — check it before trying again.'}
             </p>
           )}
 
@@ -224,7 +224,7 @@ export default async function CoachProfilePage(
             <section className="rounded-md border border-slate-200 bg-white p-5">
               <h2 className="text-lg font-semibold">Football identity</h2>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                Describe the work in football language. Use examples, trade-offs and adaptations rather than slogans.
+                Describe your work in football terms. Give real examples, the trade-offs and how you adapt — not slogans.
               </p>
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                 <TextArea profile={profile} name="football_identity" label="Overall game model" />
@@ -244,14 +244,14 @@ export default async function CoachProfilePage(
                 <TextArea profile={profile} name="player_development_proof" label="Player-development evidence" />
                 <TextArea profile={profile} name="academy_integration" label="Academy integration" />
                 <TextArea profile={profile} name="recruitment_preferences" label="Recruitment and squad-building preferences" />
-                <TextArea profile={profile} name="reference_permissions" label="Reference permissions" placeholder="Who Gaffa may contact, when, and any confidentiality considerations." />
+                <TextArea profile={profile} name="reference_permissions" label="Reference permissions" placeholder="Who Gaffa can contact, when, and anything to keep confidential." />
               </div>
             </section>
 
             <section className="rounded-md border border-slate-200 bg-white p-5">
               <h2 className="text-lg font-semibold">Appointment circumstances</h2>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                These are private declarations for Gaffa review. They are not automatically shown to a club.
+                This is private, for Gaffa to review. It isn’t shown to a club without your say-so.
               </p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Field profile={profile} name="current_salary" label="Current / most recent salary" />
@@ -283,7 +283,7 @@ export default async function CoachProfilePage(
             <div className="mt-5"><MaterialUploadForm /></div>
             <div className="mt-5 divide-y divide-slate-100 border-t border-slate-200">
               {materials.length === 0 ? (
-                <p className="py-6 text-sm text-slate-500">No private material submitted yet. Add a labelled file, secure link or description above when ready for review.</p>
+                <p className="py-6 text-sm text-slate-500">Nothing sent yet. Add a file, secure link or description above when you’re ready.</p>
               ) : materials.map((material) => (
                 <div key={material.id} className="flex flex-col items-start justify-between gap-4 py-3 sm:flex-row">
                   <div className="min-w-0">

@@ -188,7 +188,7 @@ test('failed enrichment does not report a successfully created club as an unsave
     await find(tree, node => node.type === 'form' && node.props.className.includes('card-surface')).props.onSubmit({ preventDefault() {} })
     await tick()
     assert.equal(destination, '/clubs/new-club')
-    assert.ok(messages.some(message => message.includes('Club saved, but automatic enrichment failed')))
+    assert.ok(messages.some(message => message.includes('Club saved, but the data import failed')))
     assert.doesNotMatch(content(h.render(() => Page())), /Creation could not be confirmed/)
   } finally { globalThis.fetch = original }
 })
@@ -291,7 +291,7 @@ test('succession save returns recoverable errors without writes when club access
   const { saveSuccessionPlanAction } = h.load('succession/actions.ts')
   const form = new FormData(); form.set('club_id', 'club-1')
   const result = await saveSuccessionPlanAction(form)
-  assert.match(result.error, /access could not be confirmed/)
+  assert.match(result.error, /Couldn’t confirm your access/)
   assert.equal(writes, 0)
 })
 
@@ -317,7 +317,7 @@ test('succession save preserves auth checks and confirms a successful retry', as
   const h = harness({ '@/lib/supabase/server': { createServerSupabaseClient: async () => db() }, 'next/cache': { revalidatePath() {} }, '@/lib/db/activity': {}, '@/lib/succession/radar': {} })
   const { saveSuccessionPlanAction } = h.load('succession/actions.ts')
   const form = new FormData(); form.set('club_id', 'club-1'); form.set('notes', 'Retained draft')
-  assert.match((await saveSuccessionPlanAction(form)).error, /session has expired/)
+  assert.match((await saveSuccessionPlanAction(form)).error, /You’ve been signed out/)
   assert.equal(writes, 0)
   authenticated = true
   assert.match((await saveSuccessionPlanAction(form)).error, /could not be saved/)

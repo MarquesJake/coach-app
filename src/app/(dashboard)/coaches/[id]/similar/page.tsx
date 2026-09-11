@@ -46,7 +46,7 @@ export default async function CoachSimilarPage(props: { params: Promise<{ id: st
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Exploratory similarity, not appointment fit. Only researched, identity-reviewed choices are shown; unresolved identities and unavailable records are omitted.</p>
+      <p className="text-sm text-muted-foreground">Coaches with a similar profile — not the same as fit for a job. Only researched, confirmed records are shown.</p>
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-lg font-medium text-foreground">Peer group</h2>
         <RefreshSimilarButton coachId={params.id} />
@@ -55,7 +55,7 @@ export default async function CoachSimilarPage(props: { params: Promise<{ id: st
         {list.length === 0 ? (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">No eligible peer records found.</p>
-            <p className="text-xs text-muted-foreground">Use Refresh to compute similarity against all coaches in your database.</p>
+            <p className="text-xs text-muted-foreground">Press Refresh to compare against every coach in the database.</p>
             <RefreshSimilarButton coachId={params.id} />
           </div>
         ) : (

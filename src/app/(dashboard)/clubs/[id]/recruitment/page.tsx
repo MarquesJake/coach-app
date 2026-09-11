@@ -220,7 +220,7 @@ export default function ClubRecruitmentPage() {
     setForm({ player_name: '', direction: 'in', fee_band: '', age_at_transfer: '', nationality: '', position: '', other_club: '', transfer_type: '', transfer_date: '', season: '' })
     setShowAddForm(false)
     } catch {
-      setActionError('Save could not be confirmed. Your entries have been kept; check before retrying.')
+      setActionError('Couldn’t confirm it saved. Your entries are kept — check before trying again.')
     } finally { setSaving(false) }
   }
 
@@ -386,7 +386,7 @@ export default function ClubRecruitmentPage() {
         {transfers.length === 0 ? (
           <div className="px-6 py-10 text-center">
             <p className="text-sm text-muted-foreground">No transfer records yet.</p>
-            <p className="text-xs text-muted-foreground mt-1">Add transfers to build a recruitment profile.</p>
+            <p className="text-xs text-muted-foreground mt-1">Add transfers to build up the club’s recruitment picture.</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="px-6 py-8 text-center text-sm text-muted-foreground">No transfers match the current filters.</div>

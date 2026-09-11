@@ -119,7 +119,7 @@ export default async function CoachPortalPage() {
             Coach profile and material review
           </h2>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Manage invited coaches, review coach-supplied information and control private material before anything is used in a club process.
+            Manage invited coaches, check what they send us and control their private material before any of it is used with a club.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -144,7 +144,7 @@ export default async function CoachPortalPage() {
           <div>
             <h2 className="text-sm font-semibold text-foreground">Submission review queue</h2>
             <p className="text-2xs text-muted-foreground mt-0.5">
-              Submitted and needs-update work first. Profile completeness is separate from declaration review, uploaded files and recipient release permission.
+              New submissions and updates first. How complete a profile is doesn’t mean it has been checked or can be shared.
             </p>
           </div>
           <div className="text-2xs text-muted-foreground">
@@ -155,7 +155,7 @@ export default async function CoachPortalPage() {
         <div className="divide-y divide-border/60">
           {coaches.length === 0 ? (
             <div className="px-5 py-10 text-sm text-muted-foreground">
-              No coaches are in an active assessment, invitation or material-review workflow yet.
+              No coaches waiting on an assessment, invitation or material review.
             </div>
           ) : (
             coaches.map((coach) => {

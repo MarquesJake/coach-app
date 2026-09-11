@@ -223,7 +223,7 @@ export function scorePlayerDevelopmentSuggestion(evidence: PlayerDevelopmentEvid
   if (pathwayText) {
     reasonTags.push('Academy pathway evidence')
     evidenceSnippets.push('Profile contains evidence of academy pathway integration rather than short term senior recruitment only.')
-    addSignal(signals, evidence.coach.id, 'academy_pathway', 'Academy pathway evidence', 'Manual profile or stint notes reference youth development, academy integration or pathway outcomes.', pathwayText.score, confidence, 'coaches', {
+    addSignal(signals, evidence.coach.id, 'academy_pathway', 'Academy pathway evidence', 'His profile or career notes mention developing young players or bringing academy players through.', pathwayText.score, confidence, 'coaches', {
       player_development_model: evidence.coach.player_development_model,
       academy_integration: evidence.coach.academy_integration,
       matched_sources: pathwayText.signals,
@@ -249,7 +249,7 @@ export function scorePlayerDevelopmentSuggestion(evidence: PlayerDevelopmentEvid
 
   if (repeatability != null) {
     reasonTags.push('Repeatable development signals')
-    evidenceSnippets.push('Development evidence appears across more than one club context, reducing the chance this is a one-club artefact.')
+    evidenceSnippets.push('He has developed players at more than one club, so it isn’t a one-off.')
     addSignal(signals, evidence.coach.id, 'repeatability', 'Repeatable development signals', 'Development evidence appears across stint history rather than a single isolated note.', repeatability, confidence, 'coach_stints', {
       stints: evidence.stints.length,
     })
@@ -257,14 +257,14 @@ export function scorePlayerDevelopmentSuggestion(evidence: PlayerDevelopmentEvid
 
   if (manualDevelopment != null) {
     reasonTags.push('Recent development evidence')
-    evidenceSnippets.push(`Scout profile carries a development score of ${Math.round(manualDevelopment)}, supporting further analyst review.`)
+    evidenceSnippets.push(`Scout profile carries a development score of ${Math.round(manualDevelopment)}, worth a closer look.`)
     addSignal(signals, evidence.coach.id, 'manual_development_score', 'Recent development evidence', 'Existing scout profile includes a development score.', manualDevelopment, confidence, 'coaches', {
       development_score: manualDevelopment,
     }, manualDevelopment)
   }
 
-  if (sourceCoverage < 40) riskNotes.push('Evidence is mainly profile level, with limited player level validation at this stage.')
-  if (!youngMinutes && !recruitmentAge) riskNotes.push('Quantitative player development evidence is limited, so analyst validation is still required.')
+  if (sourceCoverage < 40) riskNotes.push('Evidence comes mainly from his profile; little checked against individual players so far.')
+  if (!youngMinutes && !recruitmentAge) riskNotes.push('There’s not much hard data on player development yet, so an analyst needs to check it.')
   if (confidence < 55) riskNotes.push('Confidence is constrained by sparse source coverage and should be treated as an early signal.')
   if (riskNotes.length === 0) riskNotes.push('Validate player level progression evidence before this becomes a board recommendation.')
 

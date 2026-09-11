@@ -127,7 +127,7 @@ export default async function CorpusOperationsPage() {
       <header className="border-b border-border pb-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Research targets</p>
         <h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Coach research programme</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Build a defensible view of each coach through first-hand conversations, independent sources and reviewed findings.</p>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Build a view of each coach that stands up — from first-hand conversations, independent sources and checked findings.</p>
       </header>
       <div className="flex flex-col gap-3 border-y border-border py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
@@ -140,7 +140,7 @@ export default async function CorpusOperationsPage() {
         <Link href="/coaches/bench" className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-surface-raised"><Plus className="mr-2 h-4 w-4" />Manage research pool</Link>
       </div>
 
-      <p className="text-xs text-muted-foreground">Research coverage is not placement approval or release clearance. Reviewed findings require a recorded review date. Source links alone are not recommendations.</p>
+      <p className="text-xs text-muted-foreground">More research doesn’t mean a coach is approved or cleared to share. Checked findings need a review date, and a link to a source isn’t a recommendation.</p>
       <div className="relative overflow-x-auto border border-border bg-card">
         <table className="w-full min-w-[1180px] text-left text-sm">
           <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">

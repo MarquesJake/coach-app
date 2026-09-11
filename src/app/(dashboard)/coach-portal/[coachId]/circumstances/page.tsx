@@ -152,11 +152,11 @@ function StaffMemberForm({
         </select>
       </label>
       <label className="lg:col-span-2">
-        <span className={labelClass}>Working relationship and relocation context</span>
+        <span className={labelClass}>Working relationships and relocation</span>
         <textarea
           name="relationship_context"
           defaultValue={member?.relationship_context ?? ''}
-          placeholder="How they work together, previous clubs, responsibilities and any appointment dependency"
+          placeholder="How they work together, previous clubs, what they do and whether the coach would come without them"
           className={textAreaClass}
         />
       </label>
@@ -287,7 +287,7 @@ export default async function CoachCareerCircumstancesPage(
                 <BriefcaseBusiness className="h-4 w-4 text-primary" />
                 <h2 className="text-base font-semibold text-foreground">Contract and availability</h2>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Coach or representative declaration, pending Gaffa review.</p>
+              <p className="mt-1 text-xs text-muted-foreground">From the coach or his representative — Gaffa still to check.</p>
             </div>
             <button type="submit" className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
               Save circumstances
@@ -298,7 +298,7 @@ export default async function CoachCareerCircumstancesPage(
             <TextField name="salary_expectation" label="Expected salary" profile={profile} placeholder="Currency, gross/net, base, bonus and benefits" />
             <TextField name="contract_expiry" label="Contract expiry" profile={profile} type="date" />
             <TextField name="release_compensation" label="Release clause / estimated club compensation" profile={profile} placeholder="Clause, estimate, notice period or permission route" />
-            <TextAreaField name="availability_timeline" label="Availability and permission-to-speak timeline" profile={profile} placeholder="Earliest start date, notice, current-club permission and process sensitivities" />
+            <TextAreaField name="availability_timeline" label="Availability and permission-to-speak timeline" profile={profile} placeholder="Earliest start date, notice period, permission from his current club and anything sensitive about timing" />
             <TextAreaField name="staff_cost_expectation" label="Estimated staff package cost" profile={profile} placeholder="Combined annual cost, currencies, bonuses and any club compensation" />
           </div>
         </section>
@@ -312,7 +312,7 @@ export default async function CoachCareerCircumstancesPage(
             <TextAreaField name="family_situation" label="Family situation" profile={profile} placeholder="Only appointment-relevant context supplied with permission" />
             <TextAreaField name="relocation_requirements" label="Relocation requirements" profile={profile} placeholder="Timing, geography, schooling, travel pattern or living arrangement" />
             <div className="md:col-span-2">
-              <TextAreaField name="appointment_conditions" label="Appointment conditions and practical obstacles" profile={profile} placeholder="Staff dependencies, facilities, reporting line, recruitment input or other non-negotiables" />
+              <TextAreaField name="appointment_conditions" label="Appointment conditions and practical obstacles" profile={profile} placeholder="Staff he needs, facilities, who he reports to, say in recruitment, or other must-haves" />
             </div>
           </div>
         </section>
@@ -345,7 +345,7 @@ export default async function CoachCareerCircumstancesPage(
               <UsersRound className="h-4 w-4 text-primary" />
               <h2 className="text-base font-semibold text-foreground">Proposed staff package</h2>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Kept separate from independently researched staff history.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Kept separate from the staff history we have researched ourselves.</p>
           </div>
           <details className="group self-start">
             <summary className="cursor-pointer list-none rounded-md border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:border-primary/40">
@@ -360,7 +360,7 @@ export default async function CoachCareerCircumstancesPage(
         {staff.length === 0 ? (
           <div className="border-y border-dashed border-border py-8 text-center">
             <p className="text-sm font-medium text-foreground">No proposed staff recorded</p>
-            <p className="mt-1 text-xs text-muted-foreground">The appointment can still proceed without a staff package.</p>
+            <p className="mt-1 text-xs text-muted-foreground">The appointment can still go ahead without a staff package.</p>
           </div>
         ) : (
           <div className="divide-y divide-border border-y border-border">
@@ -424,7 +424,7 @@ export default async function CoachCareerCircumstancesPage(
               {isVerified ? 'Career circumstances verified' : 'Gaffa verification required'}
             </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Verified details update the internal coach record used by appointment assessments. Unreviewed coach declarations remain outside club-facing packs.
+              Once checked, these details update the coach’s record used in assessments. Anything not yet checked stays out of club reports.
             </p>
             {coach.feasibility_reviewed_at && (
               <p className="mt-2 flex items-center gap-1 text-[10px] font-medium text-muted-foreground">

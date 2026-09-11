@@ -135,7 +135,7 @@ export default async function SuccessionPlanPage(
     <div className="space-y-5">
       {feedback.error && <p role="alert" className="rounded border p-3 text-sm text-destructive">{feedback.error}</p>}
       {feedback.success && <p role="status" className="rounded border p-3 text-sm">{feedback.success}</p>}
-      <p className="text-sm text-muted-foreground">Exploratory indicators are computed from recorded fields, not sourced appointment-fit assessments. Review the evidence and confirm the brief before adding candidates.</p>
+      <p className="text-sm text-muted-foreground">Early signals worked out from what we have on file — not a full assessment. Check the evidence and confirm the brief before adding candidates.</p>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href="/succession" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -169,7 +169,7 @@ export default async function SuccessionPlanPage(
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">{clubName}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Pre-mandate planning file for the club situation, coach archetype, source gaps and shadow shortlist before a formal search is opened.
+              Planning before a search opens: the club’s situation, the type of coach it needs, gaps in our information and a quiet shortlist.
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
               <span className="rounded bg-muted px-2 py-1">{[plan.club.league, plan.club.country].filter(Boolean).join(' · ') || 'League context pending'}</span>
@@ -240,7 +240,7 @@ export default async function SuccessionPlanPage(
             </div>
             <div className="mt-3 grid gap-3">
               {plan.suggestedCoaches.length === 0 ? (
-                <p className="text-sm leading-6 text-muted-foreground">Capture more club context before recommending names.</p>
+                <p className="text-sm leading-6 text-muted-foreground">Add more on the club before suggesting names.</p>
               ) : plan.suggestedCoaches.map((coach) => (
                 <Link key={coach.id} href={`/coaches/${coach.id}?returnTo=${encodeURIComponent(`/succession/${clubId}`)}`} className="rounded-md border border-border bg-background/40 p-3 transition-colors hover:border-primary/35">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -269,7 +269,7 @@ export default async function SuccessionPlanPage(
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recent intelligence</p>
             <div className="mt-3 grid gap-2">
               {intelligence.length === 0 ? (
-                <p className="text-sm leading-6 text-muted-foreground">No clean club intelligence yet. Capture board mood, staff situation, pressure triggers and likely decision timeline.</p>
+                <p className="text-sm leading-6 text-muted-foreground">No club intelligence yet. Add the board’s mood, the staff situation, what could trigger a change and when a decision might come.</p>
               ) : intelligence.slice(0, 8).map((item) => (
                 <div key={item.id} className="rounded border border-border bg-background/40 px-3 py-2">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -364,8 +364,8 @@ export default async function SuccessionPlanPage(
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Why this matters</p>
             <div className="mt-3 space-y-3 text-xs leading-5 text-muted-foreground">
-              <p>This is the layer for clubs who are not ready to sack a manager publicly, but need to know the market quietly.</p>
-              <p>The value is not just names. It is knowing the club environment, who can survive it, and what evidence is still missing before a board recommendation.</p>
+              <p>For clubs that aren’t ready to sack their manager but want to know the market quietly.</p>
+              <p>It’s not just names. It’s knowing the club, who could succeed there, and what we still need to find out before recommending anyone.</p>
             </div>
           </div>
 
@@ -373,7 +373,7 @@ export default async function SuccessionPlanPage(
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Triggers and rationale</p>
             <div className="mt-3 space-y-2">
               {plan.rationale.length === 0 ? (
-                <p className="text-xs leading-5 text-muted-foreground">No major pressure trigger yet. Keep this club in nurture mode.</p>
+                <p className="text-xs leading-5 text-muted-foreground">No big pressure point yet. Keep an eye on this club.</p>
               ) : plan.rationale.map((reason) => (
                 <div key={reason} className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
                   <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
@@ -387,7 +387,7 @@ export default async function SuccessionPlanPage(
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Evidence gaps</p>
             <div className="mt-3 space-y-2">
               {gaps.length === 0 ? (
-                <p className="text-xs leading-5 text-muted-foreground">The club file has enough source material to start shaping an appointment recommendation.</p>
+                <p className="text-xs leading-5 text-muted-foreground">We know enough about this club to start shaping a recommendation.</p>
               ) : gaps.map((gap) => (
                 <div key={gap} className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
                   <ClipboardList className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" />

@@ -38,7 +38,7 @@ test('club brief linking requires internal context and a matching unlinked club 
 test('club intake preserves source wording and does not claim automatic verification', () => {
   const source = readFileSync('src/app/(dashboard)/club-briefs/page.tsx', 'utf8')
   assert.match(source, /Read the complete club brief/)
-  assert.match(source, /does not automatically turn declarations into verified assessment evidence/)
+  assert.match(source, /doesn’t turn what the club said into confirmed evidence/)
   assert.match(source, /Open agreed appointment/)
   assert.match(source, /\/mandates\/\$\{brief.linked_mandate_id\}\/decision/)
 })

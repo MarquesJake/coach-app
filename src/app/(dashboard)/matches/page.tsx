@@ -29,7 +29,7 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
   return <div className="space-y-5">
     <header className="space-y-2">
       <h2 className="text-xl font-semibold">Historical matches</h2>
-      <p className="text-sm text-muted-foreground">Read-only vacancy records. Legacy scores and briefs are not reviewed appointment assessments or current recommendations.</p>
+      <p className="text-sm text-muted-foreground">Past vacancies, read only. Old scores and briefs aren’t current assessments or recommendations.</p>
       <Link className="inline-block text-sm text-primary underline" href={vacancy ? '/mandates/new?club_id=' + encodeURIComponent(vacancy.club_id) : '/mandates/new'}>Start an appointment brief</Link>
     </header>
     {!!vacancies.data?.length && <form action="/matches" method="get" className="flex flex-wrap items-end gap-3 rounded border p-4">
@@ -41,12 +41,12 @@ export default async function MatchesPage({ searchParams }: { searchParams: Prom
       </div>
       <button type="submit" className="rounded border px-4 py-2 text-sm">View record</button>
     </form>}
-    {vacancyId && !vacancy && <p role="alert" className="rounded border p-4 text-sm">This historical brief was not found or is not accessible. Select another record.</p>}
+    {vacancyId && !vacancy && <p role="alert" className="rounded border p-4 text-sm">Couldn’t find that brief. Pick another.</p>}
     {!vacancyId && <p className="rounded border p-4 text-sm text-muted-foreground">{vacancies.data?.length ? 'Select a historical brief to inspect its recorded matches.' : 'No historical briefs recorded. Start new work with an appointment brief.'}</p>}
     {vacancy && <>
       <section className="rounded border bg-card p-4"><h3 className="font-semibold">Recorded brief</h3><p className="mt-2 whitespace-pre-wrap text-sm">{vacancy.objective || 'Objective not recorded'}</p></section>
       <section className="space-y-3" aria-label="Historical candidate records">
-        {!matches.data?.length && <p className="rounded border p-4 text-sm text-muted-foreground">No historical match results recorded. Current candidate work belongs in an appointment.</p>}
+        {!matches.data?.length && <p className="rounded border p-4 text-sm text-muted-foreground">No past matches. Current candidate work is done inside a mandate.</p>}
         {matches.data?.map(match => <article key={match.id} className="rounded border bg-card p-4">
           {match.coaches ? <Link className="font-semibold text-primary underline" href={researchHref('/coaches/' + match.coaches.id, { returnTo })}>{match.coaches.name}</Link> : <p className="font-semibold">Coach record unavailable</p>}
           <p className="mt-1 text-xs text-muted-foreground">{match.coaches?.club_current || 'Employment not recorded'}</p>

@@ -8,7 +8,7 @@ export default function DashboardLoading() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Gaffa Intelligence OS</p>
               <h1 className="mt-2 text-xl font-semibold text-foreground">Building the appointment room</h1>
               <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Pulling mandate context, private intelligence, evidence coverage and board-pack readiness into one view.
+                Bringing together the mandate, our intelligence, the evidence and the board report.
               </p>
             </div>
             <svg className="h-8 w-8 shrink-0 animate-spin text-primary" viewBox="0 0 24 24">

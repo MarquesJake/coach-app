@@ -5,7 +5,7 @@ export default function NetworkLayout({ children }: { children: React.ReactNode 
   return (
     <SectionShell
       title="Football network"
-      description="Trusted contacts, first-hand relationships and reference coverage"
+      description="Trusted contacts, who knows whom, and references"
       subnav={NETWORK_SUBNAV}
       sticky
     >

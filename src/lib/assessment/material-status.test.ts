@@ -10,7 +10,7 @@ test('verified available metadata never counts as an uploaded or reviewed file',
   assert.equal(status.uploaded, false)
   assert.equal(status.reviewedUpload, false)
   assert.equal(status.canReview, false)
-  assert.equal(status.label, 'Metadata only - no uploaded file')
+  assert.equal(status.label, 'Description only - no file uploaded')
   assert.equal(summarizeMaterials([metadata]).reviewedUploads, 0)
 })
 
@@ -32,7 +32,7 @@ test('external links and incomplete uploads stay separate from completed file up
 
 test('reviewed uploads do not authorize release and disputed files remain unreviewed', () => {
   assert.equal(deriveMaterialStatus(uploaded).reviewedUpload, true)
-  assert.match(deriveMaterialStatus(uploaded).releaseLabel, /separate permission check/)
+  assert.match(deriveMaterialStatus(uploaded).releaseLabel, /Needs separate permission/)
   assert.equal(deriveMaterialStatus({ ...uploaded, verification_status: 'disputed' }).reviewedUpload, false)
   assert.equal(deriveMaterialStatus({ ...uploaded, confidentiality_status: 'withheld' }).releaseLabel, 'Withheld from release')
 })

@@ -159,7 +159,7 @@ export function ConversationCaptureClient({
         )
       } catch {
         setDraftSavedAt(null)
-        setStorageError('Local draft saving is unavailable. Your entries remain in this page; do not close it before saving the conversation.')
+        setStorageError('Drafts can’t be saved on this device. Your notes are still on the page — don’t close it before saving.')
       }
     }, 500)
     return () => window.clearTimeout(timeout)
@@ -209,7 +209,7 @@ export function ConversationCaptureClient({
 
   function clearDraft() {
     if (busy.current) return
-    if (!window.confirm('Clear this local draft? This does not delete any saved conversation or uploaded file.')) return
+    if (!window.confirm('Clear this draft? Saved conversations and uploaded files are not deleted.')) return
     try {
       window.localStorage.removeItem(draftKey)
     } catch {
@@ -308,7 +308,7 @@ export function ConversationCaptureClient({
       try {
         window.localStorage.removeItem(draftKey)
       } catch {
-        setStorageError('Conversation saved, but the local draft could not be removed. Do not submit it again after reopening this page.')
+        setStorageError('Conversation saved, but the draft couldn’t be cleared. Don’t submit it again if you reopen this page.')
       }
       toast.success(
         completeClaims.length
@@ -316,7 +316,7 @@ export function ConversationCaptureClient({
           : 'Conversation saved. Findings can be added during review.'
       )
     } catch {
-      setSaveError('Upload or save could not be confirmed. Your draft and selected file are retained. Check saved conversations before retrying; no remote file was deleted.')
+      setSaveError('Couldn’t confirm the save. Your draft and file are kept — check your saved conversations before trying again.')
     } finally {
       busy.current = false
       setUploading(false)
@@ -376,7 +376,7 @@ export function ConversationCaptureClient({
               <div>
                 <h2 className="text-sm font-semibold">Who did we speak to?</h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Record the source and football context before interpreting what was said.
+                  Note who it was and the football context before interpreting what was said.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -453,7 +453,7 @@ export function ConversationCaptureClient({
                   <input
                     value={draft.careerContext}
                     onChange={(event) => patchDraft({ careerContext: event.target.value })}
-                    placeholder="Club, role and period the source knows first-hand"
+                    placeholder="The club, role and period they saw first-hand"
                     className={inputClass}
                   />
                 </label>
@@ -466,7 +466,7 @@ export function ConversationCaptureClient({
               <div>
                 <h2 className="text-sm font-semibold">What was said?</h2>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Keep raw source material separate from the findings you will review.
+                  Keep the raw notes separate from the findings you’ll review.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -481,7 +481,7 @@ export function ConversationCaptureClient({
                   rows={8}
                   value={draft.analystNotes}
                   onChange={(event) => patchDraft({ analystNotes: event.target.value })}
-                  placeholder="Analyst context, follow-ups and points to test"
+                  placeholder="Your context, follow-ups and points to check"
                   className={textareaClass}
                 />
                 <label className="flex cursor-pointer items-center gap-3 border border-dashed border-border p-3 text-sm text-muted-foreground sm:col-span-2">
@@ -542,7 +542,7 @@ export function ConversationCaptureClient({
                 <div>
                   <h2 className="text-sm font-semibold">Draft findings</h2>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Optional at capture. Every finding remains pending until an analyst reviews it.
+                    Optional for now. Every finding waits for an analyst to review it.
                   </p>
                 </div>
                 <Button
@@ -561,7 +561,7 @@ export function ConversationCaptureClient({
                 <div className="border border-dashed border-border px-4 py-8 text-center">
                   <p className="text-sm font-medium">No findings drafted yet</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Save the conversation now and extract findings from the Review screen later.
+                    Save the conversation now and pull out the findings later on the Review screen.
                   </p>
                 </div>
               )}
@@ -606,7 +606,7 @@ export function ConversationCaptureClient({
                           evidenceSummary: event.target.value,
                         })
                       }
-                      placeholder="Why does the source believe this? Add context."
+                      placeholder="Why do they think this? Add context."
                       className={textareaClass}
                     />
                   </div>
@@ -654,7 +654,7 @@ export function ConversationCaptureClient({
                   </fieldset>
                   <details className="border-t border-border pt-3">
                     <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">
-                      Finding safeguards and provenance
+                      Checks and sources
                     </summary>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <select

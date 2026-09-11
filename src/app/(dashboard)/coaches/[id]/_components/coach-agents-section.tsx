@@ -66,7 +66,7 @@ export function CoachAgentsSection({
     setForm({ agent_id: '', relationship_type: 'Primary', relationship_strength: '', notes: '' })
     router.refresh()
     } catch {
-      setError('Agent link was not saved. Your entries remain here; reconnect and retry.')
+      setError('Agent link not saved. Your entries are still here — check your connection and try again.')
     } finally {
       busy.current = false
       setSubmitting(false)

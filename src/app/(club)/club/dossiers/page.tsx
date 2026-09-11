@@ -31,8 +31,8 @@ export default async function ClubDossiersPage(props: { searchParams: Promise<{ 
 
   return (
     <div>
-      <div className="border-b border-border pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Private decision material</p><h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Head Coach Assessment Dossiers</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Preview the appointment conclusion before requesting the full confidential dossier. Coach-owned files unlock only after Gaffa reviews and approves the release.</p></div>
-      {searchParams.error && <div className="mt-4 rounded-md border border-red-700/20 bg-red-50 px-4 py-3 text-sm text-red-900">The order could not be submitted for this club account.</div>}
+      <div className="border-b border-border pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Private decision material</p><h1 className="mt-2 font-serif text-2xl font-semibold text-foreground">Head Coach Assessment Dossiers</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">See our conclusion first, then ask for the full confidential report. The coach’s own files unlock once Gaffa approves the release.</p></div>
+      {searchParams.error && <div className="mt-4 rounded-md border border-red-700/20 bg-red-50 px-4 py-3 text-sm text-red-900">The request didn’t go through for this account.</div>}
       <div className="mt-6 space-y-3">
         {(offers ?? []).map((offer) => {
           const order = orderMap.get(offer.id)
@@ -48,7 +48,7 @@ export default async function ClubDossiersPage(props: { searchParams: Promise<{ 
             </Link>
           )
         })}
-        {!offers?.length && <div className="rounded-md border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">No dossiers have been published to this club yet. <Link href="/club/brief" className="underline">Review your brief and next step.</Link></div>}
+        {!offers?.length && <div className="rounded-md border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">No reports have been shared with you yet. <Link href="/club/brief" className="underline">Review your brief and next step.</Link></div>}
       </div>
     </div>
   )

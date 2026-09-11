@@ -66,7 +66,7 @@ export async function completeCoachInvitationAction(
         emailRedirectTo: `${await siteOrigin()}/auth/callback?next=${encodeURIComponent(`/coach/invite/${rawToken}`)}`,
       },
     })
-    if (error) return { ok: false, error: 'Account setup could not be confirmed. Try existing-account sign in or recovery, or ask your Gaffa contact for help.' }
+    if (error) return { ok: false, error: 'Couldn’t finish setting up your account. Try signing in, resetting your password, or ask your Gaffa contact.' }
     if (!data.session) return { ok: true, checkEmail: true }
     return claimInvitation(tokenHash)
   }

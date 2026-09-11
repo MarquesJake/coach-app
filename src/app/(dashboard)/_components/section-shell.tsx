@@ -34,7 +34,7 @@ export function SectionShell({
   const showSubnav = subnav.length > 0
   const TitleTag = pathname === parentHref ? 'h1' : 'p'
 
-  // Keep the section below the prototype notice so it cannot cover its link.
+  // Sticky headers need a solid background so page content does not show through.
   const wrapperClass = sticky
     ? 'gaffa-section-header bg-background border-b border-border pb-0'
     : 'gaffa-section-header border-b border-border pb-4'

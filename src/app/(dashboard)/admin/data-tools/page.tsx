@@ -38,7 +38,7 @@ export default async function DataToolsPage() {
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Restricted maintenance controls for ownership recovery and account data.
+          Admin tools for record ownership and account data.
         </p>
       </div>
 
@@ -51,10 +51,10 @@ export default async function DataToolsPage() {
         {Boolean(error) && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 space-y-3">
             <p role="alert" className="text-sm font-medium text-amber-800 dark:text-amber-200">
-              Ownership counts could not be loaded. This does not establish that a database migration is missing.
+              Ownership counts didn’t load.
             </p>
             <p className="text-xs text-amber-700 dark:text-amber-300">
-              Check your session and connection before asking the maintainer to inspect the error. Do not change database permissions to clear a loading error.
+              Check you’re signed in and connected before asking for help. Don’t change database permissions to fix a loading error.
             </p>
             <a href="/admin/data-tools" className="inline-flex min-h-10 items-center text-sm underline">Retry loading</a>
           </div>
@@ -84,14 +84,14 @@ export default async function DataToolsPage() {
       <div className="card-surface rounded-xl p-6 border border-border/50">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <Shield className="w-3.5 h-3.5" />
-          Ownership recovery changes attribution. Use only for records you are responsible for; it is not a way to gain access to another club or coach workspace.
+          This changes who owns records. Only use it for records you’re responsible for.
         </div>
       </div>
 
       <div className="card-surface rounded-xl p-6 space-y-4 border border-border">
         <h2 className="text-sm font-medium text-foreground">Shared workspace cleanup</h2>
         <p className="text-xs text-muted-foreground max-w-xl">
-          The old bulk reset is disabled because shared football records may be used by other people. Review an individual appointment and use its guarded cleanup instead. Linked club briefs and released reports must remain protected.
+          Bulk reset is switched off because other people may use the same football records. Tidy up individual mandates instead — club briefs and released reports stay protected.
         </p>
         <Link href="/mandates" className="inline-flex min-h-10 items-center text-sm underline">Review appointments</Link>
       </div>

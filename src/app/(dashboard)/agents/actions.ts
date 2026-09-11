@@ -65,7 +65,7 @@ export async function createAgentAction(formData: FormData): Promise<Result> {
     const preferred_contact_channel = (formData.get('preferred_contact_channel') as string)?.trim() || null
     const notes = (formData.get('notes') as string)?.trim() || null
     if (!email && !phone && !whatsapp) {
-      return { ok: false, error: 'Add at least one real contact route: email, phone or WhatsApp.' }
+      return { ok: false, error: 'Add at least one way to reach them: email, phone or WhatsApp.' }
     }
     const organizationId = await getInternalOrganizationId(user.id)
     if (!organizationId) return { ok: false, error: 'Internal organisation access is required' }

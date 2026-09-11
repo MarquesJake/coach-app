@@ -171,7 +171,7 @@ export function MandateFitClient({
           <section className="rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-medium text-foreground mb-2">Fit summary</h2>
             <p className="text-xs text-muted-foreground mb-2">
-              Provisional score based on manual weighting until the weighting engine is finalised.
+              Early score based on manual weightings for now.
             </p>
             <div className="flex items-center gap-3">
               <span

@@ -20,12 +20,12 @@ function Row({ label, value }: { label: string; value: string | null | undefined
 const LEADERSHIP_FIELDS: EditCoachField[] = [
   { key: 'leadership_style', label: 'Leadership style', type: 'text' },
   { key: 'staff_management_style', placeholder: 'Give a dated example of how responsibilities were assigned and disagreements resolved. Identify the source.', label: 'How they manage staff', type: 'textarea' },
-  { key: 'player_development_model', placeholder: 'Who improved, from what starting point, and what coaching intervention contributed? Include period and contrary evidence.', label: 'Player development', type: 'textarea' },
-  { key: 'recruitment_collaboration', placeholder: 'Who controlled recruitment? Describe a decision, the coach’s influence and the outcome.', label: 'Working with recruitment', type: 'textarea' },
+  { key: 'player_development_model', placeholder: 'Who improved, from where, and what did the coaching change? Include dates and anything that says otherwise.', label: 'Player development', type: 'textarea' },
+  { key: 'recruitment_collaboration', placeholder: 'Who ran recruitment? Describe one signing decision, how much say the coach had and how it worked out.', label: 'Working with recruitment', type: 'textarea' },
   { key: 'academy_integration', label: 'Academy integration', type: 'text' },
   { key: 'comms_profile', label: 'Internal communication', type: 'text' },
   { key: 'media_style', label: 'Media and public communication', type: 'textarea' },
-  { key: 'conflict_history', placeholder: 'Record a sourced account, date, context and response; distinguish disputed claims from established findings.', label: 'Disagreements and how they were handled', type: 'textarea' },
+  { key: 'conflict_history', placeholder: 'Record who said it, when, the context and his response. Keep disputed claims separate from confirmed facts.', label: 'Disagreements and how they were handled', type: 'textarea' },
 ]
 
 type CoachRecord = Record<string, unknown>
@@ -89,7 +89,7 @@ export function LeadershipSection({ coachId, coach }: { coachId: string; coach: 
           <Row label="Disagreements and how they were handled" value={conflictHistory} />
         </div>
         {!leadershipStyle && !staffManagementStyle && !playerDevelopmentModel && !recruitmentCollaboration && !mediaStyle && !conflictHistory && (
-          <p className="text-sm text-muted-foreground py-4">No leadership assessment recorded yet. Add specific examples from interviews, references and observed behaviour.</p>
+          <p className="text-sm text-muted-foreground py-4">No leadership notes yet. Add real examples from interviews, references and what you have seen.</p>
         )}
         <Link className="gaffa-link mt-4 inline-block text-sm" href={`/coaches/${coachId}/research?template=leadership#new-question`}>Investigate personality and leadership →</Link>
       </section>

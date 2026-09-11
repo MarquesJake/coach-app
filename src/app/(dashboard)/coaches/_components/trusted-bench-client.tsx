@@ -26,7 +26,7 @@ export function TrustedBenchClient({ coaches, contacts }: { coaches: Array<{ id:
         <input name="next_review_at" type="datetime-local" className={inputClass} />
         <input name="rationale" placeholder="Analyst rationale" className="sm:col-span-2 lg:col-span-4 rounded-md border border-border bg-background px-3 py-2 text-sm" />
         <div className="grid gap-2 sm:col-span-2 lg:col-span-4 sm:grid-cols-4"><input name="availability_reviewed_at" type="datetime-local" aria-label="Availability reviewed" className={inputClass} /><input name="contract_reviewed_at" type="datetime-local" aria-label="Contract reviewed" className={inputClass} /><input name="staff_reviewed_at" type="datetime-local" aria-label="Staff reviewed" className={inputClass} /><input name="work_permit_reviewed_at" type="datetime-local" aria-label="Work permit reviewed" className={inputClass} /></div>
-        <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="analyst_confirmed" value="true" required />I confirm this stage change as the responsible analyst.</label>
+        <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" name="analyst_confirmed" value="true" required />I confirm this change as the analyst responsible.</label>
         <div className="flex justify-end sm:col-span-2"><Button disabled={pending}>{pending ? 'Confirming…' : 'Confirm stage'}</Button></div>
       </form>
     </details>

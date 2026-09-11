@@ -134,7 +134,7 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
     key: 'iq_methodology_to_squad',
     focus: 'club_specific',
     label: 'Methodology to squad',
-    question: 'How would you adapt your methodology to maximise the performance of our current squad?',
+    question: 'How would you adapt your way of playing to get the best out of our current squad?',
     followUp: 'Which elements of your football model would remain unchanged and which would you modify?',
     criterion: 'training_management',
   },

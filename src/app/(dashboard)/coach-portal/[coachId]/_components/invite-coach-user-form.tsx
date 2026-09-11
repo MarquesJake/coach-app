@@ -68,7 +68,7 @@ export function InviteCoachUserForm({ coachId }: { coachId: string }) {
         </div>
       )}
       <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
-        Links expire after seven days and can be claimed only by the invited email. Create a fresh link to supersede an earlier pending invitation.
+        Links last seven days and only work for the email you invite. Creating a new link replaces any earlier one.
       </p>
     </div>
   )

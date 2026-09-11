@@ -138,9 +138,9 @@ function deriveRisk(coach: CoachRecord, externalProfile: ExternalProfile | null)
   if (coach.safeguarding_risk_flag) return 'Safeguarding risk flag requires escalation before shortlist use.'
 
   const confidence = externalProfile?.match_confidence ?? externalProfile?.confidence ?? numberValue(coach.intelligence_confidence)
-  if (confidence == null || confidence < 60) return 'Evidence coverage is still developing, confidence should be strengthened before final recommendation.'
-  if (!text(coach.due_diligence_summary)) return 'Due diligence summary has not yet been written, board narrative still needs human judgement.'
-  return 'No risk flag is recorded. This is not a completed diligence assessment; check sources and unresolved questions.'
+  if (confidence == null || confidence < 60) return 'Evidence is still thin — build it up before a final recommendation.'
+  if (!text(coach.due_diligence_summary)) return 'No due-diligence summary yet — the board story still needs writing.'
+  return 'No risks flagged yet. That doesn’t mean checks are complete — look at the sources and open questions.'
 }
 
 function dossierSummary(coach: CoachRecord, externalProfile: ExternalProfile | null) {
@@ -286,7 +286,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
   return (
     <div className="space-y-5">
       {publicSnapshot && <VerifiedExampleCard example={publicSnapshot} />}
-      <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Recorded profile, not a current-facts certificate. Imported roles, availability and assessments may be stale. Only individually dated, cited evidence should support a decision; a sync timestamp or completeness score is not verification.</p>
+      <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">This is what we have on file. Imported jobs, availability and assessments can go out of date — only dated, sourced evidence should back a decision.</p>
       <section className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border bg-card px-6 py-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -298,14 +298,14 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
             <div className="rounded-lg border border-border bg-surface/70 px-3 py-2 text-right">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Source status</p>
               <p className="text-xs font-medium text-foreground">
-                {externalProfile?.source_name ? `${externalProfile.source_name} · ${formatSynced(externalProfile.synced_at)}` : 'Manual profile, API source not linked yet'}
+                {externalProfile?.source_name ? `${externalProfile.source_name} · ${formatSynced(externalProfile.synced_at)}` : 'Manual profile — data feed not linked yet'}
               </p>
             </div>
           </div>
         </div>
         <div className="grid gap-4 p-6 lg:grid-cols-[1.1fr_1fr_1fr]">
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Recorded situation - requires verification</p>
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Current situation — to confirm</p>
             <p className="mt-2 text-sm leading-6 text-foreground">{summary.situation}</p>
           </div>
           <div>
@@ -319,7 +319,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
                 ))}
               </div>
             ) : (
-              <p className="mt-2 text-sm text-muted-foreground">Fit evidence is waiting for tactical, leadership, and league context to be added.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Add tactical, leadership and league details to see how he fits.</p>
             )}
           </div>
           <div>
@@ -334,7 +334,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-foreground">Career timeline</h2>
-              <p className="text-xs text-muted-foreground">Recent roles with source provenance separated from manual intelligence.</p>
+              <p className="text-xs text-muted-foreground">Recent jobs, with sourced facts kept separate from our own notes.</p>
             </div>
             <Link href={`/coaches/${params.id}/career`} className="text-xs text-muted-foreground transition-colors hover:text-foreground">
               Full career view
@@ -342,7 +342,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
           </div>
           {stints.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
-              Career timeline is not evidenced yet. Add verified roles or run enrichment before this profile goes into an assessment pack.
+              No career history yet. Add his jobs, or pull them in from the data feed, before this profile goes into a report.
             </div>
           ) : (
             <ol className="space-y-3">
@@ -380,7 +380,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-foreground">Active mandate links</h2>
-              <p className="text-xs text-muted-foreground">Where this coach is already part of a decision workflow.</p>
+              <p className="text-xs text-muted-foreground">Mandates he is already part of.</p>
             </div>
             <Link href="/mandates" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
               Mandates
@@ -388,7 +388,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
           </div>
           {mandateLinks.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
-              This coach is not attached to an active mandate yet. Add them to a longlist when the next club brief needs a fit assessment.
+              Not on any mandate yet. Add him to a longlist when a club brief comes in.
             </div>
           ) : (
             <ul className="space-y-3">
@@ -428,7 +428,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
               </p>
               <h2 className="mt-1 text-base font-semibold text-foreground">Availability, terms and relocation</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Recorded details relevant to a potential appointment. Confirm their source and current accuracy.
+                What we have on file for a possible appointment. Check where it came from and that it is still right.
               </p>
             </div>
             <Link href={`/coach-portal/${params.id}`} className="shrink-0 text-xs text-primary hover:underline">
@@ -466,9 +466,9 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                 Source-backed findings
               </p>
-              <h2 className="mt-1 text-base font-semibold text-foreground">What our network says has changed</h2>
+              <h2 className="mt-1 text-base font-semibold text-foreground">What our network is saying</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Agent calls, references and analyst notes become reviewable findings before they influence a pack.
+                Agent calls, references and analyst notes are checked before they go into a report.
               </p>
             </div>
             <div className="text-right text-2xs text-muted-foreground">
@@ -478,7 +478,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
           </div>
           {profileClaims.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
-              No findings captured yet. Log agent conversations or references to build private intelligence over time.
+              Nothing logged yet. Record agent conversations and references to build up the picture.
             </div>
           ) : (
             <div className="space-y-2">
@@ -517,9 +517,9 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                 Coach-submitted depth
               </p>
-              <h2 className="mt-1 text-base font-semibold text-foreground">Portal profile and private material</h2>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Coach’s own profile and private material</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                The supply-side layer: the best version of the coach, checked by football people before it reaches a club.
+                The coach’s own pitch, checked by our football people before any club sees it.
               </p>
             </div>
             <span className="rounded-full border border-border bg-surface px-2 py-1 text-[10px] text-muted-foreground">
@@ -549,9 +549,9 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
                 Confidential materials
               </p>
-              <h2 className="mt-1 text-base font-semibold text-foreground">Training-ground evidence library</h2>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Training-ground library</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Presentations, video, methodology and reference packs that can sit behind a controlled club request.
+                Presentations, video, methods and references — only released to a club on approved request.
               </p>
             </div>
             <p className="text-right text-2xs text-muted-foreground">
@@ -560,7 +560,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
           </div>
           {privateMaterials.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-surface/40 p-4 text-sm text-muted-foreground">
-              No private materials logged yet. Add coach presentations, training video and methodology through Coach access.
+              No private material yet. The coach can add presentations, training video and his methods through Coach access.
             </div>
           ) : (
             <div className="space-y-2">

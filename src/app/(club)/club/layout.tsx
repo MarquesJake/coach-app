@@ -21,7 +21,7 @@ export default async function ClubLayout({ children }: { children: React.ReactNo
         <div className="max-w-md rounded-md border border-border bg-card p-6 text-center">
           <ShieldAlert className="mx-auto h-6 w-6 text-amber-600" />
           <h1 className="mt-4 text-lg font-semibold text-foreground">Club access is not active</h1>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Your sign-in works, but this account has not yet been assigned to a club decision room. Ask Gaffa to confirm the club and your role.</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">You’re signed in, but your account hasn’t been linked to a club yet. Ask Gaffa to set it up.</p>
           <InactiveClubSignOut><LogOut className="h-4 w-4" />Sign out</InactiveClubSignOut>
         </div>
       </main>

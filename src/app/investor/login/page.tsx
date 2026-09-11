@@ -34,7 +34,7 @@ function InvestorLoginForm() {
     <div className="w-full max-w-md space-y-6">
       <p className="text-sm font-semibold uppercase tracking-widest text-primary">Gaffa / Evaluation</p>
       <h1 className="font-serif text-4xl">Explore the decision process.</h1>
-      <p className="text-sm text-muted-foreground">Your private practice workspace. No internal client records or coach submissions are included.</p>
+      <p className="text-sm text-muted-foreground">Your own private workspace.</p>
       <form onSubmit={signIn} className="space-y-4 rounded-lg border bg-card p-6">
         <label className="block text-sm">Email<input name="email" type="email" autoComplete="username" required className="mt-2 w-full rounded border bg-background p-3" /></label>
         <label className="block text-sm">Password<input name="password" type="password" autoComplete="current-password" required className="mt-2 w-full rounded border bg-background p-3" /></label>
@@ -42,7 +42,7 @@ function InvestorLoginForm() {
         <button disabled={busy} className="w-full rounded bg-primary p-3 text-primary-foreground disabled:opacity-50">{busy ? 'Signing in...' : 'Sign in to evaluation'}</button>
       </form>
       <Link href={portalRecoveryHref('investor', next)} className="block text-sm underline">Forgot password?</Link>
-      <p className="text-xs text-muted-foreground">Using a presenter-supplied test login? Ask the presenter for a replacement password; test addresses have no inbox.</p>
+      <p className="text-xs text-muted-foreground">Forgotten your password? Ask your Gaffa contact to reset it.</p>
     </div>
   </main>
 }

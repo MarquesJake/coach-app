@@ -234,7 +234,7 @@ export default async function MandatePlanPage(
               <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">Decision memory</p>
               <h2 className="mt-1 text-base font-semibold text-foreground">Decision and outcome</h2>
               <p className="mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
-                Preserve what Gaffa recommended, what the club decided and when the result must be reviewed. This creates the post-appointment learning loop without exposing the record to external portals.
+                Record what Gaffa recommended, what the club decided and when to review how it went. This stays internal.
               </p>
             </div>
           </div>
@@ -316,7 +316,7 @@ export default async function MandatePlanPage(
               <textarea name="decision_note" required minLength={10} rows={3} defaultValue={outcomeNote ?? ''} placeholder="Why the club followed or departed from the recommendation, and what should be tested at review." className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
             </label>
             <p className="text-xs leading-5 text-muted-foreground sm:col-span-2">
-              Appointment made and ended statuses require a shortlisted coach and appointment date. Every save snapshots the current recommendation and adds an audit-log entry.
+              To mark an appointment as made or ended, pick a shortlisted coach and the date. Every save keeps a copy of the recommendation and is logged.
             </p>
             <div className="flex justify-end sm:col-span-2">
               <button type="submit" className="h-9 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Save decision record</button>
@@ -346,7 +346,7 @@ export default async function MandatePlanPage(
           <p className="text-xs text-muted-foreground sm:col-span-3">{SERVICE_MODEL_DESCRIPTIONS[serviceModel]}</p>
         </form>
         <div className="mt-5 border-t border-border pt-4"><h2 className="mb-4 text-sm font-semibold">Recent appointment activity</h2>{activityResult.error ? <p role="alert" className="text-sm">Activity history could not be loaded. Refresh to retry.</p> : <Timeline items={activityResult.data ?? []} />}</div>
-        <details className="mt-5 border-t border-border pt-4"><summary className="mb-3 cursor-pointer text-xs font-semibold">Appointment cleanup</summary><p className="mb-3 text-sm text-muted-foreground">Existing linked-brief, report and review protections still apply. Deletion is not needed to finish an appointment.</p><DeleteMandateButton mandateId={params.id} /></details>
+        <details className="mt-5 border-t border-border pt-4"><summary className="mb-3 cursor-pointer text-xs font-semibold">Appointment cleanup</summary><p className="mb-3 text-sm text-muted-foreground">You don’t need to delete anything to close a mandate.</p><DeleteMandateButton mandateId={params.id} /></details>
       </details>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
@@ -354,7 +354,7 @@ export default async function MandatePlanPage(
           <div className="flex items-end justify-between border-b border-border pb-3">
             <div>
               <h2 className="text-sm font-semibold text-foreground">Readiness checks</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Advisory checks for a defensible appointment decision.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Checks to make sure the decision stands up.</p>
             </div>
             <span className="text-xs text-muted-foreground">{completedGates} ready</span>
           </div>
@@ -381,7 +381,7 @@ export default async function MandatePlanPage(
           <div className="flex items-end justify-between border-b border-border pb-3">
             <div>
               <h2 className="text-sm font-semibold text-foreground">Actions</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Human work, ownership and blockers.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Tasks, owners and anything holding things up.</p>
             </div>
             <span className="text-xs text-muted-foreground">{workItems.filter((item) => !['Completed', 'Cancelled'].includes(item.status)).length} open</span>
           </div>
@@ -390,7 +390,7 @@ export default async function MandatePlanPage(
             <div className="border-b border-border py-8 text-center">
               <Clock3 className="mx-auto h-5 w-5 text-muted-foreground/60" />
               <p className="mt-2 text-sm font-medium text-foreground">No manual actions yet</p>
-              <p className="mt-1 text-xs text-muted-foreground">Add only the work that needs a person, deadline or recorded blocker.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Only add tasks that need an owner, a deadline or have something blocking them.</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -483,7 +483,7 @@ export default async function MandatePlanPage(
               </label>
               <label className="space-y-1 sm:col-span-2">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground">Notes</span>
-                <textarea name="notes" rows={3} placeholder="Decision context, who needs contacting, or the expected outcome." className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
+                <textarea name="notes" rows={3} placeholder="Background, who needs contacting, or what should happen." className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground" />
               </label>
               <div className="flex justify-end sm:col-span-2">
                 <button type="submit" className="h-9 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Add action</button>

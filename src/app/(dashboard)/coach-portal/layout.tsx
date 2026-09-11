@@ -9,7 +9,7 @@ export default function CoachPortalLayout({
   return (
     <SectionShell
       title="Coach submissions"
-      description="Coach-supplied profiles, methodology, video and confidential material"
+      description="Coaches’ own profiles, methods, video and confidential material"
       subnav={COACH_PORTAL_SUBNAV}
       sticky
     >

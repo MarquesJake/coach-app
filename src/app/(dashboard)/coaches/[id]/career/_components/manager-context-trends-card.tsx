@@ -35,7 +35,7 @@ export function ManagerContextTrendsCard({ summary }: { summary: ManagerContextS
             </span>
           </div>
           <p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">
-            Club season-results strength during recorded tenures. This is not manager ELO, provider-grade match attribution or a claim that the coach caused the movement.
+            How strong the club’s results were during each job. It rates the team, not the coach, and does not prove he caused the change.
           </p>
         </div>
         <span className={cn(
@@ -97,9 +97,9 @@ export function ManagerContextTrendsCard({ summary }: { summary: ManagerContextS
       ) : (
         <div className="px-6 py-8 text-center">
           <Link2 className="mx-auto h-5 w-5 text-muted-foreground/60" />
-          <p className="mt-2 text-sm font-semibold text-foreground">Manager context needs linked club history</p>
+          <p className="mt-2 text-sm font-semibold text-foreground">Link his jobs to club records to see this</p>
           <p className="mx-auto mt-1 max-w-2xl text-xs leading-5 text-muted-foreground">
-            Link stint records to clubs and store at least two overlapping season results. Until then, the product shows the coverage gap instead of inventing manager impact.
+            Link each job to its club and add at least two seasons of results. Until then we show what is missing rather than guessing his impact.
           </p>
         </div>
       )}
