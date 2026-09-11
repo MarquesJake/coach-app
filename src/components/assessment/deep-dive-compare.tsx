@@ -2,7 +2,7 @@ import { deepDiveFor, finalEvaluationFor } from '@/lib/assessment/deep-dive'
 
 // Headline numbers from the assessment depth, side by side for the compare page.
 export function DeepDiveCompare({ coaches, mandateId }: { coaches: { id: string; name: string | null }[]; mandateId?: string }) {
-  const rows = coaches.map(c => ({ c, d: deepDiveFor(c.id), e: mandateId ? finalEvaluationFor(mandateId, c.id) : null })).filter(r => r.d)
+  const rows = coaches.map(c => ({ c, d: deepDiveFor(c.id, mandateId), e: mandateId ? finalEvaluationFor(mandateId, c.id) : null })).filter(r => r.d)
   if (rows.length < 2) return null
   const latest = (r: typeof rows[number]) => r.d!.performance.seasons[r.d!.performance.seasons.length - 1]
   const per90 = (x: { transition: number; buildUp: number; restart: number; corners: number; directFk: number; indirectFk: number; throwIns: number }) => x.transition + x.buildUp + x.restart + x.corners + x.directFk + x.indirectFk + x.throwIns

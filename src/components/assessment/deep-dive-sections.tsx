@@ -144,7 +144,7 @@ export function PersonalityDeepDive({ d }: { d: DeepDive }) {
 export function CulturalFitDeepDive({ d }: { d: DeepDive }) {
   const c = d.culturalFit
   return <div className="space-y-4">
-    <Block title="Fit with this club"><div className="divide-y divide-border border-y border-border">{d.clubAlignment.map(a => <div key={a.aspect} className="grid grid-cols-[1.2fr_auto_2.2fr] items-start gap-3 py-1.5 text-xs"><span className="font-medium text-foreground">{a.aspect}</span><span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${fitTone[a.fit]}`}>{a.fit}</span><span className="text-muted-foreground">{a.note}</span></div>)}</div></Block>
+    <Block title={`Fit with ${d.fitClub}`}><div className="divide-y divide-border border-y border-border">{d.clubAlignment.map(a => <div key={a.aspect} className="grid grid-cols-[1.2fr_auto_2.2fr] items-start gap-3 py-1.5 text-xs"><span className="font-medium text-foreground">{a.aspect}</span><span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${fitTone[a.fit]}`}>{a.fit}</span><span className="text-muted-foreground">{a.note}</span></div>)}</div></Block>
     <Block title="Best-fit club"><div className="divide-y divide-border border-y border-border">{c.bestFit.map(f => <div key={f.dimension} className="grid grid-cols-[1fr_2.5fr] gap-3 py-1.5 text-xs"><span className="font-medium text-foreground">{f.dimension}</span><span className="text-muted-foreground">{f.fit}</span></div>)}</div></Block>
     <div className="grid gap-4 sm:grid-cols-2 print:grid-cols-2"><Block title="Where it could rub"><List items={c.frictionPoints} /></Block><Block title="What he needs to succeed"><List items={c.successFactors} /></Block></div>
   </div>

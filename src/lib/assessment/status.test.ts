@@ -43,7 +43,7 @@ test('unknown confidence is not zero; a recorded recommendation still requires s
   const status = deriveAssessmentStatus({ coach: {}, assessments, evidence, recommendation: { ...recommendation, confidence: null } })
   assert.equal(status.recommendationRecorded, true)
   assert.equal(status.confidence, null)
-  assert.match(status.nextAction, /recipient permissions/)
+  assert.match(status.nextAction, /who can see it before sharing/)
   assert.equal(status.coverLabel, 'Draft report - internal review only')
   assert.equal(deriveAssessmentStatus({ coach: {}, recommendation: { ...recommendation, confidence: 0 } }).confidence, 0)
 })

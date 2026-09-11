@@ -5,6 +5,7 @@
 
 import { DEEP_DIVES, FINAL_EVALUATIONS } from './deep-dive-data'
 import { DEEP_DIVE_EXTRAS } from './deep-dive-extras'
+import { TOTTENHAM_DEEP_DIVES, TOTTENHAM_FINAL_EVALUATIONS, MANDATE_FIT_OVERRIDES } from './deep-dive-tottenham'
 
 export type SeasonRow = { season: string; club: string; league: string; played: number; w: number; d: number; l: number; gf: number; ga: number; xgf: number; xga: number; finish: string }
 export type XgSplit = { transition: number; buildUp: number; restart: number; corners: number; directFk: number; indirectFk: number; throwIns: number }
@@ -26,6 +27,7 @@ export type Fit = 'Strong' | 'Partial' | 'Weak'
 
 // Items the methodology lists under each area, beyond the headline data.
 export type DeepDiveExtras = {
+  fitClub: string
   xgSeason: string
   career: { period: string; club: string; role: string }[]
   tacticalFit: Aspect[]
@@ -68,12 +70,20 @@ export type DeepDiveBase = {
 
 export type DeepDive = DeepDiveBase & DeepDiveExtras
 
-export function deepDiveFor(coachId: string): DeepDive | null {
+export type MandateFitOverride = Pick<DeepDiveExtras, 'fitClub' | 'tacticalFit' | 'clubAlignment'>
+
+// Coach-level depth, with the club-specific fit sections swapped for the
+// mandate being viewed when a coach sits on more than one shortlist.
+export function deepDiveFor(coachId: string, mandateId?: string): DeepDive | null {
   const base = DEEP_DIVES[coachId]
   const extras = DEEP_DIVE_EXTRAS[coachId]
-  return base && extras ? { ...base, ...extras } : null
+  const full = TOTTENHAM_DEEP_DIVES[coachId] ?? (base && extras ? { ...base, ...extras } : null)
+  if (!full) return null
+  const override = mandateId ? MANDATE_FIT_OVERRIDES[`${mandateId}:${coachId}`] : undefined
+  return override ? { ...full, ...override } : full
 }
 
 export function finalEvaluationFor(mandateId: string, coachId: string): FinalEvaluation | null {
-  return FINAL_EVALUATIONS[`${mandateId}:${coachId}`] ?? null
+  const key = `${mandateId}:${coachId}`
+  return FINAL_EVALUATIONS[key] ?? TOTTENHAM_FINAL_EVALUATIONS[key] ?? null
 }

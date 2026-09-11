@@ -19,6 +19,7 @@ const align = (rows: [Fit, string][]) => ALIGN.map((aspect, i) => ({ aspect, fit
 
 export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
   [MCKENNA]: {
+    fitClub: 'West Ham',
     xgSeason: '2023/24, Championship',
     career: [
       { period: '2009–2016', club: 'Tottenham', role: 'Academy coach, then under-18s coach' },
@@ -29,7 +30,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
     tacticalFit: [
       { aspect: 'Adapting to opponents', note: 'Changes the build-up shape each week (back three or back four) depending on how the opponent presses.' },
       { aspect: 'Player profiles he needs', note: 'Ball-playing centre-backs, a full-back who can play inside, two box-to-box midfielders and fast wide players.' },
-      { aspect: 'Fit with the West Ham squad', note: 'Good: the squad has the technical midfielders; needs one progressive full-back.' },
+      { aspect: 'Fit with the squad', note: 'Good: the squad has the technical midfielders; needs one progressive full-back.' },
       { aspect: 'Implementation risk', note: 'Low to medium — a clear, teachable model, but it took two months to bed in at Ipswich.' },
     ],
     matchBehaviour: [
@@ -77,6 +78,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
   },
 
   [ROSENIOR]: {
+    fitClub: 'West Ham',
     xgSeason: '2024/25, Ligue 1',
     career: [
       { period: '2019–2022', club: 'Derby', role: 'Assistant, then interim head coach' },
@@ -87,7 +89,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
     tacticalFit: [
       { aspect: 'Adapting to opponents', note: 'Tweaks the press more than the shape; the possession model stays the same.' },
       { aspect: 'Player profiles he needs', note: 'Technical centre-backs, an athletic holding midfielder and inside forwards.' },
-      { aspect: 'Fit with the West Ham squad', note: 'Partial: good on the ball, but the squad is built for a more direct game.' },
+      { aspect: 'Fit with the squad', note: 'Partial: good on the ball, but the squad is built for a more direct game.' },
       { aspect: 'Implementation risk', note: 'Medium — needs time and technical players to work.' },
     ],
     matchBehaviour: [
@@ -135,6 +137,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
   },
 
   [PARKER]: {
+    fitClub: 'West Ham',
     xgSeason: '2024/25, Championship',
     career: [
       { period: '2019–2021', club: 'Fulham', role: 'Head coach — promoted 2020' },
@@ -145,7 +148,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
     tacticalFit: [
       { aspect: 'Adapting to opponents', note: 'Changes shape to protect leads; less variety when chasing a game.' },
       { aspect: 'Player profiles he needs', note: 'Strong, experienced defenders, a hard-working midfield and physical forwards.' },
-      { aspect: 'Fit with the West Ham squad', note: 'Strong for the Championship: experienced squad, physical profile.' },
+      { aspect: 'Fit with the squad', note: 'Strong for the Championship: experienced squad, physical profile.' },
       { aspect: 'Implementation risk', note: 'Low — his structure lands within weeks.' },
     ],
     matchBehaviour: [
@@ -193,6 +196,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
   },
 
   [FARIOLI]: {
+    fitClub: 'West Ham',
     xgSeason: '2025/26, Liga Portugal',
     career: [
       { period: '2017–2020', club: 'Sassuolo', role: 'Goalkeeping coach' },
@@ -204,7 +208,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
     tacticalFit: [
       { aspect: 'Adapting to opponents', note: 'Plans each opponent in detail; the principles stay fixed.' },
       { aspect: 'Player profiles he needs', note: 'Technical defenders, an elite ball-playing goalkeeper and intelligent midfielders.' },
-      { aspect: 'Fit with the West Ham squad', note: 'Weak to partial: needs several technical signings.' },
+      { aspect: 'Fit with the squad', note: 'Weak to partial: needs several technical signings.' },
       { aspect: 'Implementation risk', note: 'High in the Championship — a big staff and a very detailed model.' },
     ],
     matchBehaviour: [
@@ -252,6 +256,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
   },
 
   [ONEIL]: {
+    fitClub: 'West Ham',
     xgSeason: '2023/24, Premier League',
     career: [
       { period: '2019–2022', club: 'Liverpool academy, Bournemouth', role: 'Youth coach, then first-team coach' },
@@ -262,7 +267,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
     tacticalFit: [
       { aspect: 'Adapting to opponents', note: 'Very flexible — changes shape and plan each week.' },
       { aspect: 'Player profiles he needs', note: 'Quick forwards and hard-working wing-backs.' },
-      { aspect: 'Fit with the West Ham squad', note: 'Partial: suits counter-attacking, less so dominating games.' },
+      { aspect: 'Fit with the squad', note: 'Partial: suits counter-attacking, less so dominating games.' },
       { aspect: 'Implementation risk', note: 'Low, but he is not available.' },
     ],
     matchBehaviour: [
@@ -310,6 +315,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
   },
 
   [CARRICK]: {
+    fitClub: 'West Ham',
     xgSeason: '2024/25, Championship',
     career: [
       { period: '2018–2021', club: 'Manchester United', role: 'First-team coach, then caretaker' },
@@ -319,7 +325,7 @@ export const DEEP_DIVE_EXTRAS: Record<string, DeepDiveExtras> = {
     tacticalFit: [
       { aspect: 'Adapting to opponents', note: 'Adjusts midfield roles to the opponent.' },
       { aspect: 'Player profiles he needs', note: 'Technical midfielders and mobile forwards.' },
-      { aspect: 'Fit with the West Ham squad', note: 'Good on paper.' },
+      { aspect: 'Fit with the squad', note: 'Good on paper.' },
       { aspect: 'Implementation risk', note: 'Not applicable — not available.' },
     ],
     matchBehaviour: [
