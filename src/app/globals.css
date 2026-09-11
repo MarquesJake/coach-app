@@ -9,14 +9,14 @@
     --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial;
     --font-display: "Space Grotesk", var(--font-sans);
 
-    --background: #f4f6f2;
+    --background: #f5f6f3;
     --background-subtle: #eef1ec;
     --surface: #f8faf7;
     --surface-raised: #ffffff;
     --surface-overlay: #e9eee8;
 
     --foreground: #1c231f;
-    --foreground-muted: #657168;
+    --foreground-muted: #5f6d64;
 
     --card: #ffffff;
     --card-foreground: #1c231f;
@@ -27,14 +27,14 @@
     --secondary: #edf1ec;
     --secondary-foreground: #243129;
     --muted: #edf1ec;
-    --muted-foreground: #657168;
+    --muted-foreground: #5f6d64;
     --accent: #e7ede8;
     --accent-foreground: #243129;
 
     --destructive: #b7423f;
     --destructive-foreground: #ffffff;
 
-    --border: #d9dfd8;
+    --border: #dfe5de;
     --border-subtle: #e8ece7;
     --input: #ccd4cc;
     --ring: #2f7458;
@@ -53,8 +53,8 @@
     --light-foreground: #1c231f;
     --light-foreground-muted: #657168;
 
-    --radius: 0.375rem;
-    --radius-lg: 0.5rem;
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
 
     --status-success: #207250;
     --status-warning: #a96813;
@@ -68,7 +68,7 @@
   .dark {
     color-scheme: dark;
 
-    --background: #111612;
+    --background: #101813;
     --background-subtle: #151b16;
     --surface: #171d18;
     --surface-raised: #1c241e;
@@ -77,7 +77,7 @@
     --foreground: #eef2ee;
     --foreground-muted: #9aa69d;
 
-    --card: #181f1a;
+    --card: #19231c;
     --card-foreground: #eef2ee;
 
     --primary: #78b596;
@@ -90,7 +90,7 @@
     --accent: #273129;
     --accent-foreground: #eef2ee;
 
-    --border: #303a32;
+    --border: #334238;
     --border-subtle: #252e27;
     --input: #3a463d;
     --ring: #78b596;
@@ -191,6 +191,14 @@ html:not(.dark) .text-red-400 {
   color: #a23c39;
 }
 
+/* Surfaces that stay dark in every theme (the board-pack cover) keep the
+   light-on-dark tints; the light-theme remaps above assume a light ground. */
+html:not(.dark) .always-dark .text-amber-200 { color: #fde68a; }
+html:not(.dark) .always-dark .text-amber-300 { color: #fcd34d; }
+html:not(.dark) .always-dark .text-emerald-300 { color: #6ee7b7; }
+html:not(.dark) .always-dark .text-emerald-400 { color: #34d399; }
+html:not(.dark) .always-dark .text-red-300 { color: #fca5a5; }
+
 html:not(.dark) .text-blue-300,
 html:not(.dark) .text-blue-400 {
   color: #315f83;
@@ -199,6 +207,80 @@ html:not(.dark) .text-blue-400 {
 html:not(.dark) .text-violet-200,
 html:not(.dark) .text-violet-400 {
   color: #6e4a8d;
+}
+
+/* The same remap for the brighter tints and opacity variants that the rules
+   above missed. Found by a two-theme contrast sweep: in light mode these left
+   the illustrative-evidence warnings on the assessment page at about 2:1. */
+html:not(.dark) .text-amber-500,
+html:not(.dark) .text-amber-500\/90,
+html:not(.dark) .text-amber-400\/90,
+html:not(.dark) .text-amber-300\/80,
+html:not(.dark) .text-yellow-400 {
+  color: #88580f;
+}
+
+html:not(.dark) .text-emerald-200,
+html:not(.dark) .text-emerald-500,
+html:not(.dark) .text-emerald-500\/80,
+html:not(.dark) .text-emerald-500\/90,
+html:not(.dark) .text-emerald-400\/70,
+html:not(.dark) .text-emerald-400\/90 {
+  color: #176442;
+}
+
+html:not(.dark) .text-red-500 {
+  color: #a23c39;
+}
+
+html:not(.dark) .text-sky-200,
+html:not(.dark) .text-sky-400,
+html:not(.dark) .text-blue-500,
+html:not(.dark) .text-blue-400\/70 {
+  color: #315f83;
+}
+
+html:not(.dark) .text-purple-400 {
+  color: #6e4a8d;
+}
+
+html:not(.dark) .text-orange-400,
+html:not(.dark) .text-orange-500 {
+  color: #9a4410;
+}
+
+/* Tailwind's -600 amber, emerald, orange, sky and yellow fall below 4.5:1 on
+   white (2.9-4.1:1), and lower still on the tinted chips they usually label. */
+html:not(.dark) .text-amber-600,
+html:not(.dark) .text-yellow-600 {
+  color: #88580f;
+}
+
+html:not(.dark) .text-emerald-600 {
+  color: #176442;
+}
+
+html:not(.dark) .text-orange-600 {
+  color: #9a4410;
+}
+
+html:not(.dark) .text-sky-600,
+html:not(.dark) .text-blue-600 {
+  color: #315f83;
+}
+
+/* blue-600 and purple-600 pass on plain white but not on the 15% tints of the
+   same hue used for status pills (about 4.4:1). */
+html:not(.dark) .text-purple-600 {
+  color: #6e4a8d;
+}
+
+/* --destructive is a background token (solid buttons with white text), so it is
+   too dark to read as text on the dark surfaces: ghost "Delete" actions measured
+   2.98:1. Text uses only get a lighter red in dark mode (5.9-7.6:1). */
+html.dark .text-destructive,
+html.dark .hover\:text-destructive:hover {
+  color: #ef8d88;
 }
 
 .score-bar-track {
@@ -259,7 +341,38 @@ select option {
   background: color-mix(in srgb, var(--foreground-muted) 45%, transparent);
 }
 
+@media (max-width: 639px) {
+  #club-signin h1 {
+    font-size: 2.25rem;
+    overflow-wrap: anywhere;
+  }
+}
+
 @media print {
+  #investor-workspace {
+    --background: #ffffff;
+    --card: #ffffff;
+    --foreground: #0f172a;
+    --muted-foreground: #475569;
+    color: #0f172a;
+    background: #ffffff;
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+
+  #investor-workspace > div {
+    padding: 0;
+    max-width: none;
+  }
+
+  #investor-workspace section > * + * {
+    margin-top: 0.65rem;
+  }
+
+  #investor-workspace section h2 {
+    break-after: avoid;
+  }
+
   aside {
     display: none !important;
   }
@@ -276,4 +389,109 @@ select option {
   body {
     background: #ffffff !important;
   }
+}
+
+/* Gaffa workspace: shared rhythm and surfaces across every module. */
+@layer base {
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+  ::selection { background: color-mix(in srgb, var(--primary) 22%, transparent); }
+  input, textarea, select { accent-color: var(--primary); }
+  button, a, summary { -webkit-tap-highlight-color: transparent; }
+  h1, h2, h3 { text-wrap: balance; }
+}
+.gaffa-workspace { --content-width: 1480px; }
+.gaffa-content { max-width: var(--content-width); margin-inline: auto; padding: 24px 36px 64px; }
+.gaffa-sidebar {
+  --card: #142b20; --foreground: #f0f5ef; --muted-foreground: #afc2b5;
+  --border: #2c4535; --primary: #b2d7bd; --primary-foreground: #142b20;
+  --secondary: #223e2d; --surface: #1b3426; --ring: #b2d7bd;
+  background: var(--card); color: var(--foreground);
+}
+.gaffa-sidebar nav a { min-height: 42px; }
+.gaffa-sidebar nav a[aria-current="page"] { background: #294a36; color: #fff; }
+.gaffa-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-bottom: 24px; font-size: 11px; color: var(--muted-foreground); }
+.gaffa-notice strong { font-weight: 600; border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; }
+.gaffa-section-header { margin-bottom: 28px; }
+.gaffa-page-title { font-size: clamp(26px, 2.5vw, 34px); letter-spacing: -.04em; }
+.gaffa-section-header > div > nav { margin-top: 12px; }
+.gaffa-breadcrumb { display: flex; align-items: center; gap: 10px; color: var(--muted-foreground); font-size: 12px; margin-bottom: 20px; }
+.gaffa-breadcrumb a:hover { color: var(--primary); }
+.gaffa-panel { border: 1px solid var(--border); border-radius: 16px; background: var(--card); padding: 28px; }
+.gaffa-panel-heading { font-size: 18px; line-height: 1.4; font-weight: 600; letter-spacing: -.025em; }
+.gaffa-eyebrow { color: var(--muted-foreground); font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+.gaffa-description { max-width: 65ch; color: var(--muted-foreground); font-size: 14px; line-height: 1.65; }
+.gaffa-action { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 8px; border-radius: 9px; padding: 9px 14px; font-size: 13px; font-weight: 500; transition: background-color .15s ease; }
+.gaffa-action-primary { background: var(--primary); color: var(--primary-foreground); }
+.gaffa-action-secondary { border: 1px solid var(--border); background: var(--card); color: var(--foreground); }
+.gaffa-action-secondary:hover { background: var(--muted); }
+.gaffa-link { color: var(--primary); font-size: 13px; font-weight: 500; text-underline-offset: 4px; }
+.gaffa-link:hover { text-decoration: underline; }
+.gaffa-badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; border-radius: 6px; padding: 4px 8px; background: var(--muted); color: var(--muted-foreground); font-size: 11px; font-weight: 500; line-height: 1.4; }
+.gaffa-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 0; padding-block: 22px; }
+.gaffa-stats > div { padding-inline: 22px; border-left: 1px solid var(--border); }
+.gaffa-stats > div:first-child { border: 0; padding-left: 0; }
+.gaffa-stats strong { display: block; font-size: 28px; line-height: 1.2; font-weight: 500; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.gaffa-stats span { display: block; color: var(--muted-foreground); font-size: 12px; margin-top: 7px; }
+.gaffa-disclosure > summary { list-style: none; cursor: pointer; }
+.gaffa-disclosure > summary::-webkit-details-marker { display: none; }
+.gaffa-disclosure > summary .disclosure-chevron { transition: transform .15s ease; flex-shrink: 0; }
+.gaffa-disclosure[open] > summary .disclosure-chevron { transform: rotate(180deg); }
+.gaffa-menu { position: relative; }
+.gaffa-menu > summary { list-style: none; cursor: pointer; }
+.gaffa-menu > summary::-webkit-details-marker { display: none; }
+.gaffa-menu-items { position: absolute; z-index: 50; right: 0; top: calc(100% + 8px); min-width: 220px; display: grid; gap: 3px; border: 1px solid var(--border); border-radius: 12px; padding: 8px; background: var(--card); box-shadow: var(--shadow-lg); }
+.gaffa-menu-items > a, .gaffa-menu-items > button { text-align: left; display: block; padding: 10px 12px; font-size: 13px; border-radius: 7px; }
+.gaffa-menu-items > a:hover, .gaffa-menu-items > button:hover { background: var(--muted); }
+.gaffa-form { max-width: 960px; }
+.gaffa-form form > section { padding: 28px; }
+.gaffa-form label { line-height: 1.5; }
+.gaffa-tabs { display: flex; gap: 5px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 26px; }
+.gaffa-tabs a { padding: 9px 13px; font-size: 13px; font-weight: 500; border-radius: 8px; color: var(--muted-foreground); }
+.gaffa-tabs a:hover { color: var(--foreground); background: var(--muted); }
+.gaffa-tabs a[aria-current="page"] { background: var(--primary); color: var(--primary-foreground); }
+.gaffa-workspace .font-serif { font-family: var(--font-display); }
+.gaffa-workspace table { font-size: 13px; }
+.gaffa-workspace table th { font-weight: 500; color: var(--muted-foreground); }
+.gaffa-workspace table td { padding-top: 14px; padding-bottom: 14px; }
+@media (max-width: 767px) {
+  .gaffa-content { padding: 20px 16px 48px; }
+  .gaffa-panel { padding: 20px; border-radius: 12px; }
+  .gaffa-notice { margin-bottom: 18px; font-size: 10px; }
+  .gaffa-section-header { margin-bottom: 22px; }
+  .gaffa-form form > section { padding: 20px; }
+  .gaffa-tabs { gap: 3px; }
+  .gaffa-tabs a { padding: 9px 10px; font-size: 12px; }
+  .gaffa-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 0; }
+  .gaffa-stats > div:nth-child(3) { border: 0; padding-left: 0; }
+  .gaffa-workspace input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]), .gaffa-workspace select, .gaffa-workspace textarea { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media print {
+  .gaffa-content { max-width: none; padding: 0; }
+  .gaffa-breadcrumb, .gaffa-tabs { display: none; }
+  .gaffa-notice { color: #475569; margin-bottom: 12px; }
+  .gaffa-panel { border-radius: 0; box-shadow: none; }
+}
+
+@media (max-width: 767px) {
+  .gaffa-action { min-height: 44px; }
+  .gaffa-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), .gaffa-form select { min-height: 44px; }
+  .gaffa-tabs a { min-height: 40px; display: inline-flex; align-items: center; }
+}
+
+/* Muted text is already the secondary tone and sits just above the 4.5:1
+   floor. Once theme-colour opacity started working, the /30-/80 variants
+   dimmed it to 2-4:1, so text keeps the muted colour at full strength. The
+   opacity still applies to backgrounds, borders and hover tints. */
+.text-muted-foreground\/30,
+.text-muted-foreground\/40,
+.text-muted-foreground\/50,
+.text-muted-foreground\/60,
+.text-muted-foreground\/70,
+.text-muted-foreground\/75,
+.text-muted-foreground\/80,
+.group:hover .group-hover\:text-muted-foreground\/60 {
+  color: var(--muted-foreground);
 }

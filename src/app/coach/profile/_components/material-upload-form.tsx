@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Upload } from 'tus-js-client'
 import { FileUp, Link2, LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
@@ -57,6 +58,7 @@ async function uploadPrivateMaterial(
       uploadDataDuringCreation: true,
       chunkSize: 6 * 1024 * 1024,
       removeFingerprintOnSuccess: true,
+      fingerprint: async () => `gaffa-private:${objectName}`,
       onError: reject,
       onProgress: (uploaded, total) => onProgress(Math.round((uploaded / total) * 100)),
       onSuccess: () => resolve(),
@@ -73,26 +75,42 @@ async function uploadPrivateMaterial(
 
 export function MaterialUploadForm() {
   const [file, setFile] = useState<File | null>(null)
-  const [pending, startTransition] = useTransition()
+  const [pending, setPending] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [confirmationId, setConfirmationId] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const inFlight = useRef(false)
+  const formRef = useRef<HTMLFormElement>(null)
+  const router = useRouter()
 
   async function submit(formData: FormData) {
+    if (inFlight.current) return
+    inFlight.current = true
+    setPending(true)
+    setMessage(null)
+    try {
+    if (confirmationId) {
+      const result = await completeOwnCoachMaterialUploadAction(confirmationId)
+      if (!result.ok) { setMessage(`${result.error} The uploaded file is retained; retry confirmation without submitting another copy.`); return }
+      completeSubmission()
+      return
+    }
     const title = String(formData.get('title') ?? '').trim()
     const externalUrl = String(formData.get('external_url') ?? '').trim()
     const description = String(formData.get('description') ?? '').trim()
     if (!title || (!file && !externalUrl && !description)) {
-      toast.error('Add a title and either a private file, secure link or useful description.')
+      setMessage('Add a title and either a private file, secure link or useful description.')
       return
     }
 
     if (file) {
       if (!ALLOWED_FILE_TYPES.has(file.type)) {
-        toast.error('Use a PDF, PowerPoint, MP4, MOV or WebM file.')
+        setMessage('Use a PDF, PowerPoint, MP4, MOV or WebM file.')
         return
       }
       if (file.size > 100 * 1024 * 1024) {
-        toast.error('Files must be 100 MB or smaller. Use a secure video link for larger files.')
+        setMessage('Files must be 100 MB or smaller. Use a secure video link for larger files.')
         return
       }
       setUploading(true)
@@ -108,23 +126,23 @@ export function MaterialUploadForm() {
       })
       if (!reservation.ok) {
         setUploading(false)
-        toast.error(reservation.error)
+        setMessage(reservation.error)
         return
       }
       const { material_id: materialId, storage_path: storagePath } = reservation.reservation
       try {
         await uploadPrivateMaterial(storagePath, file, setUploadProgress)
       } catch (error) {
-        await createClient().storage.from('coach-private-materials').remove([storagePath])
-        await failOwnCoachMaterialUploadAction(
-          materialId,
-          error instanceof Error ? error.message : 'Private upload failed'
-        )
+        await Promise.allSettled([
+          createClient().storage.from('coach-private-materials').remove([storagePath]),
+          failOwnCoachMaterialUploadAction(materialId, 'Private upload interrupted'),
+        ])
         setUploading(false)
-        toast.error(error instanceof Error ? error.message : 'The upload could not be completed.')
+        setMessage(error instanceof Error ? error.message : 'The upload could not be completed. Your form is retained for retry.')
         return
       }
 
+      setConfirmationId(materialId)
       let completion: Awaited<ReturnType<typeof completeOwnCoachMaterialUploadAction>> = {
         ok: false,
         error: 'The uploaded object could not be verified.',
@@ -135,16 +153,13 @@ export function MaterialUploadForm() {
       }
       setUploading(false)
       if (!completion.ok) {
-        toast.error(`${completion.error} Your upload is retained for secure recovery.`)
-        window.location.reload()
+        setMessage(`${completion.error} Your upload is retained. Retry upload confirmation without submitting another copy.`)
         return
       }
-      toast.success('Material uploaded privately and submitted for Coach First review')
-      window.location.reload()
+      completeSubmission()
       return
     }
 
-    startTransition(async () => {
       const result = await addOwnCoachMaterialAction({
         title,
         materialType: String(formData.get('material_type') ?? 'other'),
@@ -156,18 +171,33 @@ export function MaterialUploadForm() {
         fileSizeBytes: null,
       })
       if (!result.ok) {
-        toast.error(result.error)
+        setMessage(result.error)
         return
       }
-      toast.success('Material submitted for Coach First review')
-      window.location.reload()
-    })
+      completeSubmission()
+    } catch {
+      setMessage('Submission was not confirmed. Your form is retained. If an upload finished, retry its confirmation; otherwise check the material list before submitting again.')
+    } finally {
+      inFlight.current = false
+      setPending(false)
+      setUploading(false)
+    }
+  }
+
+  function completeSubmission() {
+    setConfirmationId(null)
+    setFile(null)
+    formRef.current?.reset()
+    setMessage('Material submitted for Gaffa review. Profile edits are separate; save them before leaving.')
+    toast.success('Material submitted for Gaffa review')
+    router.refresh()
   }
 
   return (
-    <form action={submit} className="grid gap-3 sm:grid-cols-2">
-      <input name="title" required placeholder="Material title" className={inputClass} />
-      <select name="material_type" className={inputClass}>
+    <form ref={formRef} onSubmit={event => { event.preventDefault(); void submit(new FormData(event.currentTarget)) }} aria-busy={pending} className="space-y-3">
+      <fieldset disabled={pending || Boolean(confirmationId)} className="grid min-w-0 gap-3 sm:grid-cols-2">
+      <label className="block text-xs font-semibold">Material title<input name="title" required className={`${inputClass} mt-1`} /></label>
+      <label className="block text-xs font-semibold">Material type<select name="material_type" className={`${inputClass} mt-1`}>
         <option value="presentation">Coach presentation</option>
         <option value="methodology">Game model / methodology</option>
         <option value="training_video">Training session video</option>
@@ -176,11 +206,11 @@ export function MaterialUploadForm() {
         <option value="reference_pack">Reference permissions / pack</option>
         <option value="media">Media / communication sample</option>
         <option value="other">Other football work</option>
-      </select>
-      <textarea name="description" rows={3} placeholder="What this shows, the context, and why it matters" className={`${inputClass} sm:col-span-2`} />
+      </select></label>
+      <label className="block text-xs font-semibold sm:col-span-2">Context and description<textarea name="description" rows={3} placeholder="What this shows, the context, and why it matters" className={`${inputClass} mt-1`} /></label>
       <label className="flex min-h-20 cursor-pointer items-center gap-3 rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600">
         <FileUp className="h-4 w-4 shrink-0 text-emerald-800" />
-        <span>{file ? `${file.name}${uploading ? ` · ${uploadProgress}%` : ''}` : 'Private PDF, PowerPoint or video up to 100 MB'}</span>
+        <span className="min-w-0 break-words">{file ? `${file.name}${uploading ? ` · ${uploadProgress}%` : ''}` : 'Private PDF, PowerPoint or video up to 100 MB'}</span>
         <input
           type="file"
           accept=".pdf,.ppt,.pptx,.mp4,.mov,.webm"
@@ -189,16 +219,19 @@ export function MaterialUploadForm() {
         />
       </label>
       <label className="relative">
-        <Link2 className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-        <input name="external_url" type="url" placeholder="Secure video or document link" className={`${inputClass} h-20 pl-9`} />
+        <span className="block text-xs font-semibold">Secure video or document link (optional)</span>
+        <Link2 className="absolute left-3 top-9 h-4 w-4 text-slate-400" />
+        <input name="external_url" type="url" placeholder="https://" className={`${inputClass} mt-1 min-h-14 pl-9`} />
       </label>
+      </fieldset>
+      {message && <p role="status" className="text-sm leading-6">{message}</p>}
       <div className="sm:col-span-2 flex justify-end">
         <button
           disabled={pending || uploading}
           className="inline-flex items-center gap-2 rounded-md bg-emerald-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           {(pending || uploading) && <LoaderCircle className="h-4 w-4 animate-spin" />}
-          {uploading ? 'Uploading privately' : pending ? 'Recording submission' : 'Submit material'}
+          {uploading ? `Uploading privately (${uploadProgress}%)` : pending ? 'Recording submission' : confirmationId ? 'Retry upload confirmation' : 'Submit material'}
         </button>
       </div>
     </form>

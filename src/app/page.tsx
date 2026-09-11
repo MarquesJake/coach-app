@@ -1,68 +1,24 @@
 import Link from 'next/link'
-import { ArrowRight, ShieldCheck, Target, Zap } from 'lucide-react'
+import { ArrowUpRight, ArrowRight, Zap } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { PORTAL_ENTRIES, portalLoginHref } from '@/lib/organizations/portal-entry'
 
-export default function Home() {
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <ThemeToggle className="fixed right-6 top-6 z-10" />
-      <main className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-10">
-        <div className="mb-12 flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md border border-primary/20 bg-primary/10">
-            <Zap className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold leading-none">Coach First</p>
-            <p className="mt-1 text-[10px] uppercase text-muted-foreground">Intelligence OS</p>
-          </div>
-        </div>
-
-        <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-          <div>
-            <div className="mb-4 inline-flex rounded-md border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
-              Mandates, dossiers, agents, alerts
-            </div>
-            <h1 className="max-w-3xl text-5xl font-semibold leading-[1.02] tracking-tight md:text-7xl">
-              Manager search with board level memory.
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-              Run mandate delivery, coach intelligence, risk signals, and relationship tracking from one operating surface.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/login"
-                className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-              >
-                Open workspace <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex h-11 items-center rounded-md border border-border bg-card px-5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
-              >
-                Sign in
-              </Link>
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-border bg-card p-4 shadow-[var(--shadow-md)]">
-            <div className="grid gap-2">
-              {[
-                { icon: Target, label: 'Active mandates', value: 'Board ready shortlists' },
-                { icon: ShieldCheck, label: 'Risk memory', value: 'Confidence and source trails' },
-                { icon: Zap, label: 'Next action layer', value: 'Alerts before drift happens' },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="rounded-md border border-border bg-surface p-4">
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-4 w-4 text-primary" />
-                    <p className="text-sm font-medium">{label}</p>
-                  </div>
-                  <p className="mt-2 text-xs text-muted-foreground">{value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
-  )
+export default async function Home({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const { next } = await searchParams
+  return <div className="min-h-screen bg-background text-foreground">
+    <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-7 sm:px-10"><Link href="/" className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Zap className="h-5 w-5"/></span><span className="text-xl font-semibold tracking-tight">Gaffa</span></Link><div className="flex items-center gap-4"><ThemeToggle/><Link className="gaffa-link" href={portalLoginHref('internal', next)}>Sign in<ArrowUpRight className="ml-1 inline h-3.5 w-3.5"/></Link></div></header>
+    <main className="mx-auto max-w-7xl px-6 pb-12 pt-14 sm:px-10 sm:pt-24">
+      <section className="grid gap-10 border-b border-border pb-16 lg:grid-cols-[1.6fr_1fr] lg:items-end lg:gap-20"><div><p className="gaffa-eyebrow mb-6">Coach research &amp; appointments</p><h1 className="max-w-3xl text-5xl font-medium leading-[1.04] tracking-[-0.05em] sm:text-7xl lg:text-8xl">Know the coach.<br/><span className="text-primary">Make a better appointment.</span></h1></div><div className="pb-2"><p className="max-w-md text-lg leading-relaxed text-muted-foreground">Bring the club brief, coach research and appointment decision together. Keep the evidence, open questions and next steps in view.</p><a className="gaffa-action gaffa-action-primary mt-8 !min-h-12 !px-6" href="#workspaces">Choose your workspace<ArrowRight className="h-4 w-4"/></a></div></section>
+      <section id="workspaces" className="scroll-mt-6 border-b border-border py-10">
+        <h2 className="font-serif text-2xl">Sign in to your workspace</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Use the workspace named in your invitation.</p>
+        <nav aria-label="Workspace sign in" className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{PORTAL_ENTRIES.map(entry => <Link key={entry.id} href={portalLoginHref(entry.id, next)} className="flex items-center justify-between rounded-md border border-border bg-card p-5 text-sm font-semibold hover:bg-secondary/30">{entry.label}<ArrowRight className="h-4 w-4" /></Link>)}</nav>
+      </section>
+      <section aria-label="What Gaffa brings together" className="grid gap-10 py-12 md:grid-cols-3 md:gap-16">{[
+        ['01','The appointment','From club brief to board report. Keep requirements, candidates and decisions connected.'],
+        ['02','The person behind the profile','Research football, career and leadership with findings linked to their sources.'],
+        ['03','The next step','See what needs attention, who is responsible and what still needs checking.'],
+      ].map(([number,title,description])=><div key={number}><span className="text-xs font-medium text-primary">{number}</span><h2 className="mb-3 mt-4 text-xl font-semibold tracking-tight">{title}</h2><p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p></div>)}</section>
+    </main>
+  </div>
 }

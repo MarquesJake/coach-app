@@ -146,7 +146,7 @@ function StaffMemberForm({
       <label>
         <span className={labelClass}>Release visibility</span>
         <select name="confidentiality_status" defaultValue={member?.confidentiality_status ?? 'coach_first_only'} className={inputClass}>
-          <option value="coach_first_only">Coach First only</option>
+          <option value="coach_first_only">Gaffa only</option>
           <option value="clubs_on_request">Clubs on request</option>
           <option value="shareable">Shareable</option>
         </select>
@@ -203,7 +203,6 @@ export default async function CoachCareerCircumstancesPage(
       .from('coach_portal_profiles')
       .select('*')
       .eq('coach_id', params.coachId)
-      .eq('user_id', user.id)
       .maybeSingle(),
     supabase
       .from('coach_portal_staff_members')
@@ -214,6 +213,7 @@ export default async function CoachCareerCircumstancesPage(
   ])
 
   if (!coachRes.data) notFound()
+  if (profileRes.error) throw new Error('Unable to load current coach declarations')
 
   const coach = coachRes.data
   const profile = profileRes.data as PortalProfile | null
@@ -278,6 +278,7 @@ export default async function CoachCareerCircumstancesPage(
 
       <form action={saveCoachCareerCircumstancesFormAction} className="space-y-6">
         <input type="hidden" name="coach_id" value={coach.id} />
+        <input type="hidden" name="profile_revision" value={profile?.updated_at ?? ''} />
 
         <section className="border-b border-border pb-6">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -286,7 +287,7 @@ export default async function CoachCareerCircumstancesPage(
                 <BriefcaseBusiness className="h-4 w-4 text-primary" />
                 <h2 className="text-base font-semibold text-foreground">Contract and availability</h2>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Coach or representative declaration, pending Coach First review.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Coach or representative declaration, pending Gaffa review.</p>
             </div>
             <button type="submit" className="self-start rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
               Save circumstances
@@ -329,7 +330,7 @@ export default async function CoachCareerCircumstancesPage(
           <label>
             <span className={labelClass}>Circumstances visibility</span>
             <select name="circumstances_visibility" defaultValue={profile?.circumstances_visibility ?? 'coach_first_only'} className={inputClass}>
-              <option value="coach_first_only">Coach First only</option>
+              <option value="coach_first_only">Gaffa only</option>
               <option value="clubs_on_request">Clubs on request</option>
               <option value="shareable">Shareable</option>
             </select>
@@ -420,7 +421,7 @@ export default async function CoachCareerCircumstancesPage(
           )}
           <div>
             <h2 className="text-sm font-semibold text-foreground">
-              {isVerified ? 'Career circumstances verified' : 'Coach First verification required'}
+              {isVerified ? 'Career circumstances verified' : 'Gaffa verification required'}
             </h2>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               Verified details update the internal coach record used by appointment assessments. Unreviewed coach declarations remain outside club-facing packs.

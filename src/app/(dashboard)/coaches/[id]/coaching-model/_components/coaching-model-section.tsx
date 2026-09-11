@@ -16,18 +16,8 @@ export type DerivedMetricsRow = {
   network_density_score?: number | null
 }
 
-/** Recruitment Network Density: simple weighted formula from repeat signings, agents, loan reliance. */
-function recruitmentNetworkDensity(m: DerivedMetricsRow | null): number | null {
-  if (!m) return null
-  const repeatSignings = Math.min(Number(m.repeat_signings_count) || 0, 15)
-  const repeatAgents = Math.min(Number(m.repeat_agents_count) || 0, 10)
-  const loanRel = Math.max(0, Math.min(100, Number(m.loan_reliance_score) || 0))
-  const raw = repeatSignings * 3 + repeatAgents * 5 + (100 - loanRel) * 0.15
-  return Math.round(Math.max(0, Math.min(100, raw)))
-}
-
 function formatScore(v: number | null | undefined): string {
-  if (v == null) return '—'
+  if (v == null) return 'Not measured'
   const n = Number(v)
   return Number.isNaN(n) ? '—' : String(Math.round(n))
 }
@@ -63,7 +53,7 @@ function ScoreBarRow({ label, value, subtitle }: { label: string; value: number 
 /** TODO: Youth trust score can later come from player minutes tables. */
 /** TODO: Rotation index can later be calculated from match lineups. */
 function fmtNum(v: number | null | undefined): string {
-  if (v == null) return '—'
+  if (v == null) return 'Not measured'
   const n = Number(v)
   return Number.isNaN(n) ? '—' : String(Math.round(n))
 }
@@ -73,18 +63,18 @@ export function CoachingModelSection({ coach, derivedMetrics = null }: { coachId
   const pressingIntensity = coach.pressing_intensity as string | null | undefined
   const transitionModel = coach.transition_model as string | null | undefined
 
-  const buildUpScore = buildPreference ? 60 : null
-  const pressingScore = pressingIntensity ? 55 : null
-  const defensiveLineScore = 50
-  const transitionBiasScore = transitionModel ? 65 : null
-  const riskAppetiteScore = 45
-  const rotationIndexScore = derivedMetrics?.rotation_index ?? 40
-  const youthTrustScore = 55
-  const substitutionProfileScore = 50
-  const recruitmentDensity = recruitmentNetworkDensity(derivedMetrics)
+  const buildUpScore = null
+  const pressingScore = null
+  const defensiveLineScore = null
+  const transitionBiasScore = null
+  const riskAppetiteScore = null
+  const rotationIndexScore = derivedMetrics?.rotation_index ?? null
+  const youthTrustScore = null
+  const substitutionProfileScore = null
+  const recruitmentDensity = derivedMetrics?.network_density_score ?? null
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4"><p className="rounded-lg border p-4 text-sm text-muted-foreground">Recorded methods describe a working hypothesis. Scores appear only where a metric is recorded; a style label does not establish intensity or effectiveness. Check the source, period and squad context before using a metric in an appointment.</p>
       {/* Squad DNA */}
       <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-lg font-medium text-foreground mb-4">Squad DNA</h2>

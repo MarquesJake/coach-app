@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
+import { canPublishRecommendation } from '@/lib/assessment/evidence-integrity'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -18,20 +19,24 @@ export async function publishDossierOfferAction(formData: FormData): Promise<Act
   const mandateId = String(formData.get('mandate_id') ?? '')
   const coachId = String(formData.get('coach_id') ?? '')
   const buyerOrganizationId = String(formData.get('buyer_organization_id') ?? '')
-  const pricePounds = Number(formData.get('price_pounds') ?? 15000)
+  const feeInput = String(formData.get('price_pounds') ?? '').trim()
+  const pricePounds = Number(feeInput)
   if (!mandateId || !coachId || !buyerOrganizationId) return { ok: false, error: 'Missing offer context' }
-  if (!Number.isFinite(pricePounds) || pricePounds < 0) return { ok: false, error: 'Invalid dossier fee' }
+  if (!feeInput || !Number.isFinite(pricePounds) || pricePounds < 0 || !Number.isSafeInteger(Math.round(pricePounds * 100))) return { ok: false, error: 'Enter the agreed dossier fee, including zero for a free preview' }
   const sellerOrganizationId = await getInternalOrganizationId(user.id)
   if (!sellerOrganizationId) return { ok: false, error: 'Internal organisation is not configured' }
 
   const [{ data: mandate }, { data: coach }, { data: recommendation }, { count: privateMaterialCount }, { data: brief }] = await Promise.all([
     supabase.from('mandates').select('id').eq('id', mandateId).single(),
-    supabase.from('coaches').select('id, name, role_current, club_current, nationality').eq('id', coachId).single(),
+    supabase.from('coaches').select('id, name, role_current, club_current, nationality, due_diligence_summary, compliance_notes').eq('id', coachId).single(),
     supabase.from('candidate_recommendations').select('verdict, confidence, summary, key_strengths, key_risks').eq('mandate_id', mandateId).eq('coach_id', coachId).single(),
     supabase.from('coach_private_materials').select('id', { count: 'exact', head: true }).eq('coach_id', coachId).eq('user_id', user.id),
     supabase.from('club_briefs').select('id').eq('buyer_organization_id', buyerOrganizationId).eq('linked_mandate_id', mandateId).limit(1),
   ])
   if (!mandate || !coach || !recommendation) return { ok: false, error: 'Complete the candidate recommendation before publishing a dossier' }
+  if (!canPublishRecommendation(coach, recommendation)) {
+    return { ok: false, error: 'Replace illustrative evidence and complete the recommendation before publishing a dossier' }
+  }
 
   const { data: existingOffer } = await supabase
     .from('dossier_offers')
@@ -51,7 +56,7 @@ export async function publishDossierOfferAction(formData: FormData): Promise<Act
     created_by: user.id,
     status: 'draft',
     headline: `${coach.name} — Head Coach Assessment`,
-    preview_summary: recommendation.summary ?? 'A structured appointment recommendation based on Coach First evidence and football judgement.',
+    preview_summary: recommendation.summary ?? 'A structured appointment recommendation based on Gaffa evidence and football judgement.',
     fit_summary: 'Assessed against the club brief, squad context, leadership environment and nine-criterion Head Coach Assessment Methodology.',
     key_strengths: recommendation.key_strengths,
     key_risks: recommendation.key_risks,

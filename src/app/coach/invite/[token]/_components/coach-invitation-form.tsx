@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { portalRecoveryHref } from '@/lib/organizations/portal-entry'
 import { KeyRound, LoaderCircle, LogOut, ShieldCheck } from 'lucide-react'
 import {
   completeCoachInvitationAction,
@@ -26,6 +28,7 @@ export function CoachInvitationForm({
   function submit(formData: FormData) {
     setError(null)
     startTransition(async () => {
+      try {
       const result = await completeCoachInvitationAction(formData)
       if (!result.ok) {
         setError(result.error ?? 'Coach access could not be completed.')
@@ -37,13 +40,18 @@ export function CoachInvitationForm({
       }
       router.push('/coach/onboarding')
       router.refresh()
+      } catch { setError('Coach access was not confirmed. Your form is retained; check your connection and retry.') }
     })
   }
 
   function useAnotherAccount() {
     startTransition(async () => {
-      await signOutFromCoachInvitationAction()
-      router.refresh()
+      setError(null)
+      try {
+        const result = await signOutFromCoachInvitationAction()
+        if (!result.ok) { setError('Sign-out was not confirmed. Retry before using another account.'); return }
+        router.refresh()
+      } catch { setError('Unable to connect. Retry sign-out before using another account.') }
     })
   }
 
@@ -56,6 +64,7 @@ export function CoachInvitationForm({
           Open the confirmation message on the same device. The secure link will finish
           connecting your account to your coach profile.
         </p>
+        <button type="button" onClick={() => { setCheckEmail(false); setMode('sign_in') }} className="mt-4 min-h-11 text-sm underline">Return to existing-account sign in</button>
       </div>
     )
   }
@@ -63,7 +72,7 @@ export function CoachInvitationForm({
   if (hasSession) {
     return (
       <div>
-        <form action={submit}>
+        <form onSubmit={event => { event.preventDefault(); if (!pending) submit(new FormData(event.currentTarget)) }}>
           <input type="hidden" name="token" value={token} />
           <input type="hidden" name="mode" value="claim" />
           <p className="text-sm text-slate-800">
@@ -78,7 +87,7 @@ export function CoachInvitationForm({
           <LogOut className="h-4 w-4" />
           Use another account
         </button>
-        {error && <p className="mt-3 rounded-md border border-red-700/20 bg-red-50 px-3 py-2 text-xs text-red-900">{error}</p>}
+        {error && <p role="alert" className="mt-3 rounded-md border border-red-700/20 bg-red-50 px-3 py-2 text-xs text-red-900">{error}</p>}
       </div>
     )
   }
@@ -86,14 +95,14 @@ export function CoachInvitationForm({
   return (
     <div>
       <div className="mb-5 grid grid-cols-2 rounded-md border border-slate-200 bg-slate-50 p-1">
-        <button type="button" onClick={() => setMode('sign_up')} className={`rounded px-3 py-2 text-xs font-semibold ${mode === 'sign_up' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500'}`}>
+        <button type="button" disabled={pending} aria-pressed={mode === 'sign_up'} onClick={() => { setMode('sign_up'); setError(null) }} className={`rounded px-3 py-2 text-xs font-semibold ${mode === 'sign_up' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500'}`}>
           Create account
         </button>
-        <button type="button" onClick={() => setMode('sign_in')} className={`rounded px-3 py-2 text-xs font-semibold ${mode === 'sign_in' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500'}`}>
+        <button type="button" disabled={pending} aria-pressed={mode === 'sign_in'} onClick={() => { setMode('sign_in'); setError(null) }} className={`rounded px-3 py-2 text-xs font-semibold ${mode === 'sign_in' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500'}`}>
           Existing account
         </button>
       </div>
-      <form action={submit} className="space-y-4">
+      <form onSubmit={event => { event.preventDefault(); if (!pending) submit(new FormData(event.currentTarget)) }} aria-busy={pending} className="space-y-4">
         <input type="hidden" name="token" value={token} />
         <input type="hidden" name="mode" value={mode} />
         <label className="block">
@@ -105,12 +114,13 @@ export function CoachInvitationForm({
           <input name="password" type="password" required minLength={10} autoComplete={mode === 'sign_up' ? 'new-password' : 'current-password'} className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-950" />
           <span className="mt-1.5 block text-[11px] text-slate-500">At least 10 characters.</span>
         </label>
-        {error && <p className="rounded-md border border-red-700/20 bg-red-50 px-3 py-2 text-xs text-red-900">{error}</p>}
+        {error && <p role="alert" className="rounded-md border border-red-700/20 bg-red-50 px-3 py-2 text-xs text-red-900">{error}</p>}
         <button disabled={pending} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-950 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
           {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
           {mode === 'sign_up' ? 'Create secure coach account' : 'Sign in and accept'}
         </button>
       </form>
+      <Link href={portalRecoveryHref('coach', `/coach/invite/${token}`)} className="mt-4 inline-flex min-h-11 items-center text-sm underline">Forgot password? Keep this invitation</Link>
     </div>
   )
 }

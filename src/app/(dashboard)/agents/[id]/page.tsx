@@ -1,9 +1,11 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ArrowRight, Building2, MessageSquareText, UserRound } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAgentById, getAgentCounts } from '@/lib/db/agents'
 import { listCoachAgentsForAgent, listAgentClubRelationshipsForAgent } from '@/lib/db/agentLinks'
+
+
 
 export default async function AgentOverviewPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createServerSupabaseClient()
@@ -11,14 +13,16 @@ export default async function AgentOverviewPage({ params }: { params: Promise<{ 
   if (!user) redirect('/login')
 
   const { id } = await params
-  const { data: agent, error } = await getAgentById(user.id, id)
-  if (error || !agent) return null
+  const { data: agent, error } = await getAgentById(id)
+  if (error) throw new Error('Could not load agent')
+  if (!agent) notFound()
 
   const [counts, coachLinks, clubLinks] = await Promise.all([
     getAgentCounts(user.id, id),
-    listCoachAgentsForAgent(user.id, id),
-    listAgentClubRelationshipsForAgent(user.id, id),
+    listCoachAgentsForAgent(id),
+    listAgentClubRelationshipsForAgent(id),
   ])
+  if (coachLinks.error || clubLinks.error) throw new Error('Could not load agent relationships')
   const coaches = ((coachLinks.data ?? []) as unknown) as Array<{
     id: string
     coach_id: string

@@ -2,6 +2,10 @@ import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { getStaffById } from '@/lib/db/staff'
+import { CreateStaffForm } from '../_components/create-staff-form'
+
+export const metadata = { title: 'Staff' }
+
 
 export default async function StaffDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -10,20 +14,23 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
   if (!user) redirect('/login')
 
   const { id } = params
-  const { data: staff } = await getStaffById(user.id, id)
+  const { data: staff, error } = await getStaffById(id)
+  if (error) throw new Error('Could not load staff member')
   if (!staff) notFound()
 
-  const { data: history } = await supabase
+  const { data: history, error: historyError } = await supabase
     .from('coach_staff_history')
     .select('id, coach_id, club_name, role_title, started_on, ended_on, times_worked_together, followed_from_previous, relationship_strength, confidence, verified')
     .eq('staff_id', id)
     .order('ended_on', { ascending: false, nullsFirst: true })
     .order('started_on', { ascending: false })
+  if (historyError) throw new Error('Could not load staff history')
 
   const coachIds = Array.from(new Set((history ?? []).map((h) => h.coach_id)))
-  const { data: coaches } = coachIds.length
+  const { data: coaches, error: coachesError } = coachIds.length
     ? await supabase.from('coaches').select('id, name').in('id', coachIds)
-    : { data: [] }
+    : { data: [], error: null }
+  if (coachesError) throw new Error('Could not load linked coaches')
   const coachMap = new Map((coaches ?? []).map((c) => [c.id, c.name]))
 
   const totalCoaches = coachIds.length
@@ -43,6 +50,7 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
       </div>
 
       <div className="space-y-6">
+        <details className="rounded-lg border border-border"><summary className="cursor-pointer p-4 text-sm font-medium text-primary">Edit staff details</summary><CreateStaffForm staff={staff} /></details>
         <div className="card-surface rounded-lg p-5">
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Overview</h2>
           <dl className="grid grid-cols-1 gap-2 text-sm">
@@ -88,7 +96,7 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
                 <p className="text-lg font-semibold tabular-nums text-foreground">{avgStrength != null ? `${avgStrength}%` : '—'}</p>
               </div>
               <div>
-                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Current club involvement</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Links without end dates</p>
                 <p className="text-lg font-semibold tabular-nums text-foreground">{currentClubInvolvement}</p>
               </div>
             </div>
@@ -98,10 +106,10 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
         <div className="card-surface rounded-lg p-5">
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Work history with coaches</h2>
           {!history?.length ? (
-            <p className="text-sm text-muted-foreground">No coach links yet. Link this staff from a coach’s Staff network tab.</p>
+            <p className="text-sm text-muted-foreground">No coach links yet. <Link href="/coaches" className="text-primary underline">Choose a coach</Link> and open Staff network to record a relationship.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[700px] text-sm">
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Coach</th>
@@ -118,14 +126,14 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
                   {history.map((h) => (
                     <tr key={h.id}>
                       <td className="py-2">
-                        <Link href={`/coaches/${h.coach_id}`} className="font-medium text-primary hover:underline">
+                        <Link href={`/coaches/${h.coach_id}/staff-network`} className="font-medium text-primary hover:underline">
                           {coachMap.get(h.coach_id) ?? h.coach_id}
                         </Link>
                       </td>
                       <td className="py-2 text-muted-foreground">{h.club_name}</td>
                       <td className="py-2 text-muted-foreground">{h.role_title}</td>
                       <td className="py-2 text-muted-foreground">
-                        {h.started_on ?? '?'} – {h.ended_on ?? 'present'}
+                        {h.started_on ?? 'Start not recorded'} – {h.ended_on ?? 'End not recorded'}
                         {(h.times_worked_together ?? 0) > 1 && <span className="ml-1">· {h.times_worked_together}×</span>}
                       </td>
                       <td className="py-2">

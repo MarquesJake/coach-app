@@ -65,10 +65,12 @@ export function MandateLonglistClient({
   mandateId,
   initialLonglist,
   coaches = [],
+  shortlistedCoachIds = [],
 }: {
   mandateId: string
   initialLonglist: LonglistRow[]
   coaches?: CoachStub[]
+  shortlistedCoachIds?: string[]
 }) {
   const [longlist, setLonglist] = useState<LonglistRow[]>(initialLonglist)
   const [loading, setLoading] = useState(false)
@@ -80,22 +82,29 @@ export function MandateLonglistClient({
 
   async function handleGenerate() {
     setLoading(true)
-    const { data, error } = await generateLonglistAction(mandateId)
-    setLoading(false)
-    if (error) { toastError(error); return }
-    if (data) setLonglist(data)
-    toastSuccess('Longlist generated')
+    try {
+      const { data, error } = await generateLonglistAction(mandateId)
+      if (error) { toastError(error); return }
+      if (data) setLonglist(data)
+      toastSuccess('Longlist generated')
+    } catch { toastError('Generation was not confirmed. Reconnect and retry before using the rankings.') }
+    finally { setLoading(false) }
   }
 
   async function handleAdd(coachId: string) {
     setAddingId(coachId)
-    const result = await addCandidateFromLonglistAction(mandateId, coachId)
-    setAddingId(null)
-    if (!result.error || result.error === 'Already added') {
-      setAddedIds((prev) => new Set(prev).add(coachId))
-      toastSuccess(result.error === 'Already added' ? 'Already in pipeline' : 'Added to pipeline')
-    } else {
-      toastError(result.error)
+    try {
+      const result = await addCandidateFromLonglistAction(mandateId, coachId)
+      if (!result.error || result.error === 'Already added') {
+        setAddedIds((prev) => new Set(prev).add(coachId))
+        toastSuccess(result.error === 'Already added' ? 'Already in pipeline' : 'Added to pipeline')
+      } else {
+        toastError(result.error)
+      }
+    } catch {
+      toastError('Addition was not confirmed. Reconnect and retry; an existing candidate will not be added twice.')
+    } finally {
+      setAddingId(null)
     }
   }
 
@@ -107,7 +116,7 @@ export function MandateLonglistClient({
           {loading ? 'Scoring…' : longlist.length > 0 ? 'Refresh' : 'Generate longlist'}
         </Button>
         {longlist.length > 0 && (
-          <p className="text-xs text-muted-foreground">{longlist.length} coaches ranked</p>
+          <p className="text-xs text-muted-foreground">{longlist.length} saved options · {longlist.filter(row => row.ranking_score != null).length} scored</p>
         )}
       </div>
 
@@ -121,9 +130,9 @@ export function MandateLonglistClient({
         <div className="rounded-lg border border-border bg-card divide-y divide-border">
           {longlist.map((row, i) => {
             const fit = parseFit(row.fit_explanation)
-            const score = row.ranking_score ?? 0
+            const score = row.ranking_score
             const isExpanded = expandedId === row.id
-            const inPipeline = addedIds.has(row.coach_id)
+            const inPipeline = addedIds.has(row.coach_id) || shortlistedCoachIds.includes(row.coach_id)
             const isAdding = addingId === row.coach_id
             const isClearBreak = i > 0 && fit?.gapType === 'CLEAR'
 
@@ -139,21 +148,21 @@ export function MandateLonglistClient({
 
                 <div className="px-5 py-3.5">
                   {/* Row: rank + name + score + expand toggle */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3 xl:flex-nowrap">
                     <span className="text-[10px] font-mono text-muted-foreground/50 w-5 shrink-0 tabular-nums">
                       {i + 1}
                     </span>
 
                     <Link
-                      href={`/coaches/${row.coach_id}`}
-                      className="flex-1 text-sm font-medium text-foreground hover:text-primary truncate min-w-0"
+                      href={`/coaches/${row.coach_id}?mandate=${mandateId}`}
+                      className="min-w-0 flex-1 basis-[calc(100%-2rem)] truncate text-sm font-medium text-foreground hover:text-primary xl:basis-auto"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {coachMap.get(row.coach_id)?.name ?? `Coach ${i + 1}`}
                     </Link>
 
                     {/* Score + bar */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    {score == null ? <span className="text-xs text-muted-foreground">Unscored</span> : <div className="flex items-center gap-2 shrink-0">
                       <div className="w-20 h-1.5 rounded-full bg-muted/30 overflow-hidden">
                         <div
                           className={cn('h-full rounded-full', scoreBarColor(score))}
@@ -163,7 +172,7 @@ export function MandateLonglistClient({
                       <span className={cn('text-sm font-bold tabular-nums w-6 text-right', scoreColor(score))}>
                         {score}
                       </span>
-                    </div>
+                    </div>}
 
                     {/* Sub-scores if parsed */}
                     {fit && (
@@ -189,20 +198,23 @@ export function MandateLonglistClient({
                     {/* Expand / add */}
                     <div className="flex items-center gap-1.5 shrink-0">
                       {inPipeline ? (
-                        <span className="text-[10px] text-emerald-400 font-medium">In pipeline ✓</span>
+                        <Link href={`/mandates/${mandateId}/assessment/${row.coach_id}`} className="text-xs text-primary underline">Shortlisted: assess</Link>
                       ) : (
                         <button
                           type="button"
-                          disabled={isAdding}
+                          disabled={addingId !== null}
+                          aria-label={`Add ${coachMap.get(row.coach_id)?.name ?? `coach ${i + 1}`} to shortlist`}
                           onClick={() => handleAdd(row.coach_id)}
                           className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium hover:bg-primary/20 disabled:opacity-50 transition-colors"
                         >
-                          {isAdding ? '…' : '+ Longlist'}
+                          {isAdding ? 'Adding...' : 'Add to shortlist'}
                         </button>
                       )}
                       <button
                         type="button"
                         onClick={() => setExpandedId(isExpanded ? null : row.id)}
+                        aria-label={`${isExpanded ? 'Hide' : 'Show'} fit details for ${coachMap.get(row.coach_id)?.name ?? `coach ${i + 1}`}`}
+                        aria-expanded={isExpanded}
                         className="text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {isExpanded

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Database, Json } from '@/lib/types/db'
 import { fetchApiFootball, getApiFootballKey, isApiFootballRateLimit } from '@/lib/integrations/api-football'
+import { currentRosterSeasonCandidates } from '@/lib/integrations/football-season'
 
 export const dynamic = 'force-dynamic'
 const SYNC_KEY = 'coaches-english-api-football'
@@ -131,19 +132,6 @@ function matchCoach(params: {
   return null
 }
 
-
-function getCurrentFootballSeasonStartYear(): number {
-  const now = new Date()
-  const year = now.getUTCFullYear()
-  const month = now.getUTCMonth() + 1
-  return month >= 7 ? year : year - 1
-}
-
-function getSeasonCandidates(): number[] {
-  const current = getCurrentFootballSeasonStartYear()
-  const preferred = [current, current - 1, 2024, 2023, 2022]
-  return Array.from(new Set(preferred)).filter((y) => y >= 2022)
-}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -296,7 +284,7 @@ export async function POST(request: Request) {
     if (coach && nameKey && teamKey) byNameCurrentClub.set(`${nameKey}|${teamKey}`, coach)
   }
 
-  const seasonCandidates = getSeasonCandidates()
+  const seasonCandidates = currentRosterSeasonCandidates()
   const errors: string[] = []
   const log: string[] = []
   let added = 0

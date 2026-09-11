@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { ClaimDataButton } from './_components/claim-data-button'
-import { CopyMigrationButton } from './_components/copy-migration-button'
-import { ClearMyDataButton } from './_components/clear-my-data-button'
-import { Database, Shield, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { Database, Shield } from 'lucide-react'
+
+export const metadata = { title: 'Data tools · Admin' }
+
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +29,7 @@ export default async function DataToolsPage() {
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-5">
+      <Link href="/dashboard" className="inline-flex min-h-10 items-center text-sm underline">Back to Today</Link>
       <div>
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold text-foreground tracking-tight">Data tools</h1>
@@ -47,13 +50,13 @@ export default async function DataToolsPage() {
 
         {Boolean(error) && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 space-y-3">
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-              Database not updated yet. Run migration 20260227_ownership_bootstrap.sql in Supabase SQL Editor.
+            <p role="alert" className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Ownership counts could not be loaded. This does not establish that a database migration is missing.
             </p>
             <p className="text-xs text-amber-700 dark:text-amber-300">
-              Paste the SQL into Supabase Dashboard → SQL Editor → New query, then Run. After it succeeds, refresh this page.
+              Check your session and connection before asking the maintainer to inspect the error. Do not change database permissions to clear a loading error.
             </p>
-            <CopyMigrationButton />
+            <a href="/admin/data-tools" className="inline-flex min-h-10 items-center text-sm underline">Retry loading</a>
           </div>
         )}
 
@@ -81,19 +84,16 @@ export default async function DataToolsPage() {
       <div className="card-surface rounded-xl p-6 border border-border/50">
         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
           <Shield className="w-3.5 h-3.5" />
-          Safe to run repeatedly. Only rows with user_id null are updated to your user.
+          Ownership recovery changes attribution. Use only for records you are responsible for; it is not a way to gain access to another club or coach workspace.
         </div>
       </div>
 
-      <div className="card-surface rounded-xl p-6 space-y-4 border border-destructive/20">
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <Trash2 className="w-4 h-4 text-destructive" />
-          Clear my data
-        </div>
+      <div className="card-surface rounded-xl p-6 space-y-4 border border-border">
+        <h2 className="text-sm font-medium text-foreground">Shared workspace cleanup</h2>
         <p className="text-xs text-muted-foreground max-w-xl">
-          Deletes all of your records so you can start from scratch. Only rows owned by you (user_id) are removed; other users’ data is never touched. Requires confirmation and typing CLEAR.
+          The old bulk reset is disabled because shared football records may be used by other people. Review an individual appointment and use its guarded cleanup instead. Linked club briefs and released reports must remain protected.
         </p>
-        <ClearMyDataButton />
+        <Link href="/mandates" className="inline-flex min-h-10 items-center text-sm underline">Review appointments</Link>
       </div>
     </div>
   )

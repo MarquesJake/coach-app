@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { captureAgentResult } from '@/lib/agents/forms'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
@@ -16,7 +17,6 @@ type LinkRow = {
   started_on: string | null
   ended_on: string | null
   relationship_strength: number | null
-  confidence: number | null
   notes: string | null
   coaches?: { id: string; name: string; role_current: string | null; club_current: string | null } | null
 }
@@ -33,39 +33,43 @@ export function AgentCoachesClient({
   const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [form, setForm] = useState({ coach_id: '', relationship_type: 'Primary', relationship_strength: 70, confidence: 70, notes: '' })
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [form, setForm] = useState({ coach_id: '', relationship_type: 'Primary', relationship_strength: '', notes: '' })
 
   const linkedCoachIds = links.map((l) => l.coach_id)
   const availableCoaches = coachesOptions.filter((c) => !linkedCoachIds.includes(c.id))
 
   async function handleAdd() {
+    if (submitting) return
     if (!form.coach_id.trim()) {
       toastError('Select a coach')
       return
     }
     setSubmitting(true)
-    const result = await upsertCoachAgentAction({
+    setSaveError(null)
+    const result = await captureAgentResult(() => upsertCoachAgentAction({
       coach_id: form.coach_id,
       agent_id: agentId,
       relationship_type: form.relationship_type,
-      relationship_strength: form.relationship_strength,
-      confidence: form.confidence,
+      relationship_strength: form.relationship_strength === '' ? null : Number(form.relationship_strength),
       notes: form.notes.trim() || null,
-    })
+    }))
     setSubmitting(false)
     if (!result.ok) {
+      setSaveError(result.error)
       toastError(result.error)
       return
     }
     toastSuccess('Link saved')
     setDrawerOpen(false)
-    setForm({ coach_id: '', relationship_type: 'Primary', relationship_strength: 70, confidence: 70, notes: '' })
+    setForm({ coach_id: '', relationship_type: 'Primary', relationship_strength: '', notes: '' })
     router.refresh()
   }
 
   async function handleDelete(linkId: string, coachId: string) {
     if (!confirm('Remove this coach link?')) return
-    const result = await deleteCoachAgentAction(linkId, agentId, coachId)
+    const result = await captureAgentResult(() => deleteCoachAgentAction(linkId, agentId, coachId))
+    setSaveError(result.ok ? null : result.error)
     if (!result.ok) toastError(result.error)
     else {
       toastSuccess('Link removed')
@@ -75,6 +79,7 @@ export function AgentCoachesClient({
 
   return (
     <div className="space-y-4">
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <div className="flex justify-end">
         <Button variant="outline" className="text-xs" onClick={() => setDrawerOpen(true)} disabled={availableCoaches.length === 0}>
           <Plus className="w-4 h-4 mr-1" />
@@ -82,11 +87,12 @@ export function AgentCoachesClient({
         </Button>
       </div>
       <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <p className="p-3 text-xs text-muted-foreground">Ratings are recorded analyst estimates, not verified facts. Manage records in the <Link className="text-primary underline" href="/coaches">directory</Link>.</p>
         {links.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">No coaches linked. Add a coach link above.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[680px] text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface/50">
                   <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">Coach</th>
@@ -94,7 +100,6 @@ export function AgentCoachesClient({
                   <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">Club</th>
                   <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">Type</th>
                   <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">Strength</th>
-                  <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">Confidence</th>
                   <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">Dates</th>
                   <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80 w-20" />
                 </tr>
@@ -111,7 +116,6 @@ export function AgentCoachesClient({
                     <td className="py-3 px-4 text-muted-foreground">{row.coaches?.club_current ?? '—'}</td>
                     <td className="py-3 px-4">{row.relationship_type}</td>
                     <td className="py-3 px-4 tabular-nums">{row.relationship_strength != null ? `${row.relationship_strength}%` : '—'}</td>
-                    <td className="py-3 px-4 tabular-nums">{row.confidence != null ? `${row.confidence}%` : '—'}</td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {row.started_on ? new Date(row.started_on).toLocaleDateString() : '—'}
                       {row.ended_on ? ` – ${new Date(row.ended_on).toLocaleDateString()}` : ''}
@@ -133,6 +137,7 @@ export function AgentCoachesClient({
         <Button onClick={handleAdd} disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</Button>
       }>
         <div className="space-y-4">
+          {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Coach</label>
             <select value={form.coach_id} onChange={(e) => setForm((f) => ({ ...f, coach_id: e.target.value }))} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm">
@@ -152,13 +157,8 @@ export function AgentCoachesClient({
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Strength (0–100)</label>
-            <input type="range" min={0} max={100} value={form.relationship_strength} onChange={(e) => setForm((f) => ({ ...f, relationship_strength: parseInt(e.target.value, 10) }))} className="w-full" />
+            <input aria-label="Recorded relationship strength, optional" type="number" min={0} max={100} value={form.relationship_strength} onChange={(e) => setForm((f) => ({ ...f, relationship_strength: e.target.value }))} placeholder="Not recorded" className="w-full rounded border border-border bg-background px-3 py-2" />
             <span className="text-xs text-muted-foreground">{form.relationship_strength}</span>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-foreground mb-1">Confidence (0–100)</label>
-            <input type="range" min={0} max={100} value={form.confidence} onChange={(e) => setForm((f) => ({ ...f, confidence: parseInt(e.target.value, 10) }))} className="w-full" />
-            <span className="text-xs text-muted-foreground">{form.confidence}</span>
           </div>
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Notes</label>

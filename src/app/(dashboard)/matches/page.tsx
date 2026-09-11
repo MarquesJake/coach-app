@@ -1,409 +1,62 @@
-'use client'
-
-import { Suspense, useCallback, useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter, useSearchParams } from 'next/navigation'
-import type { Database } from '@/lib/types/db'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
-import { EmptyState } from '@/components/ui/empty-state'
-import { PageState } from '@/components/ui/page-state'
-import { runMatchingAction, generateBriefAction } from './actions'
-import { ChevronRight, FileText, Loader2, Target, Users } from 'lucide-react'
-import { toastSuccess, toastError } from '@/lib/ui/toast'
-import {
-  getScoreColorClass,
-  getRiskLevel,
-  getConfidenceLevel,
-  getRiskTooltipText,
-  getConfidenceTooltipText,
-} from '@/lib/scoring/engine'
-import { Badge } from '@/components/ui/badge'
+import { redirect } from 'next/navigation'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { assertRouteQueries } from '@/lib/coaches/route-audit'
+import { researchHref } from '@/lib/research-context'
 
-type VacancyRow = Database['public']['Tables']['vacancies']['Row']
-type MatchRow = Database['public']['Tables']['matches']['Row']
-type CoachRow = Database['public']['Tables']['coaches']['Row']
-type MatchWithCoach = MatchRow & {
-  coaches: Pick<CoachRow, 'id' | 'name' | 'role_current' | 'club_current' | 'available_status'> | null
-}
+export const metadata = { title: 'Matches' }
 
-export default function MatchesPage() {
-  return (
-    <Suspense fallback={<PageState state="loading" minHeight="sm" />}>
-      <MatchesContent />
-    </Suspense>
-  )
-}
 
-function MatchesContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const vacancyId = searchParams.get('vacancy')
-
-  const [vacancies, setVacancies] = useState<VacancyRow[]>([])
-  const [vacancy, setVacancy] = useState<VacancyRow | null>(null)
-  const [matches, setMatches] = useState<MatchWithCoach[]>([])
-  const [loading, setLoading] = useState(true)
-  const [runMatchingLoading, setRunMatchingLoading] = useState(false)
-  const [generateBriefLoading, setGenerateBriefLoading] = useState(false)
-
-  const supabase = createClient()
-
-  const loadVacancies = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return []
-    const { data: clubs } = await supabase.from('clubs').select('id')
-    const clubIds = (clubs ?? []).map((c) => c.id)
-    if (clubIds.length === 0) return []
-    const { data } = await supabase
-      .from('vacancies')
-      .select('*')
-      .in('club_id', clubIds)
-      .order('created_at', { ascending: false })
-    return (data ?? []) as VacancyRow[]
-  }, [supabase])
-
-  const loadVacancyAndMatches = useCallback(
-    async (id: string) => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return { vacancy: null, matches: [] as MatchWithCoach[] }
-      const { data: clubs } = await supabase.from('clubs').select('id')
-      const clubIds = (clubs ?? []).map((c) => c.id)
-      if (clubIds.length === 0) return { vacancy: null, matches: [] as MatchWithCoach[] }
-      const [vacRes, matchRes] = await Promise.all([
-        supabase.from('vacancies').select('*').eq('id', id).single(),
-        supabase
-          .from('matches')
-          .select('*, coaches(id, name, role_current, club_current, available_status)')
-          .eq('vacancy_id', id)
-          .order('overall_score', { ascending: false }),
-      ])
-      const v = vacRes.data as VacancyRow | null
-      const m = (matchRes.data ?? []) as MatchWithCoach[]
-      const vacancy = v && clubIds.includes(v.club_id) ? v : null
-      return { vacancy, matches: vacancy ? m : ([] as MatchWithCoach[]) }
-    },
-    [supabase]
-  )
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      setLoading(true)
-      const vacs = await loadVacancies()
-      if (cancelled) return
-      setVacancies(vacs)
-
-      if (!vacancyId) {
-        setVacancy(null)
-        setMatches([])
-        setLoading(false)
-        return
-      }
-
-      const { vacancy: v, matches: m } = await loadVacancyAndMatches(vacancyId)
-      if (cancelled) return
-      setVacancy(v)
-      setMatches(m)
-      setLoading(false)
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [vacancyId, loadVacancies, loadVacancyAndMatches])
-
-  async function handleRunMatching() {
-    if (!vacancyId) return
-    setRunMatchingLoading(true)
-    const { error } = await runMatchingAction(vacancyId)
-    setRunMatchingLoading(false)
-    if (error) {
-      toastError(error)
-      return
-    }
-    toastSuccess('Matching complete')
-    const { vacancy: v, matches: m } = await loadVacancyAndMatches(vacancyId)
-    setVacancy(v)
-    setMatches(m)
-  }
-
-  async function handleGenerateBrief() {
-    if (!vacancyId) return
-    setGenerateBriefLoading(true)
-    const { error } = await generateBriefAction(vacancyId)
-    setGenerateBriefLoading(false)
-    if (error) {
-      toastError(error)
-      return
-    }
-    toastSuccess('Executive brief saved')
-    const { vacancy: v } = await loadVacancyAndMatches(vacancyId)
-    setVacancy(v)
-  }
-
-  function setVacancyParam(id: string) {
-    if (!id) {
-      router.push('/matches')
-      return
-    }
-    router.push(`/matches?vacancy=${id}`)
-  }
-
-  if (loading) {
-    return <PageState state="loading" minHeight="sm" />
-  }
-
-  return (
-    <div className="animate-fade-in space-y-5">
-      <div>
-        <h1 className="text-lg font-semibold text-foreground tracking-tight">Legacy match lab</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Review historical vacancy-based matching. Start all live appointment work from Mandates.
-        </p>
+export default async function MatchesPage({ searchParams }: { searchParams: Promise<{ vacancy?: string }> }) {
+  const { vacancy: vacancyId } = await searchParams
+  const db = await createServerSupabaseClient()
+  const { data: { user } } = await db.auth.getUser()
+  if (!user) redirect('/login')
+  const clubs = await db.from('clubs').select('id')
+  assertRouteQueries('Accessible clubs', clubs)
+  const clubIds = (clubs.data ?? []).map(club => club.id)
+  const vacancies = clubIds.length
+    ? await db.from('vacancies').select('*').in('club_id', clubIds).order('created_at', { ascending: false })
+    : { data: [], error: null }
+  assertRouteQueries('Historical briefs', vacancies)
+  const vacancy = (vacancies.data ?? []).find(row => row.id === vacancyId)
+  // Check brief access before requesting candidate records.
+  const matches = vacancy
+    ? await db.from('matches').select('*, coaches(id, name, role_current, club_current, available_status)').eq('vacancy_id', vacancy.id).order('overall_score', { ascending: false })
+    : { data: [], error: null }
+  assertRouteQueries('Historical matches', matches)
+  const returnTo = '/matches' + (vacancy ? '?vacancy=' + encodeURIComponent(vacancy.id) : '')
+  return <div className="space-y-5">
+    <header className="space-y-2">
+      <h2 className="text-xl font-semibold">Historical matches</h2>
+      <p className="text-sm text-muted-foreground">Read-only vacancy records. Legacy scores and briefs are not reviewed appointment assessments or current recommendations.</p>
+      <Link className="inline-block text-sm text-primary underline" href={vacancy ? '/mandates/new?club_id=' + encodeURIComponent(vacancy.club_id) : '/mandates/new'}>Start an appointment brief</Link>
+    </header>
+    {!!vacancies.data?.length && <form action="/matches" method="get" className="flex flex-wrap items-end gap-3 rounded border p-4">
+      <div className="min-w-0 flex-1"><label htmlFor="historical-vacancy" className="mb-2 block text-sm">Historical brief</label>
+        <select id="historical-vacancy" name="vacancy" defaultValue={vacancyId ?? ''} className="w-full rounded border bg-background p-2">
+          <option value="">Select a brief</option>
+          {vacancies.data.map(row => <option key={row.id} value={row.id}>{row.objective?.slice(0, 80) || row.id}{row.timeline ? ' / ' + row.timeline : ''}</option>)}
+        </select>
       </div>
-
-      {vacancies.length === 0 && !vacancyId && (
-        <EmptyState
-          title="No historical match briefs"
-          description="Create a mandate to run the current appointment workflow."
-          actionLabel="Create mandate"
-          actionHref="/mandates/new"
-        />
-      )}
-
-      {vacancies.length > 0 && !vacancyId && (
-        <EmptyState
-          title="Select a historical brief"
-          description="Choose an existing record, or start new work in Mandates."
-          actionLabel="Create mandate"
-          actionHref="/mandates/new"
-        />
-      )}
-
-      {vacancies.length > 0 && (
-        <div className="card-surface rounded-lg p-3">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">
-            Vacancy
-          </label>
-          <select
-            value={vacancyId ?? ''}
-            onChange={(e) => setVacancyParam(e.target.value)}
-            className="w-full max-w-md h-10 rounded bg-surface border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30"
-          >
-            <option value="">Select vacancy</option>
-            {vacancies.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.objective?.slice(0, 60) ?? v.id} {v.timeline ? ` · ${v.timeline}` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {vacancyId && vacancy === null && !loading && (
-        <PageState
-          state="error"
-          message="Vacancy not found or you don’t have access."
-          onRetry={() => router.push('/matches')}
-        />
-      )}
-
-      {vacancyId && vacancy && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-5">
-            <div className="card-surface rounded-xl overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
-                  Ranked shortlist
-                </h2>
-                {matches.length === 0 ? (
-                  <button
-                    type="button"
-                    onClick={handleRunMatching}
-                    disabled={runMatchingLoading}
-                    className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-                  >
-                    {runMatchingLoading ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        Running…
-                      </>
-                    ) : (
-                      <>
-                        <Target className="w-3.5 h-3.5" />
-                        Run Matching
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <span className="text-2xs text-muted-foreground tabular-nums">
-                    {matches.length} candidate{matches.length !== 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
-
-              {matches.length === 0 ? (
-                <div className="py-12 px-5 text-center">
-                  <Users className="w-8 h-8 text-muted-foreground/20 mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No match results yet.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Click Run Matching to score coaches.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-[48px_1fr_72px_72px_88px_80px_56px_70px_82px_56px] px-5 py-2.5 border-b border-border items-center gap-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Rank
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Coach
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Overall
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Financial
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Cultural
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Avail
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Risk
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                      Confidence
-                    </span>
-                    <span />
-                  </div>
-                  <div className="divide-y divide-border/50">
-                    {matches.map((match, index) => {
-                      const coach = match.coaches
-                      if (!coach) return null
-                      const overall = match.overall_score ?? 0
-                      const financial = match.financial_fit_score ?? 0
-                      const cultural = match.cultural_fit_score ?? 0
-                      const availability = match.availability_score ?? 0
-                      const riskLevel = getRiskLevel(match.risk_score)
-                      const confidenceLevel = getConfidenceLevel(match.confidence_score)
-                      return (
-                        <div
-                          key={match.id}
-                          className="grid grid-cols-[48px_1fr_72px_72px_88px_80px_56px_70px_82px_56px] px-5 py-3.5 items-center gap-2 hover:bg-surface-overlay/30 transition-colors"
-                        >
-                          <span
-                            className={cn(
-                              'text-sm font-bold tabular-nums',
-                              index < 3 ? 'text-foreground' : 'text-muted-foreground/70'
-                            )}
-                          >
-                            {index + 1}
-                          </span>
-                          <div className="min-w-0">
-                            <Link
-                              href={`/coaches/${match.coach_id}`}
-                              className="text-[13px] font-medium text-foreground hover:text-primary transition-colors truncate block"
-                            >
-                              {coach.name}
-                            </Link>
-                            <span className="text-2xs text-muted-foreground truncate block">
-                              {coach.role_current}
-                              {coach.club_current ? ` · ${coach.club_current}` : ''}
-                            </span>
-                          </div>
-                          <span className={cn('text-xs font-semibold tabular-nums', getScoreColorClass(overall))}>
-                            {overall}
-                          </span>
-                          <span className={cn('text-xs font-medium tabular-nums', getScoreColorClass(financial))}>
-                            {financial}
-                          </span>
-                          <span className={cn('text-xs font-medium tabular-nums', getScoreColorClass(cultural))}>
-                            {cultural}
-                          </span>
-                          <span className={cn('text-xs font-medium tabular-nums', getScoreColorClass(availability))}>
-                            {availability}
-                          </span>
-                          <span title={getRiskTooltipText(match.risk_score)} className="cursor-help">
-                            <Badge
-                              variant={riskLevel === 'Low' ? 'success' : riskLevel === 'High' ? 'danger' : 'warning'}
-                              className="text-[10px] font-medium"
-                            >
-                              {riskLevel}
-                            </Badge>
-                          </span>
-                          <span title={getConfidenceTooltipText(match.confidence_score)} className="cursor-help">
-                            <Badge
-                              variant={confidenceLevel === 'High' ? 'success' : confidenceLevel === 'Low' ? 'secondary' : 'info'}
-                              className="text-[10px] font-medium"
-                            >
-                              {confidenceLevel}
-                            </Badge>
-                          </span>
-                          <Link
-                            href={`/coaches/${match.coach_id}`}
-                            className="text-2xs text-muted-foreground hover:text-primary inline-flex items-center gap-0.5"
-                          >
-                            View
-                            <ChevronRight className="w-3 h-3" />
-                          </Link>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <div className="card-surface rounded-xl overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-foreground">
-                  Executive brief
-                </h2>
-                <button
-                  type="button"
-                  onClick={handleGenerateBrief}
-                  disabled={generateBriefLoading || matches.length === 0}
-                  className="inline-flex items-center gap-2 px-3 h-8 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-                >
-                  {generateBriefLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <FileText className="w-3.5 h-3.5" />
-                  )}
-                  Generate
-                </button>
-              </div>
-              <div className="p-5">
-                {vacancy.executive_brief ? (
-                  <pre className="text-xs text-foreground whitespace-pre-wrap font-sans leading-relaxed">
-                    {vacancy.executive_brief}
-                  </pre>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Run matching, then click Generate to create and save an executive brief.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {vacancyId && vacancy && (
-        <div className="card-surface rounded-lg p-4">
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-            Vacancy details
-          </h3>
-          <p className="text-sm text-foreground">{vacancy.objective}</p>
-          <p className="text-2xs text-muted-foreground mt-1">
-            {vacancy.style_of_play} · {vacancy.budget_range} · {vacancy.timeline}
-          </p>
-        </div>
-      )}
-    </div>
-  )
+      <button type="submit" className="rounded border px-4 py-2 text-sm">View record</button>
+    </form>}
+    {vacancyId && !vacancy && <p role="alert" className="rounded border p-4 text-sm">This historical brief was not found or is not accessible. Select another record.</p>}
+    {!vacancyId && <p className="rounded border p-4 text-sm text-muted-foreground">{vacancies.data?.length ? 'Select a historical brief to inspect its recorded matches.' : 'No historical briefs recorded. Start new work with an appointment brief.'}</p>}
+    {vacancy && <>
+      <section className="rounded border bg-card p-4"><h3 className="font-semibold">Recorded brief</h3><p className="mt-2 whitespace-pre-wrap text-sm">{vacancy.objective || 'Objective not recorded'}</p></section>
+      <section className="space-y-3" aria-label="Historical candidate records">
+        {!matches.data?.length && <p className="rounded border p-4 text-sm text-muted-foreground">No historical match results recorded. Current candidate work belongs in an appointment.</p>}
+        {matches.data?.map(match => <article key={match.id} className="rounded border bg-card p-4">
+          {match.coaches ? <Link className="font-semibold text-primary underline" href={researchHref('/coaches/' + match.coaches.id, { returnTo })}>{match.coaches.name}</Link> : <p className="font-semibold">Coach record unavailable</p>}
+          <p className="mt-1 text-xs text-muted-foreground">{match.coaches?.club_current || 'Employment not recorded'}</p>
+          <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{[
+            ['Legacy overall score', match.overall_score], ['Financial fit', match.financial_fit_score], ['Cultural fit', match.cultural_fit_score],
+            ['Availability score', match.availability_score], ['Risk score', match.risk_score], ['Confidence score', match.confidence_score],
+          ].map(([label, value]) => <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="text-sm">{value ?? 'Not recorded'}</dd></div>)}</dl>
+        </article>)}
+      </section>
+      {vacancy.executive_brief && <section className="rounded border bg-card p-4"><h3 className="font-semibold">Historical executive brief (unreviewed)</h3><p className="mt-3 whitespace-pre-wrap text-sm">{vacancy.executive_brief}</p></section>}
+    </>}
+  </div>
 }

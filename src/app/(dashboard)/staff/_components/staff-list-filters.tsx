@@ -1,6 +1,7 @@
 'use client'
 
 import { Search } from 'lucide-react'
+import Link from 'next/link'
 
 export function StaffListFilters({
   roles,
@@ -12,7 +13,7 @@ export function StaffListFilters({
   initialRole?: string
 }) {
   return (
-    <form method="get" action="/staff" className="flex flex-wrap items-center gap-2">
+    <form key={`${initialQ}-${initialRole}`} method="get" action="/staff" className="flex min-w-0 flex-wrap items-center gap-2">
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input
@@ -41,6 +42,7 @@ export function StaffListFilters({
       >
         Apply
       </button>
+      {(initialQ || initialRole) && <Link href="/staff" className="text-sm text-primary underline">Clear filters</Link>}
     </form>
   )
 }

@@ -1,0 +1,8468 @@
+{
+  "provider": "ClubElo",
+  "method": "Published chart observations",
+  "retrieved_date": "2026-09-09",
+  "clubs": [
+    {
+      "key": "Tottenham",
+      "source_url": "https://clubelo.com/Tottenham",
+      "retrieved_at": "2026-09-09T23:31:25.265193+00:00",
+      "sha256": "1895042c9fca80f867fc0cc64e1b2dcd2b9b3372cf7dfea0adfc3c151edb2ba6",
+      "points": [
+        {
+          "date": "2022-09-13",
+          "rating": 1864.33,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-17",
+          "rating": 1869.879,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-01",
+          "rating": 1864.637,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-04",
+          "rating": 1864.616,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-08",
+          "rating": 1868.638,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-12",
+          "rating": 1872.012,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-15",
+          "rating": 1876.19,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-19",
+          "rating": 1869.657,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-23",
+          "rating": 1863.17,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-26",
+          "rating": 1861.315,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-29",
+          "rating": 1863.986,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-01",
+          "rating": 1868.587,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-06",
+          "rating": 1866.409,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-09",
+          "rating": 1855.638,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-12",
+          "rating": 1857.944,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-26",
+          "rating": 1857.759,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-01",
+          "rating": 1847.498,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-04",
+          "rating": 1855.887,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-07",
+          "rating": 1855.685,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-15",
+          "rating": 1849.358,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-19",
+          "rating": 1846.635,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-23",
+          "rating": 1850.868,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-28",
+          "rating": 1854.23,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-05",
+          "rating": 1861.454,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-11",
+          "rating": 1852.816,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-14",
+          "rating": 1848.051,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-19",
+          "rating": 1852.431,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-26",
+          "rating": 1858.747,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-01",
+          "rating": 1850.379,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-04",
+          "rating": 1844.357,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-08",
+          "rating": 1843.555,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-11",
+          "rating": 1846.925,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-18",
+          "rating": 1845.653,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-03",
+          "rating": 1844.622,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-08",
+          "rating": 1848.178,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-15",
+          "rating": 1839.095,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-23",
+          "rating": 1828.952,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-27",
+          "rating": 1829.337,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-30",
+          "rating": 1827.07,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-06",
+          "rating": 1829.784,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-13",
+          "rating": 1824.94,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-20",
+          "rating": 1817.848,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-28",
+          "rating": 1823.996,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-13",
+          "rating": 1824.9,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-19",
+          "rating": 1833.924,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-26",
+          "rating": 1839.895,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-02",
+          "rating": 1847.607,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-16",
+          "rating": 1849.702,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-24",
+          "rating": 1851.242,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-30",
+          "rating": 1858.023,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-07",
+          "rating": 1861.113,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-23",
+          "rating": 1865.946,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-27",
+          "rating": 1871.034,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-06",
+          "rating": 1859.591,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-11",
+          "rating": 1852.471,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-26",
+          "rating": 1845.404,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-03",
+          "rating": 1852.781,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-07",
+          "rating": 1845.65,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-10",
+          "rating": 1854.046,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-15",
+          "rating": 1857.133,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-23",
+          "rating": 1860.609,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-28",
+          "rating": 1853.705,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-31",
+          "rating": 1857.521,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-05",
+          "rating": 1859.818,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-14",
+          "rating": 1861.393,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-26",
+          "rating": 1858.811,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-31",
+          "rating": 1861.584,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-03",
+          "rating": 1860.802,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-10",
+          "rating": 1864.952,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-17",
+          "rating": 1857.63,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-02",
+          "rating": 1860.006,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-10",
+          "rating": 1869.863,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-16",
+          "rating": 1860.78,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-30",
+          "rating": 1862.799,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-02",
+          "rating": 1862.258,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-07",
+          "rating": 1864.485,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-13",
+          "rating": 1854.409,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-28",
+          "rating": 1850.883,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-02",
+          "rating": 1843.489,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-05",
+          "rating": 1839.906,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-11",
+          "rating": 1841.686,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-14",
+          "rating": 1838.629,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-19",
+          "rating": 1842.679,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-19",
+          "rating": 1842.108,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-24",
+          "rating": 1849.234,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-01",
+          "rating": 1843.596,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-15",
+          "rating": 1840.288,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-18",
+          "rating": 1844.057,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-21",
+          "rating": 1849.426,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-26",
+          "rating": 1852.378,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-29",
+          "rating": 1863.059,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-03",
+          "rating": 1868.03,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-06",
+          "rating": 1862.426,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-19",
+          "rating": 1868.83,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-24",
+          "rating": 1871.828,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-27",
+          "rating": 1865.651,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-30",
+          "rating": 1874.88,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-03",
+          "rating": 1881.18,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-07",
+          "rating": 1875.119,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-10",
+          "rating": 1864.221,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-23",
+          "rating": 1883.872,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-28",
+          "rating": 1881.431,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-01",
+          "rating": 1878.401,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-05",
+          "rating": 1872.625,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-08",
+          "rating": 1867.867,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-12",
+          "rating": 1866.632,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-15",
+          "rating": 1872.561,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-19",
+          "rating": 1876.752,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-22",
+          "rating": 1871.494,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-26",
+          "rating": 1844.666,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-29",
+          "rating": 1841.737,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-04",
+          "rating": 1836.705,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-08",
+          "rating": 1843.826,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-15",
+          "rating": 1842.394,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-19",
+          "rating": 1836.859,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-23",
+          "rating": 1839.629,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-26",
+          "rating": 1830.953,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-30",
+          "rating": 1833.854,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-02",
+          "rating": 1839.607,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-06",
+          "rating": 1835.871,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-09",
+          "rating": 1831.214,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-16",
+          "rating": 1834.306,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-22",
+          "rating": 1838.468,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-26",
+          "rating": 1835.379,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-06",
+          "rating": 1830.869,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-09",
+          "rating": 1829.621,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-13",
+          "rating": 1832.123,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-16",
+          "rating": 1826.368,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-03",
+          "rating": 1822.499,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-06",
+          "rating": 1824.402,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-10",
+          "rating": 1822.603,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-13",
+          "rating": 1815.885,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-17",
+          "rating": 1820.822,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-21",
+          "rating": 1815.161,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-27",
+          "rating": 1811.72,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-01",
+          "rating": 1815.569,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-04",
+          "rating": 1815.245,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-08",
+          "rating": 1820.895,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-11",
+          "rating": 1814.152,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-16",
+          "rating": 1809.864,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-21",
+          "rating": 1814.315,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-25",
+          "rating": 1806.906,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-13",
+          "rating": 1810.735,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-16",
+          "rating": 1815.682,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-23",
+          "rating": 1828.171,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-30",
+          "rating": 1820.786,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-13",
+          "rating": 1828.413,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-16",
+          "rating": 1832.178,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-20",
+          "rating": 1831.469,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-24",
+          "rating": 1832.96,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-27",
+          "rating": 1831.031,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-30",
+          "rating": 1829.277,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-04",
+          "rating": 1833.634,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-19",
+          "rating": 1827.684,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-22",
+          "rating": 1828.713,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-26",
+          "rating": 1834.834,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-29",
+          "rating": 1830.285,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-01",
+          "rating": 1824.832,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-04",
+          "rating": 1828.932,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-08",
+          "rating": 1829.277,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-23",
+          "rating": 1825.325,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-26",
+          "rating": 1820.926,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-29",
+          "rating": 1814.151,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-02",
+          "rating": 1815.935,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-06",
+          "rating": 1821.19,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-09",
+          "rating": 1825.622,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-14",
+          "rating": 1818.325,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-20",
+          "rating": 1813.556,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-28",
+          "rating": 1839.855,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-01",
+          "rating": 1840.462,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-04",
+          "rating": 1837.372,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-07",
+          "rating": 1833.782,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-10",
+          "rating": 1830.515,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-17",
+          "rating": 1822.935,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-20",
+          "rating": 1828.923,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-24",
+          "rating": 1828.759,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-28",
+          "rating": 1835.587,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-01",
+          "rating": 1837.46,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-07",
+          "rating": 1833.127,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-10",
+          "rating": 1829.334,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-22",
+          "rating": 1825.899,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-01",
+          "rating": 1822.147,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-05",
+          "rating": 1815.223,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-10",
+          "rating": 1810.3,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-15",
+          "rating": 1812.089,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-18",
+          "rating": 1816.52,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-22",
+          "rating": 1807.971,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-12",
+          "rating": 1803.582,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-18",
+          "rating": 1802.945,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-25",
+          "rating": 1806.735,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-03",
+          "rating": 1813.632,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-11",
+          "rating": 1812.849,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-19",
+          "rating": 1809.57,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-24",
+          "rating": 1813.912,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-22",
+          "rating": 1785.258,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-26",
+          "rating": 1789.449,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-29",
+          "rating": 1783.625,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-05",
+          "rating": 1804.771,
+          "segment": 0
+        }
+      ]
+    },
+    {
+      "key": "Brighton",
+      "source_url": "https://clubelo.com/Brighton",
+      "retrieved_at": "2026-09-09T23:31:25.630994+00:00",
+      "sha256": "3152e610030c625320ca9c27a7907b19acf94230a79928a3b971c2a54c59e9ad",
+      "points": [
+        {
+          "date": "2022-10-01",
+          "rating": 1786.839,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-08",
+          "rating": 1782.857,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-14",
+          "rating": 1776.373,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-18",
+          "rating": 1773.118,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-22",
+          "rating": 1771.028,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-29",
+          "rating": 1785.33,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-05",
+          "rating": 1792.734,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-09",
+          "rating": 1804.117,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-13",
+          "rating": 1796.954,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-26",
+          "rating": 1804.539,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-31",
+          "rating": 1798.524,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-03",
+          "rating": 1806.665,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-07",
+          "rating": 1811.664,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-14",
+          "rating": 1825.284,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-21",
+          "rating": 1825.521,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-29",
+          "rating": 1832.463,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-04",
+          "rating": 1834.868,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-11",
+          "rating": 1834.169,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-18",
+          "rating": 1825.911,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-28",
+          "rating": 1827.186,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-04",
+          "rating": 1833.912,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-11",
+          "rating": 1833.778,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-15",
+          "rating": 1837.081,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-19",
+          "rating": 1839.167,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-01",
+          "rating": 1836.923,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-04",
+          "rating": 1842.24,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-08",
+          "rating": 1837.545,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-15",
+          "rating": 1843.8,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-23",
+          "rating": 1843.535,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-26",
+          "rating": 1832.638,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-29",
+          "rating": 1840.004,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-04",
+          "rating": 1844.64,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-08",
+          "rating": 1827.846,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-14",
+          "rating": 1840.252,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-18",
+          "rating": 1834.445,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-21",
+          "rating": 1837.331,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-24",
+          "rating": 1840.041,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-28",
+          "rating": 1836.018,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-12",
+          "rating": 1839.581,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-19",
+          "rating": 1847.604,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-26",
+          "rating": 1838.481,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-02",
+          "rating": 1845.229,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-16",
+          "rating": 1854.665,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-21",
+          "rating": 1842.461,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-24",
+          "rating": 1846.293,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-27",
+          "rating": 1841.792,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-30",
+          "rating": 1831.925,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-05",
+          "rating": 1832.652,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-08",
+          "rating": 1834.871,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-21",
+          "rating": 1833.869,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-26",
+          "rating": 1838.617,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-29",
+          "rating": 1836.471,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-04",
+          "rating": 1836.249,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-09",
+          "rating": 1840.764,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-12",
+          "rating": 1837.21,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-25",
+          "rating": 1841.091,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-30",
+          "rating": 1845.815,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-03",
+          "rating": 1842.072,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-06",
+          "rating": 1846.031,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-09",
+          "rating": 1842.995,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-14",
+          "rating": 1844.328,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-17",
+          "rating": 1840.544,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-21",
+          "rating": 1839.784,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-28",
+          "rating": 1845.321,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-02",
+          "rating": 1846.115,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-06",
+          "rating": 1849.834,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-22",
+          "rating": 1847.502,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-27",
+          "rating": 1851.929,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-30",
+          "rating": 1837.393,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-03",
+          "rating": 1841.891,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-10",
+          "rating": 1838.27,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-18",
+          "rating": 1843.307,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-24",
+          "rating": 1840.821,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-28",
+          "rating": 1835.767,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-02",
+          "rating": 1826.935,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-07",
+          "rating": 1818.975,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-10",
+          "rating": 1821.582,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-14",
+          "rating": 1826.49,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-31",
+          "rating": 1823.927,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-03",
+          "rating": 1823.147,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-06",
+          "rating": 1817.459,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-13",
+          "rating": 1814.169,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-25",
+          "rating": 1810.712,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-28",
+          "rating": 1802.647,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-05",
+          "rating": 1805.277,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-11",
+          "rating": 1806.186,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-15",
+          "rating": 1801.866,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-19",
+          "rating": 1795.746,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-17",
+          "rating": 1805.728,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-24",
+          "rating": 1811.155,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-27",
+          "rating": 1812.698,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-31",
+          "rating": 1815.345,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-14",
+          "rating": 1812.519,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-18",
+          "rating": 1816.974,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-22",
+          "rating": 1814.638,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-28",
+          "rating": 1809.078,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-06",
+          "rating": 1815.729,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-19",
+          "rating": 1822.963,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-26",
+          "rating": 1822.333,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-30",
+          "rating": 1819.319,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-02",
+          "rating": 1817.828,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-09",
+          "rating": 1825.707,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-23",
+          "rating": 1831.518,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-29",
+          "rating": 1829.025,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-05",
+          "rating": 1821.772,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-08",
+          "rating": 1821.102,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-15",
+          "rating": 1812.764,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-21",
+          "rating": 1813.312,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-27",
+          "rating": 1791.904,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-30",
+          "rating": 1793.133,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-04",
+          "rating": 1795.501,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-11",
+          "rating": 1800.86,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-16",
+          "rating": 1806.197,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-19",
+          "rating": 1814.733,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-25",
+          "rating": 1806.948,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-01",
+          "rating": 1796.511,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-08",
+          "rating": 1801.71,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-14",
+          "rating": 1808.931,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-22",
+          "rating": 1813.778,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-25",
+          "rating": 1817.555,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-02",
+          "rating": 1823.032,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-08",
+          "rating": 1828.081,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-15",
+          "rating": 1831.461,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-29",
+          "rating": 1830.357,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-02",
+          "rating": 1821.317,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-05",
+          "rating": 1817.219,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-12",
+          "rating": 1813.983,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-19",
+          "rating": 1807.682,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-26",
+          "rating": 1811.261,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-04",
+          "rating": 1813.25,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-10",
+          "rating": 1820.473,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-19",
+          "rating": 1828.3,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-25",
+          "rating": 1836.524,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-16",
+          "rating": 1835.487,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-24",
+          "rating": 1827.168,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-27",
+          "rating": 1831.089,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-31",
+          "rating": 1836.899,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-13",
+          "rating": 1831.861,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-20",
+          "rating": 1829.221,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-23",
+          "rating": 1832.811,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-27",
+          "rating": 1843.1,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-05",
+          "rating": 1842.477,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-18",
+          "rating": 1846.634,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-25",
+          "rating": 1839.039,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-29",
+          "rating": 1835.291,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-01",
+          "rating": 1839.532,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-09",
+          "rating": 1841.673,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-22",
+          "rating": 1846.469,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-30",
+          "rating": 1850.469,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-03",
+          "rating": 1844.735,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-07",
+          "rating": 1841.854,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-13",
+          "rating": 1839.706,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-20",
+          "rating": 1833.848,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-27",
+          "rating": 1852.421,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-30",
+          "rating": 1851.56,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-03",
+          "rating": 1854.798,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-07",
+          "rating": 1858.392,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-11",
+          "rating": 1864.512,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-19",
+          "rating": 1862.669,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-24",
+          "rating": 1859.086,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-31",
+          "rating": 1858.95,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-08",
+          "rating": 1853.28,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-11",
+          "rating": 1849.721,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-14",
+          "rating": 1844.133,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-21",
+          "rating": 1852.789,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-01",
+          "rating": 1856.487,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-04",
+          "rating": 1853.534,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-14",
+          "rating": 1853.994,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-21",
+          "rating": 1860.869,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-11",
+          "rating": 1866.603,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-18",
+          "rating": 1865.632,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-21",
+          "rating": 1873.528,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-02",
+          "rating": 1867.982,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-09",
+          "rating": 1872.421,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-17",
+          "rating": 1866.274,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-24",
+          "rating": 1857.982,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-20",
+          "rating": 1832.691,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-23",
+          "rating": 1843.236,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-27",
+          "rating": 1847.28,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-05",
+          "rating": 1861.184,
+          "segment": 0
+        }
+      ]
+    },
+    {
+      "key": "Ipswich",
+      "source_url": "https://clubelo.com/Ipswich",
+      "retrieved_at": "2026-09-09T23:31:26.029516+00:00",
+      "sha256": "a1a7360a3c41b43cc0633ccfd9648b51f5eb6cfc92d51b77cfa377e8a42f9de2",
+      "points": [
+        {
+          "date": "2022-09-13",
+          "rating": 1513.309,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-17",
+          "rating": 1515.408,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-25",
+          "rating": 1510.659,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-01",
+          "rating": 1515.286,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-04",
+          "rating": 1520.167,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-08",
+          "rating": 1523.339,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-15",
+          "rating": 1516.181,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-21",
+          "rating": 1521.14,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-25",
+          "rating": 1525.277,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-29",
+          "rating": 1524.442,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-12",
+          "rating": 1523.296,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-19",
+          "rating": 1530.151,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-02",
+          "rating": 1526.836,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-10",
+          "rating": 1530.351,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-17",
+          "rating": 1524.48,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-26",
+          "rating": 1530.619,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-29",
+          "rating": 1530.269,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-02",
+          "rating": 1529.868,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-07",
+          "rating": 1538.126,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-14",
+          "rating": 1538.859,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-21",
+          "rating": 1533.565,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-24",
+          "rating": 1538.118,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-28",
+          "rating": 1540.692,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-04",
+          "rating": 1538.335,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-07",
+          "rating": 1536.895,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-11",
+          "rating": 1537.951,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-14",
+          "rating": 1536.452,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-18",
+          "rating": 1540.064,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-25",
+          "rating": 1543.271,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-04",
+          "rating": 1548.577,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-07",
+          "rating": 1552.171,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-11",
+          "rating": 1559.228,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-18",
+          "rating": 1562.615,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-01",
+          "rating": 1569.879,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-07",
+          "rating": 1576.875,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-10",
+          "rating": 1574.711,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-15",
+          "rating": 1580.921,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-18",
+          "rating": 1582.637,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-22",
+          "rating": 1588.887,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-25",
+          "rating": 1596.894,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-29",
+          "rating": 1602.211,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-07",
+          "rating": 1600.809,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-06",
+          "rating": 1609.713,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-09",
+          "rating": 1612.676,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-12",
+          "rating": 1618.151,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-19",
+          "rating": 1621.312,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-26",
+          "rating": 1615.45,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-02",
+          "rating": 1618.39,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-16",
+          "rating": 1622.942,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-19",
+          "rating": 1629.768,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-23",
+          "rating": 1632.997,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-26",
+          "rating": 1639.506,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-30",
+          "rating": 1638.381,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-03",
+          "rating": 1643.006,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-07",
+          "rating": 1647.926,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-25",
+          "rating": 1653.199,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-28",
+          "rating": 1657.123,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-01",
+          "rating": 1650.749,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-04",
+          "rating": 1648.523,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-07",
+          "rating": 1646.564,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-11",
+          "rating": 1649.267,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-25",
+          "rating": 1641.157,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-29",
+          "rating": 1645.269,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-02",
+          "rating": 1648.888,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-09",
+          "rating": 1656.302,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-12",
+          "rating": 1661.469,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-16",
+          "rating": 1658.565,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-23",
+          "rating": 1651.774,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-26",
+          "rating": 1653.001,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-29",
+          "rating": 1649.41,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-01",
+          "rating": 1648.494,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-06",
+          "rating": 1650.826,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-13",
+          "rating": 1654.323,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-22",
+          "rating": 1657.361,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-03",
+          "rating": 1651.132,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-10",
+          "rating": 1649.739,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-14",
+          "rating": 1657.601,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-17",
+          "rating": 1661.224,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-20",
+          "rating": 1662.886,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-24",
+          "rating": 1666.123,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-02",
+          "rating": 1671.307,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-05",
+          "rating": 1673.974,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-09",
+          "rating": 1667.272,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-16",
+          "rating": 1674.908,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-29",
+          "rating": 1677.893,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-01",
+          "rating": 1682.034,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-06",
+          "rating": 1676.876,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-10",
+          "rating": 1674.465,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-13",
+          "rating": 1672.346,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-27",
+          "rating": 1672.408,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-30",
+          "rating": 1676.834,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-04",
+          "rating": 1679.284,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-17",
+          "rating": 1675.406,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-24",
+          "rating": 1673.937,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-28",
+          "rating": 1668.219,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-31",
+          "rating": 1668.736,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-14",
+          "rating": 1671.972,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-21",
+          "rating": 1673.382,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-29",
+          "rating": 1675.576,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-05",
+          "rating": 1671.395,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-19",
+          "rating": 1664.011,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-26",
+          "rating": 1662.747,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-02",
+          "rating": 1662.917,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-10",
+          "rating": 1673.321,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-24",
+          "rating": 1675.903,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-30",
+          "rating": 1672.696,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-03",
+          "rating": 1668.659,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-08",
+          "rating": 1664.343,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-14",
+          "rating": 1672.856,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-21",
+          "rating": 1666.157,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-27",
+          "rating": 1644.77,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-30",
+          "rating": 1657.87,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-05",
+          "rating": 1661.033,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-12",
+          "rating": 1663.937,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-16",
+          "rating": 1658.559,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-19",
+          "rating": 1654.641,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-25",
+          "rating": 1652.476,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-01",
+          "rating": 1646.803,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-08",
+          "rating": 1654.912,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-15",
+          "rating": 1658.77,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-22",
+          "rating": 1652.881,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-26",
+          "rating": 1650.842,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-03",
+          "rating": 1654.313,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-08",
+          "rating": 1653.323,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-15",
+          "rating": 1648.473,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-02",
+          "rating": 1656.839,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-05",
+          "rating": 1652.09,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-13",
+          "rating": 1657.121,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-20",
+          "rating": 1653.685,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-26",
+          "rating": 1650.438,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-03",
+          "rating": 1653.738,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-10",
+          "rating": 1651.103,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-18",
+          "rating": 1645.938,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-25",
+          "rating": 1640.638,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-08",
+          "rating": 1642.218,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-12",
+          "rating": 1637.793,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-17",
+          "rating": 1636.56,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-23",
+          "rating": 1630.054,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-30",
+          "rating": 1626.07,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-12",
+          "rating": 1636.089,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-20",
+          "rating": 1628.716,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-27",
+          "rating": 1632.353,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-30",
+          "rating": 1631.474,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-05",
+          "rating": 1636.721,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-17",
+          "rating": 1630.989,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-21",
+          "rating": 1616.844,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-25",
+          "rating": 1620.235,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-01",
+          "rating": 1626.908,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-04",
+          "rating": 1625.217,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-08",
+          "rating": 1633.691,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-22",
+          "rating": 1632.013,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-25",
+          "rating": 1637.52,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-28",
+          "rating": 1629.777,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-02",
+          "rating": 1628.919,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-06",
+          "rating": 1636.697,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-10",
+          "rating": 1640.705,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-13",
+          "rating": 1635.329,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-20",
+          "rating": 1638.59,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-26",
+          "rating": 1659.262,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-29",
+          "rating": 1667.241,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-01",
+          "rating": 1669.497,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-10",
+          "rating": 1671.085,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-17",
+          "rating": 1675.83,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-20",
+          "rating": 1680.204,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-24",
+          "rating": 1674.042,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-31",
+          "rating": 1671.746,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-07",
+          "rating": 1676.112,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-13",
+          "rating": 1670.692,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-21",
+          "rating": 1665.149,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-24",
+          "rating": 1670.455,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-28",
+          "rating": 1675.222,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-03",
+          "rating": 1677.984,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-07",
+          "rating": 1676.106,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-10",
+          "rating": 1674.47,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-14",
+          "rating": 1675.911,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-21",
+          "rating": 1675.345,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-06",
+          "rating": 1679.294,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-11",
+          "rating": 1685.349,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-14",
+          "rating": 1676.176,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-19",
+          "rating": 1674.608,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-22",
+          "rating": 1678.006,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-25",
+          "rating": 1676.636,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-28",
+          "rating": 1677.405,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-02",
+          "rating": 1681.693,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-22",
+          "rating": 1670.169,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-25",
+          "rating": 1674.705,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-04",
+          "rating": 1688.942,
+          "segment": 0
+        }
+      ]
+    },
+    {
+      "key": "Stuttgart",
+      "source_url": "https://clubelo.com/Stuttgart",
+      "retrieved_at": "2026-09-09T23:31:26.352831+00:00",
+      "sha256": "932bceb4dde72ceed0314909983a9d1b42c65d4e087f14dfb9e06bc4f6207690",
+      "points": [
+        {
+          "date": "2022-09-10",
+          "rating": 1678.857,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-17",
+          "rating": 1674.574,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-01",
+          "rating": 1669.894,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-09",
+          "rating": 1665.504,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-15",
+          "rating": 1673.622,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-19",
+          "rating": 1683.396,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-22",
+          "rating": 1678.25,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-29",
+          "rating": 1685.241,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-04",
+          "rating": 1681.747,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-08",
+          "rating": 1685.371,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-12",
+          "rating": 1680.9,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-21",
+          "rating": 1681.864,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-24",
+          "rating": 1683.525,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-27",
+          "rating": 1681.024,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-31",
+          "rating": 1685.801,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-05",
+          "rating": 1676.93,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-11",
+          "rating": 1673.317,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-18",
+          "rating": 1683.921,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-25",
+          "rating": 1678.407,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-04",
+          "rating": 1676.087,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-11",
+          "rating": 1678.961,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-18",
+          "rating": 1671.897,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-01",
+          "rating": 1666.501,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-05",
+          "rating": 1670.926,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-09",
+          "rating": 1676.958,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-15",
+          "rating": 1679.135,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-21",
+          "rating": 1679.789,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-29",
+          "rating": 1684.819,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-03",
+          "rating": 1679.823,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-06",
+          "rating": 1674.698,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-14",
+          "rating": 1676.25,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-21",
+          "rating": 1688.885,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-27",
+          "rating": 1688.144,
+          "segment": 0
+        },
+        {
+          "date": "2023-06-01",
+          "rating": 1694.991,
+          "segment": 0
+        },
+        {
+          "date": "2023-06-05",
+          "rating": 1702.098,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-19",
+          "rating": 1710.331,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-25",
+          "rating": 1704.85,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-02",
+          "rating": 1719.447,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-16",
+          "rating": 1728.159,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-22",
+          "rating": 1734.28,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-30",
+          "rating": 1740.92,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-07",
+          "rating": 1745.598,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-21",
+          "rating": 1757.207,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-28",
+          "rating": 1752.694,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-31",
+          "rating": 1756.621,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-05",
+          "rating": 1746.2,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-11",
+          "rating": 1755.102,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-25",
+          "rating": 1761.817,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-02",
+          "rating": 1766.593,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-06",
+          "rating": 1775.6,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-10",
+          "rating": 1776.952,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-17",
+          "rating": 1771.895,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-20",
+          "rating": 1776.244,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-14",
+          "rating": 1769.205,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-20",
+          "rating": 1763.419,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-27",
+          "rating": 1774.342,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-03",
+          "rating": 1782.441,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-06",
+          "rating": 1779.759,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-11",
+          "rating": 1783.71,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-17",
+          "rating": 1786.358,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-24",
+          "rating": 1783.098,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-02",
+          "rating": 1788.606,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-08",
+          "rating": 1793.916,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-16",
+          "rating": 1800.398,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-31",
+          "rating": 1797.449,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-06",
+          "rating": 1806.255,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-13",
+          "rating": 1812.116,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-21",
+          "rating": 1805.719,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-27",
+          "rating": 1809.206,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-04",
+          "rating": 1820.259,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-10",
+          "rating": 1823.687,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-18",
+          "rating": 1830.074,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-17",
+          "rating": 1831.849,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-24",
+          "rating": 1823.728,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-27",
+          "rating": 1829.04,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-31",
+          "rating": 1826.077,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-14",
+          "rating": 1832.209,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-17",
+          "rating": 1829.928,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-22",
+          "rating": 1843.318,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-28",
+          "rating": 1840.235,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-01",
+          "rating": 1837.805,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-06",
+          "rating": 1834.636,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-19",
+          "rating": 1829.245,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-22",
+          "rating": 1837.608,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-26",
+          "rating": 1837.814,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-29",
+          "rating": 1839.846,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-01",
+          "rating": 1842.274,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-06",
+          "rating": 1831.576,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-10",
+          "rating": 1826.093,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-23",
+          "rating": 1829.117,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-27",
+          "rating": 1817.746,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-30",
+          "rating": 1816.54,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-03",
+          "rating": 1819.367,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-06",
+          "rating": 1821.993,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-11",
+          "rating": 1826.092,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-15",
+          "rating": 1829.787,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-21",
+          "rating": 1820.837,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-12",
+          "rating": 1802.693,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-15",
+          "rating": 1807.245,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-18",
+          "rating": 1812.659,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-21",
+          "rating": 1815.446,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-25",
+          "rating": 1807.081,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-29",
+          "rating": 1799.034,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-01",
+          "rating": 1792.363,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-04",
+          "rating": 1794.607,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-08",
+          "rating": 1800.631,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-15",
+          "rating": 1795.95,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-23",
+          "rating": 1793.342,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-28",
+          "rating": 1788.591,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-08",
+          "rating": 1787.409,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-16",
+          "rating": 1785.244,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-29",
+          "rating": 1781.53,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-02",
+          "rating": 1787.107,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-05",
+          "rating": 1792.363,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-13",
+          "rating": 1784.264,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-19",
+          "rating": 1783.476,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-25",
+          "rating": 1774.146,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-03",
+          "rating": 1777.223,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-11",
+          "rating": 1782.418,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-17",
+          "rating": 1787.959,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-24",
+          "rating": 1791.294,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-16",
+          "rating": 1786.821,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-23",
+          "rating": 1779.263,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-26",
+          "rating": 1774.407,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-30",
+          "rating": 1777.518,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-13",
+          "rating": 1768.545,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-19",
+          "rating": 1773.754,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-25",
+          "rating": 1777.779,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-28",
+          "rating": 1780.933,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-02",
+          "rating": 1770.596,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-05",
+          "rating": 1772.911,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-18",
+          "rating": 1780.804,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-23",
+          "rating": 1775.472,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-26",
+          "rating": 1778.427,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-29",
+          "rating": 1785.009,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-01",
+          "rating": 1778.928,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-06",
+          "rating": 1786.828,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-09",
+          "rating": 1788.91,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-22",
+          "rating": 1790.846,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-27",
+          "rating": 1794.749,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-30",
+          "rating": 1787.55,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-03",
+          "rating": 1791.186,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-06",
+          "rating": 1786.732,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-11",
+          "rating": 1789.277,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-14",
+          "rating": 1796.912,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-20",
+          "rating": 1794.562,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-10",
+          "rating": 1827.76,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-13",
+          "rating": 1830.88,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-18",
+          "rating": 1827.433,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-22",
+          "rating": 1820.244,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-25",
+          "rating": 1826.061,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-29",
+          "rating": 1826.032,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-01",
+          "rating": 1829.226,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-04",
+          "rating": 1833.048,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-07",
+          "rating": 1825.519,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-14",
+          "rating": 1827.49,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-19",
+          "rating": 1834.599,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-22",
+          "rating": 1831.46,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-26",
+          "rating": 1821.244,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-01",
+          "rating": 1825.381,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-07",
+          "rating": 1824.061,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-12",
+          "rating": 1817.456,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-15",
+          "rating": 1821.303,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-19",
+          "rating": 1817.284,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-22",
+          "rating": 1822.127,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-04",
+          "rating": 1816.027,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-12",
+          "rating": 1821.75,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-19",
+          "rating": 1820.446,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-23",
+          "rating": 1821.982,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-26",
+          "rating": 1819.775,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-02",
+          "rating": 1818.918,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-09",
+          "rating": 1825.536,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-16",
+          "rating": 1824.788,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-23",
+          "rating": 1820.683,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-21",
+          "rating": 1805.407,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-28",
+          "rating": 1802.695,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-04",
+          "rating": 1827.642,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-09",
+          "rating": 1830.842,
+          "segment": 0
+        }
+      ]
+    },
+    {
+      "key": "BodoeGlimt",
+      "source_url": "https://clubelo.com/BodoeGlimt",
+      "retrieved_at": "2026-09-09T23:31:26.693650+00:00",
+      "sha256": "0a586e3dd5001aedb1c345aeb0b341a7a3f63fc0c0fbe8d6d086902ae26d813e",
+      "points": [
+        {
+          "date": "2022-09-11",
+          "rating": 1642.367,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-15",
+          "rating": 1644.013,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-18",
+          "rating": 1639.51,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-01",
+          "rating": 1645.326,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-06",
+          "rating": 1642.596,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-09",
+          "rating": 1644.165,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-13",
+          "rating": 1642.226,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-16",
+          "rating": 1649.867,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-23",
+          "rating": 1651.548,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-27",
+          "rating": 1644.871,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-30",
+          "rating": 1641.676,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-03",
+          "rating": 1636.191,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-06",
+          "rating": 1637.811,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-13",
+          "rating": 1639.93,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-16",
+          "rating": 1637.334,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-23",
+          "rating": 1632.677,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-10",
+          "rating": 1638.667,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-16",
+          "rating": 1641.67,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-23",
+          "rating": 1646.398,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-29",
+          "rating": 1642.407,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-03",
+          "rating": 1645.06,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-07",
+          "rating": 1649.662,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-13",
+          "rating": 1652.271,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-16",
+          "rating": 1656.551,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-29",
+          "rating": 1660.105,
+          "segment": 0
+        },
+        {
+          "date": "2023-06-04",
+          "rating": 1664.122,
+          "segment": 0
+        },
+        {
+          "date": "2023-06-11",
+          "rating": 1666.616,
+          "segment": 0
+        },
+        {
+          "date": "2023-06-25",
+          "rating": 1654.083,
+          "segment": 0
+        },
+        {
+          "date": "2023-07-02",
+          "rating": 1652.77,
+          "segment": 0
+        },
+        {
+          "date": "2023-07-09",
+          "rating": 1657.331,
+          "segment": 0
+        },
+        {
+          "date": "2023-07-16",
+          "rating": 1658.633,
+          "segment": 0
+        },
+        {
+          "date": "2023-07-23",
+          "rating": 1662.98,
+          "segment": 0
+        },
+        {
+          "date": "2023-07-27",
+          "rating": 1665.12,
+          "segment": 0
+        },
+        {
+          "date": "2023-07-30",
+          "rating": 1650.787,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-03",
+          "rating": 1656.15,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-06",
+          "rating": 1651.013,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-10",
+          "rating": 1653.201,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-17",
+          "rating": 1659.453,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-20",
+          "rating": 1662.143,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-24",
+          "rating": 1660.613,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-31",
+          "rating": 1659.326,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-03",
+          "rating": 1656.441,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-17",
+          "rating": 1654.691,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-21",
+          "rating": 1653.919,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-24",
+          "rating": 1655.728,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-01",
+          "rating": 1657.301,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-05",
+          "rating": 1651.29,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-08",
+          "rating": 1658.266,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-21",
+          "rating": 1658.558,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-26",
+          "rating": 1666.614,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-30",
+          "rating": 1669.492,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-05",
+          "rating": 1673.134,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-09",
+          "rating": 1681.042,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-12",
+          "rating": 1681.577,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-26",
+          "rating": 1674.555,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-30",
+          "rating": 1678.417,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-03",
+          "rating": 1681.021,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-14",
+          "rating": 1674.767,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-15",
+          "rating": 1677.735,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-22",
+          "rating": 1674.346,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-01",
+          "rating": 1676.119,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-06",
+          "rating": 1678.627,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-14",
+          "rating": 1685.57,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-21",
+          "rating": 1683.371,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-27",
+          "rating": 1687.816,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-05",
+          "rating": 1689.817,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-12",
+          "rating": 1693.308,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-16",
+          "rating": 1695.712,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-20",
+          "rating": 1686.323,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-24",
+          "rating": 1680.498,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-29",
+          "rating": 1673.344,
+          "segment": 0
+        },
+        {
+          "date": "2024-06-02",
+          "rating": 1675.488,
+          "segment": 0
+        },
+        {
+          "date": "2024-06-28",
+          "rating": 1677.949,
+          "segment": 0
+        },
+        {
+          "date": "2024-07-07",
+          "rating": 1683.241,
+          "segment": 0
+        },
+        {
+          "date": "2024-07-13",
+          "rating": 1673.322,
+          "segment": 0
+        },
+        {
+          "date": "2024-07-19",
+          "rating": 1675.319,
+          "segment": 0
+        },
+        {
+          "date": "2024-07-23",
+          "rating": 1679.833,
+          "segment": 0
+        },
+        {
+          "date": "2024-07-27",
+          "rating": 1678.401,
+          "segment": 0
+        },
+        {
+          "date": "2024-07-31",
+          "rating": 1684.043,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-03",
+          "rating": 1686.345,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-07",
+          "rating": 1690.837,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-10",
+          "rating": 1690.741,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-13",
+          "rating": 1694.855,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-20",
+          "rating": 1696.72,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-24",
+          "rating": 1699.621,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-28",
+          "rating": 1693.404,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-01",
+          "rating": 1695.403,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-13",
+          "rating": 1697.871,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-22",
+          "rating": 1686.915,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-25",
+          "rating": 1694.511,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-29",
+          "rating": 1696.289,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-03",
+          "rating": 1699.53,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-19",
+          "rating": 1697.416,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-23",
+          "rating": 1704.586,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-28",
+          "rating": 1694.783,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-03",
+          "rating": 1694.957,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-07",
+          "rating": 1686.568,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-10",
+          "rating": 1681.613,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-23",
+          "rating": 1684.028,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-28",
+          "rating": 1681.199,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-01",
+          "rating": 1683.371,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-12",
+          "rating": 1686.195,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-23",
+          "rating": 1670.922,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-30",
+          "rating": 1673.113,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-13",
+          "rating": 1666.938,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-20",
+          "rating": 1677.586,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-06",
+          "rating": 1686.597,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-13",
+          "rating": 1681.49,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-30",
+          "rating": 1683.645,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-05",
+          "rating": 1685.658,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-10",
+          "rating": 1695.044,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-17",
+          "rating": 1691.864,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-21",
+          "rating": 1690.046,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-27",
+          "rating": 1691.924,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-01",
+          "rating": 1688.223,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-08",
+          "rating": 1682.893,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-16",
+          "rating": 1674.133,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-24",
+          "rating": 1679.164,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-28",
+          "rating": 1667.848,
+          "segment": 0
+        },
+        {
+          "date": "2025-06-01",
+          "rating": 1671.488,
+          "segment": 0
+        },
+        {
+          "date": "2025-06-21",
+          "rating": 1675.094,
+          "segment": 0
+        },
+        {
+          "date": "2025-06-29",
+          "rating": 1665.517,
+          "segment": 0
+        },
+        {
+          "date": "2025-07-05",
+          "rating": 1662.003,
+          "segment": 0
+        },
+        {
+          "date": "2025-07-12",
+          "rating": 1664.33,
+          "segment": 0
+        },
+        {
+          "date": "2025-07-16",
+          "rating": 1667.147,
+          "segment": 0
+        },
+        {
+          "date": "2025-07-19",
+          "rating": 1672.379,
+          "segment": 0
+        },
+        {
+          "date": "2025-07-26",
+          "rating": 1676.015,
+          "segment": 0
+        },
+        {
+          "date": "2025-07-30",
+          "rating": 1677.607,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-03",
+          "rating": 1681.338,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-09",
+          "rating": 1675.973,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-20",
+          "rating": 1684.104,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-26",
+          "rating": 1680.755,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-31",
+          "rating": 1685.02,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-12",
+          "rating": 1687.782,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-17",
+          "rating": 1689.791,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-21",
+          "rating": 1688.407,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-30",
+          "rating": 1689.123,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-05",
+          "rating": 1691.41,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-18",
+          "rating": 1695.068,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-22",
+          "rating": 1692.042,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-26",
+          "rating": 1696.25,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-29",
+          "rating": 1700.236,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-01",
+          "rating": 1689.273,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-04",
+          "rating": 1683.936,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-09",
+          "rating": 1686.113,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-21",
+          "rating": 1688.228,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-25",
+          "rating": 1683.293,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-30",
+          "rating": 1686.699,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-10",
+          "rating": 1690.715,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-20",
+          "rating": 1724.056,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-28",
+          "rating": 1736.502,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-18",
+          "rating": 1748.002,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-24",
+          "rating": 1759.63,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-11",
+          "rating": 1770.436,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-17",
+          "rating": 1762.217,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-06",
+          "rating": 1765.773,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-11",
+          "rating": 1753.316,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-15",
+          "rating": 1749.735,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-18",
+          "rating": 1751.406,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-26",
+          "rating": 1754.281,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-30",
+          "rating": 1755.189,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-04",
+          "rating": 1745.243,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-16",
+          "rating": 1749.869,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-20",
+          "rating": 1751.847,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-24",
+          "rating": 1754.375,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-29",
+          "rating": 1751.709,
+          "segment": 0
+        },
+        {
+          "date": "2026-07-12",
+          "rating": 1734.226,
+          "segment": 0
+        },
+        {
+          "date": "2026-07-17",
+          "rating": 1735.634,
+          "segment": 0
+        },
+        {
+          "date": "2026-07-22",
+          "rating": 1737.787,
+          "segment": 0
+        },
+        {
+          "date": "2026-07-26",
+          "rating": 1740.186,
+          "segment": 0
+        },
+        {
+          "date": "2026-07-31",
+          "rating": 1743.22,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-04",
+          "rating": 1745.028,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-08",
+          "rating": 1748.102,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-11",
+          "rating": 1751.937,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-19",
+          "rating": 1757.568,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-25",
+          "rating": 1762.062,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-04",
+          "rating": 1789.111,
+          "segment": 0
+        }
+      ]
+    },
+    {
+      "key": "Fulham",
+      "source_url": "https://clubelo.com/Fulham",
+      "retrieved_at": "2026-09-09T23:31:27.092915+00:00",
+      "sha256": "710abc40e61b3aa13dd0899b51f441a1c3e6edd063a5652e570a46aa2706691b",
+      "points": [
+        {
+          "date": "2022-09-16",
+          "rating": 1687.975,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-01",
+          "rating": 1680.46,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-09",
+          "rating": 1676.93,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-15",
+          "rating": 1677.346,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-20",
+          "rating": 1687.656,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-23",
+          "rating": 1694.386,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-29",
+          "rating": 1694.629,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-05",
+          "rating": 1694.895,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-13",
+          "rating": 1693.065,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-26",
+          "rating": 1707.396,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-31",
+          "rating": 1712.242,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-03",
+          "rating": 1720.48,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-07",
+          "rating": 1723.407,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-12",
+          "rating": 1731.971,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-15",
+          "rating": 1728.525,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-23",
+          "rating": 1725.02,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-28",
+          "rating": 1721.633,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-03",
+          "rating": 1725.817,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-08",
+          "rating": 1729.727,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-11",
+          "rating": 1734.934,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-18",
+          "rating": 1742.559,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-24",
+          "rating": 1741.272,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-28",
+          "rating": 1746.205,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-06",
+          "rating": 1741.74,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-12",
+          "rating": 1737.807,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-19",
+          "rating": 1734.948,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-01",
+          "rating": 1729.822,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-08",
+          "rating": 1725.181,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-15",
+          "rating": 1733.201,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-22",
+          "rating": 1735.75,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-25",
+          "rating": 1732.097,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-30",
+          "rating": 1730.49,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-03",
+          "rating": 1728.671,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-08",
+          "rating": 1735.033,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-13",
+          "rating": 1742.05,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-20",
+          "rating": 1742.624,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-28",
+          "rating": 1740.398,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-12",
+          "rating": 1746.656,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-19",
+          "rating": 1737.578,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-26",
+          "rating": 1742.21,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-02",
+          "rating": 1740.016,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-16",
+          "rating": 1743.17,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-23",
+          "rating": 1743.678,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-27",
+          "rating": 1746.385,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-02",
+          "rating": 1739.492,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-07",
+          "rating": 1745.04,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-23",
+          "rating": 1741.179,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-29",
+          "rating": 1745.204,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-01",
+          "rating": 1751.857,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-04",
+          "rating": 1748.422,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-12",
+          "rating": 1743.223,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-27",
+          "rating": 1747.68,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-03",
+          "rating": 1747.713,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-06",
+          "rating": 1755.35,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-10",
+          "rating": 1767.712,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-16",
+          "rating": 1761.423,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-23",
+          "rating": 1751.367,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-26",
+          "rating": 1743.921,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-31",
+          "rating": 1751.534,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-05",
+          "rating": 1752.854,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-10",
+          "rating": 1751.759,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-13",
+          "rating": 1748.622,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-24",
+          "rating": 1752.277,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-27",
+          "rating": 1746.15,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-30",
+          "rating": 1745.855,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-03",
+          "rating": 1745.735,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-10",
+          "rating": 1751.139,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-17",
+          "rating": 1747.441,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-24",
+          "rating": 1754.511,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-02",
+          "rating": 1763.47,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-09",
+          "rating": 1758.632,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-16",
+          "rating": 1770.465,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-30",
+          "rating": 1768.982,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-02",
+          "rating": 1761.331,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-06",
+          "rating": 1756.531,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-14",
+          "rating": 1763.853,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-21",
+          "rating": 1759.596,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-27",
+          "rating": 1758.587,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-04",
+          "rating": 1757.919,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-11",
+          "rating": 1754.374,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-19",
+          "rating": 1759.253,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-16",
+          "rating": 1756.344,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-24",
+          "rating": 1761.603,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-27",
+          "rating": 1765.521,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-31",
+          "rating": 1763.462,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-14",
+          "rating": 1763.844,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-17",
+          "rating": 1761.993,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-21",
+          "rating": 1771.26,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-28",
+          "rating": 1775.615,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-05",
+          "rating": 1776.401,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-19",
+          "rating": 1769.926,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-26",
+          "rating": 1772.672,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-04",
+          "rating": 1777.355,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-09",
+          "rating": 1784.464,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-23",
+          "rating": 1771.666,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-01",
+          "rating": 1775.695,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-05",
+          "rating": 1783.253,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-08",
+          "rating": 1786.722,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-14",
+          "rating": 1793.414,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-22",
+          "rating": 1790.963,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-26",
+          "rating": 1779.167,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-29",
+          "rating": 1778.278,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-05",
+          "rating": 1775.274,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-09",
+          "rating": 1778.635,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-14",
+          "rating": 1774.937,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-18",
+          "rating": 1781.297,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-26",
+          "rating": 1775.602,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-01",
+          "rating": 1784.234,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-08",
+          "rating": 1786.546,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-15",
+          "rating": 1789.503,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-22",
+          "rating": 1780.972,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-25",
+          "rating": 1786.218,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-02",
+          "rating": 1788.017,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-08",
+          "rating": 1785.812,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-16",
+          "rating": 1793.58,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-29",
+          "rating": 1784.509,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-01",
+          "rating": 1782.289,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-06",
+          "rating": 1789.891,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-14",
+          "rating": 1785.935,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-20",
+          "rating": 1781.114,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-26",
+          "rating": 1784.574,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-03",
+          "rating": 1782.582,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-10",
+          "rating": 1774.644,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-18",
+          "rating": 1781.5,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-25",
+          "rating": 1777.732,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-16",
+          "rating": 1780.757,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-24",
+          "rating": 1780.39,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-27",
+          "rating": 1783.468,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-30",
+          "rating": 1778.31,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-13",
+          "rating": 1782.803,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-20",
+          "rating": 1788.172,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-23",
+          "rating": 1788.681,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-28",
+          "rating": 1783.981,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-03",
+          "rating": 1778.519,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-18",
+          "rating": 1774.687,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-25",
+          "rating": 1771.422,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-28",
+          "rating": 1767.136,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-01",
+          "rating": 1773.545,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-08",
+          "rating": 1768.414,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-22",
+          "rating": 1771.821,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-29",
+          "rating": 1777.164,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-02",
+          "rating": 1773.823,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-07",
+          "rating": 1768.557,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-13",
+          "rating": 1775.32,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-17",
+          "rating": 1771.764,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-22",
+          "rating": 1775.013,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-27",
+          "rating": 1801.073,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-01",
+          "rating": 1803.344,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-04",
+          "rating": 1804.881,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-07",
+          "rating": 1811.555,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-10",
+          "rating": 1814.923,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-17",
+          "rating": 1809.348,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-24",
+          "rating": 1815.804,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-01",
+          "rating": 1813.672,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-07",
+          "rating": 1807.848,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-11",
+          "rating": 1804.168,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-15",
+          "rating": 1806.249,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-22",
+          "rating": 1813.05,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-01",
+          "rating": 1817.876,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-04",
+          "rating": 1811.144,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-08",
+          "rating": 1801.39,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-15",
+          "rating": 1799.091,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-21",
+          "rating": 1804.678,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-11",
+          "rating": 1802.708,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-18",
+          "rating": 1803.494,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-25",
+          "rating": 1809.527,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-02",
+          "rating": 1806.426,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-09",
+          "rating": 1801.903,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-17",
+          "rating": 1800.512,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-24",
+          "rating": 1809.05,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-24",
+          "rating": 1781.859,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-27",
+          "rating": 1784.888,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-05",
+          "rating": 1792.373,
+          "segment": 0
+        }
+      ]
+    },
+    {
+      "key": "Dortmund",
+      "source_url": "https://clubelo.com/Dortmund",
+      "retrieved_at": "2026-09-09T23:31:27.561511+00:00",
+      "sha256": "86aac03c96ac02f2f8182aba3c20ac2f827b43dc32446168d4448e15bfd5a021",
+      "points": [
+        {
+          "date": "2022-09-10",
+          "rating": 1850.137,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-14",
+          "rating": 1849.254,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-17",
+          "rating": 1852.474,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-01",
+          "rating": 1844.583,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-05",
+          "rating": 1855.803,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-08",
+          "rating": 1857.194,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-11",
+          "rating": 1855.438,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-16",
+          "rating": 1847.275,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-19",
+          "rating": 1850.63,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-22",
+          "rating": 1855.227,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-25",
+          "rating": 1857.803,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-29",
+          "rating": 1863.116,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-02",
+          "rating": 1861.915,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-05",
+          "rating": 1864.702,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-08",
+          "rating": 1856.476,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-11",
+          "rating": 1848.584,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-22",
+          "rating": 1851.252,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-25",
+          "rating": 1854.932,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-29",
+          "rating": 1861.334,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-04",
+          "rating": 1868.43,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-08",
+          "rating": 1871.02,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-11",
+          "rating": 1874.868,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-15",
+          "rating": 1880.031,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-19",
+          "rating": 1882.732,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-25",
+          "rating": 1885.815,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-03",
+          "rating": 1889.12,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-07",
+          "rating": 1882.39,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-11",
+          "rating": 1879.294,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-18",
+          "rating": 1882.039,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-01",
+          "rating": 1878.317,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-05",
+          "rating": 1872.428,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-08",
+          "rating": 1875.472,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-15",
+          "rating": 1871.749,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-22",
+          "rating": 1877.81,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-28",
+          "rating": 1874.25,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-07",
+          "rating": 1880.42,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-13",
+          "rating": 1883.813,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-21",
+          "rating": 1888.677,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-27",
+          "rating": 1884.814,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-19",
+          "rating": 1886.592,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-26",
+          "rating": 1882.374,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-01",
+          "rating": 1876.71,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-16",
+          "rating": 1882.675,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-19",
+          "rating": 1876.818,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-23",
+          "rating": 1880.607,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-29",
+          "rating": 1885.935,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-04",
+          "rating": 1881.942,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-07",
+          "rating": 1885.045,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-20",
+          "rating": 1886.591,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-25",
+          "rating": 1893.54,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-29",
+          "rating": 1893.47,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-01",
+          "rating": 1894.953,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-04",
+          "rating": 1886.595,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-07",
+          "rating": 1892.789,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-11",
+          "rating": 1886.766,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-25",
+          "rating": 1890.01,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-28",
+          "rating": 1898.15,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-03",
+          "rating": 1899.088,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-06",
+          "rating": 1890.109,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-09",
+          "rating": 1883.916,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-13",
+          "rating": 1883.202,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-16",
+          "rating": 1878.793,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-19",
+          "rating": 1874.584,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-13",
+          "rating": 1877.798,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-20",
+          "rating": 1883.32,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-28",
+          "rating": 1885.678,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-02",
+          "rating": 1882.977,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-09",
+          "rating": 1887.435,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-17",
+          "rating": 1885.241,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-20",
+          "rating": 1886.045,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-25",
+          "rating": 1876.331,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-02",
+          "rating": 1881.267,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-09",
+          "rating": 1885.143,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-13",
+          "rating": 1888.831,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-17",
+          "rating": 1891.591,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-30",
+          "rating": 1900.797,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-06",
+          "rating": 1893.752,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-10",
+          "rating": 1889.783,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-13",
+          "rating": 1893.161,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-16",
+          "rating": 1898.925,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-21",
+          "rating": 1898.008,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-27",
+          "rating": 1891.924,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-01",
+          "rating": 1896.349,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-04",
+          "rating": 1900.439,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-07",
+          "rating": 1906.902,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-11",
+          "rating": 1894.576,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-18",
+          "rating": 1896.499,
+          "segment": 0
+        },
+        {
+          "date": "2024-06-01",
+          "rating": 1891.075,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-24",
+          "rating": 1895.547,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-31",
+          "rating": 1893.566,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-13",
+          "rating": 1897.163,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-18",
+          "rating": 1905.28,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-22",
+          "rating": 1894.133,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-27",
+          "rating": 1896.258,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-01",
+          "rating": 1900.807,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-05",
+          "rating": 1893.289,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-18",
+          "rating": 1894.907,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-22",
+          "rating": 1891.577,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-26",
+          "rating": 1881.941,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-29",
+          "rating": 1875.435,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-02",
+          "rating": 1879.498,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-05",
+          "rating": 1880.004,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-09",
+          "rating": 1870.988,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-23",
+          "rating": 1876.745,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-27",
+          "rating": 1882.054,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-30",
+          "rating": 1882.289,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-07",
+          "rating": 1880.454,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-11",
+          "rating": 1876.793,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-15",
+          "rating": 1871.806,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-22",
+          "rating": 1876.328,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-10",
+          "rating": 1850.961,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-14",
+          "rating": 1838.509,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-17",
+          "rating": 1832.005,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-21",
+          "rating": 1826.648,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-25",
+          "rating": 1823.124,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-29",
+          "rating": 1825.222,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-01",
+          "rating": 1827.843,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-08",
+          "rating": 1821.874,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-11",
+          "rating": 1833.477,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-15",
+          "rating": 1822.592,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-19",
+          "rating": 1821.15,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-22",
+          "rating": 1824.672,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-01",
+          "rating": 1827.771,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-04",
+          "rating": 1825.4,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-08",
+          "rating": 1819.24,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-12",
+          "rating": 1825.293,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-15",
+          "rating": 1820.626,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-30",
+          "rating": 1824.976,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-05",
+          "rating": 1830.253,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-09",
+          "rating": 1825.884,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-12",
+          "rating": 1829.133,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-15",
+          "rating": 1836.894,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-20",
+          "rating": 1838.985,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-26",
+          "rating": 1840.794,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-03",
+          "rating": 1844.937,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-11",
+          "rating": 1852.579,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-17",
+          "rating": 1855.217,
+          "segment": 0
+        },
+        {
+          "date": "2025-06-17",
+          "rating": 1852.97,
+          "segment": 0
+        },
+        {
+          "date": "2025-06-21",
+          "rating": 1854.787,
+          "segment": 0
+        },
+        {
+          "date": "2025-07-01",
+          "rating": 1859.269,
+          "segment": 0
+        },
+        {
+          "date": "2025-07-05",
+          "rating": 1855.552,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-18",
+          "rating": 1856.324,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-23",
+          "rating": 1852.368,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-31",
+          "rating": 1855.237,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-13",
+          "rating": 1858.556,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-16",
+          "rating": 1859.269,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-21",
+          "rating": 1862.966,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-27",
+          "rating": 1867.479,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-01",
+          "rating": 1872.55,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-04",
+          "rating": 1870.423,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-18",
+          "rating": 1866.595,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-21",
+          "rating": 1870.175,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-25",
+          "rating": 1871.805,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-28",
+          "rating": 1870.414,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-31",
+          "rating": 1872.667,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-05",
+          "rating": 1868.787,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-08",
+          "rating": 1867.066,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-22",
+          "rating": 1864.826,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-25",
+          "rating": 1871.177,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-29",
+          "rating": 1875.368,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-02",
+          "rating": 1870.521,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-07",
+          "rating": 1872.974,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-10",
+          "rating": 1868.303,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-14",
+          "rating": 1867.866,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-19",
+          "rating": 1870.398,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-09",
+          "rating": 1890.357,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-13",
+          "rating": 1893.981,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-17",
+          "rating": 1894.635,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-20",
+          "rating": 1886.932,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-24",
+          "rating": 1891.181,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-28",
+          "rating": 1883.781,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-01",
+          "rating": 1884.667,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-07",
+          "rating": 1887.094,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-13",
+          "rating": 1890.823,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-17",
+          "rating": 1894.602,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-21",
+          "rating": 1894.843,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-25",
+          "rating": 1887.455,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-28",
+          "rating": 1883.938,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-07",
+          "rating": 1885.242,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-14",
+          "rating": 1886.697,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-21",
+          "rating": 1889.009,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-04",
+          "rating": 1893.975,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-11",
+          "rating": 1889.609,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-18",
+          "rating": 1883.956,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-26",
+          "rating": 1889.204,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-03",
+          "rating": 1881.288,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-08",
+          "rating": 1883.751,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-16",
+          "rating": 1887.721,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-22",
+          "rating": 1863.33,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-29",
+          "rating": 1866.953,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-05",
+          "rating": 1891.209,
+          "segment": 0
+        }
+      ]
+    },
+    {
+      "key": "Ajax",
+      "source_url": "https://clubelo.com/Ajax",
+      "retrieved_at": "2026-09-09T23:31:27.911485+00:00",
+      "sha256": "79b84b01115559dc8d8d29c1e0cd92d1f3a51f76b0fc23e61d65c1e694f8fb20",
+      "points": [
+        {
+          "date": "2022-09-10",
+          "rating": 1863.131,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-13",
+          "rating": 1860.777,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-18",
+          "rating": 1854.287,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-01",
+          "rating": 1846.334,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-04",
+          "rating": 1832.901,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-08",
+          "rating": 1834.141,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-12",
+          "rating": 1829.183,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-16",
+          "rating": 1829.859,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-22",
+          "rating": 1832.402,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-26",
+          "rating": 1827.352,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-01",
+          "rating": 1833.118,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-06",
+          "rating": 1828.162,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-09",
+          "rating": 1822.19,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-12",
+          "rating": 1816.82,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-08",
+          "rating": 1810.83,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-11",
+          "rating": 1811.992,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-14",
+          "rating": 1807.352,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-22",
+          "rating": 1806.991,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-26",
+          "rating": 1798.409,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-29",
+          "rating": 1800.395,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-05",
+          "rating": 1803.244,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-09",
+          "rating": 1806.681,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-12",
+          "rating": 1808.141,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-16",
+          "rating": 1806.406,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-19",
+          "rating": 1808.999,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-23",
+          "rating": 1803.938,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-26",
+          "rating": 1805.513,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-02",
+          "rating": 1806.622,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-05",
+          "rating": 1807.762,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-12",
+          "rating": 1811.316,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-19",
+          "rating": 1807.393,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-02",
+          "rating": 1802.486,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-05",
+          "rating": 1807.136,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-09",
+          "rating": 1808.936,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-16",
+          "rating": 1809.124,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-23",
+          "rating": 1800.858,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-30",
+          "rating": 1799.482,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-06",
+          "rating": 1796.471,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-16",
+          "rating": 1797.436,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-21",
+          "rating": 1798.945,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-28",
+          "rating": 1789.904,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-12",
+          "rating": 1793.459,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-19",
+          "rating": 1789.085,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-24",
+          "rating": 1793.661,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-31",
+          "rating": 1781.165,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-03",
+          "rating": 1774.62,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-17",
+          "rating": 1765.379,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-21",
+          "rating": 1763.572,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-27",
+          "rating": 1751.162,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-05",
+          "rating": 1748.737,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-08",
+          "rating": 1741.102,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-22",
+          "rating": 1731.853,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-26",
+          "rating": 1727.585,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-29",
+          "rating": 1722.511,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-02",
+          "rating": 1724.388,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-05",
+          "rating": 1726.152,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-09",
+          "rating": 1719.8,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-12",
+          "rating": 1715.412,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-25",
+          "rating": 1719.234,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-30",
+          "rating": 1716.169,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-03",
+          "rating": 1718.481,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-06",
+          "rating": 1721.243,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-09",
+          "rating": 1723.393,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-14",
+          "rating": 1727.177,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-17",
+          "rating": 1720.888,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-14",
+          "rating": 1723.485,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-21",
+          "rating": 1725.864,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-27",
+          "rating": 1728.749,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-03",
+          "rating": 1729.519,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-11",
+          "rating": 1720.894,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-15",
+          "rating": 1718.515,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-18",
+          "rating": 1713.929,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-22",
+          "rating": 1718.43,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-25",
+          "rating": 1711.571,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-03",
+          "rating": 1714.799,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-07",
+          "rating": 1715.79,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-10",
+          "rating": 1710.582,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-14",
+          "rating": 1705.357,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-17",
+          "rating": 1703.007,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-31",
+          "rating": 1706.895,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-04",
+          "rating": 1703.202,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-07",
+          "rating": 1696.044,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-14",
+          "rating": 1699.832,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-24",
+          "rating": 1694.003,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-05",
+          "rating": 1695.634,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-12",
+          "rating": 1697.519,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-19",
+          "rating": 1693.507,
+          "segment": 0
+        },
+        {
+          "date": "2024-07-25",
+          "rating": 1694.914,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-01",
+          "rating": 1698.334,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-08",
+          "rating": 1703.783,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-11",
+          "rating": 1703.776,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-15",
+          "rating": 1695.016,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-18",
+          "rating": 1683.28,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-22",
+          "rating": 1690.903,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-29",
+          "rating": 1694.321,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-18",
+          "rating": 1698.729,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-21",
+          "rating": 1695.511,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-26",
+          "rating": 1704.104,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-29",
+          "rating": 1706.526,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-03",
+          "rating": 1710.687,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-06",
+          "rating": 1712.888,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-20",
+          "rating": 1715.324,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-24",
+          "rating": 1725.292,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-27",
+          "rating": 1726.258,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-30",
+          "rating": 1735.891,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-02",
+          "rating": 1741.487,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-07",
+          "rating": 1748.321,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-10",
+          "rating": 1747.695,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-24",
+          "rating": 1749.073,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-28",
+          "rating": 1744.979,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-01",
+          "rating": 1748.086,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-04",
+          "rating": 1745.13,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-08",
+          "rating": 1739.974,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-12",
+          "rating": 1733.64,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-15",
+          "rating": 1734.845,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-19",
+          "rating": 1735.814,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-22",
+          "rating": 1738.44,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-11",
+          "rating": 1718.198,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-14",
+          "rating": 1711.788,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-19",
+          "rating": 1715.539,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-23",
+          "rating": 1709.84,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-30",
+          "rating": 1713.806,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-02",
+          "rating": 1718.202,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-09",
+          "rating": 1720.892,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-13",
+          "rating": 1731.024,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-16",
+          "rating": 1733.423,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-20",
+          "rating": 1728.163,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-23",
+          "rating": 1730.202,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-02",
+          "rating": 1733.038,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-06",
+          "rating": 1727.32,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-09",
+          "rating": 1729.443,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-13",
+          "rating": 1723.695,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-16",
+          "rating": 1721.728,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-30",
+          "rating": 1731.207,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-06",
+          "rating": 1732.909,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-13",
+          "rating": 1734.973,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-20",
+          "rating": 1724.164,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-27",
+          "rating": 1719.938,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-11",
+          "rating": 1703.536,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-14",
+          "rating": 1700.678,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-18",
+          "rating": 1705.043,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-10",
+          "rating": 1708.139,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-17",
+          "rating": 1706.502,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-24",
+          "rating": 1709.482,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-30",
+          "rating": 1704.553,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-13",
+          "rating": 1705.988,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-17",
+          "rating": 1700.22,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-21",
+          "rating": 1702.228,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-27",
+          "rating": 1702.173,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-30",
+          "rating": 1696.301,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-04",
+          "rating": 1692.895,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-18",
+          "rating": 1682.657,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-22",
+          "rating": 1679.582,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-01",
+          "rating": 1676.969,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-05",
+          "rating": 1669.211,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-09",
+          "rating": 1663.212,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-22",
+          "rating": 1651.821,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-25",
+          "rating": 1646.905,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-02",
+          "rating": 1649.109,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-06",
+          "rating": 1652.679,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-10",
+          "rating": 1660.473,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-14",
+          "rating": 1666.775,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-20",
+          "rating": 1665.747,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-11",
+          "rating": 1689.213,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-14",
+          "rating": 1678.911,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-17",
+          "rating": 1675.35,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-20",
+          "rating": 1685.235,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-24",
+          "rating": 1685.767,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-28",
+          "rating": 1680.602,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-01",
+          "rating": 1677.4,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-08",
+          "rating": 1678.1,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-14",
+          "rating": 1680.762,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-21",
+          "rating": 1677.092,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-01",
+          "rating": 1675.232,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-07",
+          "rating": 1665.843,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-14",
+          "rating": 1671.658,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-22",
+          "rating": 1674.344,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-04",
+          "rating": 1668.248,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-11",
+          "rating": 1671.303,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-25",
+          "rating": 1673.302,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-02",
+          "rating": 1674.029,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-10",
+          "rating": 1666.414,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-17",
+          "rating": 1664.907,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-21",
+          "rating": 1667.856,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-24",
+          "rating": 1665.461,
+          "segment": 0
+        },
+        {
+          "date": "2026-07-23",
+          "rating": 1650.006,
+          "segment": 0
+        },
+        {
+          "date": "2026-07-30",
+          "rating": 1653.133,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-06",
+          "rating": 1655.929,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-09",
+          "rating": 1660.918,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-13",
+          "rating": 1656.046,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-16",
+          "rating": 1653.411,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-20",
+          "rating": 1659.135,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-27",
+          "rating": 1663.952,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-05",
+          "rating": 1684.354,
+          "segment": 0
+        }
+      ]
+    },
+    {
+      "key": "porto",
+      "source_url": "https://clubelo.com/porto",
+      "retrieved_at": "2026-09-09T23:32:14.875539+00:00",
+      "sha256": "a78baf8b6071c97b8edfb69593ab856bea384043df718c84192b473018eded89",
+      "points": [
+        {
+          "date": "2022-09-10",
+          "rating": 1854.076,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-13",
+          "rating": 1833.91,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-17",
+          "rating": 1829.898,
+          "segment": 0
+        },
+        {
+          "date": "2022-09-30",
+          "rating": 1834.302,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-04",
+          "rating": 1838.876,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-08",
+          "rating": 1839.565,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-12",
+          "rating": 1848.848,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-21",
+          "rating": 1842.724,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-26",
+          "rating": 1852.753,
+          "segment": 0
+        },
+        {
+          "date": "2022-10-29",
+          "rating": 1846.839,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-01",
+          "rating": 1850.586,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-05",
+          "rating": 1853.374,
+          "segment": 0
+        },
+        {
+          "date": "2022-11-12",
+          "rating": 1854.951,
+          "segment": 0
+        },
+        {
+          "date": "2022-12-28",
+          "rating": 1855.618,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-07",
+          "rating": 1850.105,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-15",
+          "rating": 1851.593,
+          "segment": 0
+        },
+        {
+          "date": "2023-01-21",
+          "rating": 1853.67,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-01",
+          "rating": 1855.702,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-05",
+          "rating": 1856.489,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-12",
+          "rating": 1861.034,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-18",
+          "rating": 1860.182,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-22",
+          "rating": 1856.005,
+          "segment": 0
+        },
+        {
+          "date": "2023-02-26",
+          "rating": 1842.704,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-04",
+          "rating": 1844.577,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-10",
+          "rating": 1846.014,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-14",
+          "rating": 1845.598,
+          "segment": 0
+        },
+        {
+          "date": "2023-03-19",
+          "rating": 1844.297,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-02",
+          "rating": 1845.608,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-07",
+          "rating": 1852.098,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-15",
+          "rating": 1852.174,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-22",
+          "rating": 1853.933,
+          "segment": 0
+        },
+        {
+          "date": "2023-04-30",
+          "rating": 1855.06,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-08",
+          "rating": 1857.174,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-14",
+          "rating": 1857.547,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-20",
+          "rating": 1860.236,
+          "segment": 0
+        },
+        {
+          "date": "2023-05-27",
+          "rating": 1862.602,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-14",
+          "rating": 1866.184,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-20",
+          "rating": 1866.85,
+          "segment": 0
+        },
+        {
+          "date": "2023-08-28",
+          "rating": 1869.606,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-03",
+          "rating": 1862.52,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-15",
+          "rating": 1863.633,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-19",
+          "rating": 1871.341,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-23",
+          "rating": 1871.355,
+          "segment": 0
+        },
+        {
+          "date": "2023-09-29",
+          "rating": 1865.579,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-04",
+          "rating": 1859.015,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-08",
+          "rating": 1859.22,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-25",
+          "rating": 1866.119,
+          "segment": 0
+        },
+        {
+          "date": "2023-10-29",
+          "rating": 1868.302,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-03",
+          "rating": 1849.749,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-07",
+          "rating": 1853.288,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-11",
+          "rating": 1855.665,
+          "segment": 0
+        },
+        {
+          "date": "2023-11-28",
+          "rating": 1851.784,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-02",
+          "rating": 1855.396,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-09",
+          "rating": 1858.191,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-13",
+          "rating": 1862.637,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-18",
+          "rating": 1855.213,
+          "segment": 0
+        },
+        {
+          "date": "2023-12-29",
+          "rating": 1855.583,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-05",
+          "rating": 1849.764,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-14",
+          "rating": 1854.552,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-20",
+          "rating": 1857.75,
+          "segment": 0
+        },
+        {
+          "date": "2024-01-28",
+          "rating": 1859.647,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-03",
+          "rating": 1852.511,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-12",
+          "rating": 1841.584,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-17",
+          "rating": 1842.468,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-21",
+          "rating": 1848.691,
+          "segment": 0
+        },
+        {
+          "date": "2024-02-25",
+          "rating": 1843.661,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-03",
+          "rating": 1854.099,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-08",
+          "rating": 1855.33,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-12",
+          "rating": 1853.373,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-16",
+          "rating": 1855.103,
+          "segment": 0
+        },
+        {
+          "date": "2024-03-30",
+          "rating": 1842.546,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-07",
+          "rating": 1831.702,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-13",
+          "rating": 1826.102,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-21",
+          "rating": 1826.24,
+          "segment": 0
+        },
+        {
+          "date": "2024-04-28",
+          "rating": 1826.102,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-04",
+          "rating": 1828.134,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-12",
+          "rating": 1829.913,
+          "segment": 0
+        },
+        {
+          "date": "2024-05-18",
+          "rating": 1834.011,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-10",
+          "rating": 1837.58,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-16",
+          "rating": 1842.243,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-24",
+          "rating": 1844.25,
+          "segment": 0
+        },
+        {
+          "date": "2024-08-31",
+          "rating": 1837.865,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-15",
+          "rating": 1839.164,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-21",
+          "rating": 1846.865,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-25",
+          "rating": 1838.413,
+          "segment": 0
+        },
+        {
+          "date": "2024-09-29",
+          "rating": 1841.22,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-03",
+          "rating": 1841.037,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-06",
+          "rating": 1843.733,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-24",
+          "rating": 1847.334,
+          "segment": 0
+        },
+        {
+          "date": "2024-10-28",
+          "rating": 1849.767,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-03",
+          "rating": 1851.45,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-07",
+          "rating": 1847.556,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-10",
+          "rating": 1839.283,
+          "segment": 0
+        },
+        {
+          "date": "2024-11-28",
+          "rating": 1838.133,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-02",
+          "rating": 1839.613,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-07",
+          "rating": 1835.68,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-12",
+          "rating": 1838.671,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-16",
+          "rating": 1839.644,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-21",
+          "rating": 1843.689,
+          "segment": 0
+        },
+        {
+          "date": "2024-12-28",
+          "rating": 1824.042,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-12",
+          "rating": 1805.699,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-19",
+          "rating": 1790.965,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-23",
+          "rating": 1780.211,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-26",
+          "rating": 1775.289,
+          "segment": 0
+        },
+        {
+          "date": "2025-01-30",
+          "rating": 1781.043,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-03",
+          "rating": 1776.95,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-07",
+          "rating": 1777.22,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-13",
+          "rating": 1774.214,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-16",
+          "rating": 1775.856,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-20",
+          "rating": 1771.69,
+          "segment": 0
+        },
+        {
+          "date": "2025-02-24",
+          "rating": 1768.293,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-01",
+          "rating": 1771.301,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-08",
+          "rating": 1766.781,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-15",
+          "rating": 1766.462,
+          "segment": 0
+        },
+        {
+          "date": "2025-03-30",
+          "rating": 1768.476,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-06",
+          "rating": 1759.707,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-12",
+          "rating": 1761.955,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-18",
+          "rating": 1763.977,
+          "segment": 0
+        },
+        {
+          "date": "2025-04-26",
+          "rating": 1748.403,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-02",
+          "rating": 1751.034,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-11",
+          "rating": 1752.603,
+          "segment": 0
+        },
+        {
+          "date": "2025-05-17",
+          "rating": 1754.786,
+          "segment": 0
+        },
+        {
+          "date": "2025-06-15",
+          "rating": 1756.397,
+          "segment": 0
+        },
+        {
+          "date": "2025-06-19",
+          "rating": 1747.539,
+          "segment": 0
+        },
+        {
+          "date": "2025-06-23",
+          "rating": 1744.902,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-11",
+          "rating": 1751.538,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-18",
+          "rating": 1754.921,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-24",
+          "rating": 1758.166,
+          "segment": 0
+        },
+        {
+          "date": "2025-08-30",
+          "rating": 1766.165,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-13",
+          "rating": 1767.769,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-19",
+          "rating": 1771.385,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-25",
+          "rating": 1777.462,
+          "segment": 0
+        },
+        {
+          "date": "2025-09-29",
+          "rating": 1781.931,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-02",
+          "rating": 1784.877,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-05",
+          "rating": 1785.464,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-23",
+          "rating": 1777.57,
+          "segment": 0
+        },
+        {
+          "date": "2025-10-27",
+          "rating": 1780.126,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-02",
+          "rating": 1783.086,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-06",
+          "rating": 1779.745,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-09",
+          "rating": 1782.808,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-27",
+          "rating": 1789.283,
+          "segment": 0
+        },
+        {
+          "date": "2025-11-30",
+          "rating": 1789.786,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-07",
+          "rating": 1790.431,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-11",
+          "rating": 1793.353,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-15",
+          "rating": 1794.75,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-22",
+          "rating": 1798.32,
+          "segment": 0
+        },
+        {
+          "date": "2025-12-29",
+          "rating": 1820.336,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-04",
+          "rating": 1822.046,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-18",
+          "rating": 1824.45,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-22",
+          "rating": 1823.014,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-26",
+          "rating": 1825.786,
+          "segment": 0
+        },
+        {
+          "date": "2026-01-29",
+          "rating": 1829.762,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-02",
+          "rating": 1818.784,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-09",
+          "rating": 1819.535,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-15",
+          "rating": 1821.46,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-22",
+          "rating": 1821.585,
+          "segment": 0
+        },
+        {
+          "date": "2026-02-27",
+          "rating": 1822.961,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-08",
+          "rating": 1823.212,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-12",
+          "rating": 1828.388,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-15",
+          "rating": 1831.079,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-19",
+          "rating": 1837.917,
+          "segment": 0
+        },
+        {
+          "date": "2026-03-22",
+          "rating": 1841.678,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-04",
+          "rating": 1836.365,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-09",
+          "rating": 1833.99,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-12",
+          "rating": 1836.688,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-16",
+          "rating": 1833.226,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-19",
+          "rating": 1834.942,
+          "segment": 0
+        },
+        {
+          "date": "2026-04-26",
+          "rating": 1836.758,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-02",
+          "rating": 1838.898,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-10",
+          "rating": 1820.112,
+          "segment": 0
+        },
+        {
+          "date": "2026-05-16",
+          "rating": 1821.659,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-09",
+          "rating": 1802.984,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-15",
+          "rating": 1804.967,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-23",
+          "rating": 1806.829,
+          "segment": 0
+        },
+        {
+          "date": "2026-08-29",
+          "rating": 1809.617,
+          "segment": 0
+        },
+        {
+          "date": "2026-09-04",
+          "rating": 1832.339,
+          "segment": 0
+        }
+      ]
+    }
+  ],
+  "spells": [
+    {
+      "id": "de-zerbi-spurs",
+      "coachKey": "de-zerbi",
+      "coach": "Roberto De Zerbi",
+      "club": "Tottenham",
+      "clubKey": "Tottenham",
+      "start": "2026-03-31",
+      "end": null,
+      "startLabel": "31 Mar 2026",
+      "startSource": "https://www.premierleague.com/en/news/4623591/spurs-appoint-roberto-de-zerbi-as-new-head-coach",
+      "endSource": null,
+      "question": "Does any improvement survive beyond the first few matches? Read the recent league and cup results alongside this rating."
+    },
+    {
+      "id": "de-zerbi-brighton",
+      "coachKey": "de-zerbi",
+      "coach": "Roberto De Zerbi",
+      "club": "Brighton",
+      "clubKey": "Brighton",
+      "start": "2022-09-18",
+      "end": "2024-05-19",
+      "startLabel": "18 Sep 2022",
+      "startSource": "https://www.premierleague.com/en/news/2796882",
+      "endSource": "https://www.premierleague.com/en/news/4016262",
+      "question": "How much of the peak was sustained, and what changed with the squad and European workload?"
+    },
+    {
+      "id": "mckenna-ipswich",
+      "coachKey": "mckenna",
+      "coach": "Kieran McKenna",
+      "club": "Ipswich",
+      "clubKey": "Ipswich",
+      "start": "2021-12-16",
+      "end": "2026-06-10",
+      "startLabel": "16 Dec 2021",
+      "startSource": "https://www.itfc.co.uk/news/2021/december/kieran-mckenna-named-ipswich-town-manager/",
+      "endSource": "https://www.itfc.co.uk/news/2026/june/10/kieran-mckenna-to-step-down-as-ipswich-town-manager/",
+      "question": "Examine the promotion rise, Premier League setback and subsequent recovery separately. What would transfer to Tottenham?"
+    },
+    {
+      "id": "hoeness-stuttgart",
+      "coachKey": "hoeness",
+      "coach": "Sebastian Hoeneß",
+      "club": "Stuttgart",
+      "clubKey": "Stuttgart",
+      "start": "2023-04-03",
+      "end": null,
+      "startLabel": "3 Apr 2023",
+      "startSource": "https://www.vfb.de/en/vfb/latest/news/professionals/2223/sebastian-hoeness-uebernimmt-als-cheftrainer/",
+      "endSource": null,
+      "question": "Was the improvement sustained after the initial turnaround, and through changes in players and competition?"
+    },
+    {
+      "id": "knutsen-bodo",
+      "coachKey": "knutsen",
+      "coach": "Kjetil Knutsen",
+      "club": "Bodø/Glimt",
+      "clubKey": "BodoeGlimt",
+      "start": "2018-01-01",
+      "end": null,
+      "startLabel": "2018 (year only)",
+      "startSource": "https://www.glimt.no/nyheter/kjetil-knutsen-mottar-kniksens-aerespris--ikke-noe-kodd-na",
+      "endSource": null,
+      "question": "Test how much depends on the club structure and established playing model. This chart starts well after he became head coach."
+    },
+    {
+      "id": "silva-fulham",
+      "coachKey": "silva",
+      "coach": "Marco Silva",
+      "club": "Fulham",
+      "clubKey": "Fulham",
+      "start": "2021-07-01",
+      "end": "2026-06-02",
+      "startLabel": "1 Jul 2021",
+      "startSource": "https://www.fulhamfc.com/news/2021/july/Fulham-Appoint-Marco-Silva/",
+      "endSource": "https://www.fulhamfc.com/news/2026/june/02/marco-silva-to-leave-fulham/",
+      "question": "Does the longer trend support reliable Premier League improvement, and how much further could that model take a stronger squad?"
+    },
+    {
+      "id": "terzic-dortmund",
+      "coachKey": "terzic",
+      "coach": "Edin Terzić",
+      "club": "Dortmund",
+      "clubKey": "Dortmund",
+      "start": "2022-07-01",
+      "end": "2024-06-13",
+      "startLabel": "1 Jul 2022",
+      "startSource": "https://www.bundesliga.com/en/bundesliga/news/history-of-borussia-dortmund-head-coaches-klopp-tuchel-hitzfeld-34802",
+      "endSource": "https://aktie.bvb.de/en/news/borussia-dortmund-und-edin-terzic-beenden-ihre-zusammenarbeit-mit-sofortiger-wirkung/38e0a13a-c0d1-468a-b8d9-035db39bfc95",
+      "question": "Separate the European run from the domestic trajectory. A strong tournament does not by itself establish repeatable league performance."
+    },
+    {
+      "id": "farioli-porto",
+      "coachKey": "farioli",
+      "coach": "Francesco Farioli",
+      "club": "Porto",
+      "clubKey": "porto",
+      "start": "2025-07-06",
+      "end": null,
+      "startLabel": "6 Jul 2025",
+      "startSource": "https://www.fcporto.pt/pt/noticias/20250706-pt-francesco-farioli-e-o-novo-treinador-do-fc-porto",
+      "endSource": null,
+      "question": "Does the pattern repeat in a different league and squad? Use the Ajax spell as a separate comparison, not a joined career rating."
+    },
+    {
+      "id": "farioli-ajax",
+      "coachKey": "farioli",
+      "coach": "Francesco Farioli",
+      "club": "Ajax",
+      "clubKey": "Ajax",
+      "start": "2024-06-11",
+      "end": "2025-05-19",
+      "startLabel": "11 Jun 2024",
+      "startSource": "https://www.ajax.nl/artikelen/francesco-farioli-nieuwe-trainer-ajax",
+      "endSource": "https://english.ajax.nl/articles/francesco-farioli-decides-to-leave-ajax",
+      "question": "Did the improvement persist through the run-in? Inspect the end of the spell as carefully as the peak."
+    }
+  ]
+}

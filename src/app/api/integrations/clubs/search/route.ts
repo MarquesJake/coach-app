@@ -26,11 +26,13 @@ export async function GET(req: NextRequest) {
   const url = `https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${encodeURIComponent(q.trim())}`
 
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } })
-    if (!res.ok) return NextResponse.json({ results: [] })
+    const res = await fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(10000) })
+    if (!res.ok) throw new Error('Club search provider unavailable')
 
     const data = await res.json()
+    if (!data || !('teams' in data) || (data.teams !== null && !Array.isArray(data.teams))) throw new Error('Invalid club search response')
     const teams: SportsDBTeam[] = data.teams ?? []
+    if (teams.some(team => !team || typeof team.idTeam !== 'string' || typeof team.strTeam !== 'string')) throw new Error('Invalid club record')
 
     const results = teams
       .filter((t) => t.strSport === 'Soccer')
@@ -51,6 +53,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ results })
   } catch {
-    return NextResponse.json({ results: [] })
+    return NextResponse.json({ error: 'Club search is temporarily unavailable. Please retry.' }, { status: 502 })
   }
 }

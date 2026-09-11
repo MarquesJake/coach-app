@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { currentRosterSeasonCandidates } from '@/lib/integrations/football-season'
 
 const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY!
 export const dynamic = 'force-dynamic'
@@ -26,20 +27,6 @@ type APIFootballTeam = {
     city: string | null
     capacity: number | null
   }
-}
-
-function getCurrentFootballSeasonStartYear(): number {
-  const now = new Date()
-  const year = now.getUTCFullYear()
-  const month = now.getUTCMonth() + 1
-  // European football seasons roll over around July.
-  return month >= 7 ? year : year - 1
-}
-
-function getSeasonCandidates(): number[] {
-  const current = getCurrentFootballSeasonStartYear()
-  const preferred = [current, current - 1, 2024, 2023, 2022]
-  return Array.from(new Set(preferred)).filter((y) => y >= 2022)
 }
 
 export async function POST() {
@@ -70,8 +57,7 @@ export async function POST() {
   const log: string[] = []
   const errors: string[] = []
   let successfulLeagues = 0
-  const seenExternalIds = new Set<string>()
-  const seasonCandidates = getSeasonCandidates()
+  const seasonCandidates = currentRosterSeasonCandidates()
   let usedSeason: number | null = null
 
   for (const league of LEAGUES) {
@@ -94,6 +80,10 @@ export async function POST() {
         continue
       }
       teams = (data.response ?? []) as APIFootballTeam[]
+      if (!teams.length) {
+        lastLeagueError = `${league.label}: no current-season teams available for ${season}; existing records retained`
+        continue
+      }
       leagueSeasonUsed = season
       usedSeason = season
       break
@@ -107,7 +97,6 @@ export async function POST() {
 
     for (const { team, venue } of teams) {
       const extId = String(team.id)
-      seenExternalIds.add(extId)
       const existing_by_id = byExternalId.get(extId)
       const existing_by_name = byName.get(team.name.toLowerCase().trim())
       const existingRecord = existing_by_id ?? existing_by_name
@@ -153,47 +142,7 @@ export async function POST() {
     log.push(`${league.label} (${leagueSeasonUsed}/${String(leagueSeasonUsed + 1).slice(-2)}): ${teams.length} clubs`)
   }
 
-  // Clean up any remaining stale TheSportsDB-only entries that are now duplicated
-  // (clubs that were seeded with thesportsdb but now have an api-football twin by name)
-  const { data: allClubs } = await supabase
-    .from('clubs')
-    .select('id, name, external_source')
-
-  const apiFootballNames = new Set(
-    (allClubs ?? [])
-      .filter(c => c.external_source === 'api-football')
-      .map(c => c.name.toLowerCase().trim())
-  )
-  const staleIds = (allClubs ?? [])
-    .filter(c => c.external_source !== 'api-football' && apiFootballNames.has(c.name.toLowerCase().trim()))
-    .map(c => c.id)
-
-  let cleaned = 0
-  if (staleIds.length > 0) {
-    const { error: cleanupErr } = await supabase.from('clubs').delete().in('id', staleIds)
-    if (cleanupErr) errors.push(`cleanup duplicate stale: ${cleanupErr.message}`)
-    else cleaned = staleIds.length
-  }
-
-  // Remove stale API-Football clubs from tracked English divisions that are no longer present this season.
-  const leagueLabels = LEAGUES.map((l) => l.label)
-  const { data: englishApiClubs } = await supabase
-    .from('clubs')
-    .select('id, external_id, league')
-    .eq('external_source', 'api-football')
-    .eq('country', 'England')
-    .in('league', leagueLabels)
-
-  const staleSeasonIds = (englishApiClubs ?? [])
-    .filter((c) => c.external_id && !seenExternalIds.has(c.external_id))
-    .map((c) => c.id)
-
-  let removedStaleSeason = 0
-  if (staleSeasonIds.length > 0) {
-    const { error: seasonCleanupErr } = await supabase.from('clubs').delete().in('id', staleSeasonIds)
-    if (seasonCleanupErr) errors.push(`cleanup season stale: ${seasonCleanupErr.message}`)
-    else removedStaleSeason = staleSeasonIds.length
-  }
+  // Missing provider rows and name matches are not authority to delete client records.
 
   return NextResponse.json({
     ok: successfulLeagues > 0,
@@ -201,8 +150,8 @@ export async function POST() {
     successful_leagues: successfulLeagues,
     added,
     updated,
-    cleaned,
-    removed_stale_season: removedStaleSeason,
+    cleaned: 0,
+    removed_stale_season: 0,
     season: usedSeason,
     season_candidates: seasonCandidates,
     log,

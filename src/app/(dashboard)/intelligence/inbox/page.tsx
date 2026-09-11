@@ -2,11 +2,21 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { IntelligenceInboxClient, type IntelligenceInboxItem } from '../_components/intelligence-inbox-client'
 import { displayClubName } from '@/lib/display-names'
+import { readResearchContext, captureResearchContext, type ResearchParams } from '@/lib/research-context'
 
-export default async function IntelligenceInboxPage() {
+export const metadata = { title: 'Inbox · Research & sources' }
+
+
+export default async function IntelligenceInboxPage({ searchParams }: { searchParams: Promise<ResearchParams> }) {
+  const context = captureResearchContext(readResearchContext(await searchParams))
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  let questionQuery = supabase.from('coach_research_questions').select('id,question,coach_id,mandate_id')
+  if (context.coach) questionQuery = questionQuery.eq('coach_id', context.coach)
+  questionQuery = context.mandate ? questionQuery.eq('mandate_id', context.mandate) : questionQuery.is('mandate_id', null)
+  const questions = await questionQuery
+  if (questions.error) return <p role="alert">Research questions could not be loaded. Reload before capturing question-specific material.</p>
 
   const [
     inboxRes,
@@ -53,6 +63,7 @@ export default async function IntelligenceInboxPage() {
   return (
     <IntelligenceInboxClient
       items={items}
+      questions={questions.data ?? []}
       coaches={coaches}
       clubs={clubs}
       agents={agents}

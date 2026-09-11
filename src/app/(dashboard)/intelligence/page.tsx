@@ -1,4 +1,7 @@
-import Link from 'next/link'
+import { evidenceLabel } from '@/lib/display-copy'
+import { evidenceStatus } from '@/lib/decision-workflow'
+import { ResearchQueue } from '@/components/research-queue'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { redirect } from 'next/navigation'
 import {
   ArrowRight,
@@ -12,6 +15,9 @@ import {
 } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
+
+export const metadata = { title: 'Research & sources' }
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -50,14 +56,13 @@ function entityHref(signal: Signal) {
 function statusLabel(signal: Signal, now: Date) {
   if (signal.source_expires_at && new Date(signal.source_expires_at) < now) return 'Refresh required'
   if (signal.sensitivity?.toLowerCase() === 'high') return 'Sensitive'
-  if (signal.verified) return 'Verified'
-  return 'Needs review'
+  return evidenceLabel(evidenceStatus(signal, now.getTime()))
 }
 
 function statusClass(signal: Signal, now: Date) {
   if (signal.source_expires_at && new Date(signal.source_expires_at) < now) return 'border-amber-700/20 bg-amber-50 text-amber-900'
   if (signal.sensitivity?.toLowerCase() === 'high') return 'border-red-700/20 bg-red-50 text-red-900'
-  if (signal.verified) return 'border-emerald-700/20 bg-emerald-50 text-emerald-900'
+  if (evidenceStatus(signal, now.getTime()) === 'Verified record') return 'border-emerald-700/20 bg-emerald-50 text-emerald-900'
   return 'border-border bg-muted/40 text-muted-foreground'
 }
 
@@ -157,25 +162,26 @@ export default async function IntelligencePage() {
     <div className="mx-auto w-full max-w-[1320px] space-y-5">
       <header className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Internal decision desk</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Research</p>
           <h2 className="mt-2 font-serif text-2xl font-semibold text-foreground">Current work</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Current signals and the work needed to turn football knowledge into approved, usable evidence.
+            Review new information, check sources and follow up open questions.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/intelligence/inbox" className="inline-flex h-9 items-center gap-2 border border-border bg-card px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/35">
-            <Inbox className="h-4 w-4" />Triage intake
+            <Inbox className="h-4 w-4" />Review inbox
           </Link>
           <Link href="/intelligence/conversations" className="inline-flex h-9 items-center gap-2 bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-            <MessageSquarePlus className="h-4 w-4" />Capture conversation
+            <MessageSquarePlus className="h-4 w-4" />Record conversation
           </Link>
         </div>
       </header>
+<ResearchQueue />
 
       <section className="grid border border-border bg-card sm:grid-cols-2 xl:grid-cols-4">
-        <WorkCard icon={Inbox} eyebrow="Intake" value={inboxCount} label="items to triage" detail="Raw material stays outside recommendations until reviewed." href="/intelligence/inbox" />
-        <WorkCard icon={MessageSquarePlus} eyebrow="Conversations" value={openSessions} label="sessions in review" detail="Turn notes or transcripts into narrow, reviewable findings." href="/intelligence/conversations" />
+        <WorkCard icon={Inbox} eyebrow="Intake" value={inboxCount} label="items to review" detail="Review sources before using them in recommendations." href="/intelligence/inbox" />
+        <WorkCard icon={MessageSquarePlus} eyebrow="Conversations" value={openSessions} label="sessions in review" detail="Check findings from notes and transcripts." href="/intelligence/conversations" />
         <WorkCard icon={ClipboardCheck} eyebrow="Findings" value={pendingClaims} label="findings awaiting sign-off" detail="Only reviewed findings strengthen a profile or assessment." href="/intelligence/review" />
         <WorkCard icon={Clock3} eyebrow="Network" value={overdueFollowUps} label="overdue follow-ups" detail={nextCampaign ?? `${activeCampaigns} active reference round${activeCampaigns === 1 ? '' : 's'}.`} href="/network/campaigns" />
       </section>
@@ -185,7 +191,7 @@ export default async function IntelligencePage() {
           <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Live signals</p>
-              <h2 className="mt-1 text-base font-semibold text-foreground">Current, discrete intelligence only</h2>
+              <h2 className="mt-1 text-base font-semibold text-foreground">Recent findings</h2>
             </div>
             <p className="text-xs text-muted-foreground">Assessment evidence, references and private materials live in their relevant workspaces.</p>
           </div>
@@ -196,8 +202,8 @@ export default async function IntelligencePage() {
               <h3 className="mt-4 text-base font-semibold text-foreground">The live feed is clear</h3>
               <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Capture the next real conversation or triage a new source. It will enter the evidence process before it appears as a usable signal.</p>
               <div className="mt-5 flex flex-wrap justify-center gap-2">
-                <Link href="/intelligence/conversations" className="inline-flex h-9 items-center gap-2 bg-primary px-3 text-sm font-semibold text-primary-foreground"><MessageSquarePlus className="h-4 w-4" />Capture conversation</Link>
-                <Link href="/intelligence/inbox" className="inline-flex h-9 items-center gap-2 border border-border bg-card px-3 text-sm font-medium text-foreground"><Inbox className="h-4 w-4" />Triage intake</Link>
+                <Link href="/intelligence/conversations" className="inline-flex h-9 items-center gap-2 bg-primary px-3 text-sm font-semibold text-primary-foreground"><MessageSquarePlus className="h-4 w-4" />Record conversation</Link>
+                <Link href="/intelligence/inbox" className="inline-flex h-9 items-center gap-2 border border-border bg-card px-3 text-sm font-medium text-foreground"><Inbox className="h-4 w-4" />Review inbox</Link>
               </div>
             </div>
           ) : (

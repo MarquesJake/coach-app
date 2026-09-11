@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
+import { captureAgentResult } from '@/lib/agents/forms'
 import { useRouter } from 'next/navigation'
 import { createAgentAction } from '../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
@@ -11,7 +12,9 @@ const LABEL_CLASS = 'block text-xs font-medium text-foreground mb-1.5'
 
 export function NewAgentForm() {
   const router = useRouter()
+  const fieldId = useId()
   const [loading, setLoading] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [form, setForm] = useState({
     full_name: '',
     agency_name: '',
@@ -27,6 +30,7 @@ export function NewAgentForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (loading) return
     const name = form.full_name.trim()
     if (!name) {
       toastError('Name is required')
@@ -37,6 +41,7 @@ export function NewAgentForm() {
       return
     }
     setLoading(true)
+    setSaveError(null)
     const fd = new FormData()
     fd.set('full_name', name)
     fd.set('agency_name', form.agency_name.trim())
@@ -48,9 +53,10 @@ export function NewAgentForm() {
     fd.set('whatsapp', form.whatsapp.trim())
     fd.set('phone', form.phone.trim())
     fd.set('notes', form.notes.trim())
-    const result = await createAgentAction(fd)
+    const result = await captureAgentResult(() => createAgentAction(fd))
     setLoading(false)
     if (!result.ok) {
+      setSaveError(result.error)
       toastError(result.error)
       return
     }
@@ -61,9 +67,10 @@ export function NewAgentForm() {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-5 space-y-4">
+      {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
       <div>
-        <label className={LABEL_CLASS}>Full name *</label>
-        <input
+        <label htmlFor={`${fieldId}-full_name`} className={LABEL_CLASS}>Full name *</label>
+        <input id={`${fieldId}-full_name`}
           type="text"
           value={form.full_name}
           onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
@@ -73,8 +80,8 @@ export function NewAgentForm() {
         />
       </div>
       <div>
-        <label className={LABEL_CLASS}>Agency</label>
-        <input
+        <label htmlFor={`${fieldId}-agency_name`} className={LABEL_CLASS}>Agency</label>
+        <input id={`${fieldId}-agency_name`}
           type="text"
           value={form.agency_name}
           onChange={(e) => setForm((f) => ({ ...f, agency_name: e.target.value }))}
@@ -83,8 +90,8 @@ export function NewAgentForm() {
         />
       </div>
       <div>
-        <label className={LABEL_CLASS}>Base location</label>
-        <input
+        <label htmlFor={`${fieldId}-base_location`} className={LABEL_CLASS}>Base location</label>
+        <input id={`${fieldId}-base_location`}
           type="text"
           value={form.base_location}
           onChange={(e) => setForm((f) => ({ ...f, base_location: e.target.value }))}
@@ -93,8 +100,8 @@ export function NewAgentForm() {
         />
       </div>
       <div>
-        <label className={LABEL_CLASS}>Markets (comma-separated)</label>
-        <input
+        <label htmlFor={`${fieldId}-markets`} className={LABEL_CLASS}>Markets (comma-separated)</label>
+        <input id={`${fieldId}-markets`}
           type="text"
           value={form.markets}
           onChange={(e) => setForm((f) => ({ ...f, markets: e.target.value }))}
@@ -103,8 +110,8 @@ export function NewAgentForm() {
         />
       </div>
       <div>
-        <label className={LABEL_CLASS}>Languages (comma-separated)</label>
-        <input
+        <label htmlFor={`${fieldId}-languages`} className={LABEL_CLASS}>Languages (comma-separated)</label>
+        <input id={`${fieldId}-languages`}
           type="text"
           value={form.languages}
           onChange={(e) => setForm((f) => ({ ...f, languages: e.target.value }))}
@@ -113,8 +120,8 @@ export function NewAgentForm() {
         />
       </div>
       <div>
-        <label className={LABEL_CLASS}>Preferred contact channel</label>
-        <select
+        <label htmlFor={`${fieldId}-preferred_contact_channel`} className={LABEL_CLASS}>Preferred contact channel</label>
+        <select id={`${fieldId}-preferred_contact_channel`}
           value={form.preferred_contact_channel}
           onChange={(e) => setForm((f) => ({ ...f, preferred_contact_channel: e.target.value }))}
           className={INPUT_CLASS}
@@ -147,12 +154,12 @@ export function NewAgentForm() {
         </div>
       </div>
       <div>
-        <label className={LABEL_CLASS}>Notes</label>
-        <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} className={INPUT_CLASS + ' min-h-[80px]'} placeholder="Optional" />
+        <label htmlFor={`${fieldId}-notes`} className={LABEL_CLASS}>Notes</label>
+        <textarea id={`${fieldId}-notes`} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} className={INPUT_CLASS + ' min-h-[80px]'} placeholder="Optional" />
       </div>
       <div className="flex gap-2 pt-2">
         <Button type="submit" disabled={loading}>{loading ? 'Creating…' : 'Create agent'}</Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
+        <Button type="button" variant="outline" disabled={loading} onClick={() => router.push('/agents')}>Cancel</Button>
       </div>
     </form>
   )

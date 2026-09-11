@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { toastSuccess, toastError } from '@/lib/ui/toast'
+import { toastSuccess } from '@/lib/ui/toast'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
+import { useClubLoad } from '../../_components/use-club-load'
 import { Plus } from 'lucide-react'
 
 const REASON_OPTIONS = [
@@ -53,16 +54,21 @@ function formatDate(d: string | null) {
 
 function tenure(start: string | null, end: string | null) {
   if (!start && !end) return '—'
-  return `${formatDate(start)} – ${end ? formatDate(end) : 'Present'}`
+  return `${formatDate(start)} – ${end ? formatDate(end) : 'End not recorded'}`
 }
 
 export default function ClubCoachesPage() {
   const params = useParams()
-  const router = useRouter()
   const clubId = params.id as string
+  return <CoachingHistory key={clubId} clubId={clubId} />
+}
 
-  const [rows, setRows] = useState<HistoryRow[]>([])
-  const [loading, setLoading] = useState(true)
+function CoachingHistory({ clubId }: { clubId: string }) {
+  const router = useRouter()
+
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const mutationLock = useRef(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({
@@ -73,20 +79,15 @@ export default function ClubCoachesPage() {
     style_tags: [] as string[],
   })
 
-  async function load() {
+  const { data, loading, error: loadError, retry } = useClubLoad(clubId, async () => {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
-    const { data } = await supabase
-      .from('club_coaching_history')
-      .select('*')
-      .eq('club_id', clubId)
-      .order('start_date', { ascending: false })
-    setRows(((data ?? []) as unknown) as HistoryRow[])
-    setLoading(false)
-  }
-
-  useEffect(() => { load() }, [clubId]) // eslint-disable-line react-hooks/exhaustive-deps
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) throw new Error('Sign in again')
+    const { data, error } = await supabase.from('club_coaching_history').select('*').eq('club_id', clubId).order('start_date', { ascending: false })
+    if (error) throw error
+    return (data ?? []) as HistoryRow[]
+  }, 'Coaching history could not be loaded. Retry or sign in again.')
+  const rows = data ?? []
 
   function toggleTag(tag: string) {
     setForm((f) => ({
@@ -99,13 +100,21 @@ export default function ClubCoachesPage() {
 
   async function handleAdd() {
     if (!form.coach_name.trim()) {
-      toastError('Coach name is required')
+      setActionError('Coach name is required')
       return
     }
+    if (form.start_date && form.end_date && form.end_date < form.start_date) {
+      setActionError('End date must be on or after the start date.')
+      return
+    }
+    if (mutationLock.current) return
+    mutationLock.current = true
+    setActionError(null)
     setSubmitting(true)
+    try {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setSubmitting(false); return }
+    if (!user) throw new Error('Sign in again')
 
     const { error } = await supabase.from('club_coaching_history').insert({
       user_id: user.id,
@@ -116,32 +125,33 @@ export default function ClubCoachesPage() {
       reason_for_exit: form.reason_for_exit || null,
       style_tags: form.style_tags,
     })
-    setSubmitting(false)
-    if (error) {
-      toastError(error.message)
-      return
-    }
+    if (error) throw error
     toastSuccess('Entry added')
     setDrawerOpen(false)
     setForm({ coach_name: '', start_date: '', end_date: '', reason_for_exit: '', style_tags: [] })
-    await load()
+    retry()
     router.refresh()
+    } catch { setActionError('Save could not be confirmed. Your entries are kept. Check records before retrying.') }
+    finally { mutationLock.current = false; setSubmitting(false) }
   }
 
   async function handleDelete(entryId: string) {
-    if (!confirm('Remove this coaching history entry?')) return
-    const supabase = createClient()
-    const { error } = await supabase.from('club_coaching_history').delete().eq('id', entryId)
-    if (error) {
-      toastError(error.message)
-      return
-    }
-    toastSuccess('Entry removed')
-    await load()
-    router.refresh()
+    if (mutationLock.current || !confirm('Remove this coaching history entry?')) return
+    mutationLock.current = true
+    setDeleting(entryId)
+    setActionError(null)
+    try {
+      const supabase = createClient()
+      const { data: removed, error } = await supabase.from('club_coaching_history').delete().eq('id', entryId).select('id').maybeSingle()
+      if (error || !removed) throw new Error('Removal not confirmed')
+      toastSuccess('Entry removed')
+      retry()
+      router.refresh()
+    } catch { setActionError('Removal could not be confirmed. Reload records before retrying.') }
+    finally { mutationLock.current = false; setDeleting(null) }
   }
 
-  if (loading) {
+  if (loading && !drawerOpen) {
     return (
       <section className="rounded-lg border border-border bg-card p-6">
         <p className="text-sm text-muted-foreground">Loading…</p>
@@ -151,6 +161,7 @@ export default function ClubCoachesPage() {
 
   return (
     <div className="space-y-6">
+      {actionError && !drawerOpen && <p role="alert" className="text-sm text-destructive">{actionError}</p>}
       <section className="rounded-lg border border-border bg-card overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-sm font-medium text-foreground">Coaching history</h2>
@@ -160,13 +171,13 @@ export default function ClubCoachesPage() {
           </Button>
         </div>
 
-        {rows.length === 0 ? (
+        {loadError ? <div role="alert" className="p-6 space-y-2 text-sm"><p>{loadError}</p><button type="button" onClick={retry} className="underline">Retry loading history</button></div> : loading ? <p role="status" className="p-6 text-sm">Loading history...</p> : rows.length === 0 ? (
           <div className="px-6 py-8 text-center">
             <p className="text-sm text-muted-foreground">No coaching history yet.</p>
             <p className="text-xs text-muted-foreground mt-1">Add entries to build a picture of this club&apos;s managerial past.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div role="region" aria-label="Coaching history records" tabIndex={0} className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface/50">
@@ -214,6 +225,7 @@ export default function ClubCoachesPage() {
                     <td className="px-5 py-3">
                       <button
                         type="button"
+                        disabled={!!deleting || submitting}
                         onClick={() => handleDelete(row.id)}
                         className="text-xs text-red-600 dark:text-red-400 hover:underline"
                       >
@@ -230,7 +242,7 @@ export default function ClubCoachesPage() {
 
       <Drawer
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => { if (!submitting) setDrawerOpen(false) }}
         title="Add coaching entry"
         footer={
           <Button onClick={handleAdd} disabled={submitting}>
@@ -238,11 +250,13 @@ export default function ClubCoachesPage() {
           </Button>
         }
       >
-        <div className="space-y-4">
+        <fieldset disabled={submitting} className="min-w-0 space-y-4">
+          {actionError && <div role="alert" className="space-y-2 text-sm text-destructive"><p>{actionError}</p><button type="button" onClick={retry} className="underline">Reload recorded history</button></div>}
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Coach name <span className="text-red-500">*</span></label>
             <input
               type="text"
+              aria-label="coach name"
               value={form.coach_name}
               onChange={(e) => setForm((f) => ({ ...f, coach_name: e.target.value }))}
               placeholder="e.g. Jürgen Klopp"
@@ -254,7 +268,8 @@ export default function ClubCoachesPage() {
               <label className="block text-xs font-medium text-foreground mb-1">Start date</label>
               <input
                 type="date"
-                value={form.start_date}
+                aria-label="start date"
+              value={form.start_date}
                 onChange={(e) => setForm((f) => ({ ...f, start_date: e.target.value }))}
                 className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
               />
@@ -263,7 +278,8 @@ export default function ClubCoachesPage() {
               <label className="block text-xs font-medium text-foreground mb-1">End date</label>
               <input
                 type="date"
-                value={form.end_date}
+                aria-label="end date"
+              value={form.end_date}
                 onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))}
                 className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
               />
@@ -272,6 +288,7 @@ export default function ClubCoachesPage() {
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">Reason for exit</label>
             <select
+              aria-label="reason for exit"
               value={form.reason_for_exit}
               onChange={(e) => setForm((f) => ({ ...f, reason_for_exit: e.target.value }))}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
@@ -291,6 +308,7 @@ export default function ClubCoachesPage() {
                   <button
                     key={tag}
                     type="button"
+                    aria-pressed={selected}
                     onClick={() => toggleTag(tag)}
                     className={`px-2.5 py-1 rounded border text-[11px] font-medium transition-colors ${
                       selected
@@ -304,7 +322,7 @@ export default function ClubCoachesPage() {
               })}
             </div>
           </div>
-        </div>
+        </fieldset>
       </Drawer>
     </div>
   )

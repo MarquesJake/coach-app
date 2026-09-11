@@ -42,15 +42,16 @@ export function PageState(props: PageStateProps) {
 
   if (props.state === 'loading') {
     return (
-      <div className={wrapperClass}>
+      <div className={wrapperClass} role="status" aria-live="polite">
         <Spinner />
+        <span className="sr-only">Loading this page...</span>
       </div>
     )
   }
 
   if (props.state === 'error') {
     return (
-      <div className={`${wrapperClass} p-4`}>
+      <div className={`${wrapperClass} p-4`} role="alert">
         <div className="card-surface rounded-xl p-8 max-w-sm w-full text-center">
           <h2 className="text-sm font-semibold text-foreground">Something went wrong</h2>
           <p className="text-xs text-muted-foreground mt-2">{props.message}</p>

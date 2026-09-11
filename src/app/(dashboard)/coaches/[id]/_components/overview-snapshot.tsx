@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle, MapPin, TrendingUp, Shield, BarChart3 } from 'lucide-react'
@@ -169,7 +169,7 @@ function AppointmentFeasibility({ coach, coachId }: { coach: CoachRecord; coachI
     <section className="rounded-lg border border-border bg-card p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-lg font-medium text-foreground">Appointment feasibility</h2>
+          <h2 className="text-lg font-medium text-foreground">Availability and terms</h2>
           <p className="mt-1 text-xs text-muted-foreground">
             Verified contract, financial, family and staff context used in club assessments.
           </p>
@@ -209,7 +209,7 @@ function AppointmentFeasibility({ coach, coachId }: { coach: CoachRecord; coachI
       <p className="mt-4 text-[10px] font-medium text-muted-foreground">
         {reviewedAt && !Number.isNaN(reviewedAt.getTime())
           ? `Verified ${reviewedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
-          : 'Not yet verified by Coach First'}
+          : 'Not yet verified by Gaffa'}
       </p>
     </section>
   )

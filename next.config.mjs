@@ -28,6 +28,7 @@ const securityHeaders = [
 ]
 
 const nextConfig = {
+  distDir: process.env.DEMO_MODE === 'true' ? '.next-demo' : '.next',
   poweredByHeader: false,
   outputFileTracingRoot: process.cwd(),
   async headers() {

@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState, useTransition } from 'react'
+import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus, Search, UserRoundPlus } from 'lucide-react'
-import { toast } from 'sonner'
+import { NetworkForm } from './network-form'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { createFootballContactAction } from '../../intelligence/trusted-actions'
@@ -26,30 +27,21 @@ const inputClass = 'w-full rounded-md border border-border bg-background px-3 py
 
 export function NetworkDirectoryClient({ contacts, coaches }: { contacts: ContactRow[]; coaches: Array<{ id: string; name: string }> }) {
   const [query, setQuery] = useState('')
-  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
   const filtered = useMemo(() => contacts.filter((contact) => `${contact.full_name} ${contact.current_role_title ?? ''} ${contact.current_organization ?? ''}`.toLowerCase().includes(query.toLowerCase())), [contacts, query])
-
-  function submit(formData: FormData) {
-    startTransition(async () => {
-      const result = await createFootballContactAction(formData)
-      if (!result.ok) { toast.error(result.error); return }
-      toast.success('Contact added to the football network')
-      window.location.reload()
-    })
-  }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-3">
         <label className="relative block w-full sm:max-w-sm">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, role or organisation" className={`${inputClass} pl-9`} />
+          <input aria-label="Search network contacts" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, role or organisation" className={`${inputClass} pl-9`} />
         </label>
         <details className="group">
           <summary className="list-none">
             <span className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"><Plus className="h-4 w-4" />Add contact</span>
           </summary>
-          <form action={submit} className="mt-3 grid gap-3 border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <NetworkForm action={createFootballContactAction} success="Contact saved." onSaved={id => { if (id) router.push(`/network/${id}`) }}>
             <input name="full_name" required placeholder="Full name" className={inputClass} />
             <input name="current_role" placeholder="Current role" className={inputClass} />
             <input name="current_organization" placeholder="Current organisation" className={inputClass} />
@@ -60,11 +52,12 @@ export function NetworkDirectoryClient({ contacts, coaches }: { contacts: Contac
             <input name="phone" placeholder="Phone" className={inputClass} />
             <input name="expertise" placeholder="Expertise, comma separated" className={inputClass} />
             <input name="reliability_score" type="number" min="0" max="100" placeholder="Reliability 0–100" className={inputClass} />
-            <select name="default_attribution_permission" className={inputClass} defaultValue="anonymised_external"><option value="internal_only">Internal only</option><option value="anonymised_external">Anonymised externally</option><option value="attributed_external">Attribution approved</option></select>
-            <input name="next_follow_up_at" type="datetime-local" className={inputClass} />
+            <select aria-label="Attribution permission" name="default_attribution_permission" className={inputClass} defaultValue="internal_only"><option value="internal_only">Internal only</option><option value="anonymised_external">Anonymised externally</option><option value="attributed_external">Attribution approved</option></select>
+            <label className="text-xs text-muted-foreground">Follow-up date and time<input name="next_follow_up_at" type="datetime-local" className={inputClass} /></label>
             <input name="follow_up_note" placeholder="Next action" className={`${inputClass} sm:col-span-2`} />
-            <div className="flex items-center justify-end sm:col-span-2 lg:col-span-4"><Button type="submit" disabled={isPending}><UserRoundPlus className="mr-2 h-4 w-4" />{isPending ? 'Adding…' : 'Add contact'}</Button></div>
-          </form>
+            <p className="text-xs text-muted-foreground sm:col-span-2">Reliability is an analyst judgement, not verified evidence. Contact details and permissions remain private until deliberately reviewed.</p>
+            <div className="flex items-center justify-end sm:col-span-2"><Button type="submit"><UserRoundPlus className="mr-2 h-4 w-4" />Add contact</Button></div>
+          </NetworkForm>
         </details>
       </div>
 
@@ -79,7 +72,7 @@ export function NetworkDirectoryClient({ contacts, coaches }: { contacts: Contac
               <td className="px-4 py-3 text-xs text-muted-foreground">{externalVisibilityLabel(contact.default_attribution_permission)}</td>
               <td className="px-4 py-3 text-xs text-muted-foreground">{contact.next_follow_up_at ? new Date(contact.next_follow_up_at).toLocaleDateString('en-GB') : 'No follow-up set'}</td>
             </tr>)}
-            {!filtered.length && <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No contacts match this view.</td></tr>}
+            {!filtered.length && <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">{contacts.length ? 'No contacts match this search.' : 'No network contacts yet. Use Add contact to start.'}{query && <button type="button" onClick={() => setQuery('')} className="ml-2 text-primary underline">Clear search</button>}</td></tr>}
           </tbody>
         </table>
       </div>

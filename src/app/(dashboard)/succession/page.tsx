@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
+import { assertRouteQueries, successionCaptureHref, isActiveAppointment } from '@/lib/coaches/route-audit'
 import { redirect } from 'next/navigation'
 import { Activity, ArrowRight, Building2, ClipboardList, Clock, FileInput, Radio, ShieldAlert, Users } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
@@ -13,6 +14,9 @@ import {
   type SuccessionPlan,
 } from '@/lib/succession/radar'
 import { cn } from '@/lib/utils'
+
+export const metadata = { title: 'Succession' }
+
 
 function bandClass(band: string) {
   if (band === 'urgent') return 'border-red-500/30 bg-red-500/10 text-red-200'
@@ -33,20 +37,11 @@ function prettyBand(band: string) {
 }
 
 function captureHref(club: SuccessionClub) {
-  const search = new URLSearchParams({
-    entity: 'club',
-    clubId: club.id,
-    intake: 'club_meeting',
-    sourceType: 'club',
-    sourceTier: '1',
-    sensitivity: 'confidential',
-    destination: 'intelligence_item',
-    headline: `${displayClubName(club.name, null)} succession signal`,
-  })
-  return `/intelligence/inbox?${search.toString()}`
+  return successionCaptureHref({ id: club.id, name: displayClubName(club.name, null) })
 }
 
-export default async function SuccessionRadarPage() {
+export default async function SuccessionRadarPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string }> }) {
+  const feedback = await searchParams
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -83,9 +78,10 @@ export default async function SuccessionRadarPage() {
       .limit(300),
   ])
 
+  assertRouteQueries('Succession radar', clubsRes, mandatesRes, intelRes, inboxRes, coachesRes, plansRes)
   const radar = buildSuccessionRadar({
     clubs: (clubsRes.data ?? []) as SuccessionClub[],
-    mandates: (mandatesRes.data ?? []) as SuccessionMandateSignal[],
+    mandates: (mandatesRes.data ?? []).filter(isActiveAppointment) as SuccessionMandateSignal[],
     intelligence: (intelRes.data ?? []) as SuccessionIntelSignal[],
     inbox: (inboxRes.data ?? []) as SuccessionInboxSignal[],
     coaches: (coachesRes.data ?? []) as SuccessionCoach[],
@@ -99,6 +95,9 @@ export default async function SuccessionRadarPage() {
 
   return (
     <div className="space-y-5">
+      {feedback.error && <p role="alert" className="rounded border p-3 text-sm text-destructive">{feedback.error}</p>}
+      {feedback.success && <p role="status" className="rounded border p-3 text-sm">{feedback.success}</p>}
+      <p className="text-sm text-muted-foreground">Exploratory indicators are computed from recorded fields, not sourced appointment-fit assessments. Review the evidence and confirm the brief before adding candidates.</p>
       <section className="rounded-lg border border-border bg-card p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -106,13 +105,13 @@ export default async function SuccessionRadarPage() {
               <Activity className="h-3.5 w-3.5" />
               Pre-mandate intelligence
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Succession Radar</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Succession planning</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               Track clubs before they sack a manager, before a formal search opens, and before the market knows. This is where club intelligence becomes a shadow shortlist.
             </p>
           </div>
           <Link
-            href="/intelligence/inbox?entity=club&intake=club_meeting&sourceType=club&sourceTier=1&sensitivity=confidential&destination=intelligence_item"
+            href={successionCaptureHref()}
             className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           >
             <FileInput className="h-3.5 w-3.5" />
@@ -172,7 +171,7 @@ export default async function SuccessionRadarPage() {
                       {item.rationale.length > 0 ? item.rationale.map((reason) => (
                         <p key={reason} className="text-xs leading-5 text-muted-foreground">- {reason}</p>
                       )) : (
-                        <p className="text-xs leading-5 text-muted-foreground">No strong succession pressure yet. Keep monitoring the club environment.</p>
+                        <p className="text-xs leading-5 text-muted-foreground">No strong pressure recorded in the loaded signals. This does not confirm manager security.</p>
                       )}
                     </div>
                     <p className="mt-3 rounded border border-primary/20 bg-primary/10 px-3 py-2 text-xs leading-5 text-primary">
@@ -192,7 +191,7 @@ export default async function SuccessionRadarPage() {
                     ) : (
                       <div className="mt-3 grid gap-2">
                         {item.suggestedCoaches.map((coach) => (
-                          <Link key={coach.id} href={`/coaches/${coach.id}`} className="rounded border border-border bg-card/60 px-3 py-2 transition-colors hover:border-primary/35">
+                          <Link key={coach.id} href={`/coaches/${coach.id}?returnTo=%2Fsuccession`} className="rounded border border-border bg-card/60 px-3 py-2 transition-colors hover:border-primary/35">
                             <div className="flex items-start justify-between gap-3">
                               <div>
                                 <p className="text-xs font-semibold text-foreground">{coach.name}</p>

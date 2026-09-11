@@ -1,8 +1,11 @@
-import { redirect } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getAgentById } from '@/lib/db/agents'
 import { listCoachAgentsForAgent } from '@/lib/db/agentLinks'
 import { AgentCoachesClient } from '../_components/agent-coaches-client'
+
+export const metadata = { title: 'Coaches' }
+
 
 export default async function AgentCoachesPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createServerSupabaseClient()
@@ -10,11 +13,13 @@ export default async function AgentCoachesPage({ params }: { params: Promise<{ i
   if (!user) redirect('/login')
 
   const { id } = await params
-  const { data: agent } = await getAgentById(user.id, id)
-  if (!agent) return null
+  const { data: agent, error } = await getAgentById(id)
+  if (error) throw new Error('Could not load agent')
+  if (!agent) notFound()
 
-  const { data: links } = await listCoachAgentsForAgent(user.id, id)
-  const { data: coaches } = await supabase.from('coaches').select('id, name').order('name')
+  const { data: links, error: linksError } = await listCoachAgentsForAgent(id)
+  const { data: coaches, error: optionsError } = await supabase.from('coaches').select('id, name').order('name')
+  if (linksError || optionsError) throw new Error('Could not load relationships')
 
   return (
     <AgentCoachesClient
@@ -26,7 +31,6 @@ export default async function AgentCoachesPage({ params }: { params: Promise<{ i
         started_on: string | null
         ended_on: string | null
         relationship_strength: number | null
-        confidence: number | null
         notes: string | null
         coaches?: { id: string; name: string; role_current: string | null; club_current: string | null } | null
       }>}

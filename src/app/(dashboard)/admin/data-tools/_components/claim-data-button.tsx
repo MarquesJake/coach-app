@@ -8,6 +8,7 @@ export function ClaimDataButton({ totalUnowned }: { totalUnowned: number }) {
   const [loading, setLoading] = useState(false)
 
   async function handleClaim() {
+    if (loading || !window.confirm('Attribute all listed unowned records to your account? Only continue if you are responsible for these records.')) return
     setLoading(true)
     try {
       const result = await claimUnownedRowsAction()
@@ -21,13 +22,15 @@ export function ClaimDataButton({ totalUnowned }: { totalUnowned: number }) {
       ].filter(Boolean).join(', ')
       toastSuccess(msg ? `Claimed: ${msg}` : 'No unowned rows to claim')
       window.location.reload()
+    } catch {
+      toastError('Ownership change not confirmed. Refresh the counts before trying again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       <button
         type="button"
         onClick={handleClaim}

@@ -36,30 +36,6 @@ export interface MandateContext {
 }
 
 // ——————————————————————————————————————————————————
-// Budget → staff budget lookup
-// ——————————————————————————————————————————————————
-// Builder uses '£100m+' as a shorthand — normalise to engine canonical value
-const BUDGET_BAND_NORMALISE: Record<string, string> = {
-  '£100m+': '£100m - £200m',
-}
-
-const BUDGET_TO_STAFF: Record<string, string> = {
-  'Under £1m': 'Under £500k',
-  '£1m - £5m': '£500k - £1m',
-  '£5m - £15m': '£1m - £2m',
-  '£15m - £30m': '£1m - £2m',
-  '£30m - £60m': '£2m - £5m',
-  '£60m - £100m': '£5m - £10m',
-  '£100m - £200m': 'Over £10m',
-  'Over £200m': 'Over £10m',
-}
-
-function deriveStaffBudget(budgetBand: string | null): string | null {
-  if (!budgetBand) return null
-  return BUDGET_TO_STAFF[budgetBand] ?? null
-}
-
-// ——————————————————————————————————————————————————
 // Urgency classifier
 // ——————————————————————————————————————————————————
 export function parseUrgency(successionTimeline: string | null | undefined): UrgencyLevel {
@@ -247,12 +223,12 @@ const BUILD_LABEL_MAP: Record<string, string> = {
 }
 
 function normaliseStyle(val: string | null | undefined): string | null {
-  if (!val) return null
+  if (!val || val === 'Not yet agreed') return null
   return TACTICAL_LABEL_MAP[val] ?? val
 }
 
 function normaliseBuild(val: string | null | undefined): string | null {
-  if (!val) return null
+  if (!val || val === 'Not yet agreed') return null
   return BUILD_LABEL_MAP[val] ?? val
 }
 
@@ -263,14 +239,14 @@ export function mandateToContext(mandate: MandateInput): MandateContext {
 
   return {
     styleRequired: normaliseStyle(mandate.tactical_model_required),
-    pressingRequired: mandate.pressing_intensity_required ?? null,
+    pressingRequired: mandate.pressing_intensity_required === 'Not yet agreed' ? null : mandate.pressing_intensity_required ?? null,
     buildRequired: normaliseBuild(mandate.build_preference_required),
     primaryArchetype: primary,
     secondaryArchetype: secondary,
     archetypeBlend: blend,
-    leadershipOverride: mandate.leadership_profile_required ?? null,
-    budgetBand: BUDGET_BAND_NORMALISE[mandate.budget_band ?? ''] ?? mandate.budget_band ?? null,
-    staffBudget: deriveStaffBudget(BUDGET_BAND_NORMALISE[mandate.budget_band ?? ''] ?? mandate.budget_band ?? null),
+    leadershipOverride: mandate.leadership_profile_required === 'Not yet agreed' ? null : mandate.leadership_profile_required ?? null,
+    budgetBand: null, // Legacy bands have no defined salary/staff meaning; assess explicit requirements manually.
+    staffBudget: null,
     urgency,
     boardRisk: mandate.board_risk_appetite ?? null,
     relocationRequired: mandate.relocation_required ?? false,

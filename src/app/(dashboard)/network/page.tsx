@@ -3,6 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { NetworkDirectoryClient } from './_components/network-directory-client'
 
+export const metadata = { title: 'Football network' }
+
+
 export default async function NetworkPage() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -12,12 +15,14 @@ export default async function NetworkPage() {
   // Types are regenerated after the expand migration is applied.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
-  const [{ data: contacts }, { data: relationships }, { data: sessions }, { data: coaches }] = await Promise.all([
+  const results = await Promise.all([
     db.from('football_contacts').select('*').eq('org_id', organizationId).order('full_name'),
     db.from('contact_coach_relationships').select('contact_id').eq('org_id', organizationId),
     db.from('intelligence_sessions').select('contact_id').eq('org_id', organizationId),
     supabase.from('coaches').select('id, name').order('name'),
   ])
+  if (results.some((result) => result.error)) throw new Error('Could not load the football network')
+  const [{ data: contacts }, { data: relationships }, { data: sessions }, { data: coaches }] = results
   const relationshipCounts = new Map<string, number>()
   for (const row of relationships ?? []) relationshipCounts.set(row.contact_id, (relationshipCounts.get(row.contact_id) ?? 0) + 1)
   const sessionCounts = new Map<string, number>()

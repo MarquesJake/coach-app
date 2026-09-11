@@ -1,7 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useMemo, useRef, useState } from 'react'
+import { Drawer } from '@/components/ui/drawer'
+import { useUnsavedChanges } from '@/lib/ui/use-unsaved-changes'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
+import RecordLink from 'next/link'
+import { readResearchContext, captureResearchContext, researchHref, contextFromResearchNote, NEUTRAL_CAPTURE_DEFAULTS } from '@/lib/research-context'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowRight, CheckCircle2, ClipboardList, FileInput, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -17,7 +21,6 @@ import {
   SENSITIVITY_LEVELS,
   SOURCE_TIERS,
   SOURCE_TYPES,
-  VERIFICATION_STATUSES,
   optionLabel,
 } from '@/lib/intelligence/inbox'
 import {
@@ -72,6 +75,7 @@ export type IntelligenceInboxItem = {
 
 type Option = { id: string; name: string }
 type Props = {
+  questions: { id: string; question: string; coach_id: string; mandate_id: string | null }[]
   items: IntelligenceInboxItem[]
   coaches: Option[]
   clubs: Option[]
@@ -159,7 +163,7 @@ function destinationHref(item: IntelligenceInboxItem) {
     if (item.entity_type === 'coach' && item.entity_id) return `/coaches/${item.entity_id}/intelligence?entry=${item.destination_record_id}`
     return `/intelligence?entry=${item.destination_record_id}`
   }
-  if (item.destination_record_type === 'profile_claims' && item.destination_record_id && item.coach_id) return `/coaches/${item.coach_id}#claim-${item.destination_record_id}`
+  if (item.destination_record_type === 'profile_claims' && item.destination_record_id && item.coach_id) return researchHref(`/intelligence/review?claim=${item.destination_record_id}`, { ...contextFromResearchNote(item.analyst_notes), coach: item.coach_id })
   if (item.destination_record_type === 'coach_private_materials' && item.destination_record_id && item.coach_id) return `/coach-portal/${item.coach_id}#material-${item.destination_record_id}`
   if (item.destination_record_type === 'agent_interactions' && item.destination_record_id && item.agent_id) return `/agents/${item.agent_id}/interactions?entry=${item.destination_record_id}`
   if (item.coach_id) return `/coaches/${item.coach_id}`
@@ -169,9 +173,10 @@ function destinationHref(item: IntelligenceInboxItem) {
   return null
 }
 
-export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandates }: Props) {
+export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandates, questions }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const context = captureResearchContext(readResearchContext(searchParams))
   const initialEntity = searchParams.get('entity')
   const initialSourceType = searchParams.get('sourceType')
   const initialSourceTier = searchParams.get('sourceTier')
@@ -179,6 +184,12 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
   const initialCoachId = searchParams.get('coach') || searchParams.get('coachId')
   const [showForm, setShowForm] = useState(Boolean(searchParams.get('headline') || searchParams.get('clubId') || initialCoachId))
   const [submitting, setSubmitting] = useState(false)
+  const busy = useRef(false)
+  const [pendingItem, setPendingItem] = useState<string | null>(null)
+  const [dirty, setDirty] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [captured, setCaptured] = useState(false)
+  const confirmDiscard = useUnsavedChanges(dirty)
   const [statusFilter, setStatusFilter] = useState('open')
   const [typeFilter, setTypeFilter] = useState('')
   const [entityMode, setEntityMode] = useState<'coach' | 'club' | 'mandate' | 'agent' | 'none'>(
@@ -188,36 +199,37 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
   )
   const [selectedCriteria, setSelectedCriteria] = useState<string[]>([])
   const [selectedMethods, setSelectedMethods] = useState<string[]>([])
-  const [form, setForm] = useState({
-    intake_type: searchParams.get('intake') || 'agent_call',
+  const initialForm = {
+    intake_type: searchParams.get('intake') || NEUTRAL_CAPTURE_DEFAULTS.intake_type,
     headline: searchParams.get('headline') || '',
     raw_detail: '',
     extracted_signal: '',
-    source_type: initialSourceType && SOURCE_TYPES.some((type) => type.key === initialSourceType) ? initialSourceType : 'agent',
+    source_type: initialSourceType && SOURCE_TYPES.some((type) => type.key === initialSourceType) ? initialSourceType : NEUTRAL_CAPTURE_DEFAULTS.source_type,
     source_name: '',
-    source_tier: initialSourceTier && SOURCE_TIERS.some((tier) => tier.key === initialSourceTier) ? initialSourceTier : '2',
+    source_tier: initialSourceTier && SOURCE_TIERS.some((tier) => tier.key === initialSourceTier) ? initialSourceTier : NEUTRAL_CAPTURE_DEFAULTS.source_tier,
     source_link: '',
-    source_recorded_at: new Date().toISOString().slice(0, 16),
+    source_recorded_at: '',
     source_expires_at: '',
     source_proximity: '',
     board_visibility: 'internal_only',
     contradiction_status: 'none',
     channel: '',
     sensitivity: initialSensitivity && SENSITIVITY_LEVELS.some((level) => level.key === initialSensitivity) ? initialSensitivity : 'standard',
-    verification_status: 'single_source',
-    review_status: 'triage',
+    verification_status: NEUTRAL_CAPTURE_DEFAULTS.verification_status as string,
+    review_status: NEUTRAL_CAPTURE_DEFAULTS.review_status as string,
     confidence: '',
     direction: '',
     coach_id: initialCoachId || '',
     club_id: searchParams.get('clubId') || '',
-    mandate_id: searchParams.get('mandateId') || '',
+    mandate_id: context.mandate || '',
     agent_id: searchParams.get('agentId') || '',
-    suggested_destination: searchParams.get('destination') || 'intelligence_item',
-    commercial_surface: 'subscription_intelligence',
+    suggested_destination: searchParams.get('destination') || 'profile_claim',
+    commercial_surface: 'internal_research',
     analyst_notes: '',
     next_action: '',
     due_date: '',
-  })
+  }
+  const [form, setForm] = useState(initialForm)
 
   const filtered = useMemo(() => {
     let output = items
@@ -247,58 +259,103 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
   }
 
   async function createInboxItem() {
+    if (busy.current) return
     if (!form.headline.trim()) {
       toastError('Headline is required')
       return
     }
     setSubmitting(true)
+    busy.current = true
+    setActionError(null)
+    try {
     const result = await createIntelligenceInboxItemAction({
       ...form,
+      research_context: { ...context, coach: entityMode === 'coach' ? form.coach_id : undefined },
       confidence: form.confidence ? Number.parseInt(form.confidence, 10) : null,
       methodology_criteria: selectedCriteria,
       evidence_methods: selectedMethods,
       coach_id: entityMode === 'coach' ? form.coach_id : null,
       club_id: entityMode === 'club' ? form.club_id : null,
-      mandate_id: entityMode === 'mandate' ? form.mandate_id : null,
+      mandate_id: form.mandate_id || null,
       agent_id: entityMode === 'agent' ? form.agent_id : null,
       source_recorded_at: form.source_recorded_at ? new Date(form.source_recorded_at).toISOString() : null,
       source_expires_at: form.source_expires_at ? new Date(form.source_expires_at).toISOString() : null,
     })
-    setSubmitting(false)
     if (result.error) {
+      setActionError(result.error)
       toastError(result.error)
       return
     }
-    toastSuccess('Intelligence captured')
+    toastSuccess('Source captured as unreviewed. Review and create a draft finding next.')
     setShowForm(false)
+    setDirty(false)
+    setCaptured(true)
     setSelectedCriteria([])
     setSelectedMethods([])
-    setForm((current) => ({ ...current, headline: '', raw_detail: '', extracted_signal: '', analyst_notes: '', next_action: '' }))
+    setForm(current => ({ ...initialForm, headline: '', coach_id: current.coach_id, club_id: current.club_id, mandate_id: current.mandate_id, agent_id: current.agent_id }))
     router.refresh()
+    } catch {
+      setActionError('Capture not confirmed. Your notes are still here. Check your connection and retry.')
+    } finally {
+      busy.current = false
+      setSubmitting(false)
+    }
   }
 
   async function updateStatus(id: string, review_status: string) {
+    if (busy.current) return
+    busy.current = true
+    setPendingItem(id)
+    setActionError(null)
+    try {
     const result = await updateIntelligenceInboxStatusAction({ id, review_status })
     if (!result.ok) {
+      setActionError(result.error ?? 'Failed to update inbox status')
       toastError(result.error ?? 'Failed to update inbox status')
       return
     }
     toastSuccess('Inbox status updated')
     router.refresh()
+    } catch {
+      setActionError('Status change not confirmed. Refresh the queue before retrying.')
+    } finally {
+      busy.current = false
+      setPendingItem(null)
+    }
   }
 
   async function promote(id: string, destination: string) {
+    if (busy.current || (destination === 'profile_claim' && !confirmDiscard())) return
+    busy.current = true
+    setPendingItem(id)
+    setActionError(null)
+    try {
     const result = await promoteIntelligenceInboxItemAction({ id, destination })
     if (!result.ok) {
+      setActionError(result.error ?? 'Failed to promote inbox item')
       toastError(result.error ?? 'Failed to promote inbox item')
       return
     }
     toastSuccess('Inbox item routed')
+    if (result.data?.record_type === 'profile_claims') {
+      const item = items.find(item => item.id === id)
+      router.push(researchHref(`/intelligence/review?claim=${result.data.id}`, { ...context, ...contextFromResearchNote(item?.analyst_notes), coach: item?.coach_id ?? context.coach }))
+      return
+    }
     router.refresh()
+    } catch {
+      setActionError('Routing was not confirmed. Refresh the queue before retrying; a record may already have been created.')
+    } finally {
+      busy.current = false
+      setPendingItem(null)
+    }
   }
 
   return (
     <div className="space-y-5">
+      {actionError && !showForm && <p role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{actionError}</p>}
+      {dirty && !showForm && <div role="status" className="rounded-lg border border-primary/20 p-3 text-sm">You have unsaved capture notes on this page. <button type="button" onClick={() => setShowForm(true)} className="min-h-10 underline">Continue capture</button></div>}
+      {captured && <p role="status" className="rounded-lg border border-primary/20 p-3 text-sm">Source captured as unreviewed. Find it in the queue below, then create and review a draft finding.</p>}
       <section className="rounded-lg border border-border bg-card px-5 py-5">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
           <div>
@@ -306,7 +363,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
               <FileInput className="h-3 w-3" />
               Capture once, route everywhere
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Intelligence Inbox</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Capture and route sources</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               Capture public sources and incoming material, map them to the methodology, then route them to latest intel or a draft finding. Human conversations are logged separately and every finding requires review.
             </p>
@@ -327,7 +384,8 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
         </div>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <details className="rounded-lg border border-border bg-card p-4"><summary className="cursor-pointer text-sm font-medium">Capture by source type</summary>
+      <section className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {INTAKE_TYPES.slice(0, 8).map((type) => (
           <button
             key={type.key}
@@ -344,6 +402,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
         ))}
       </section>
 
+      </details>
       <section className="rounded-lg border border-border bg-card">
         <div className="border-b border-border px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -357,14 +416,14 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
             </Button>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-8 rounded border border-border bg-surface px-2 text-xs">
+            <select aria-label="Queue status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-10 rounded border border-border bg-surface px-2 text-xs">
               <option value="open">Open queue</option>
               <option value="">All statuses</option>
               {INBOX_REVIEW_STATUSES.map((status) => <option key={status.key} value={status.key}>{status.label}</option>)}
             </select>
-            <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className="h-8 rounded border border-border bg-surface px-2 text-xs">
+            <select aria-label="Source type filter" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className="h-10 rounded border border-border bg-surface px-2 text-xs">
               <option value="">All intake types</option>
-              {INTAKE_TYPES.map((type) => <option key={type.key} value={type.key}>{type.label}</option>)}
+              {INTAKE_TYPES.map((type) => <option key={type.key} value={type.key}>{type.key === 'other' ? 'Unknown / not classified' : type.label}</option>)}
             </select>
             {(statusFilter !== 'open' || typeFilter) && (
               <button type="button" onClick={() => { setStatusFilter('open'); setTypeFilter('') }} className="text-xs text-muted-foreground hover:text-foreground">
@@ -407,7 +466,8 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
         ) : (
           <div className="divide-y divide-border">
             {filtered.map((item) => {
-              const href = destinationHref(item)
+              const destination = destinationHref(item)
+              const href = destination ? researchHref(destination, { ...contextFromResearchNote(item.analyst_notes), coach: item.coach_id ?? undefined, mandate: item.mandate_id ?? undefined }) : null
               return (
                 <article key={item.id} className={cn('px-5 py-4', item.sensitivity === 'legal_review' && 'border-l-2 border-amber-300/60 bg-amber-950/10')}>
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -452,7 +512,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
                         {item.next_action && <span className="text-amber-200">Next: {item.next_action}</span>}
                         {item.due_date && <span>Due: {formatDate(item.due_date)}</span>}
                         {item.source_link && <Link href={item.source_link} className="text-primary hover:underline" target="_blank">Open source</Link>}
-                        {href && <Link href={href} className="text-primary hover:underline">Open record</Link>}
+                        {href && <RecordLink href={href} className="text-primary hover:underline">Open record</RecordLink>}
                       </div>
                     </div>
                     <div className="flex min-w-[220px] flex-col gap-2">
@@ -460,7 +520,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
                         {DESTINATION_HELP[item.suggested_destination] ?? DESTINATION_HELP.intelligence_item}
                       </p>
                       {item.review_status !== 'promoted' && ONE_CLICK_DESTINATIONS.has(item.suggested_destination) && (
-                        <Button onClick={() => promote(item.id, item.suggested_destination)} className="justify-center px-3 py-1.5 text-xs">
+                        <Button disabled={pendingItem !== null || submitting} onClick={() => promote(item.id, item.suggested_destination)} className="justify-center px-3 py-1.5 text-xs">
                           {DESTINATION_ACTION_LABEL[item.suggested_destination] ?? 'Promote'}
                           <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                         </Button>
@@ -473,12 +533,12 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
                         </p>
                       )}
                       {item.review_status !== 'ready_to_promote' && item.review_status !== 'promoted' && (
-                        <Button variant="outline" onClick={() => updateStatus(item.id, 'ready_to_promote')} className="justify-center px-3 py-1.5 text-xs">
+                        <Button disabled={pendingItem !== null || submitting} variant="outline" onClick={() => updateStatus(item.id, 'ready_to_promote')} className="justify-center px-3 py-1.5 text-xs">
                           Mark ready
                         </Button>
                       )}
                       {item.review_status !== 'archived' && item.review_status !== 'promoted' && (
-                        <Button variant="outline" onClick={() => updateStatus(item.id, 'archived')} className="justify-center px-3 py-1.5 text-xs">
+                        <Button disabled={pendingItem !== null || submitting} variant="outline" onClick={() => updateStatus(item.id, 'archived')} className="justify-center px-3 py-1.5 text-xs">
                           Archive
                         </Button>
                       )}
@@ -491,35 +551,11 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
         )}
       </section>
 
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setShowForm(false)}>
-          <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-lg border border-border bg-card p-5 shadow-xl" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">Capture raw intelligence</h3>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">Get the football information down first. You can verify and promote it after review.</p>
-              </div>
-              <Button variant="outline" onClick={() => setShowForm(false)} className="px-3 py-1.5 text-xs">Close</Button>
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <Field label="Intake type">
-                <select value={form.intake_type} onChange={(event) => update('intake_type', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
-                  {INTAKE_TYPES.map((type) => <option key={type.key} value={type.key}>{type.label}</option>)}
-                </select>
-              </Field>
-              <Field label="Source type">
-                <select value={form.source_type} onChange={(event) => update('source_type', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
-                  {SOURCE_TYPES.map((type) => <option key={type.key} value={type.key}>{type.label}</option>)}
-                </select>
-              </Field>
-              <Field label="Source tier">
-                <select value={form.source_tier} onChange={(event) => update('source_tier', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
-                  <option value="">Unknown</option>
-                  {SOURCE_TIERS.map((tier) => <option key={tier.key} value={tier.key}>{tier.label}</option>)}
-                </select>
-              </Field>
-            </div>
+      <Drawer open={showForm} onClose={() => { if (!busy.current) setShowForm(false) }} title="Capture raw intelligence" panelClassName="max-w-4xl">
+          <form onSubmit={event => { event.preventDefault(); void createInboxItem() }} onChange={() => { setDirty(true); setCaptured(false) }} aria-busy={submitting}>
+            <p className="text-sm text-muted-foreground">Get the football information down first. Closing keeps your notes on this page, but they are not saved until capture succeeds.</p>
+            {actionError && <p role="alert" className="mt-3 rounded border border-destructive/30 p-3 text-sm text-destructive">{actionError}</p>}
+            <fieldset disabled={submitting || pendingItem !== null}>
 
             <div className="mt-3 grid gap-3 md:grid-cols-[160px_minmax(0,1fr)]">
               <Field label="Linked record">
@@ -550,7 +586,7 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
             </div>
 
             <Field label="Headline *" className="mt-3">
-              <input value={form.headline} onChange={(event) => update('headline', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="e.g. Agent says coach would move with two staff if project is right" />
+              <input required value={form.headline} onChange={(event) => update('headline', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="What did you obtain? Give the source material a short title." />
             </Field>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               <Field label="Raw notes / transcript">
@@ -558,30 +594,6 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
               </Field>
               <Field label="Extracted football signal">
                 <textarea value={form.extracted_signal} onChange={(event) => update('extracted_signal', event.target.value)} className="min-h-[140px] w-full resize-y rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="What matters? Contract, staff, dressing room, training detail, pressure behaviour, family, relocation, tactical fit..." />
-              </Field>
-            </div>
-
-            <div className="mt-3 grid gap-3 md:grid-cols-4">
-              <Field label="Sensitivity">
-                <select value={form.sensitivity} onChange={(event) => update('sensitivity', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
-                  {SENSITIVITY_LEVELS.map((level) => <option key={level.key} value={level.key}>{level.label}</option>)}
-                </select>
-              </Field>
-              <Field label="Verification">
-                <select value={form.verification_status} onChange={(event) => update('verification_status', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
-                  {VERIFICATION_STATUSES.map((status) => <option key={status.key} value={status.key}>{status.label}</option>)}
-                </select>
-              </Field>
-              <Field label="Confidence">
-                <input type="number" min={0} max={100} value={form.confidence} onChange={(event) => update('confidence', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="0-100" />
-              </Field>
-              <Field label="Direction">
-                <select value={form.direction} onChange={(event) => update('direction', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
-                  <option value="">Unknown</option>
-                  <option value="Positive">Positive</option>
-                  <option value="Neutral">Neutral</option>
-                  <option value="Negative">Negative</option>
-                </select>
               </Field>
             </div>
 
@@ -594,6 +606,59 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
               </Field>
               <Field label="Recorded at">
                 <input type="datetime-local" value={form.source_recorded_at} onChange={(event) => update('source_recorded_at', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" />
+              </Field>
+            </div>
+
+            <Field label="Which research question does this answer?" className="mt-3">
+              <select className="w-full rounded border bg-background p-2 text-sm" value={context.question ?? ''} onChange={event => {
+                const params = new URLSearchParams(searchParams.toString())
+                if (event.target.value) params.set('question', event.target.value); else params.delete('question')
+                router.replace(`/intelligence/inbox?${params}`)
+              }}>
+                <option value="">No question selected</option>
+                {questions.filter(q => q.coach_id === form.coach_id).map(q => <option key={q.id} value={q.id}>{q.question}</option>)}
+              </select>
+            </Field>
+            <p className="mt-2 text-xs text-muted-foreground">Saved as unreviewed, internal research. Review before using it in a conclusion.</p>
+            <details className="mt-4 rounded border p-3"><summary className="cursor-pointer text-sm">Specialist classification and routing</summary>
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              <Field label="Intake type">
+                <select value={form.intake_type} onChange={(event) => update('intake_type', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
+                  {INTAKE_TYPES.map((type) => <option key={type.key} value={type.key}>{type.key === 'other' ? 'Unknown / not classified' : type.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Source type">
+                <select value={form.source_type} onChange={(event) => update('source_type', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
+                  {SOURCE_TYPES.map((type) => <option key={type.key} value={type.key}>{type.key === 'other' ? 'Unknown / not classified' : type.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Source tier">
+                <select value={form.source_tier} onChange={(event) => update('source_tier', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
+                  <option value="">Unknown</option>
+                  {SOURCE_TIERS.map((tier) => <option key={tier.key} value={tier.key}>{tier.label}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            <div className="mt-3 grid gap-3 md:grid-cols-4">
+              <Field label="Sensitivity">
+                <select value={form.sensitivity} onChange={(event) => update('sensitivity', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
+                  {SENSITIVITY_LEVELS.map((level) => <option key={level.key} value={level.key}>{level.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Verification">
+                <p className="py-2 text-sm">Unreviewed. Verification happens during review.</p>
+              </Field>
+              <Field label="Confidence">
+                <input type="number" min={0} max={100} value={form.confidence} onChange={(event) => update('confidence', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm" placeholder="0-100" />
+              </Field>
+              <Field label="Direction">
+                <select value={form.direction} onChange={(event) => update('direction', event.target.value)} className="w-full rounded border border-border bg-surface px-3 py-2 text-sm">
+                  <option value="">Unknown</option>
+                  <option value="Positive">Positive</option>
+                  <option value="Neutral">Neutral</option>
+                  <option value="Negative">Negative</option>
+                </select>
               </Field>
             </div>
 
@@ -651,13 +716,14 @@ export function IntelligenceInboxClient({ items, coaches, clubs, agents, mandate
               </Field>
             </div>
 
+            </details>
+            </fieldset>
             <div className="mt-5 flex flex-wrap gap-2">
-              <Button onClick={createInboxItem} disabled={submitting}>{submitting ? 'Capturing...' : 'Capture intelligence'}</Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button type="submit" disabled={submitting || pendingItem !== null}>{submitting ? 'Capturing...' : 'Capture for review'}</Button>
+              <Button type="button" disabled={submitting} variant="outline" onClick={() => setShowForm(false)}>Close and keep notes here</Button>
             </div>
-          </div>
-        </div>
-      )}
+          </form>
+      </Drawer>
     </div>
   )
 }

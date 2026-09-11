@@ -1,7 +1,3 @@
 import { redirect } from 'next/navigation'
-
-/** Redirect legacy mandate-fit to fit. */
-export default async function MandateFitRedirectPage(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  redirect(`/coaches/${params.id}/fit`)
-}
+import { readResearchContext, researchHref, type ResearchParams } from '@/lib/research-context'
+export default async function Page({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<ResearchParams>}){const {id}=await params;redirect(researchHref(`/coaches/${id}/fit`, { ...readResearchContext(await searchParams), coach: id }))}

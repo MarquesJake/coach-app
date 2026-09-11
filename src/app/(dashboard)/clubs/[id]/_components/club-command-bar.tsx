@@ -16,7 +16,7 @@ type Club = {
   last_synced_at: string | null
 }
 
-export function ClubCommandBar({ club }: { club: Club }) {
+export function ClubCommandBar({ club, appointmentIds = [], appointmentsUnavailable = false }: { club: Club; appointmentIds?: string[]; appointmentsUnavailable?: boolean }) {
   return (
     <header className="w-full bg-card/80 border-b border-border px-6 py-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -62,10 +62,10 @@ export function ClubCommandBar({ club }: { club: Club }) {
         {/* Right: primary action + collapsed internal sync */}
         <div className="flex items-center gap-3 shrink-0">
           <Link
-            href={`/mandates/new?club_id=${club.id}&club_name=${encodeURIComponent(club.name)}`}
+            href={appointmentsUnavailable || appointmentIds.length > 1 ? `/clubs/${club.id}/recruitment` : appointmentIds.length === 1 ? `/mandates/${appointmentIds[0]}/decision` : `/mandates/new?club_id=${club.id}&club_name=${encodeURIComponent(club.name)}`}
             className="inline-flex items-center gap-2 px-4 h-9 bg-primary text-primary-foreground font-medium text-xs rounded-lg hover:bg-primary/90 transition-colors shrink-0"
           >
-            + Open mandate
+            {appointmentsUnavailable ? 'Review appointments' : appointmentIds.length > 1 ? 'Choose appointment' : appointmentIds.length === 1 ? 'Open active appointment' : 'Start appointment'}
           </Link>
           <details className="group relative">
             <summary className="flex h-9 cursor-pointer list-none items-center rounded-lg border border-border bg-surface px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground">
@@ -77,7 +77,7 @@ export function ClubCommandBar({ club }: { club: Club }) {
                 clubId={club.id}
                 hasExternalSource={!!club.external_source}
                 lastSyncedAt={club.last_synced_at}
-                autoSync={!!club.external_source && !club.last_synced_at}
+                autoSync={false}
               />
             </div>
           </details>

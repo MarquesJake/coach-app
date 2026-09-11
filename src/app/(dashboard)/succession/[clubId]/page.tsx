@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
+import { assertRouteQueries, successionCaptureHref, isActiveAppointment } from '@/lib/coaches/route-audit'
 import { redirect } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Building2, ClipboardList, FileInput, ShieldAlert, Target, Users } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
@@ -14,20 +15,13 @@ import {
   type SuccessionPlan,
 } from '@/lib/succession/radar'
 import { cn } from '@/lib/utils'
-import { convertSuccessionPlanToMandateAction, saveSuccessionPlanAction } from '../actions'
+import { SuccessionSaveForm } from '../_components/succession-save-form'
+
+export const metadata = { title: 'Succession' }
+
 
 function captureHref(club: SuccessionClub) {
-  const search = new URLSearchParams({
-    entity: 'club',
-    clubId: club.id,
-    intake: 'club_meeting',
-    sourceType: 'club',
-    sourceTier: '1',
-    sensitivity: 'confidential',
-    destination: 'intelligence_item',
-    headline: `${displayClubName(club.name, null)} succession signal`,
-  })
-  return `/intelligence/inbox?${search.toString()}`
+  return successionCaptureHref({ id: club.id, name: displayClubName(club.name, null) })
 }
 
 function scoreClass(score: number) {
@@ -60,9 +54,11 @@ function FitBar({ label, value }: { label: string; value: number }) {
 export default async function SuccessionPlanPage(
   props: {
     params: Promise<{ clubId: string }>
+    searchParams: Promise<{ error?: string; success?: string }>
   }
 ) {
   const params = await props.params;
+  const feedback = await props.searchParams;
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -106,11 +102,12 @@ export default async function SuccessionPlanPage(
       .limit(1),
   ])
 
-  if (clubRes.error || !clubRes.data) redirect('/succession?error=Club+not+found')
+  assertRouteQueries('Succession plan', clubRes, mandatesRes, intelRes, inboxRes, coachesRes, plansRes)
+  if (!clubRes.data) redirect('/succession?error=Club+not+found')
 
   const [plan] = buildSuccessionRadar({
     clubs: [clubRes.data as SuccessionClub],
-    mandates: (mandatesRes.data ?? []) as SuccessionMandateSignal[],
+    mandates: (mandatesRes.data ?? []).filter(isActiveAppointment) as SuccessionMandateSignal[],
     intelligence: (intelRes.data ?? []) as SuccessionIntelSignal[],
     inbox: (inboxRes.data ?? []) as SuccessionInboxSignal[],
     coaches: (coachesRes.data ?? []) as SuccessionCoach[],
@@ -120,13 +117,13 @@ export default async function SuccessionPlanPage(
   const clubName = displayClubName(plan.club.name, null)
   const defaults = plan.mandateDefaults
   const savedPlan = plan.plan
-  const activeMandate = (mandatesRes.data ?? []).find((mandate) => mandate.pipeline_stage !== 'closed')
+  const activeMandate = (mandatesRes.data ?? []).find(isActiveAppointment)
   const intelligence = intelRes.data ?? []
   const inbox = inboxRes.data ?? []
   const openInbox = inbox.filter((item) => !['promoted', 'archived'].includes(item.review_status))
 
   const gaps = [
-    intelligence.length === 0 ? 'No verified club intelligence captured yet' : null,
+    intelligence.length === 0 ? 'No club intelligence recorded yet' : null,
     openInbox.length > 0 ? `${openInbox.length} inbox item${openInbox.length === 1 ? '' : 's'} need triage` : null,
     !plan.club.current_manager ? 'Current manager status is not confirmed in platform data' : null,
     !plan.club.environment_assessment ? 'Environment and ownership dynamics need a football-person read' : null,
@@ -136,6 +133,9 @@ export default async function SuccessionPlanPage(
 
   return (
     <div className="space-y-5">
+      {feedback.error && <p role="alert" className="rounded border p-3 text-sm text-destructive">{feedback.error}</p>}
+      {feedback.success && <p role="status" className="rounded border p-3 text-sm">{feedback.success}</p>}
+      <p className="text-sm text-muted-foreground">Exploratory indicators are computed from recorded fields, not sourced appointment-fit assessments. Review the evidence and confirm the brief before adding candidates.</p>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href="/succession" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -147,18 +147,15 @@ export default async function SuccessionPlanPage(
             Capture signal
           </Link>
           {activeMandate ? (
-            <Link href={`/mandates/${activeMandate.id}/workspace`} className="inline-flex items-center gap-2 rounded bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90">
+            <Link href={`/mandates/${activeMandate.id}/decision`} className="inline-flex items-center gap-2 rounded bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90">
               Open active mandate
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           ) : (
-            <form action={convertSuccessionPlanToMandateAction}>
-              <input type="hidden" name="club_id" value={plan.club.id} />
-              <button className="inline-flex items-center gap-2 rounded bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90">
-                Convert to mandate
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </form>
+            <Link href={`/mandates/new?club_id=${plan.club.id}`} className="inline-flex items-center gap-2 rounded bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90">
+              Start appointment brief
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           )}
         </div>
       </div>
@@ -245,7 +242,7 @@ export default async function SuccessionPlanPage(
               {plan.suggestedCoaches.length === 0 ? (
                 <p className="text-sm leading-6 text-muted-foreground">Capture more club context before recommending names.</p>
               ) : plan.suggestedCoaches.map((coach) => (
-                <Link key={coach.id} href={`/coaches/${coach.id}`} className="rounded-md border border-border bg-background/40 p-3 transition-colors hover:border-primary/35">
+                <Link key={coach.id} href={`/coaches/${coach.id}?returnTo=${encodeURIComponent(`/succession/${clubId}`)}`} className="rounded-md border border-border bg-background/40 p-3 transition-colors hover:border-primary/35">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">{coach.name}</p>
@@ -296,7 +293,7 @@ export default async function SuccessionPlanPage(
         </div>
 
         <aside className="space-y-4">
-          <form action={saveSuccessionPlanAction} className="rounded-lg border border-border bg-card p-4">
+          <SuccessionSaveForm key={plan.club.id}>
             <input type="hidden" name="club_id" value={plan.club.id} />
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Saved succession plan</p>
             <div className="mt-3 grid gap-3">
@@ -360,11 +357,9 @@ export default async function SuccessionPlanPage(
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Notes</span>
                 <textarea name="notes" defaultValue={savedPlan?.notes ?? ''} rows={3} placeholder="Internal football judgement, next calls, sensitivities." className="w-full rounded border border-border bg-surface px-3 py-2 text-xs leading-5 text-foreground" />
               </label>
-              <button className="rounded bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90">
-                Save plan
-              </button>
+
             </div>
-          </form>
+          </SuccessionSaveForm>
 
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Why this matters</p>

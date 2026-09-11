@@ -7,13 +7,16 @@ import { computeCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-c
 import { FitClient } from './_components/fit-client'
 import { displayClubName } from '@/lib/display-names'
 
+export const metadata = { title: 'Fit' }
+
+
 export default async function CoachFitPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: coach, error: coachError } = await getCoachById(user.id, params.id)
+  const { data: coach, error: coachError } = await getCoachById(params.id)
   if (coachError || !coach) notFound()
 
   const { data: mandatesList } = await getMandatesForTeam()
@@ -22,7 +25,7 @@ export default async function CoachFitPage(props: { params: Promise<{ id: string
     label: displayClubName(m.custom_club_name, (m.clubs as { name?: string } | null)?.name, 'Mandate'),
   }))
 
-  const evidenceCount = await getEvidenceCountForCoach(user.id, params.id)
+  const evidenceCount = await getEvidenceCountForCoach(params.id)
   const completeness = computeCompleteness(coach as Record<string, unknown>)
 
   return (

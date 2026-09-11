@@ -18,6 +18,9 @@ import {
   type ReferenceAnswerRow,
 } from './_components/assessment-workspace-client'
 
+export const metadata = { title: 'Assessment' }
+
+
 export default async function CandidateAssessmentPage(
   props: {
     params: Promise<{ id: string; coachId: string }>
@@ -49,7 +52,7 @@ export default async function CandidateAssessmentPage(
 
   const { data: coach } = await supabase
     .from('coaches')
-    .select('id, name, club_current, nationality, coaching_licence, tactical_identity, preferred_style, availability_status')
+    .select('id, name, club_current, nationality, coaching_licence, tactical_identity, preferred_style, availability_status, due_diligence_summary, compliance_notes')
     .eq('id', coachId)
     .single()
   if (!coach) notFound()
@@ -103,10 +106,9 @@ export default async function CandidateAssessmentPage(
         .limit(20),
       supabase
         .from('coach_private_materials')
-        .select('id, title, material_type, description, external_url, source_label, uploaded_by, confidentiality_status, verification_status, created_at')
+        .select('id, title, material_type, description, external_url, source_label, uploaded_by, confidentiality_status, verification_status, storage_path, upload_status, created_at')
         .eq('coach_id', coachId)
-        .order('created_at', { ascending: false })
-        .limit(20),
+        .order('created_at', { ascending: false }),
       supabase
         .from('confidential_access_requests')
         .select('id, requested_by, requester_role, club_context, request_reason, status, requested_at, decided_at')
@@ -147,6 +149,10 @@ export default async function CandidateAssessmentPage(
             .order('reviewed_at', { ascending: false })
         : Promise.resolve({ data: [] }),
     ])
+
+  if (assessments.error || evidence.error || recommendation.error || privateMaterials.error) {
+    throw new Error('Assessment progress could not be loaded. Refresh to retry.')
+  }
 
   const derived = deriveEvidence({
     coach,
@@ -194,6 +200,7 @@ export default async function CandidateAssessmentPage(
         mandateId={mandateId}
         coachId={coachId}
         coachName={coach.name}
+        coachProvenance={{ due_diligence_summary: coach.due_diligence_summary, compliance_notes: coach.compliance_notes }}
         assessments={(assessments.data ?? []) as AssessmentRow[]}
         evidence={(evidence.data ?? []) as EvidenceRow[]}
         derived={derived}

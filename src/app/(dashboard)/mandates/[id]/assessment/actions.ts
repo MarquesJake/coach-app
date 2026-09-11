@@ -11,9 +11,11 @@ import {
   canAddEvidenceDirectly,
 } from '@/lib/assessment/criteria'
 import { canAssessCandidate, type AssessmentAccessClient } from '@/lib/assessment/access'
+import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import {
   interviewQuestionByKey,
   referenceQuestionByKey,
+  resolveCapturedQuestion,
   INTERVIEW_FOCUS_LABELS,
   REFERENCE_GROUP_LABELS,
 } from '@/lib/assessment/question-banks'
@@ -165,19 +167,23 @@ export async function addInterviewAnswerAction(formData: FormData): Promise<Acti
   const questionKey = String(formData.get('question_key') ?? '')
   const answer = String(formData.get('answer') ?? '').trim()
   const interviewer = String(formData.get('interviewer') ?? '').trim() || null
-  const usedInRecommendation = formData.get('used_in_recommendation') !== 'false'
+  const verificationStatus = formData.get('review_confirmed') === 'true' ? 'verified' : 'unverified'
+  const usedInRecommendation = verificationStatus === 'verified' && formData.get('used_in_recommendation') !== 'false'
   const question = interviewQuestionByKey(questionKey)
 
   if (!mandateId || !coachId) return { ok: false, error: 'Missing candidate context' }
   if (!question) return { ok: false, error: 'Unknown interview question' }
   if (!answer) return { ok: false, error: 'Interview answer is required' }
+  let capturedQuestion: string
+  try { capturedQuestion = resolveCapturedQuestion(`${question.question} ${question.followUp}`, formData.get('custom_question')) }
+  catch { return { ok: false, error: 'Bespoke question must be 1,000 characters or fewer' } }
   if (!(await assessGuard(supabase, user.id, mandateId, coachId))) {
     return { ok: false, error: 'Candidate is not on this mandate shortlist' }
   }
 
   const confidence = clampScore(formData.get('confidence'))
   const evidenceTitle = `Interview: ${question.label}`
-  const evidenceDetail = `${question.question} ${question.followUp} Answer: ${answer}`
+  const evidenceDetail = `${capturedQuestion} Answer: ${answer}`
   const evidenceSource = [
     INTERVIEW_FOCUS_LABELS[question.focus],
     interviewer ? `Interviewer: ${interviewer}` : null,
@@ -195,7 +201,7 @@ export async function addInterviewAnswerAction(formData: FormData): Promise<Acti
       detail: evidenceDetail,
       source: evidenceSource,
       confidence,
-      verification_status: 'verified',
+      verification_status: verificationStatus,
       used_in_recommendation: usedInRecommendation,
     })
     .select('id')
@@ -209,13 +215,13 @@ export async function addInterviewAnswerAction(formData: FormData): Promise<Acti
     coach_id: coachId,
     evidence_id: evidence.id,
     question_key: question.key,
-    question: `${question.question} ${question.followUp}`,
+    question: capturedQuestion,
     answer,
     criterion: question.criterion,
     interviewer,
     interview_focus: question.focus,
     confidence,
-    verification_status: 'verified',
+    verification_status: verificationStatus,
     used_in_recommendation: usedInRecommendation,
   })
 
@@ -242,12 +248,16 @@ export async function addReferenceAnswerAction(formData: FormData): Promise<Acti
     ? wouldHireRaw
     : 'unknown'
   const riskFlag = formData.get('risk_flag') === 'true'
-  const usedInRecommendation = formData.get('used_in_recommendation') !== 'false'
+  const verificationStatus = formData.get('review_confirmed') === 'true' ? 'verified' : 'unverified'
+  const usedInRecommendation = verificationStatus === 'verified' && formData.get('used_in_recommendation') !== 'false'
   const question = referenceQuestionByKey(questionKey)
 
   if (!mandateId || !coachId) return { ok: false, error: 'Missing candidate context' }
   if (!question) return { ok: false, error: 'Unknown reference question' }
   if (!answer) return { ok: false, error: 'Reference answer is required' }
+  let capturedQuestion: string
+  try { capturedQuestion = resolveCapturedQuestion(question.question, formData.get('custom_question')) }
+  catch { return { ok: false, error: 'Bespoke question must be 1,000 characters or fewer' } }
   if (!(await assessGuard(supabase, user.id, mandateId, coachId))) {
     return { ok: false, error: 'Candidate is not on this mandate shortlist' }
   }
@@ -255,7 +265,7 @@ export async function addReferenceAnswerAction(formData: FormData): Promise<Acti
   const confidence = clampScore(formData.get('confidence'))
   const groupLabel = REFERENCE_GROUP_LABELS[question.stakeholderGroup]
   const evidenceTitle = `Reference: ${question.label}`
-  const evidenceDetail = `${question.question} Answer: ${answer}`
+  const evidenceDetail = `${capturedQuestion} Answer: ${answer}`
   const evidenceSource = [
     groupLabel,
     referenceName,
@@ -276,7 +286,7 @@ export async function addReferenceAnswerAction(formData: FormData): Promise<Acti
       detail: evidenceDetail,
       source: evidenceSource,
       confidence,
-      verification_status: 'verified',
+      verification_status: verificationStatus,
       used_in_recommendation: usedInRecommendation,
     })
     .select('id')
@@ -293,11 +303,11 @@ export async function addReferenceAnswerAction(formData: FormData): Promise<Acti
     reference_name: referenceName,
     reference_role: referenceRole,
     question_key: question.key,
-    question: question.question,
+    question: capturedQuestion,
     answer,
     criterion: question.criterion,
     confidence,
-    verification_status: 'verified',
+    verification_status: verificationStatus,
     used_in_recommendation: usedInRecommendation,
     would_hire_again: wouldHireAgain,
     risk_flag: riskFlag,
@@ -441,13 +451,30 @@ export async function setEvidenceVerificationAction(formData: FormData): Promise
     return { ok: false, error: 'Unknown verification status' }
   }
 
+  const { data: evidence, error: readError } = await supabase
+    .from('assessment_evidence')
+    .select('id, title, detail, source')
+    .eq('id', evidenceId)
+    .eq('mandate_id', mandateId)
+    .eq('coach_id', coachId)
+    .single()
+  if (readError || !evidence) return { ok: false, error: 'Evidence not found in this assessment' }
+  if (status === 'verified' && isIllustrativeEvidence(evidence)) {
+    return { ok: false, error: 'Illustrative material cannot be verified. Add real, source-backed evidence instead.' }
+  }
+
   const { error } = await supabase
     .from('assessment_evidence')
     .update({ verification_status: status })
     .eq('id', evidenceId)
+    .eq('mandate_id', mandateId)
+    .eq('coach_id', coachId)
+    .select('id')
+    .single()
   if (error) return { ok: false, error: 'Failed to update verification' }
 
   revalidatePath(`/mandates/${mandateId}/assessment/${coachId}`)
+  revalidatePath(`/mandates/${mandateId}/assessment/${coachId}/board-pack`)
   return { ok: true }
 }
 

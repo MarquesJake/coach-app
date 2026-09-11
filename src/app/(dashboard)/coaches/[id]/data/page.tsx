@@ -3,22 +3,27 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CoachDataTab } from './_components/coach-data-tab'
 
+export const metadata = { title: 'Data' }
+
+
 export default async function CoachDataPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: coach, error } = await getCoachById(user.id, params.id)
-  if (error || !coach) notFound()
+  const { data: coach, error } = await getCoachById(params.id)
+  if (error) throw new Error('Coach profile could not be loaded. Reload before making changes.')
+  if (!coach) notFound()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sb = supabase as any
-  const { data: profile } = await sb.from('coach_data_profiles').select('*').eq('coach_id', params.id).maybeSingle()
-  const { data: externalProfile } = await sb.from('coach_external_profiles').select('*').eq('coach_id', params.id).maybeSingle()
-  const { data: recruitment } = await sb.from('coach_recruitment_history').select('*').eq('coach_id', params.id).order('created_at', { ascending: false })
-  const { data: mediaEvents } = await sb.from('coach_media_events').select('*').eq('coach_id', params.id).order('severity_score', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false, nullsFirst: true })
+  const { data: profile, error: profileError } = await sb.from('coach_data_profiles').select('*').eq('coach_id', params.id).maybeSingle()
+  const { data: externalProfile, error: externalError } = await sb.from('coach_external_profiles').select('*').eq('coach_id', params.id).maybeSingle()
+  const { data: recruitment, error: recruitmentError } = await sb.from('coach_recruitment_history').select('*').eq('coach_id', params.id).order('created_at', { ascending: false })
+  const { data: mediaEvents, error: mediaError } = await sb.from('coach_media_events').select('*').eq('coach_id', params.id).order('severity_score', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false, nullsFirst: true })
 
+  if (profileError || externalError || recruitmentError || mediaError) throw new Error('Coach data could not be loaded. Reload before editing.')
   return (
     <CoachDataTab
       coachId={params.id}

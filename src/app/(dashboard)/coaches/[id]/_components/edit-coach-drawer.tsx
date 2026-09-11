@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
@@ -49,6 +49,7 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const formId = useId()
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
@@ -87,7 +88,10 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
       const s = v != null ? String(v).trim() : ''
       payload[field.key] = s === '' ? null : s
     }
-    const result = await onSave(payload)
+    let result
+    try { result = await onSave(payload) } catch {
+      setSubmitting(false); setError('Save could not be confirmed. Your edits are kept; please retry.'); return
+    }
     setSubmitting(false)
     if (result.error) {
       setError(result.error)
@@ -114,13 +118,13 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
             <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button type="submit" form="edit-coach-form" disabled={submitting}>
+            <Button type="submit" form={formId} disabled={submitting}>
               {submitting ? 'Saving…' : 'Save changes'}
             </Button>
           </>
         }
       >
-        <form id="edit-coach-form" onSubmit={handleSubmit} className="space-y-4">
+        <form id={formId} onSubmit={handleSubmit} className="space-y-4">
           {error && <p className="text-sm text-destructive">{error}</p>}
           {fields.map((field) => (
             <div key={field.key}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -34,6 +34,12 @@ export default function NewClubPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const searchRequest = useRef<AbortController | null>(null)
+  const saveLock = useRef(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [searchedQuery, setSearchedQuery] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  useEffect(() => () => { searchRequest.current?.abort() }, [])
   const [searching, setSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [imported, setImported] = useState<{
@@ -56,20 +62,33 @@ export default function NewClubPage() {
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
-    if (!searchQuery.trim()) return
+    const query = searchQuery.trim()
+    if (query.length < 2) { setSearchError('Enter at least two characters to search.'); return }
+    searchRequest.current?.abort()
+    const request = new AbortController()
+    searchRequest.current = request
     setSearching(true)
+    setSearchError(null)
+    setSearchedQuery(null)
     setSearchResults([])
     try {
-      const res = await fetch(`/api/integrations/clubs/search?q=${encodeURIComponent(searchQuery)}`)
-      const { results } = await res.json()
-      setSearchResults(results ?? [])
+      const res = await fetch(`/api/integrations/clubs/search?q=${encodeURIComponent(query)}`, { signal: request.signal })
+      if (!res.ok) throw new Error('Search unavailable')
+      const body = await res.json()
+      if (!Array.isArray(body.results) || body.results.some((row: SearchResult) => !row || typeof row.name !== 'string' || typeof row.external_id !== 'string')) throw new Error('Invalid search response')
+      if (request.signal.aborted) return
+      setSearchResults(body.results)
+      setSearchedQuery(query)
     } catch {
-      toastError('Search failed')
+      if (!request.signal.aborted) setSearchError('Search could not be completed. Retry Search or enter the club manually.')
+    } finally {
+      if (!request.signal.aborted) setSearching(false)
     }
-    setSearching(false)
   }
 
   function handleImport(result: SearchResult) {
+    if ((form.name || form.country || form.notes) && !confirm('Replace the current club name, country, league and notes with these source fields?')) return
+    setSearchedQuery(null)
     setForm({
       name: result.name,
       country: result.country,
@@ -93,10 +112,15 @@ export default function NewClubPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (saveLock.current) return
+    if (!form.name.trim()) { setSaveError('Club name is required.'); return }
+    saveLock.current = true
+    setSaveError(null)
     setLoading(true)
+    try {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    if (!user) throw new Error('Sign in again')
 
     const { error, data } = await supabase.from('clubs').insert({
       user_id: user.id,
@@ -117,12 +141,16 @@ export default function NewClubPage() {
       } : {}),
     }).select('id').single()
 
-    setLoading(false)
-    if (error) { toastError(error.message); return }
+    if (error || !data?.id) throw new Error('Save failed')
     toastSuccess('Club created')
-    fetch(`/api/integrations/clubs/enrich/${data.id}`, { method: 'POST' }).catch(() => {})
+    // Enrichment is separate from creation: a failed refresh must not invite a duplicate save.
+    void fetch(`/api/integrations/clubs/enrich/${data.id}`, { method: 'POST' })
+      .then(response => { if (!response.ok) toastError('Club saved, but automatic enrichment failed. Use Sync on the club profile to retry.') })
+      .catch(() => toastError('Club saved, but automatic enrichment could not be confirmed. Check the club profile before retrying Sync.'))
     router.push(`/clubs/${data.id}`)
     router.refresh()
+    } catch { setSaveError('Creation could not be confirmed. Your entries are kept. Check the club directory before retrying to avoid a duplicate.') }
+    finally { saveLock.current = false; setLoading(false) }
   }
 
   return (
@@ -145,13 +173,14 @@ export default function NewClubPage() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { searchRequest.current?.abort(); setSearchQuery(e.target.value); setSearchResults([]); setSearchedQuery(null); setSearchError(null); setSearching(false) }}
+            aria-label="Search external club database"
             placeholder="Search for a real club e.g. Arsenal…"
-            className="flex-1 h-10 rounded bg-surface border border-border px-3 text-sm"
+            className="min-w-0 flex-1 h-10 rounded bg-surface border border-border px-3 text-sm"
           />
           <button
             type="submit"
-            disabled={searching}
+            disabled={searching || loading}
             className="px-4 h-10 bg-primary text-primary-foreground text-xs font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 inline-flex items-center gap-2"
           >
             {searching
@@ -161,6 +190,7 @@ export default function NewClubPage() {
           </button>
         </form>
 
+        {searchError && <p role="alert" className="text-sm text-destructive">{searchError}</p>}
         {searchResults.length > 0 && (
           <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
             {searchResults.map((r) => (
@@ -177,6 +207,7 @@ export default function NewClubPage() {
                 </div>
                 <button
                   type="button"
+                  disabled={loading}
                   onClick={() => handleImport(r)}
                   className="shrink-0 text-xs text-primary hover:underline font-medium"
                 >
@@ -187,16 +218,17 @@ export default function NewClubPage() {
           </ul>
         )}
 
-        {searchResults.length === 0 && searchQuery && !searching && (
+        {searchResults.length === 0 && searchedQuery === searchQuery.trim() && !searchError && !searching && (
           <p className="text-xs text-muted-foreground">No results. Fill in the form below manually.</p>
         )}
 
         {imported && (
           <div className="flex items-center gap-2 text-xs text-emerald-400">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-            Imported from {imported.external_source === 'api-football' ? 'API-Football' : imported.external_source} — edit any fields below
+            Source fields copied for review from {imported.external_source === 'api-football' ? 'API-Football' : imported.external_source} — edit any fields below
             <button
               type="button"
+              aria-label="Remove source association"
               onClick={() => setImported(null)}
               className="ml-auto text-muted-foreground hover:text-foreground"
             >
@@ -208,6 +240,8 @@ export default function NewClubPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="card-surface rounded-xl p-5 space-y-4">
+        {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
+        <fieldset disabled={loading} className="space-y-4">
         <label className="block">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Name</span>
           <input
@@ -281,6 +315,7 @@ export default function NewClubPage() {
             Cancel
           </Link>
         </div>
+        </fieldset>
       </form>
     </div>
   )

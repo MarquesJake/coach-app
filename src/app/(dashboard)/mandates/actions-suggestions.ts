@@ -150,6 +150,7 @@ export async function generatePlayerDevelopmentSuggestions(mandateId: string): P
 
   if (eligibleCoaches.length === 0) {
     revalidatePath(`/mandates/${mandateId}/workspace`)
+    revalidatePath(`/mandates/${mandateId}/candidates`)
     return { error: null, count: 0 }
   }
 
@@ -272,6 +273,7 @@ export async function generatePlayerDevelopmentSuggestions(mandateId: string): P
   }
 
   revalidatePath(`/mandates/${mandateId}/workspace`)
+  revalidatePath(`/mandates/${mandateId}/candidates`)
   return { error: null, count: scored.length }
 }
 
@@ -328,6 +330,7 @@ export async function addSuggestionToLonglist(suggestionId: string): Promise<{ e
   revalidatePath(`/mandates/${suggestion.mandate_id}`)
   revalidatePath(`/mandates/${suggestion.mandate_id}/workspace`)
   revalidatePath(`/mandates/${suggestion.mandate_id}/longlist`)
+  revalidatePath(`/mandates/${suggestion.mandate_id}/candidates`)
   return { error: null }
 }
 
@@ -350,5 +353,6 @@ export async function dismissSuggestion(suggestionId: string): Promise<{ error: 
   if (error) return { error: error.message }
 
   revalidatePath(`/mandates/${suggestion.mandate_id}/workspace`)
+  revalidatePath(`/mandates/${suggestion.mandate_id}/candidates`)
   return { error: null }
 }

@@ -63,6 +63,10 @@ const materialUploadReservationMigration = readFileSync(
   resolve('supabase/migrations/20260729113939_coach_material_upload_reservations.sql'),
   'utf8'
 )
+const clubServiceOrganizationMigration = readFileSync(
+  resolve('supabase/migrations/20260904183232_expose_internal_service_organization_id.sql'),
+  'utf8'
+)
 
 test('club invitation schema stores only hashed single-use tokens', () => {
   assert.match(identityMigration, /token_hash text not null unique/)
@@ -70,6 +74,15 @@ test('club invitation schema stores only hashed single-use tokens', () => {
   assert.match(identityMigration, /status text not null default 'pending'/)
   assert.match(identityMigration, /claim_club_invitation/)
   assert.match(identityMigration, /email <> invitation\.email/)
+})
+
+test('club brief service lookup discloses only an identifier to active decision makers', () => {
+  assert.match(clubServiceOrganizationMigration, /security definer/)
+  assert.match(clubServiceOrganizationMigration, /buyer\.organization_type = 'club'/)
+  assert.match(clubServiceOrganizationMigration, /membership\.user_id = \(select auth\.uid\(\)\)/)
+  assert.match(clubServiceOrganizationMigration, /membership\.role in \('club_owner', 'club_director'\)/)
+  assert.match(clubServiceOrganizationMigration, /revoke all on function public\.get_club_service_organization_id\(uuid\) from public/)
+  assert.match(clubServiceOrganizationMigration, /grant execute on function public\.get_club_service_organization_id\(uuid\) to authenticated/)
 })
 
 test('club identity functions are explicitly revoked before narrow grants', () => {

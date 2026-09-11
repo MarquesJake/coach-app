@@ -26,6 +26,7 @@ import {
   isClaimProfileField,
 } from '@/lib/profile-claims'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
+import { incompleteFinding, validRating } from '@/lib/agents/forms'
 
 type Result = { ok: true; data?: { id: string } } | { ok: false; error: string }
 type ProfileClaimInsert = Database['public']['Tables']['profile_claims']['Insert']
@@ -108,12 +109,12 @@ export async function createAgentAction(formData: FormData): Promise<Result> {
           preferred_channel: preferred_contact_channel,
           stakeholder_group: 'agents',
           expertise: markets,
-          default_attribution_permission: 'anonymised_external',
+          default_attribution_permission: 'internal_only',
         })
         .select('id')
         .single()
       if (contactError || !contact) {
-        await dbDeleteAgent(user.id, id)
+        await dbDeleteAgent(id)
         return { ok: false, error: contactError?.message ?? 'Could not create the linked football-network contact' }
       }
       contactId = contact.id
@@ -123,7 +124,7 @@ export async function createAgentAction(formData: FormData): Promise<Result> {
       .update({ football_contact_id: contactId })
       .eq('id', id)
     if (linkError) {
-      await dbDeleteAgent(user.id, id)
+      await dbDeleteAgent(id)
       return { ok: false, error: 'Could not connect the agent to the football network' }
     }
     revalidatePath('/agents')
@@ -136,7 +137,7 @@ export async function createAgentAction(formData: FormData): Promise<Result> {
 
 export async function updateAgentAction(agentId: string, formData: FormData): Promise<Result> {
   try {
-    const { supabase, user } = await requireUser()
+    const { supabase } = await requireUser()
     const full_name = (formData.get('full_name') as string)?.trim()
     if (!full_name) return { ok: false, error: 'Name is required' }
     const agency_name = (formData.get('agency_name') as string)?.trim() || null
@@ -155,7 +156,7 @@ export async function updateAgentAction(agentId: string, formData: FormData): Pr
     const responsiveness_score = formData.get('responsiveness_score') != null ? parseInt(String(formData.get('responsiveness_score')), 10) : null
     const risk_flag = formData.get('risk_flag') === 'true' || formData.get('risk_flag') === 'on'
     const risk_notes = (formData.get('risk_notes') as string)?.trim() || null
-    const { error } = await dbUpdateAgent(user.id, agentId, {
+    const { error } = await dbUpdateAgent(agentId, {
       full_name,
       agency_name,
       base_location,
@@ -207,8 +208,8 @@ export async function updateAgentAction(agentId: string, formData: FormData): Pr
 
 export async function deleteAgentAction(agentId: string): Promise<Result> {
   try {
-    const { user } = await requireUser()
-    const { error } = await dbDeleteAgent(user.id, agentId)
+    await requireUser()
+    const { error } = await dbDeleteAgent(agentId)
     if (error) return { ok: false, error: error.message ?? 'Failed to delete agent' }
     revalidatePath('/agents')
     return { ok: true }
@@ -230,6 +231,8 @@ export async function upsertCoachAgentAction(payload: {
 }): Promise<Result> {
   try {
     const { user } = await requireUser()
+    if (payload.confidence != null) return { ok: false, error: 'Coach-link confidence cannot be saved with the current schema. Leave confidence blank.' }
+    if (!validRating(payload.relationship_strength)) return { ok: false, error: 'Strength must be a whole number between 0 and 100' }
     const { error } = await upsertCoachAgent(user.id, {
       user_id: user.id,
       coach_id: payload.coach_id,
@@ -252,8 +255,8 @@ export async function upsertCoachAgentAction(payload: {
 
 export async function deleteCoachAgentAction(id: string, agentId: string, coachId: string): Promise<Result> {
   try {
-    const { user } = await requireUser()
-    const { error } = await deleteCoachAgent(user.id, id)
+    await requireUser()
+    const { error } = await deleteCoachAgent(id)
     if (error) return { ok: false, error: error.message ?? 'Failed to delete link' }
     revalidatePath(`/agents/${agentId}`)
     revalidatePath(`/agents/${agentId}/coaches`)
@@ -275,12 +278,15 @@ export async function upsertAgentClubRelationshipAction(payload: {
 }): Promise<Result> {
   try {
     const { user } = await requireUser()
+    if (!validRating(payload.relationship_strength)) return { ok: false, error: 'Strength must be a whole number between 0 and 100' }
+    if (payload.last_active_on && !Number.isFinite(new Date(payload.last_active_on).getTime())) return { ok: false, error: 'Choose a valid last active date' }
     const { error } = await upsertAgentClubRelationship(user.id, {
       user_id: user.id,
       agent_id: payload.agent_id,
       club_id: payload.club_id,
       relationship_type: payload.relationship_type ?? 'Intermediary',
       relationship_strength: payload.relationship_strength ?? null,
+      last_active_on: payload.last_active_on ?? null,
       notes: payload.notes ?? null,
     })
     if (error) return { ok: false, error: error.message ?? 'Failed to save relationship' }
@@ -295,8 +301,8 @@ export async function upsertAgentClubRelationshipAction(payload: {
 
 export async function deleteAgentClubRelationshipAction(id: string, agentId: string, clubId: string): Promise<Result> {
   try {
-    const { user } = await requireUser()
-    const { error } = await deleteAgentClubRelationship(user.id, id)
+    await requireUser()
+    const { error } = await deleteAgentClubRelationship(id)
     if (error) return { ok: false, error: error.message ?? 'Failed to delete relationship' }
     revalidatePath(`/agents/${agentId}`)
     revalidatePath(`/agents/${agentId}/clubs`)
@@ -328,6 +334,10 @@ export async function createAgentInteractionAction(payload: {
   try {
     const { supabase, user } = await requireUser()
     const coachId = payload.coach_id ?? null
+    if (!payload.summary.trim()) return { ok: false, error: 'Summary is required' }
+    if (!payload.occurred_at || !Number.isFinite(new Date(payload.occurred_at).getTime())) return { ok: false, error: 'Choose a valid conversation date and time' }
+    if ((payload.claims ?? []).some((claim) => incompleteFinding(claim.claimed_value, claim.evidence_summary))) return { ok: false, error: 'Add both the finding and its evidence summary, or clear both' }
+    if (![payload.confidence, payload.reliability_score, payload.influence_score, ...(payload.claims ?? []).map((claim) => claim.confidence)].every(validRating)) return { ok: false, error: 'Ratings must be whole numbers between 0 and 100' }
     const claims = (payload.claims ?? [])
       .map((claim) => ({
         ...claim,
@@ -376,7 +386,7 @@ export async function createAgentInteractionAction(payload: {
           current_role_title: 'Agent / intermediary',
           current_organization: agentData.agency_name,
           stakeholder_group: 'agents',
-          default_attribution_permission: 'anonymised_external',
+          default_attribution_permission: 'internal_only',
         })
         .select('id')
         .single()
@@ -430,7 +440,7 @@ export async function createAgentInteractionAction(payload: {
       .select('id')
       .single()
     if (sessionError || !session) {
-      await deleteInteraction(user.id, (interaction as { id: string }).id)
+      await deleteInteraction((interaction as { id: string }).id)
       return { ok: false, error: sessionError?.message ?? 'Failed to create the conversation record' }
     }
 
@@ -513,7 +523,7 @@ export async function createAgentInteractionAction(payload: {
       const { error: claimError } = await supabase.from('profile_claims').insert(rows)
       if (claimError) {
         await supabase.from('intelligence_sessions').delete().eq('id', session.id)
-        await deleteInteraction(user.id, (interaction as { id: string }).id)
+        await deleteInteraction((interaction as { id: string }).id)
         return { ok: false, error: claimError.message ?? 'Failed to add findings' }
       }
     }
@@ -533,8 +543,8 @@ export async function createAgentInteractionAction(payload: {
 
 export async function deleteAgentInteractionAction(id: string, agentId: string): Promise<Result> {
   try {
-    const { user } = await requireUser()
-    const { error } = await deleteInteraction(user.id, id)
+    await requireUser()
+    const { error } = await deleteInteraction(id)
     if (error) return { ok: false, error: error.message ?? 'Failed to delete interaction' }
     revalidatePath(`/agents/${agentId}`)
     revalidatePath(`/agents/${agentId}/interactions`)
@@ -577,8 +587,8 @@ export async function createAgentDealAction(payload: {
 
 export async function deleteAgentDealAction(id: string, agentId: string): Promise<Result> {
   try {
-    const { user } = await requireUser()
-    const { error } = await deleteAgentDeal(user.id, id)
+    await requireUser()
+    const { error } = await deleteAgentDeal(id)
     if (error) return { ok: false, error: error.message ?? 'Failed to delete deal' }
     revalidatePath(`/agents/${agentId}`)
     revalidatePath(`/agents/${agentId}/deals`)

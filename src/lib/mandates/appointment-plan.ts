@@ -10,16 +10,16 @@ export type ServiceModel = (typeof SERVICE_MODELS)[number]
 
 export const SERVICE_MODEL_LABELS: Record<ServiceModel, string> = {
   full_service_search: 'Full appointment process',
-  curated_shortlist: 'Coach First shortlist',
+  curated_shortlist: 'Gaffa shortlist',
   named_coach_diligence: 'Named-coach diligence',
   succession_intelligence: 'Succession planning',
   confidential_dossier: 'Confidential dossier',
 }
 
 export const SERVICE_MODEL_DESCRIPTIONS: Record<ServiceModel, string> = {
-  full_service_search: 'Coach First runs identification, assessment, interviews, feasibility and appointment support.',
-  curated_shortlist: 'Coach First builds and assesses a club-ready shortlist.',
-  named_coach_diligence: 'The club supplies names; Coach First tests each option in depth.',
+  full_service_search: 'Gaffa runs identification, assessment, interviews, feasibility and appointment support.',
+  curated_shortlist: 'Gaffa builds and assesses a club-ready shortlist.',
+  named_coach_diligence: 'The club supplies names; Gaffa tests each option in depth.',
   succession_intelligence: 'Build options and intelligence before a vacancy becomes public.',
   confidential_dossier: 'Prepare and control release of one decision-ready coach dossier.',
 }

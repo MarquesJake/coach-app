@@ -10,7 +10,7 @@ type AgentClubUpdate = Database['public']['Tables']['agent_club_relationships'][
 
 export type { CoachAgentRow, CoachAgentInsert, CoachAgentUpdate, AgentClubRow, AgentClubInsert, AgentClubUpdate }
 
-export async function listCoachAgentsForCoach(userId: string, coachId: string) {
+export async function listCoachAgentsForCoach(coachId: string) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('coach_agents')
@@ -22,7 +22,6 @@ export async function listCoachAgentsForCoach(userId: string, coachId: string) {
       started_on,
       ended_on,
       relationship_strength,
-      confidence,
       notes,
       created_at,
       agents ( id, full_name, agency_name )
@@ -32,7 +31,7 @@ export async function listCoachAgentsForCoach(userId: string, coachId: string) {
   return { data: data ?? [], error }
 }
 
-export async function listCoachAgentsForAgent(userId: string, agentId: string) {
+export async function listCoachAgentsForAgent(agentId: string) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('coach_agents')
@@ -44,7 +43,6 @@ export async function listCoachAgentsForAgent(userId: string, agentId: string) {
       started_on,
       ended_on,
       relationship_strength,
-      confidence,
       notes,
       created_at,
       coaches ( id, name, role_current, club_current )
@@ -63,12 +61,12 @@ export async function upsertCoachAgent(userId: string, payload: CoachAgentInsert
     .single()
 }
 
-export async function deleteCoachAgent(userId: string, id: string) {
+export async function deleteCoachAgent(id: string) {
   const supabase = await db()
   return supabase.from('coach_agents').delete().eq('id', id)
 }
 
-export async function listAgentClubRelationshipsForAgent(userId: string, agentId: string) {
+export async function listAgentClubRelationshipsForAgent(agentId: string) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('agent_club_relationships')
@@ -97,7 +95,7 @@ export async function upsertAgentClubRelationship(userId: string, payload: Agent
     .single()
 }
 
-export async function deleteAgentClubRelationship(userId: string, id: string) {
+export async function deleteAgentClubRelationship(id: string) {
   const supabase = await db()
   return supabase.from('agent_club_relationships').delete().eq('id', id)
 }

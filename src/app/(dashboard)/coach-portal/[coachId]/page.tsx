@@ -3,6 +3,9 @@ import { notFound, redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/types/db'
 import { displayClubName } from '@/lib/display-names'
+import { calculateProfileReadiness } from '@/lib/coach-profile-readiness'
+import { declarationReviewLabel, deriveMaterialStatus, summarizeMaterials } from '@/lib/assessment/material-status'
+import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import {
   addCoachPortalMaterialFormAction,
   revokeCoachInvitationAction,
@@ -11,6 +14,9 @@ import {
   updateCoachPortalMaterialVerificationFormAction,
 } from '../actions'
 import { InviteCoachUserForm } from './_components/invite-coach-user-form'
+
+export const metadata = { title: 'Coach submissions' }
+
 
 type CoachRow = Database['public']['Tables']['coaches']['Row']
 type PortalRow = Database['public']['Tables']['coach_portal_profiles']['Row']
@@ -49,29 +55,13 @@ const ACCESS_STATUS_LABELS: Record<string, string> = {
   withdrawn: 'Withdrawn',
 }
 
-const PROFILE_FIELDS: Array<keyof PortalRow> = [
-  'short_bio',
-  'personal_statement',
-  'football_identity',
-  'in_possession_model',
-  'out_of_possession_model',
-  'training_week',
-  'session_design_principles',
-  'player_development_proof',
-  'staff_network',
-  'reference_permissions',
-]
-
 function value(profile: PortalRow | null, key: keyof PortalRow) {
   const raw = profile?.[key]
   return typeof raw === 'string' ? raw : ''
 }
 
 function readiness(profile: PortalRow | null, materials: MaterialRow[]) {
-  const completed = profile
-    ? PROFILE_FIELDS.filter((field) => value(profile, field).trim().length > 0).length
-    : 0
-  return Math.min(100, Math.round(((completed + Math.min(2, materials.length)) / (PROFILE_FIELDS.length + 2)) * 100))
+  return calculateProfileReadiness(profile, summarizeMaterials(materials).uploaded)
 }
 
 function TextField({
@@ -119,15 +109,17 @@ function TextAreaField({
 export default async function CoachPortalDetailPage(
   props: {
     params: Promise<{ coachId: string }>
+    searchParams: Promise<{ materialReview?: string }>
   }
 ) {
   const params = await props.params;
+  const searchParams = await props.searchParams
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const coachId = params.coachId
-  const [coachRes, profileRes, materialsRes, accessRequestsRes, invitationsRes] = await Promise.all([
+  const [coachRes, profileRes, materialsRes, accessRequestsRes, invitationsRes, shortlistRes] = await Promise.all([
     supabase
       .from('coaches')
       .select('*')
@@ -137,13 +129,11 @@ export default async function CoachPortalDetailPage(
       .from('coach_portal_profiles')
       .select('*')
       .eq('coach_id', coachId)
-      .eq('user_id', user.id)
       .maybeSingle(),
     supabase
       .from('coach_private_materials')
       .select('*')
       .eq('coach_id', coachId)
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
       .from('confidential_access_requests')
@@ -155,9 +145,13 @@ export default async function CoachPortalDetailPage(
       .select('*')
       .eq('coach_id', coachId)
       .order('created_at', { ascending: false }),
+    supabase.from('mandate_shortlist').select('mandate_id, mandates(id, custom_club_name, clubs(name))').eq('coach_id', coachId),
   ])
 
   if (coachRes.error || !coachRes.data) notFound()
+  if (profileRes.error || materialsRes.error || accessRequestsRes.error || invitationsRes.error) {
+    throw new Error('Coach submission review could not be loaded. Refresh to retry.')
+  }
 
   const coach = coachRes.data as CoachRow
   const profile = (profileRes.data ?? null) as PortalRow | null
@@ -175,10 +169,10 @@ export default async function CoachPortalDetailPage(
     : { data: [] }
   const identityByUser = new Map((externalIdentities ?? []).map((identity) => [identity.user_id, identity]))
   const score = readiness(profile, materials)
-  const verifiedMaterials = materials.filter((item) => item.verification_status === 'verified').length
+  const materialSummary = summarizeMaterials(materials)
   const requestedMaterials = materials.filter((item) => ['requested', 'missing'].includes(item.confidentiality_status)).length
   const liveRequests = accessRequests.filter((request) => ['requested', 'approved'].includes(request.status)).length
-  const hasMaterialType = (type: string) => materials.some((item) => item.material_type === type)
+  const hasMaterialType = (type: string) => materials.some((item) => item.material_type === type && deriveMaterialStatus(item).uploaded)
   const intakeChecklist = [
     {
       label: 'Career circumstances',
@@ -204,13 +198,13 @@ export default async function CoachPortalDetailPage(
       href: null,
     },
     {
-      label: 'Training proof',
+      label: 'Training model / material',
       done: hasMaterialType('training_video') || Boolean(profile?.training_week?.trim()),
       detail: 'how the work looks on the grass',
       href: null,
     },
     {
-      label: 'Match proof',
+      label: 'Match material',
       done: hasMaterialType('match_video') || hasMaterialType('analysis'),
       detail: 'match plan, adaptation, or analyst evidence',
       href: null,
@@ -231,6 +225,7 @@ export default async function CoachPortalDetailPage(
 
   return (
     <div className="space-y-6">
+      {searchParams.materialReview && <p role="status" className="rounded border border-border p-3 text-sm">{searchParams.materialReview}</p>}
       <div className="flex items-center justify-between gap-4">
         <div>
           <Link href="/coach-portal" className="text-xs text-muted-foreground hover:text-foreground">
@@ -264,7 +259,7 @@ export default async function CoachPortalDetailPage(
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             This is the information a coach, agent or representative would provide directly. It does not replace
-            analyst judgement; it gives Coach First private depth to verify, challenge and package for clubs.
+            analyst judgement; it gives Gaffa private depth to verify, challenge and package for clubs.
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card p-5">
@@ -272,12 +267,13 @@ export default async function CoachPortalDetailPage(
             <div>
               <p className="text-3xl font-semibold text-foreground tabular-nums">{score}%</p>
               <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                Portal readiness
+                {profile && isIllustrativeEvidence(profile) ? 'Illustrative profile completeness' : 'Profile completeness'}
               </p>
             </div>
             <div className="text-right text-xs text-muted-foreground">
-              <p>{materials.length} private material{materials.length === 1 ? '' : 's'}</p>
-              <p>{verifiedMaterials} verified · {liveRequests} live request{liveRequests === 1 ? '' : 's'}</p>
+              <p>{materialSummary.entries} entries · {materialSummary.uploaded} uploaded files</p>
+              <p>{materialSummary.reviewedUploads} reviewed uploads · {materialSummary.illustrative} illustrative entries</p>
+              <p>{liveRequests} open access requests</p>
             </div>
           </div>
           <div className="mt-4 h-2 rounded-full bg-surface overflow-hidden">
@@ -286,7 +282,23 @@ export default async function CoachPortalDetailPage(
         </div>
       </section>
 
-      <section className="rounded-lg border border-border bg-card overflow-hidden">
+      <section className="rounded-lg border border-border bg-card p-5 space-y-3">
+        <h3 className="text-sm font-semibold">{declarationReviewLabel(profile)}</h3>
+        <p className="text-xs text-muted-foreground">Profile completeness measures filled fields. Declaration review does not verify every statement, establish an uploaded file or authorize release to a recipient.</p>
+        <p className="text-xs text-muted-foreground">Review the declaration and material below, then continue the relevant appointment assessment. Sharing requires a separate release decision.</p>
+        <div className="flex flex-wrap gap-3">
+          {(shortlistRes.data ?? []).map(row => (
+            <Link key={row.mandate_id} href={`/mandates/${row.mandate_id}/assessment/${coach.id}`} className="text-xs font-medium text-primary underline">
+              Continue assessment · {displayClubName(row.mandates?.custom_club_name, row.mandates?.clubs?.name, 'Mandate')}
+            </Link>
+          ))}
+          {shortlistRes.error ? <p className="text-xs text-muted-foreground">Mandate links could not load. Refresh to retry.</p> : !shortlistRes.data?.length && <Link href={`/coaches/${coach.id}/mandate-fit`} className="text-xs text-primary underline">Review appointment fit</Link>}
+          <Link href="/dossier-orders" className="text-xs text-primary underline">Check recipient release eligibility</Link>
+        </div>
+      </section>
+
+      <details className="rounded-lg border border-border bg-card overflow-hidden">
+        <summary className="cursor-pointer px-5 py-4 text-sm font-semibold">Coach account access and invitations</summary>
         <div className="border-b border-border px-5 py-4">
           <h3 className="text-sm font-semibold text-foreground">Coach account access</h3>
           <p className="mt-0.5 text-2xs text-muted-foreground">
@@ -333,14 +345,14 @@ export default async function CoachPortalDetailPage(
             })}
           </div>
         )}
-      </section>
+      </details>
 
       <section className="rounded-lg border border-border bg-card p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Depth checklist</h3>
+            <h3 className="text-sm font-semibold text-foreground">Profile completeness checklist</h3>
             <p className="mt-0.5 text-2xs text-muted-foreground">
-              The minimum football-person evidence we need before a coach profile becomes club-useful rather than just biographical.
+              Filled declarations and uploaded material are intake signals. They do not establish accuracy, permission to contact references or recipient release eligibility.
             </p>
           </div>
           {requestedMaterials > 0 && (
@@ -394,7 +406,7 @@ export default async function CoachPortalDetailPage(
             <div>
               <h3 className="text-sm font-semibold text-foreground">Portal controls</h3>
               <p className="text-2xs text-muted-foreground mt-0.5">
-                Control how complete and shareable the coach-submitted profile is.
+                Record declaration review and visibility preferences. These do not grant access to files.
               </p>
             </div>
             <button
@@ -407,7 +419,7 @@ export default async function CoachPortalDetailPage(
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <label className="block">
               <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-                Portal status
+                Declaration review
               </span>
               <select name="portal_status" defaultValue={profile?.portal_status ?? 'in_progress'} className={inputClass}>
                 <option value="not_invited">Not invited</option>
@@ -415,7 +427,7 @@ export default async function CoachPortalDetailPage(
                 <option value="in_progress">In progress</option>
                 <option value="submitted">Submitted</option>
                 <option value="in_review">In review</option>
-                <option value="approved">Approved</option>
+                <option value="approved">Declaration review recorded</option>
                 <option value="needs_update">Needs update</option>
               </select>
             </label>
@@ -425,7 +437,7 @@ export default async function CoachPortalDetailPage(
               </span>
               <select name="visibility_status" defaultValue={profile?.visibility_status ?? 'coach_first_only'} className={inputClass}>
                 <option value="private">Private</option>
-                <option value="coach_first_only">Coach First only</option>
+                <option value="coach_first_only">Gaffa only</option>
                 <option value="clubs_on_request">Clubs on request</option>
                 <option value="shareable">Shareable</option>
               </select>
@@ -486,9 +498,9 @@ export default async function CoachPortalDetailPage(
         <form action={addCoachPortalMaterialFormAction} className="rounded-lg border border-border bg-card p-5 space-y-3">
           <input type="hidden" name="coach_id" value={coach.id} />
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Add private material</h3>
+            <h3 className="text-sm font-semibold text-foreground">Add material metadata or a link</h3>
             <p className="text-2xs text-muted-foreground mt-0.5">
-              Log analyst-, agent- or club-supplied material here. Coach uploads arrive through the secure coach account and remain subject to review.
+              This form records a description or external link, not an uploaded file. Coach uploads arrive through the secure coach account and require separate review and recipient permission.
             </p>
           </div>
           <div className="grid grid-cols-[1fr_160px] gap-3">
@@ -518,7 +530,7 @@ export default async function CoachPortalDetailPage(
               <option value="unknown">Unknown</option>
             </select>
             <select name="confidentiality_status" defaultValue="available" className={inputClass}>
-              <option value="available">Available for controlled access</option>
+              <option value="available">Reported available - release not authorized</option>
               <option value="requested">Requested</option>
               <option value="missing">Missing</option>
               <option value="withheld">Withheld</option>
@@ -553,18 +565,19 @@ export default async function CoachPortalDetailPage(
                     </div>
                     <div className="shrink-0 space-y-1 text-right">
                       <span className="inline-block rounded-full border border-border/70 px-2 py-0.5 text-[10px] text-muted-foreground">
-                        {item.confidentiality_status}
+                        {deriveMaterialStatus(item).label}
                       </span>
+                      <p className="max-w-48 text-[10px] text-muted-foreground">{deriveMaterialStatus(item).releaseLabel}</p>
                       <form action={updateCoachPortalMaterialVerificationFormAction}>
                         <input type="hidden" name="coach_id" value={coach.id} />
                         <input type="hidden" name="material_id" value={item.id} />
                         <select
                           name="verification_status"
-                          defaultValue={item.verification_status}
+                          defaultValue={deriveMaterialStatus(item).canReview ? item.verification_status : 'unverified'}
                           className="block rounded border border-border bg-surface px-1.5 py-1 text-[10px] text-foreground"
                         >
                           <option value="unverified">Unverified</option>
-                          <option value="verified">Verified</option>
+                          <option value="verified" disabled={!deriveMaterialStatus(item).canReview}>{deriveMaterialStatus(item).uploaded ? 'File review recorded' : 'Link review recorded'}</option>
                           <option value="disputed">Disputed</option>
                         </select>
                         <button

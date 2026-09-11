@@ -6,6 +6,9 @@ import { AgentsInventoryClient } from './_components/agents-inventory-client'
 import type { AgentInventoryAgent } from './_components/agents-inventory-client'
 import { EmptyState } from '@/components/ui/empty-state'
 
+export const metadata = { title: 'Agents' }
+
+
 export default async function AgentsPage({
   searchParams,
 }: {
@@ -23,11 +26,12 @@ export default async function AgentsPage({
   const channel = (params.channel ?? '').trim()
   const sort = (params.sort ?? 'name').trim()
 
-  const { data: agents } = await supabase
+  const { data: agents, error } = await supabase
     .from('agents')
     .select('id, full_name, agency_name, base_location, markets, influence_score, reliability_score, risk_flag, preferred_contact_channel, created_at')
     .order('full_name')
 
+  if (error) throw new Error('Could not load agents')
   if (!agents || agents.length === 0) {
     return (
       <div className="flex flex-col gap-4">
@@ -51,6 +55,7 @@ export default async function AgentsPage({
     supabase.from('agent_club_relationships').select('agent_id').in('agent_id', agentIds),
     supabase.from('agent_interactions').select('agent_id, occurred_at').in('agent_id', agentIds).order('occurred_at', { ascending: false }),
   ])
+  if (caCounts.error || acrCounts.error || lastInt.error) throw new Error('Could not load agent relationships')
 
   const coachesCountByAgent: Record<string, number> = {}
   const clubsCountByAgent: Record<string, number> = {}

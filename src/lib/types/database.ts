@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      coach_research_questions: {
+        Row: {
+          assessment_area: string | null
+          evidence_methods: string[]
+          answer: string
+          coach_id: string
+          counter_evidence: string
+          created_at: string
+          created_by: string
+          decision_impact: string
+          domain: string
+          due_on: string | null
+          evidence_claim_ids: string[]
+          id: string
+          mandate_id: string | null
+          owner: string
+          question: string
+          source_plan: string
+          status: string
+          updated_at: string
+          updated_by: string
+          version: number
+        }
+        Insert: {
+          assessment_area?: string | null
+          evidence_methods?: string[]
+          answer?: string
+          coach_id: string
+          counter_evidence?: string
+          created_at?: string
+          created_by?: string
+          decision_impact: string
+          domain: string
+          due_on?: string | null
+          evidence_claim_ids?: string[]
+          id?: string
+          mandate_id?: string | null
+          owner?: string
+          question: string
+          source_plan?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string
+          version?: number
+        }
+        Update: {
+          assessment_area?: string | null
+          evidence_methods?: string[]
+          answer?: string
+          coach_id?: string
+          counter_evidence?: string
+          created_at?: string
+          created_by?: string
+          decision_impact?: string
+          domain?: string
+          due_on?: string | null
+          evidence_claim_ids?: string[]
+          id?: string
+          mandate_id?: string | null
+          owner?: string
+          question?: string
+          source_plan?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_research_questions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_research_questions_mandate_id_fkey"
+            columns: ["mandate_id"]
+            isOneToOne: false
+            referencedRelation: "mandates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investor_access: {
+        Row: { user_id: string; expires_at: string; revoked_at: string | null; created_at: string }
+        Insert: { user_id: string; expires_at: string; revoked_at?: string | null; created_at?: string }
+        Update: { user_id?: string; expires_at?: string; revoked_at?: string | null; created_at?: string }
+        Relationships: []
+      }
+      investor_workspaces: {
+        Row: { user_id: string; brief: string; shortlist: string[]; notes: string; updated_at: string }
+        Insert: { user_id: string; brief?: string; shortlist?: string[]; notes?: string; updated_at?: string }
+        Update: { user_id?: string; brief?: string; shortlist?: string[]; notes?: string; updated_at?: string }
+        Relationships: []
+      }
       activity_log: {
         Row: {
           action_type: string
@@ -888,6 +984,43 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      club_brief_amendments: {
+        Row: {
+          id: string
+          brief_id: string
+          base_version: number
+          accepted_version: number | null
+          changes: Json
+          before_snapshot: Json
+          after_snapshot: Json
+          request_reason: string
+          status: string
+          requested_by: string
+          requested_at: string
+          decision_note: string | null
+          next_action: string | null
+          reviewed_by: string | null
+          reviewed_at: string | null
+        }
+        Insert: {
+          brief_id: string
+          base_version: number
+          changes: Json
+          request_reason: string
+        }
+        Update: {
+          status?: string
+          decision_note?: string | null
+          next_action?: string | null
+        }
+        Relationships: [{
+          foreignKeyName: "club_brief_amendments_brief_id_fkey"
+          columns: ["brief_id"]
+          isOneToOne: false
+          referencedRelation: "club_briefs"
+          referencedColumns: ["id"]
+        }]
       }
       club_briefs: {
         Row: {
@@ -5342,6 +5475,7 @@ export type Database = {
       }
       mandates: {
         Row: {
+          decision_brief: Json
           board_risk_appetite: string | null
           budget_band: string | null
           build_preference_required: string | null
@@ -5372,6 +5506,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          decision_brief?: Json
           board_risk_appetite?: string | null
           budget_band?: string | null
           build_preference_required?: string | null
@@ -5402,6 +5537,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          decision_brief?: Json
           board_risk_appetite?: string | null
           budget_band?: string | null
           build_preference_required?: string | null
@@ -6487,6 +6623,10 @@ export type Database = {
           position_title: string
           user_id: string
         }[]
+      }
+      get_club_service_organization_id: {
+        Args: { target_buyer_organization_id: string }
+        Returns: string
       }
       get_unowned_counts: { Args: never; Returns: Json }
       is_coach_portal_member: {

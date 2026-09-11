@@ -1,5 +1,6 @@
+import { CoachAssessment } from '../_components/coach-assessment'
 import { redirect, notFound } from 'next/navigation'
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CareerTab } from './_components/career-tab'
@@ -7,6 +8,9 @@ import { ManagerContextTrendsCard } from './_components/manager-context-trends-c
 import { computeManagerContextTrends } from '@/lib/analysis/manager-context-trends'
 import { getStageLabel } from '@/lib/constants/mandateStages'
 import { displayClubName } from '@/lib/display-names'
+
+export const metadata = { title: 'Career' }
+
 
 // ── Pipeline stage badge colour ───────────────────────────────────────────
 function stageBadgeClass(stage: string | null): string {
@@ -65,8 +69,9 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: coach, error } = await getCoachById(user.id, params.id)
-  if (error || !coach) notFound()
+  const { data: coach, error } = await getCoachById(params.id)
+  if (error) throw new Error('Coach profile could not be loaded. Reload before making changes.')
+  if (!coach) notFound()
 
   const [stintsRes, mandateRes, clubsRes] = await Promise.all([
     supabase
@@ -108,6 +113,7 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
 
   return (
     <div className="space-y-6">
+      <CoachAssessment coachId={params.id} areas={['performance_impact']}/>
       <CareerTab coachId={params.id} stints={stints} clubs={clubsRes.data ?? []} />
 
       <ManagerContextTrendsCard summary={managerContext} />
@@ -146,7 +152,7 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
                     )}
                     <div className="min-w-0">
                       <Link
-                        href={`/mandates/${mandate.id}/workspace`}
+                        href={`/mandates/${mandate.id}/decision`}
                         className="text-sm font-medium text-foreground hover:underline truncate block"
                       >
                         {clubName}
@@ -166,7 +172,7 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
                     </div>
                   </div>
                   <Link
-                    href={`/mandates/${mandate.id}/workspace`}
+                    href={`/mandates/${mandate.id}/decision`}
                     className="text-xs text-muted-foreground hover:text-foreground shrink-0 transition-colors"
                   >
                     View →

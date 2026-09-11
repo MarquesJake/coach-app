@@ -1,0 +1,12 @@
+ 'use client'
+import { BRIEF_FIELDS, type DecisionBrief } from '@/lib/mandates/decision-brief'
+export function DecisionBriefFields({step, value, onChange}: {step: number; value: DecisionBrief; onChange: (v: DecisionBrief) => void}) {
+ const control = 'mt-1 w-full rounded border border-border bg-background px-3 py-2 text-sm'
+ return <div className="space-y-4 border-t pt-4"><p className="text-sm text-muted-foreground">Record what would change the shortlist. Leave unknowns explicit; priorities guide human assessment.</p>{BRIEF_FIELDS.filter(f => f.step === step).map(f => {
+ const row=value[f.key] ?? {value:'',priority:'Preferred' as const}
+ return <div key={f.key} className="grid gap-2 sm:grid-cols-[1fr_140px]"><label className="text-sm font-medium">{f.label}{'options' in f ? <select className={control} value={row.value} onChange={e=>onChange({...value,[f.key]:{...row,value:e.target.value}})}><option value="">Not yet agreed</option>{f.options.map(o=><option key={o}>{o}</option>)}</select> : <textarea className={control} rows={2} maxLength={2500} aria-describedby={`brief-help-${f.key}`} placeholder="Not yet agreed" value={row.value} onChange={e=>onChange({...value,[f.key]:{...row,value:e.target.value}})} />}{'hint' in f && <span id={`brief-help-${f.key}`} className="mt-1 block text-xs font-normal text-muted-foreground">{f.hint} Leave blank if not yet agreed.</span>}</label><label className="text-xs text-muted-foreground">Priority<select aria-label={`${f.label} priority`} className={control} value={row.priority} onChange={e=>onChange({...value,[f.key]:{...row,priority:e.target.value as typeof row.priority}})}>{['Essential','Preferred','Flexible'].map(p=><option key={p}>{p}</option>)}</select></label></div>
+ })}</div>
+}
+export function DecisionBriefReview({ value, expanded = false }: { value: DecisionBrief; expanded?: boolean }) {
+ return <details open={expanded} className="rounded border p-4"><summary className="cursor-pointer font-semibold">Review requirements and unresolved questions</summary><dl className="mt-3 space-y-3">{BRIEF_FIELDS.map(f=><div key={f.key} className="text-sm"><dt className="font-medium">{f.label}{value[f.key]?.value ? ` · ${value[f.key].priority}` : ''}</dt><dd className="whitespace-pre-wrap text-muted-foreground">{value[f.key]?.value || 'Not yet agreed'}</dd></div>)}</dl><p className="mt-4 text-xs text-muted-foreground">Saving creates an internal working brief. It does not approve contact or publish a recommendation. Confirm requirements with the decision makers before candidate outreach.</p></details>
+}

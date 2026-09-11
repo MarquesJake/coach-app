@@ -3,15 +3,17 @@
 import { useCallback, useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, GripVertical, MoreVertical, Eye, Pencil, UserPlus, ArrowRight, LayoutGrid, List } from 'lucide-react'
+import { Plus, GripVertical, MoreVertical, Eye, Pencil, UserPlus, ArrowRight, LayoutGrid, List, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { STAGES, getStageLabel, getStageIndex, isValidPipelineStage, normaliseStage } from '@/lib/constants/mandateStages'
+import { DeleteMandateDialog, type DeleteMandateOperation } from '@/components/mandates/delete-mandate-dialog'
 import { updateMandateStageAction } from '../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import type { BoardSignal } from '@/lib/db/mandate'
 import { displayClubName } from '@/lib/display-names'
 import { SERVICE_MODEL_LABELS, isServiceModel } from '@/lib/mandates/appointment-plan'
+import type { AppointmentNextAction } from '@/lib/mandates/appointment-next-action'
 
 /** Mandate health: visual only. Green = strong longlist depth, Amber = thin shortlist, Red = low match confidence. */
 function mandateHealth(shortlistCount: number): 'green' | 'amber' | 'red' {
@@ -38,26 +40,8 @@ export type MandateForBoard = {
   clubs: { name: string | null } | null
   mandate_shortlist?: { id: string; candidate_stage: string }[] | null
   signal?: BoardSignal | null
-}
-
-const SCORING_FIELDS = [
-  'strategic_objective',
-  'tactical_model_required',
-  'pressing_intensity_required',
-  'build_preference_required',
-  'leadership_profile_required',
-  'budget_band',
-  'succession_timeline',
-] as const
-
-type ScoringField = typeof SCORING_FIELDS[number]
-
-function mandateCompleteness(m: MandateForBoard): { pct: number; missing: number } {
-  const filled = SCORING_FIELDS.filter((k: ScoringField) => {
-    const v = m[k]
-    return typeof v === 'string' && v.trim().length > 0
-  }).length
-  return { pct: Math.round((filled / SCORING_FIELDS.length) * 100), missing: SCORING_FIELDS.length - filled }
+  nextAction?: AppointmentNextAction['nextAction'] | null
+  briefCompleteness?: AppointmentNextAction['brief'] | null
 }
 
 function shortlistCount(m: MandateForBoard): number {
@@ -94,7 +78,7 @@ function formatUrgency(value: string | null | undefined): { label: string; cls: 
 }
 
 function shortlistStrength(count: number, shortlisted: number): { label: string; cls: string } {
-  if (shortlisted >= 3 || count >= 5) return { label: 'Strong shortlist', cls: 'text-emerald-400' }
+  if (shortlisted >= 3 || count >= 5) return { label: 'Candidates recorded', cls: 'text-emerald-400' }
   if (shortlisted >= 1 || count >= 2) return { label: 'Needs depth', cls: 'text-amber-400' }
   return { label: 'No credible depth', cls: 'text-red-400' }
 }
@@ -111,15 +95,6 @@ function mainRisk(m: MandateForBoard, count: number, missing: number, hasRiskCon
   if (/academy|pathway|development|player value|player growth|young/.test(brief)) return { label: 'Development validation', cls: 'text-amber-400' }
   if (/promotion|stability|league one|efl|efficiency|reliability/.test(brief)) return { label: 'Contract realism', cls: 'text-amber-400' }
   return { label: 'Validation pending', cls: 'text-amber-400' }
-}
-
-function nextActionLabel(m: MandateForBoard, count: number, shortlisted: number, missing: number, topCoach: BoardSignal['topCoach'] | null) {
-  if (missing > 0) return 'Complete brief'
-  if (!topCoach) return 'Score market'
-  if (count === 0) return 'Add candidates'
-  if (shortlisted < 2) return 'Build shortlist'
-  if (['interviews', 'final_2', 'offer'].includes(m.pipeline_stage ?? '')) return 'Prepare board view'
-  return 'Open workspace'
 }
 
 function availDot(status: string | null) {
@@ -158,26 +133,26 @@ function filterMandates(mandates: MandateForBoard[], filters: FilterState): Mand
   })
 }
 
-// ---------------------------------------------------------------------------
-function canMoveToStage(mandate: MandateForBoard, toStageKey: string): { allowed: boolean; reason?: string } {
-  if (process.env.NODE_ENV === 'development' && false) {
-    console.info('canMoveToStage', mandate.id, toStageKey)
-  }
-  return { allowed: true }
-}
-
 type Props = {
   initialMandates: MandateForBoard[]
+  moveAction?: typeof updateMandateStageAction
+  deleteAction?: DeleteMandateOperation
 }
 
 const COLUMN_WIDTH = 272
 
-export function MandatesBoard({ initialMandates }: Props) {
+export function MandatesBoard({ initialMandates, moveAction = updateMandateStageAction, deleteAction }: Props) {
+  const router = useRouter()
+  const pendingIds = useRef(new Set<string>())
+  const [savingIds, setSavingIds] = useState<string[]>([])
+  const [deleteTarget, setDeleteTarget] = useState<MandateForBoard | null>(null)
+  const boardRef = useRef<HTMLDivElement>(null)
   const [mandates, setMandates] = useState(initialMandates)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverStage, setDragOverStage] = useState<string | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'board' | 'list'>('board')
+  useEffect(() => { if (window.matchMedia('(max-width: 640px)').matches) setViewMode('list') }, [])
   const menuRef = useRef<HTMLDivElement>(null)
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -185,6 +160,10 @@ export function MandatesBoard({ initialMandates }: Props) {
     hasShortlistOnly: false,
     status: 'All',
   })
+
+  useEffect(() => {
+    setMandates(current => initialMandates.map(incoming => pendingIds.current.has(incoming.id) ? current.find(m => m.id === incoming.id) ?? incoming : incoming))
+  }, [initialMandates])
 
   const totalMandates = mandates.length
   const activeCount = mandates.filter((m) => m.status === 'Active' || m.status === 'In Progress').length
@@ -211,9 +190,11 @@ export function MandatesBoard({ initialMandates }: Props) {
   )
 
   const handleDragStart = useCallback((e: React.DragEvent, mandateId: string, stage: string) => {
+    if (pendingIds.current.has(mandateId)) { e.preventDefault(); return }
     setDraggingId(mandateId)
     setOpenMenuId(null)
     e.dataTransfer.setData('mandateId', mandateId)
+    e.dataTransfer.setData('text/plain', mandateId)
     e.dataTransfer.setData('fromStage', stage)
     e.dataTransfer.effectAllowed = 'move'
   }, [])
@@ -224,86 +205,74 @@ export function MandatesBoard({ initialMandates }: Props) {
   }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent, stage: string) => {
+    if (!draggingId) return
     e.preventDefault()
+    const board = boardRef.current
+    if (board) {
+      const bounds = board.getBoundingClientRect()
+      if (e.clientX > bounds.right - 64) board.scrollLeft += 24
+      else if (e.clientX < bounds.left + 64) board.scrollLeft -= 24
+    }
     e.dataTransfer.dropEffect = 'move'
     setDragOverStage(stage)
+  }, [draggingId])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    if (!(e.relatedTarget instanceof Node) || !e.currentTarget.contains(e.relatedTarget)) setDragOverStage(null)
   }, [])
 
-  const handleDragLeave = useCallback(() => {
+  const handleMoveToStage = useCallback(async (mandate: MandateForBoard, destination: string) => {
+    const stage = normaliseStage(destination)
+    if (!isValidPipelineStage(stage) || pendingIds.current.has(mandate.id)) return
+    const original = mandate.pipeline_stage
+    if (stage === (original ?? STAGES[0].key)) return
+    pendingIds.current.add(mandate.id)
+    setSavingIds([...pendingIds.current])
+    setOpenMenuId(null)
+    setMandates(current => current.map(m => m.id === mandate.id ? { ...m, pipeline_stage: stage } : m))
+    let moved = false
+    try {
+      const result = await moveAction(mandate.id, stage, original)
+      if (result.error) throw new Error(result.error)
+      moved = true
+      toastSuccess(`Moved to ${getStageLabel(stage)}`)
+    } catch (error) {
+      setMandates(current => current.map(m => m.id === mandate.id ? { ...m, pipeline_stage: original } : m))
+      toastError(error instanceof Error ? error.message : 'Move could not be saved. The card has returned to its previous stage.')
+    } finally {
+      pendingIds.current.delete(mandate.id)
+      setSavingIds([...pendingIds.current])
+      // A refresh also reconciles a stale edit or a response lost after a committed write.
+      router.refresh()
+    }
+    return moved
+  }, [moveAction, router])
+
+  const handleDrop = useCallback((e: React.DragEvent, destination: string) => {
+    e.preventDefault()
+    const mandateId = e.dataTransfer.getData('mandateId')
+    const mandate = mandates.find(m => m.id === mandateId)
+    setDraggingId(null)
     setDragOverStage(null)
-  }, [])
+    if (mandate && mandateId === draggingId) void handleMoveToStage(mandate, destination)
+  }, [mandates, draggingId, handleMoveToStage])
 
-  const handleDrop = useCallback(
-    async (e: React.DragEvent, destinationColumnKey: string) => {
-      e.preventDefault()
-      setDragOverStage(null)
-      const mandateId = e.dataTransfer.getData('mandateId')
-      const fromStage = e.dataTransfer.getData('fromStage')
-      if (!mandateId || fromStage === destinationColumnKey) return
+  const handleMoveToNextStage = useCallback((mandate: MandateForBoard) => {
+    const index = getStageIndex(mandate.pipeline_stage)
+    if (index < STAGES.length - 1) void handleMoveToStage(mandate, STAGES[index + 1].key)
+  }, [handleMoveToStage])
 
-      const stageToWrite = normaliseStage(destinationColumnKey)
-      if (!isValidPipelineStage(stageToWrite)) {
-        toastError('Invalid stage')
-        return
-      }
-
-      const mandate = mandates.find((m) => m.id === mandateId)
-      if (mandate) {
-        const { allowed, reason } = canMoveToStage(mandate, stageToWrite)
-        if (!allowed) {
-          toastError(reason ?? 'Cannot move to this stage')
-          return
-        }
-      }
-
-      setMandates((prev) =>
-        prev.map((m) => (m.id === mandateId ? { ...m, pipeline_stage: stageToWrite } : m))
-      )
-
-      const { error } = await updateMandateStageAction(mandateId, stageToWrite)
-      if (error) {
-        toastError(error)
-        setMandates((prev) =>
-          prev.map((m) => (m.id === mandateId ? { ...m, pipeline_stage: fromStage } : m))
-        )
-        return
-      }
-      toastSuccess(`Moved to ${getStageLabel(stageToWrite)}`)
-    },
-    [mandates]
-  )
-
-  const handleMoveToNextStage = useCallback(
-    async (mandate: MandateForBoard) => {
-      setOpenMenuId(null)
-      const currentKey = mandate.pipeline_stage ?? STAGES[0].key
-      const currentIndex = getStageIndex(currentKey)
-      const nextIndex = Math.min(currentIndex + 1, STAGES.length - 1)
-      const nextKey = STAGES[nextIndex].key
-      if (nextKey === currentKey) return
-      const { allowed, reason } = canMoveToStage(mandate, nextKey)
-      if (!allowed) {
-        toastError(reason ?? 'Cannot move to next stage')
-        return
-      }
-      setMandates((prev) =>
-        prev.map((m) => (m.id === mandate.id ? { ...m, pipeline_stage: nextKey } : m))
-      )
-      const { error } = await updateMandateStageAction(mandate.id, nextKey)
-      if (error) {
-        toastError(error)
-        setMandates((prev) =>
-          prev.map((m) => (m.id === mandate.id ? { ...m, pipeline_stage: currentKey } : m))
-        )
-        return
-      }
-      toastSuccess(`Moved to ${getStageLabel(nextKey)}`)
-    },
-    []
-  )
+  const requestDelete = (mandate: MandateForBoard) => {
+    if (pendingIds.current.has(mandate.id)) return
+    setOpenMenuId(null)
+    setDeleteTarget(mandate)
+  }
 
   return (
     <div className="flex flex-col h-full min-h-0">
+      {deleteTarget && <DeleteMandateDialog mandateId={deleteTarget.id} name={displayClubName(deleteTarget.custom_club_name, deleteTarget.clubs?.name)} action={deleteAction}
+        onClose={() => setDeleteTarget(null)} onDeleted={() => { setMandates(current => current.filter(m => m.id !== deleteTarget.id)); setDeleteTarget(null); toastSuccess('Mandate deleted'); router.refresh() }} />}
+      <p className="px-1 py-2 text-xs text-muted-foreground">Drag a card into a stage, or use its stage selector. Use the bin to delete a test run.</p>
       {/* KPI strip */}
       <div className="flex flex-wrap items-center gap-6 py-2.5 px-1 border-b border-border bg-card/30 shrink-0 text-xs">
         <span className="text-muted-foreground">
@@ -348,13 +317,13 @@ export function MandatesBoard({ initialMandates }: Props) {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 py-3 px-1 border-b border-border bg-card/50 shrink-0">
+      <div className="flex flex-wrap items-center gap-4 py-4 border-b border-border shrink-0">
         <input
           type="search"
           placeholder="Search by club name"
           value={filters.search}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-          className="h-8 w-48 rounded-md border border-border bg-surface px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="h-10 w-60 rounded-lg border border-border bg-surface px-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
         />
         <label className="inline-flex items-center gap-1.5 cursor-pointer">
           <input
@@ -377,7 +346,7 @@ export function MandatesBoard({ initialMandates }: Props) {
         <select
           value={filters.status}
           onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-          className="h-8 rounded-md border border-border bg-surface px-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="h-10 rounded-lg border border-border bg-surface px-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s === 'All' ? 'All' : s}>
@@ -403,6 +372,9 @@ export function MandatesBoard({ initialMandates }: Props) {
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
                 onMoveToNextStage={handleMoveToNextStage}
+                onMoveToStage={handleMoveToStage}
+                onDelete={requestDelete}
+                isSaving={savingIds.includes(m.id)}
                 openMenuId={openMenuId}
                 setOpenMenuId={setOpenMenuId}
                 menuRef={menuRef}
@@ -413,33 +385,36 @@ export function MandatesBoard({ initialMandates }: Props) {
           )}
         </div>
       ) : (
-        <div className="flex flex-1 min-h-0 gap-3 pt-3 overflow-x-auto overflow-y-hidden">
+        <div ref={boardRef} className="flex flex-1 min-h-0 gap-3 pt-3 overflow-x-auto overflow-y-hidden">
           {STAGES.map((stage) => (
             <div
               key={stage.key}
+              data-stage={stage.key}
+              aria-label={`${stage.label} stage`}
               onDragOver={(e) => handleDragOver(e, stage.key)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, stage.key)}
               className={cn(
-                'flex flex-col shrink-0 rounded-md border transition-colors bg-surface/50',
+                'flex flex-col shrink-0 rounded-xl border transition-colors bg-muted/40',
                 dragOverStage === stage.key ? 'border-primary bg-primary/5' : 'border-border'
               )}
               style={{ width: COLUMN_WIDTH }}
             >
-              <div className="shrink-0 sticky top-0 z-10 px-3 py-2.5 border-b border-border flex items-center justify-between rounded-t-md bg-card/80">
-                <h3 className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+              <div className="shrink-0 sticky top-0 z-10 px-4 py-4 flex items-center justify-between rounded-t-xl bg-background">
+                <h3 className="text-xs font-semibold text-foreground">
                   {stage.label} ({byStage[stage.key]?.length ?? 0})
+                  {dragOverStage === stage.key && <span className="ml-2 text-primary">Drop here</span>}
                 </h3>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2">
                 {(byStage[stage.key] ?? []).length === 0 ? (
                   <Link
                     href="/mandates/new"
-                    className="flex flex-col items-center justify-center min-h-[140px] rounded-lg border border-dashed border-border hover:border-primary/40 hover:bg-primary/5 transition-colors text-center p-4"
+                    className="flex flex-col items-center justify-center min-h-[108px] rounded-lg border border-dashed border-border hover:border-primary/40 hover:bg-primary/5 transition-colors text-center p-4"
                   >
                     <Plus className="w-6 h-6 text-muted-foreground/50 mb-1" />
                     <span className="text-xs font-medium text-muted-foreground">No searches here</span>
-                    <span className="mt-1 text-[10px] text-muted-foreground/70">Add a mandate when a club brief enters this stage.</span>
+                    <span className="mt-1 text-[10px] text-muted-foreground/70">Add an appointment</span>
                   </Link>
                 ) : (
                   (byStage[stage.key] ?? []).map((m) => (
@@ -450,6 +425,9 @@ export function MandatesBoard({ initialMandates }: Props) {
                       onDragStart={handleDragStart}
                       onDragEnd={handleDragEnd}
                       onMoveToNextStage={handleMoveToNextStage}
+                onMoveToStage={handleMoveToStage}
+                onDelete={requestDelete}
+                isSaving={savingIds.includes(m.id)}
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
                       menuRef={menuRef}
@@ -472,6 +450,9 @@ function MandateCard({
   onDragStart,
   onDragEnd,
   onMoveToNextStage,
+  onMoveToStage,
+  onDelete,
+  isSaving,
   openMenuId,
   setOpenMenuId,
   menuRef,
@@ -482,6 +463,9 @@ function MandateCard({
   isDragging: boolean
   onDragStart: (e: React.DragEvent, id: string, stage: string) => void
   onDragEnd: () => void
+  onMoveToStage: (mandate: MandateForBoard, stage: string) => void
+  onDelete: (mandate: MandateForBoard) => void
+  isSaving: boolean
   onMoveToNextStage: (mandate: MandateForBoard) => void
   openMenuId: string | null
   setOpenMenuId: (id: string | null) => void
@@ -497,8 +481,8 @@ function MandateCard({
   const currentIndex = getStageIndex(stageKey)
   const hasNextStage = currentIndex < STAGES.length - 1
   const clubName = displayClubName(mandate.custom_club_name, mandate.clubs?.name)
-  const { pct: completeness, missing } = mandateCompleteness(mandate)
-  const completenessLabel = missing === 0 ? 'Complete' : missing <= 3 ? 'Partial' : 'Needs update'
+  const { pct: completeness, missing } = mandate.briefCompleteness ?? { pct: 0, missing: 7 }
+  const completenessLabel = !mandate.briefCompleteness ? 'Brief status unavailable' : missing === 0 ? 'Brief fields recorded' : missing <= 3 ? 'Partial brief' : 'Brief needs update'
   const completenessBadgeClass =
     completeness >= 86
       ? 'bg-green-500/15 text-green-400 border-green-500/30'
@@ -515,27 +499,23 @@ function MandateCard({
 
   const cardRef = useRef<HTMLDivElement>(null)
 
+  const dragFinishedAt = useRef(0)
+  const isControl = (target: EventTarget | null) => target instanceof Element && Boolean(target.closest('a, button, summary, details, select, input, textarea, [data-drag-handle]'))
   const handleCardClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('[data-drag-handle]') || (e.target as HTMLElement).closest('[data-menu-trigger]')) return
-    router.push(`/mandates/${mandate.id}/plan`)
+    if (isControl(e.target) || isSaving || Date.now() - dragFinishedAt.current < 350) return
+    router.push(`/mandates/${mandate.id}/decision`)
   }
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      if (!(e.target as HTMLElement).closest('[data-drag-handle]') && !(e.target as HTMLElement).closest('[data-menu-trigger]')) {
-        router.push(`/mandates/${mandate.id}/plan`)
-      }
-    }
+    if (e.target !== e.currentTarget || isSaving) return
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/mandates/${mandate.id}/decision`) }
   }
-
-  const handleHandleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('mandateId', mandate.id)
-    e.dataTransfer.setData('fromStage', stageKey)
-    if (cardRef.current) e.dataTransfer.setDragImage(cardRef.current, 0, 0)
+  const handleCardDragStart = (e: React.DragEvent) => {
+    if (isSaving || compact || (e.target !== e.currentTarget && isControl(e.target))) { e.preventDefault(); return }
+    dragFinishedAt.current = Date.now()
+    if (cardRef.current) e.dataTransfer.setDragImage(cardRef.current, 20, 20)
     onDragStart(e, mandate.id, stageKey)
   }
+  const handleCardDragEnd = () => { dragFinishedAt.current = Date.now(); onDragEnd() }
 
   const healthDotClass =
     health === 'green' ? 'bg-green-500' : health === 'amber' ? 'bg-amber-500' : 'bg-red-500/80'
@@ -550,7 +530,7 @@ function MandateCard({
   const urgency = formatUrgency(mandate.target_completion_date)
   const strength = shortlistStrength(count, shortlisted)
   const primaryRisk = mainRisk(mandate, count, missing, hasRiskConcern)
-  const nextAction = nextActionLabel(mandate, count, shortlisted, missing, topCoach)
+  const nextAction = mandate.nextAction
   const serviceLabel = isServiceModel(mandate.service_model)
     ? SERVICE_MODEL_LABELS[mandate.service_model]
     : SERVICE_MODEL_LABELS.full_service_search
@@ -558,24 +538,27 @@ function MandateCard({
   return (
     <div
       ref={cardRef}
-      role="button"
+      role="group"
+      aria-label={`${clubName} mandate`}
+      aria-busy={isSaving}
+      draggable={!compact && !isSaving}
+      onDragStart={handleCardDragStart}
+      onDragEnd={handleCardDragEnd}
       tabIndex={0}
       onClick={handleCardClick}
       onKeyDown={handleKeyDown}
       className={cn(
-        'card-surface rounded-lg border border-border p-0 hover:border-primary/30 transition-all flex cursor-pointer',
-        compact ? 'min-h-0' : 'min-h-[148px]',
+        'card-surface overflow-visible rounded-xl border border-border p-0 hover:border-primary/40 hover:shadow-md transition-all flex cursor-pointer',
+        compact ? 'min-h-0' : 'min-h-[148px] cursor-grab active:cursor-grabbing',
+        isSaving && 'opacity-60',
         isDragging && 'opacity-90 scale-105 shadow-lg ring-2 ring-primary/40'
       )}
     >
       <div className={cn('w-0.5 shrink-0 self-stretch', priorityStripClass)} aria-hidden />
-      <div className={cn('flex-1 min-w-0 flex items-start gap-2 overflow-visible', compact ? 'p-2' : 'p-3')}>
+      <div className={cn('flex-1 min-w-0 flex items-start gap-2 overflow-visible', compact ? 'p-4' : 'p-4')}>
         {!compact && (
           <span
-            data-drag-handle
-            draggable
-            onDragStart={handleHandleDragStart}
-            onDragEnd={onDragEnd}
+            aria-hidden="true"
             className="mt-0.5 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-muted-foreground shrink-0 touch-none"
             onClick={(e) => e.stopPropagation()}
           >
@@ -588,11 +571,11 @@ function MandateCard({
             {showHealth && (
               <span
                 className={cn('w-2 h-2 rounded-full shrink-0', healthDotClass)}
-                title={health === 'green' ? 'Strong longlist depth' : health === 'amber' ? 'Thin shortlist' : 'Low match confidence'}
+                title={health === 'green' ? 'Longlist count' : health === 'amber' ? 'Few candidates recorded' : 'Low match confidence'}
                 aria-hidden
               />
             )}
-            <span className="text-[13px] font-semibold text-foreground truncate block" title={clubName}>
+            <span className="text-base font-semibold text-foreground block leading-snug" title={clubName}>
               {clubName}
             </span>
             <Badge variant={mandate.priority === 'High' ? 'danger' : 'outline'} className="text-[9px] shrink-0">
@@ -604,7 +587,7 @@ function MandateCard({
             <Link
               href={`/mandates/${mandate.id}/edit`}
               onClick={(e) => e.stopPropagation()}
-              title={missing === 0 ? 'Mandate spec complete' : `${missing} field${missing > 1 ? 's' : ''} missing — click to fill in`}
+              title={!mandate.briefCompleteness ? 'Refresh to confirm brief status' : missing === 0 ? 'Brief fields recorded; agreement is reviewed separately' : `${missing} brief fields missing or not yet agreed`}
               className={cn(
                 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-medium shrink-0 leading-none',
                 completenessBadgeClass
@@ -615,11 +598,20 @@ function MandateCard({
             </Link>
           </div>
 
-          <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          <p className="mb-3 mt-2 text-xs text-muted-foreground">
             {roleLabel} · {serviceLabel}
           </p>
 
-          {/* Row 2: top candidate (if scored) */}
+          <div className="mb-3 rounded-lg bg-muted/60 p-3">
+            <p className="text-[11px] text-muted-foreground">Next action</p>
+            {nextAction ? <>
+              <Link href={nextAction.href} className="mt-1 inline-block text-sm font-medium text-primary hover:underline">{nextAction.label}</Link>
+              <p className="mt-1 text-xs text-muted-foreground">{nextAction.detail}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{nextAction.owner || 'Owner not assigned'} · {nextAction.dueDate ? `Due ${formatTargetDate(nextAction.dueDate)}` : 'No due date recorded'}</p>
+            </> : <p className="mt-1 text-xs text-muted-foreground">Next action unavailable. Refresh to confirm appointment access and progress.</p>}
+          </div>
+          <p className={cn('mb-3 w-fit rounded-md px-2 py-1 text-xs font-medium', urgency.cls)}>{urgency.label}</p>
+          <details className="mb-3" onClick={e=>e.stopPropagation()}><summary className="cursor-pointer text-xs text-muted-foreground">Candidate and brief details</summary><div className="mt-3">          {/* Row 2: top candidate (if scored) */}
           {topCoach ? (
             <div className="flex items-center gap-1.5 mb-1 min-w-0">
               <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', availDot(topCoach.availStatus))} />
@@ -639,37 +631,38 @@ function MandateCard({
               )}
             </div>
           ) : (
-            <p className="text-[10px] text-muted-foreground/50 mb-1 italic">Not scored yet</p>
+            <p className="text-xs text-muted-foreground/50 mb-1 italic">Not scored yet</p>
           )}
 
           {/* Row 3: fit label (dimmed) */}
           {topCoach?.fitLabel && (
-            <p className="text-[10px] text-muted-foreground leading-snug mb-1 truncate">
+            <p className="text-xs text-muted-foreground leading-snug mb-1 truncate">
               {topCoach.fitLabel}
             </p>
           )}
 
-          {/* Row 4: decision summary */}
-          <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-            <div className="rounded border border-border bg-surface/60 px-2 py-1.5">
+
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="py-1">
               <p className="text-muted-foreground">Urgency</p>
               <p className={cn('mt-0.5 inline-flex rounded border px-1.5 py-0.5 font-semibold', urgency.cls)}>{urgency.label}</p>
             </div>
-            <div className="rounded border border-border bg-surface/60 px-2 py-1.5">
+            <div className="py-1">
               <p className="text-muted-foreground">Shortlist</p>
               <p className={cn('mt-0.5 font-semibold', strength.cls)}>{strength.label}</p>
             </div>
-            <div className="rounded border border-border bg-surface/60 px-2 py-1.5">
+            <div className="py-1">
               <p className="text-muted-foreground">Main risk</p>
-              <p className={cn('mt-0.5 truncate font-semibold', primaryRisk.cls)}>{primaryRisk.label}</p>
+              <p className={cn('mt-0.5 font-medium', primaryRisk.cls)}>{primaryRisk.label}</p>
             </div>
-            <div className="rounded border border-border bg-surface/60 px-2 py-1.5">
+            <div className="py-1">
               <p className="text-muted-foreground">Next action</p>
-              <p className="mt-0.5 truncate font-semibold text-foreground">{nextAction}</p>
+              <p className="mt-0.5 font-medium text-foreground">{nextAction?.label ?? 'Unavailable'}</p>
             </div>
           </div>
 
-          <div className="mt-2 flex items-center gap-2 text-[10px] text-muted-foreground flex-wrap">
+</div></details>
+          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
             <span>
               <span className="font-medium text-foreground">{count}</span> in pipeline
               {shortlisted > 0 && (
@@ -698,9 +691,13 @@ function MandateCard({
 
           {/* Bottom bar: stage label + menu */}
           <div className="flex items-center justify-between gap-1 mt-2 shrink-0">
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-              {getStageLabel(stageKey)}
-            </span>
+            <select aria-label={`Stage for ${clubName}`} value={stageKey} disabled={isSaving}
+              onChange={e => onMoveToStage(mandate, e.target.value)}
+              className="h-9 min-w-0 flex-1 rounded border border-border bg-surface px-1 text-xs text-foreground disabled:opacity-60">
+              {STAGES.map(stage => <option key={stage.key} value={stage.key}>{stage.label}</option>)}
+            </select>
+            <button type="button" disabled={isSaving} onClick={e => { e.stopPropagation(); onDelete(mandate) }} aria-label={`Delete ${clubName} mandate`} title="Delete mandate"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
             <div className="relative shrink-0 z-[1]" ref={openMenuId === mandate.id ? menuRef : undefined}>
               <button
                 type="button"
@@ -711,19 +708,20 @@ function MandateCard({
                   setOpenMenuId(openMenuId === mandate.id ? null : mandate.id)
                 }}
                 className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-surface-overlay/50"
-                aria-label="Actions"
+                aria-label={`More actions for ${clubName}`}
+                disabled={isSaving}
               >
                 <MoreVertical className="w-4 h-4" />
               </button>
               {openMenuId === mandate.id && (
                 <div className="absolute right-0 top-full mt-0.5 py-1 min-w-[140px] rounded-md border border-border bg-card shadow-lg z-[100]">
                   <Link
-                    href={`/mandates/${mandate.id}/plan`}
+                    href={`/mandates/${mandate.id}/decision`}
                     className="flex items-center gap-2 px-3 py-1.5 text-xs text-foreground hover:bg-surface-overlay/50"
                     onClick={() => setOpenMenuId(null)}
                   >
                     <Eye className="w-3 h-3" />
-                    Open plan
+                    Open appointment
                   </Link>
                   <Link
                     href={`/mandates/${mandate.id}/edit`}
@@ -734,16 +732,16 @@ function MandateCard({
                     Edit
                   </Link>
                   <Link
-                    href={`/mandates/${mandate.id}#shortlist`}
+                    href={`/mandates/${mandate.id}/candidates`}
                     className="flex items-center gap-2 px-3 py-1.5 text-xs text-foreground hover:bg-surface-overlay/50"
                     onClick={() => setOpenMenuId(null)}
                   >
                     <UserPlus className="w-3 h-3" />
-                    Add shortlist
+                    Manage candidates
                   </Link>
                   <button
                     type="button"
-                    disabled={!hasNextStage}
+                    disabled={!hasNextStage || isSaving}
                     onClick={(e) => { e.stopPropagation(); onMoveToNextStage(mandate) }}
                     className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left text-foreground hover:bg-surface-overlay/50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >

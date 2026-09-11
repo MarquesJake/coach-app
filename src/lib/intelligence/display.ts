@@ -44,7 +44,7 @@ const COACH_PORTAL_STATUS_LABELS: Record<string, string> = {
 
 const COACH_PORTAL_VISIBILITY_LABELS: Record<string, string> = {
   private: 'Private',
-  coach_first_only: 'Coach First only',
+  coach_first_only: 'Gaffa only',
   clubs_on_request: 'Available to clubs on request',
   shareable: 'Approved for sharing',
 }

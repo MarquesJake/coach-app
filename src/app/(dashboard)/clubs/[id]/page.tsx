@@ -374,7 +374,7 @@ export default function ClubOverviewPage() {
             )}
             {club.current_manager && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Current manager</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Recorded manager - unverified</p>
                 <p className="text-sm text-foreground mt-0.5">{club.current_manager}</p>
               </div>
             )}
@@ -552,7 +552,7 @@ export default function ClubOverviewPage() {
               type="button"
               onClick={handleDelete}
               disabled={saving}
-              className="ml-auto px-4 h-9 border border-red-500/50 text-red-500 rounded-lg text-xs font-medium hover:bg-red-500/10 disabled:opacity-50"
+              className="ml-auto px-4 h-9 border border-red-500/50 text-red-500 dark:text-red-400 rounded-lg text-xs font-medium hover:bg-red-500/10 disabled:opacity-50"
             >
               Delete club
             </button>

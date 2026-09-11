@@ -2,8 +2,9 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Link from 'next/link'
-import { useMemo, useState, useTransition } from 'react'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
+import { useMemo, useRef, useState, useTransition, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import { Check, GitBranch, Plus, Scissors, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -31,26 +32,64 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
 }) {
   const [filter, setFilter] = useState('pending')
   const [pending, startTransition] = useTransition()
+  const router = useRouter()
+  const busy = useRef(false)
+  const savedForms = useRef(new WeakMap<HTMLFormElement, string>())
+  const [feedback, setFeedback] = useState<{ error: boolean; text: string } | null>(null)
   const contactMap = useMemo(() => new Map(contacts.map((row) => [row.id, row])), [contacts])
   const coachMap = useMemo(() => new Map(coaches.map((row) => [row.id, row.name])), [coaches])
   const sessionMap = useMemo(() => new Map(sessions.map((row) => [row.id, row])), [sessions])
   const selectedSession = selectedSessionId ? sessionMap.get(selectedSessionId) : null
   const filtered = filter === 'all' ? claims : claims.filter((claim) => claim.review_status === filter)
 
-  function review(claim: ClaimRow, reviewStatus: string) {
+  function save(operation: () => Promise<{ ok: boolean; error?: string }>, message: string) {
+    if (busy.current) return
+    busy.current = true
+    setFeedback(null)
     startTransition(async () => {
-      const result = await reviewTrustedClaimAction({ claimId: claim.id, reviewStatus })
-      if (!result.ok) {
-        toast.error(result.error)
-        return
+      let confirmed = false
+      try {
+        const result = await operation()
+        if (!result.ok) {
+          setFeedback({ error: true, text: result.error || 'Save was not confirmed. Your entries are retained.' })
+          return
+        }
+        confirmed = true
+        setFeedback({ error: false, text: message })
+        toast.success(message)
+        router.refresh()
+      } catch {
+        setFeedback({ error: !confirmed, text: confirmed ? 'Saved, but the list could not refresh. Reload to check the saved record.' : 'Save could not be confirmed. Your entries are retained. Check the saved record before retrying.' })
+      } finally {
+        busy.current = false
       }
-      toast.success(reviewStatus === 'accepted' ? 'Finding reviewed' : 'Finding rejected')
-      window.location.reload()
     })
+  }
+
+  function submitForm(event: FormEvent<HTMLFormElement>, operation: (data: FormData) => Promise<{ ok: boolean; error?: string }>, message: string) {
+    event.preventDefault()
+    const form = event.currentTarget
+    const data = new FormData(form)
+    const snapshot = JSON.stringify([...data.entries()])
+    if (savedForms.current.get(form) === snapshot) {
+      setFeedback({ error: false, text: 'These entries were already saved. Check the refreshed record before creating another.' })
+      return
+    }
+    save(async () => {
+      const result = await operation(data)
+      if (result.ok) savedForms.current.set(form, snapshot)
+      return result
+    }, message)
+  }
+
+  function review(claim: ClaimRow, reviewStatus: string) {
+    save(() => reviewTrustedClaimAction({ claimId: claim.id, reviewStatus }), reviewStatus === 'accepted' ? 'Finding reviewed' : 'Finding rejected')
   }
 
   return (
     <div className="space-y-4">
+      {feedback && <p role={feedback.error ? 'alert' : 'status'} className={`sticky top-0 z-10 rounded border border-border bg-card p-3 text-sm ${feedback.error ? 'text-destructive' : 'text-foreground'}`}>{feedback.text}</p>}
+      {pending && <p role="status" className="text-sm text-muted-foreground">Saving review...</p>}
       {selectedSession && (
         <details className="border border-border bg-card p-4" open={claims.length === 0}>
           <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-primary">
@@ -59,17 +98,7 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
           </summary>
           <form
             className="mt-4 grid gap-3 sm:grid-cols-2"
-            action={(formData) =>
-              startTransition(async () => {
-                const result = await createSessionFindingAction(formData)
-                if (!result.ok) {
-                  toast.error(result.error)
-                  return
-                }
-                toast.success('Finding added to review')
-                window.location.reload()
-              })
-            }
+            onSubmit={(event) => submitForm(event, createSessionFindingAction, 'Finding added to review')}
           >
             <input type="hidden" name="session_id" value={selectedSession.id} />
             <div className="sm:col-span-2">
@@ -135,7 +164,7 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
                   {claim.transcript_excerpt && <blockquote className="mt-3 border-l-2 border-border pl-3 text-xs text-muted-foreground">{claim.transcript_excerpt}</blockquote>}
                   {linked.length > 0 && <p className="mt-2 text-xs text-muted-foreground"><GitBranch className="mr-1 inline h-3 w-3" />{linked.length} reviewed finding relationship{linked.length === 1 ? '' : 's'}</p>}
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
                   {claim.review_status === 'pending' && <>
                     <Button disabled={pending} onClick={() => review(claim, 'accepted')}><Check className="mr-2 h-4 w-4" />Mark reviewed</Button>
                     <Button disabled={pending} variant="outline" onClick={() => review(claim, 'rejected')}><X className="mr-2 h-4 w-4" />Reject</Button>
@@ -145,8 +174,7 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
 
               <details className="mt-3">
                 <summary className="cursor-pointer text-xs font-medium text-primary">Edit review fields</summary>
-                <form className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" action={(formData) => startTransition(async () => {
-                  const result = await reviewTrustedClaimAction({
+                <form className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" onSubmit={(event) => submitForm(event, (formData) => reviewTrustedClaimAction({
                     claimId: claim.id,
                     reviewStatus: String(formData.get('review_status')),
                     claimedValue: String(formData.get('claimed_value')),
@@ -156,11 +184,7 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
                     factCheckStatus: String(formData.get('fact_check_status')),
                     externalVisibility: String(formData.get('external_visibility')),
                     criteria: String(formData.get('criteria')).split(',').map((item) => item.trim()).filter(Boolean),
-                  })
-                  if (!result.ok) { toast.error(result.error); return }
-                  toast.success('Finding review saved')
-                  window.location.reload()
-                })}>
+                  }), 'Finding review saved')}>
                   <textarea name="claimed_value" defaultValue={claim.claimed_value} className="sm:col-span-2 rounded-md border border-border bg-background px-3 py-2 text-sm" />
                   <textarea name="evidence_summary" defaultValue={claim.evidence_summary} className="sm:col-span-2 rounded-md border border-border bg-background px-3 py-2 text-sm" />
                   <select name="review_status" defaultValue={claim.review_status} className={inputClass}><option value="pending">Pending</option><option value="accepted">Reviewed</option><option value="rejected">Rejected</option><option value="applied">Used in assessment</option></select>
@@ -175,15 +199,10 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
 
               <details className="mt-3">
                 <summary className="cursor-pointer text-xs font-medium text-primary">Split this finding</summary>
-                <form className="mt-3 grid gap-3 sm:grid-cols-2" action={(formData) => startTransition(async () => {
-                  const result = await splitTrustedClaimAction({ claimId: claim.id, parts: [
+                <form className="mt-3 grid gap-3 sm:grid-cols-2" onSubmit={(event) => submitForm(event, (formData) => splitTrustedClaimAction({ claimId: claim.id, parts: [
                     { claimedValue: String(formData.get('claim_a')), evidenceSummary: String(formData.get('summary_a')) },
                     { claimedValue: String(formData.get('claim_b')), evidenceSummary: String(formData.get('summary_b')) },
-                  ] })
-                  if (!result.ok) { toast.error(result.error); return }
-                  toast.success('Finding split into two review drafts')
-                  window.location.reload()
-                })}>
+                  ] }), 'Finding split into two review drafts')}>
                   <input name="claim_a" required placeholder="First narrower finding" className={inputClass} />
                   <input name="summary_a" required placeholder="First evidence summary" className={inputClass} />
                   <input name="claim_b" required placeholder="Second narrower finding" className={inputClass} />
@@ -194,17 +213,12 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
 
               {mergeTargets.length > 0 && <details className="mt-3">
                 <summary className="cursor-pointer text-xs font-medium text-primary">Merge overlapping findings</summary>
-                <form className="mt-3 grid gap-3 sm:grid-cols-2" action={(formData) => startTransition(async () => {
-                  const result = await mergeTrustedClaimsAction({
+                <form className="mt-3 grid gap-3 sm:grid-cols-2" onSubmit={(event) => submitForm(event, (formData) => mergeTrustedClaimsAction({
                     sourceClaimId: claim.id,
                     targetClaimId: String(formData.get('target_claim_id')),
                     claimedValue: String(formData.get('merged_claim')),
                     evidenceSummary: String(formData.get('merged_summary')),
-                  })
-                  if (!result.ok) { toast.error(result.error); return }
-                  toast.success('Findings merged into a new review draft')
-                  window.location.reload()
-                })}>
+                  }), 'Findings merged into a new review draft')}>
                   <select name="target_claim_id" required className="sm:col-span-2 rounded-md border border-border bg-background px-3 py-2 text-sm"><option value="">Select overlapping finding</option>{mergeTargets.map((row) => <option key={row.id} value={row.id}>{row.claimed_value.slice(0, 100)}</option>)}</select>
                   <input name="merged_claim" required placeholder="Merged assertion" className={inputClass} />
                   <input name="merged_summary" required placeholder="Merged evidence summary" className={inputClass} />
@@ -214,12 +228,7 @@ export function ClaimReviewQueueClient({ claims, contacts, coaches, sessions, re
 
               <details className="mt-3">
                 <summary className="cursor-pointer text-xs font-medium text-primary">Link corroboration or contradiction</summary>
-                <form action={(formData) => startTransition(async () => {
-                  const result = await createClaimRelationshipAction(formData)
-                  if (!result.ok) { toast.error(result.error); return }
-                  toast.success('Finding relationship recorded')
-                  window.location.reload()
-                })} className="mt-3 grid gap-3 sm:grid-cols-4">
+                <form onSubmit={(event) => submitForm(event, createClaimRelationshipAction, 'Finding relationship recorded')} className="mt-3 grid gap-3 sm:grid-cols-4">
                   <input type="hidden" name="source_claim_id" value={claim.id} />
                   <select name="target_claim_id" required className={`${inputClass} sm:col-span-2`}><option value="">Select another finding</option>{claims.filter((row) => row.id !== claim.id).map((row) => <option key={row.id} value={row.id}>{row.claimed_value.slice(0, 80)}</option>)}</select>
                   <select name="relationship_type" className={inputClass}><option value="corroborates">Corroborates</option><option value="contradicts">Contradicts</option><option value="qualifies">Qualifies</option><option value="supersedes">Supersedes</option><option value="duplicates">Duplicates</option></select>

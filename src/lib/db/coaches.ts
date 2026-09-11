@@ -1,7 +1,6 @@
 import { db } from './client'
 import type { Database } from '@/lib/types/db'
 
-// TODO: Future: migrate filtering from user_id to org_id for multi-tenant support.
 
 type CoachRow = Database['public']['Tables']['coaches']['Row']
 type CoachInsert = Database['public']['Tables']['coaches']['Insert']
@@ -17,7 +16,7 @@ export async function getCoachesForTeam() {
     .order('name', { ascending: true })
 }
 
-export async function getCoachById(userId: string, coachId: string) {
+export async function getCoachById(coachId: string) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('coaches')
@@ -27,7 +26,7 @@ export async function getCoachById(userId: string, coachId: string) {
   return { data: data as CoachRow | null, error }
 }
 
-export async function getCoachesByIds(userId: string, ids: string[]) {
+export async function getCoachesByIds(ids: string[]) {
   if (ids.length === 0) return { data: [] as CoachRow[], error: null }
   const supabase = await db()
   const { data, error } = await supabase
@@ -77,8 +76,8 @@ export async function createCoachFull(
     leadership_style: str(payload.leadership_style) ?? '',
     wage_expectation: str(payload.wage_expectation) ?? '',
     staff_cost_estimate: str(payload.staff_cost_estimate) ?? '',
-    available_status: str(payload.availability_status) ?? str(payload.available_status) ?? 'Available',
-    reputation_tier: str(payload.reputation_tier) ?? 'Established',
+    available_status: str(payload.availability_status) ?? str(payload.available_status) ?? 'Unknown',
+    reputation_tier: str(payload.reputation_tier) ?? 'Unknown',
     legal_risk_flag: payload.legal_risk_flag === true || payload.legal_risk_flag === 'on',
     integrity_risk_flag: payload.integrity_risk_flag === true || payload.integrity_risk_flag === 'on',
     safeguarding_risk_flag: payload.safeguarding_risk_flag === true || payload.safeguarding_risk_flag === 'on',
@@ -129,7 +128,7 @@ export async function createCoach(userId: string, input: Partial<CoachInsert> & 
   const row: CoachInsert = {
     ...input,
     name: input.name.trim(),
-    role_current: input.role_current?.trim() || 'Unemployed',
+    role_current: input.role_current?.trim() || 'Unknown',
     club_current: input.club_current?.trim() || null,
     preferred_style: input.preferred_style?.trim() || '',
     pressing_intensity: input.pressing_intensity?.trim() || '',
@@ -137,8 +136,8 @@ export async function createCoach(userId: string, input: Partial<CoachInsert> & 
     leadership_style: input.leadership_style?.trim() || '',
     wage_expectation: input.wage_expectation?.trim() || '',
     staff_cost_estimate: input.staff_cost_estimate?.trim() || '',
-    available_status: input.available_status?.trim() || 'Available',
-    reputation_tier: input.reputation_tier?.trim() || 'Established',
+    available_status: input.available_status?.trim() || 'Unknown',
+    reputation_tier: input.reputation_tier?.trim() || 'Unknown',
     last_updated: now,
     legal_risk_flag: input.legal_risk_flag ?? false,
     integrity_risk_flag: input.integrity_risk_flag ?? false,
@@ -149,7 +148,7 @@ export async function createCoach(userId: string, input: Partial<CoachInsert> & 
   return supabase.from('coaches').insert({ ...row, user_id: userId }).select('id').single()
 }
 
-export async function updateCoach(userId: string, coachId: string, input: CoachUpdate) {
+export async function updateCoach(coachId: string, input: CoachUpdate) {
   const supabase = await db()
   return supabase.from('coaches').update(input).eq('id', coachId).select().single()
 }

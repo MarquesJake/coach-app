@@ -1,7 +1,7 @@
 import { db } from './client'
 
 /** Fetch coach row with scoring and fit-relevant fields for mandate fit. */
-export async function getCoachForFit(userId: string, coachId: string) {
+export async function getCoachForFit(coachId: string) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('coaches')
@@ -14,7 +14,7 @@ export async function getCoachForFit(userId: string, coachId: string) {
 }
 
 /** Evidence (intelligence) count for a coach. */
-export async function getEvidenceCountForCoach(userId: string, coachId: string): Promise<number> {
+export async function getEvidenceCountForCoach(coachId: string): Promise<number> {
   const supabase = await db()
   const { count, error } = await supabase
     .from('intelligence_items')

@@ -31,11 +31,11 @@ export function Section({
       {...props}
     >
       {(title || action) && (
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border/40">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">
           <div className="flex items-center gap-2.5">
             {badge}
             {title && (
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
+              <h3 className="text-sm font-semibold text-foreground">
                 {title}
               </h3>
             )}
@@ -44,16 +44,16 @@ export function Section({
         </div>
       )}
       {description && (
-        <p className="px-5 pt-3 text-xs text-muted-foreground leading-relaxed">{description}</p>
+        <p className="px-5 pt-3 text-sm text-muted-foreground leading-relaxed">{description}</p>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-6">{children}</div>
     </div>
   )
 }
 
 export function SectionLabel({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className={cn("text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70", className)}>
+    <span className={cn("text-sm font-semibold text-foreground", className)}>
       {children}
     </span>
   )
@@ -70,8 +70,8 @@ export function DataRow({
 }) {
   return (
     <div className="flex items-center justify-between py-2.5 border-b border-border/20 last:border-0">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={cn("text-xs font-medium", muted ? "text-muted-foreground" : "text-foreground")}>
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className={cn("text-sm font-medium", muted ? "text-muted-foreground" : "text-foreground")}>
         {value}
       </span>
     </div>

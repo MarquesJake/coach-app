@@ -11,6 +11,6 @@ export function hashInvitationToken(token: string): string | null {
 }
 
 export function safeAuthRedirectPath(value: string | null): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard/overview'
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard'
   return value
 }

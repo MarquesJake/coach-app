@@ -1,15 +1,18 @@
 import { redirect } from 'next/navigation'
 import { FileCheck2, LockKeyhole, UserRoundCheck } from 'lucide-react'
-import { ExternalOnboardingForm } from '@/components/organizations/external-onboarding-form'
+import { CoachOnboardingForm } from './_components/onboarding-form'
 import { getCoachPortalContext } from '@/lib/organizations/context'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { completeCoachOnboardingAction } from './actions'
+
+export const metadata = { title: 'Onboarding · Coach' }
+
 
 export default async function CoachOnboardingPage() {
   const context = await getCoachPortalContext()
   if (!context) redirect('/coach/login')
   const supabase = await createServerSupabaseClient()
-  const [{ data: identity }, { data: coach }] = await Promise.all([
+  const [identityResult, coachResult] = await Promise.all([
     supabase
       .from('external_identity_profiles')
       .select('id')
@@ -19,8 +22,11 @@ export default async function CoachOnboardingPage() {
       .maybeSingle(),
     supabase.from('coaches').select('name').eq('id', context.coachId).single(),
   ])
+  if (identityResult.error || coachResult.error) throw new Error('Coach onboarding information could not be loaded. Retry before entering details.')
+  const identity = identityResult.data
+  const coach = coachResult.data
   if (identity) redirect('/coach/profile')
-  if (!coach) redirect('/coach/login')
+  if (!coach) throw new Error('The coach linked to this invitation could not be found.')
 
   const defaultTitle = context.membershipRole === 'coach' ? 'Head Coach' : 'Coach representative'
 
@@ -28,7 +34,7 @@ export default async function CoachOnboardingPage() {
     <main className="min-h-screen bg-[#f6f4ef] text-slate-950">
       <div className="mx-auto grid min-h-screen max-w-6xl lg:grid-cols-[0.9fr_1.1fr]">
         <section className="flex flex-col justify-between border-b border-slate-200 px-6 py-8 lg:border-b-0 lg:border-r lg:px-10">
-          <p className="text-sm font-semibold text-emerald-950">COACH FIRST</p>
+          <p className="text-sm font-semibold text-emerald-950">GAFFA</p>
           <div className="max-w-md py-12">
             <p className="text-xs font-semibold uppercase text-emerald-800">Private coach access</p>
             <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight">
@@ -53,7 +59,7 @@ export default async function CoachOnboardingPage() {
               </div>
             </div>
           </div>
-          <p className="text-xs text-slate-500">Invite-only · coach-controlled · reviewed by Coach First</p>
+          <p className="text-xs text-slate-500">Invite-only · coach-controlled · reviewed by Gaffa</p>
         </section>
 
         <section className="flex items-center bg-white px-6 py-10 lg:px-12">
@@ -64,9 +70,8 @@ export default async function CoachOnboardingPage() {
               Confirm whether you are the coach or an authorised representative before adding private work.
             </p>
             <div className="mt-6">
-              <ExternalOnboardingForm
+              <CoachOnboardingForm
                 action={completeCoachOnboardingAction}
-                accountType="coach"
                 organizationName={coach.name}
                 defaultTitle={defaultTitle}
               />

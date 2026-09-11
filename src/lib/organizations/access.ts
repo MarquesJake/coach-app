@@ -56,6 +56,7 @@ export function isPublicApplicationPath(pathname: string): boolean {
     pathname.startsWith('/login') ||
     pathname.startsWith('/club/login') ||
     pathname.startsWith('/coach/login') ||
+    pathname === '/investor/login' ||
     pathname.startsWith('/club/invite/') ||
     pathname.startsWith('/coach/invite/') ||
     pathname.startsWith('/auth')
@@ -114,7 +115,7 @@ export function canEnterAnalystApplication(
 
 /** Where an authenticated account belongs when it cannot enter analyst surfaces. */
 export function resolveWorkspaceHome(access: OrganizationAccessProfile): string {
-  if (access.hasActiveInternalAccess) return '/dashboard/overview'
+  if (access.hasActiveInternalAccess) return '/dashboard'
   if (access.hasClubIdentity) return '/club'
   if (access.hasCoachIdentity) return '/coach/profile'
   return NO_WORKSPACE_PATH

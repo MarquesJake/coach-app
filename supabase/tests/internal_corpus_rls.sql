@@ -64,6 +64,19 @@ end;
 $$;
 
 -- The second analyst can also write shared corpus, not merely read it.
+do $$
+declare target_id uuid; saved_note text;
+begin
+  select id into target_id from public.mandate_shortlist limit 1;
+  if target_id is null then raise exception 'analyst must see a shared shortlist fixture'; end if;
+  update public.mandate_shortlist set notes = 'RLS shared analyst save' where id = target_id;
+  select notes into saved_note from public.mandate_shortlist where id = target_id;
+  if saved_note is distinct from 'RLS shared analyst save' then
+    raise exception 'analyst shortlist note did not persist';
+  end if;
+end;
+$$;
+
 update public.clubs set notes = 'edited by a second analyst'
 where id = '66666666-6666-4666-8666-666666666666';
 
@@ -91,6 +104,10 @@ begin
   if leaked <> 0 then
     raise exception 'club identity must not read mandates (saw %)', leaked;
   end if;
+  select (select count(*) from public.mandate_shortlist)
+    + (select count(*) from public.mandate_longlist)
+    + (select count(*) from public.mandate_deliverables) into leaked;
+  if leaked <> 0 then raise exception 'club identity leaked mandate workspace rows'; end if;
 end;
 $$;
 
@@ -113,6 +130,8 @@ begin
   if leaked <> 0 then
     raise exception 'membership-less account must not read the coach corpus (saw %)', leaked;
   end if;
+  select count(*) into leaked from public.mandate_shortlist;
+  if leaked <> 0 then raise exception 'membership-less account leaked shortlist'; end if;
 end;
 $$;
 

@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { readResearchContext, captureResearchContext, researchHref } from '@/lib/research-context'
 import { Check, ChevronLeft, ChevronRight, FileText, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -96,21 +98,33 @@ export function ConversationCaptureClient({
   defaultCoachId?: string
   defaultContactId?: string
 }) {
-  const draftKey = `coach-first:conversation-draft:${organizationId}`
+  const context = captureResearchContext(readResearchContext(useSearchParams()))
+  const draftKey = `coach-first:conversation-draft:${organizationId}:${defaultCoachId ?? 'general'}:${context.mandate ?? 'general'}:${context.question ?? 'none'}`
   const [draft, setDraft] = useState<ConversationDraft>(() =>
     initialDraft(defaultCoachId, defaultContactId)
   )
   const [draftLoaded, setDraftLoaded] = useState(false)
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null)
-  const [pending, startTransition] = useTransition()
+  const [pending, setPending] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const busy = useRef(false)
+  const storageWritable = useRef(true)
+  const uploadedFile = useRef<{ file: File; path: string } | null>(null)
+  const savedSession = useRef<string | null>(null)
+  const [savedHref, setSavedHref] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [storageError, setStorageError] = useState<string | null>(null)
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(draftKey)
-    if (saved) {
-      try {
+    try {
+      const saved = window.localStorage.getItem(draftKey)
+      if (saved) {
         const parsed = JSON.parse(saved) as ConversationDraft
+        if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.claims)
+          || !['title', 'contactId', 'coachId', 'intakeMethod', 'occurredAt', 'channel', 'careerContext', 'consentStatus', 'transcriptText', 'analystNotes', 'sensitivity'].every((key) => typeof parsed[key as keyof ConversationDraft] === 'string')
+          || ![1, 2, 3].includes(parsed.step)
+          || !parsed.claims.every((claim) => claim && typeof claim.claimedValue === 'string' && typeof claim.evidenceSummary === 'string' && Array.isArray(claim.criteria))) throw new Error('Unreadable draft')
         setDraft({
           ...initialDraft(defaultCoachId, defaultContactId),
           ...parsed,
@@ -121,29 +135,38 @@ export function ConversationCaptureClient({
             localId: claim.localId || crypto.randomUUID(),
           })),
         })
-      } catch {
-        window.localStorage.removeItem(draftKey)
       }
+    } catch {
+      storageWritable.current = false
+      setStorageError('The local draft could not be restored. Existing storage has not been overwritten. New entries remain in this page only.')
+    } finally {
+      setDraftLoaded(true)
     }
-    setDraftLoaded(true)
   }, [defaultCoachId, defaultContactId, draftKey])
 
   useEffect(() => {
-    if (!draftLoaded) return
+    if (!draftLoaded || !storageWritable.current || savedSession.current) return
     const timeout = window.setTimeout(() => {
-      window.localStorage.setItem(draftKey, JSON.stringify(draft))
-      setDraftSavedAt(
+      if (savedSession.current) return
+      try {
+        window.localStorage.setItem(draftKey, JSON.stringify(draft))
+        setStorageError(null)
+        setDraftSavedAt(
         new Intl.DateTimeFormat('en-GB', {
           hour: '2-digit',
           minute: '2-digit',
         }).format(new Date())
-      )
+        )
+      } catch {
+        setDraftSavedAt(null)
+        setStorageError('Local draft saving is unavailable. Your entries remain in this page; do not close it before saving the conversation.')
+      }
     }, 500)
     return () => window.clearTimeout(timeout)
   }, [draft, draftKey, draftLoaded])
 
   const canContinueFromConversation = Boolean(
-    draft.title.trim() && draft.occurredAt && draft.contactId
+    draft.title.trim() && draft.occurredAt && Number.isFinite(new Date(draft.occurredAt).getTime()) && draft.contactId
   )
   const hasSourceMaterial = Boolean(
     draft.transcriptText.trim() || draft.analystNotes.trim() || file
@@ -162,10 +185,12 @@ export function ConversationCaptureClient({
   )
 
   function patchDraft(patch: Partial<ConversationDraft>) {
+    if (busy.current || savedSession.current) return
     setDraft((current) => ({ ...current, ...patch }))
   }
 
   function updateClaim(localId: string, patch: Partial<DraftFinding>) {
+    if (busy.current || savedSession.current) return
     setDraft((current) => ({
       ...current,
       claims: current.claims.map((claim) =>
@@ -183,13 +208,27 @@ export function ConversationCaptureClient({
   }
 
   function clearDraft() {
-    window.localStorage.removeItem(draftKey)
+    if (busy.current) return
+    if (!window.confirm('Clear this local draft? This does not delete any saved conversation or uploaded file.')) return
+    try {
+      window.localStorage.removeItem(draftKey)
+    } catch {
+      setStorageError('The local draft could not be cleared. Your entries have been retained.')
+      return
+    }
+    storageWritable.current = true
+    savedSession.current = null
+    uploadedFile.current = null
+    setSavedHref(null)
+    setSaveError(null)
+    setStorageError(null)
     setDraft(initialDraft(defaultCoachId, defaultContactId))
     setFile(null)
     setDraftSavedAt(null)
   }
 
   async function submit() {
+    if (busy.current || savedSession.current) return
     if (!canContinueFromConversation) {
       goToStep(1)
       return
@@ -209,25 +248,28 @@ export function ConversationCaptureClient({
       return
     }
 
-    setUploading(Boolean(file))
-    let transcriptStoragePath: string | null = null
-    if (file) {
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-')
-      transcriptStoragePath = `${organizationId}/pending/${crypto.randomUUID()}-${safeName}`
-      const { error } = await createClient()
-        .storage
-        .from('intelligence-source-files')
-        .upload(transcriptStoragePath, file, { upsert: false })
-      if (error) {
-        setUploading(false)
-        toast.error(error.message)
-        return
+    busy.current = true
+    setPending(true)
+    setSaveError(null)
+    try {
+      let transcriptStoragePath: string | null = uploadedFile.current?.file === file ? uploadedFile.current.path : null
+      if (file && !transcriptStoragePath) {
+        setUploading(true)
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-')
+        transcriptStoragePath = `${organizationId}/pending/${crypto.randomUUID()}-${safeName}`
+        const { error } = await createClient()
+          .storage
+          .from('intelligence-source-files')
+          .upload(transcriptStoragePath, file, { upsert: false })
+        if (error) {
+          setSaveError(`Upload was not confirmed. ${error.message} Your draft and selected file are retained.`)
+          return
+        }
+        uploadedFile.current = { file, path: transcriptStoragePath }
       }
-    }
-    setUploading(false)
-
-    startTransition(async () => {
+      setUploading(false)
       const result = await createIntelligenceSessionAction({
+        researchContext: context,
         title: draft.title,
         contactId: draft.contactId || null,
         coachId: draft.coachId || null,
@@ -253,17 +295,33 @@ export function ConversationCaptureClient({
         })),
       })
       if (!result.ok) {
-        toast.error(result.error)
+        setSaveError(`${result.error || 'Save was not confirmed.'} Your draft is retained. Check saved conversations before retrying.${transcriptStoragePath ? ' The uploaded file is retained for retry; no remote file was deleted.' : ''}`)
         return
       }
-      window.localStorage.removeItem(draftKey)
+      if (!result.id) {
+        setSaveError('The server did not return a saved conversation link. Your draft is retained. Check saved conversations before retrying.')
+        return
+      }
+      const href = researchHref(`/intelligence/review?session=${result.id}`, { ...context, coach: draft.coachId || undefined })
+      savedSession.current = href
+      setSavedHref(href)
+      try {
+        window.localStorage.removeItem(draftKey)
+      } catch {
+        setStorageError('Conversation saved, but the local draft could not be removed. Do not submit it again after reopening this page.')
+      }
       toast.success(
         completeClaims.length
           ? 'Conversation saved and findings sent to review'
           : 'Conversation saved. Findings can be added during review.'
       )
-      window.location.reload()
-    })
+    } catch {
+      setSaveError('Upload or save could not be confirmed. Your draft and selected file are retained. Check saved conversations before retrying; no remote file was deleted.')
+    } finally {
+      busy.current = false
+      setUploading(false)
+      setPending(false)
+    }
   }
 
   return (
@@ -295,20 +353,24 @@ export function ConversationCaptureClient({
             ))}
           </div>
           <div className="flex items-center justify-between gap-3 text-[10px] text-muted-foreground sm:justify-end">
-            <span>{draftSavedAt ? `Draft saved ${draftSavedAt}` : 'Draft saves on this device'}</span>
-            <button type="button" onClick={clearDraft} className="hover:text-foreground">
+            <span>{storageError ? 'Local draft recovery needs attention' : savedHref ? 'Conversation saved' : draftSavedAt ? `Draft saved ${draftSavedAt}` : 'Local draft save pending'}</span>
+            <button type="button" disabled={pending} onClick={clearDraft} className="hover:text-foreground">
               Clear draft
             </button>
           </div>
         </div>
+        {storageError && <p role="alert" className="px-4 pt-3 text-sm text-destructive">{storageError}</p>}
+        {saveError && <p role="alert" className="px-4 pt-3 text-sm text-destructive">{saveError}</p>}
+        {savedHref && <p role="status" className="p-4 text-sm">Conversation saved. <a href={savedHref} className="font-medium text-primary underline">Open saved conversation in review</a>. Use Clear draft to start another; saved records are retained.</p>}
 
         <form
           onSubmit={(event) => {
             event.preventDefault()
             void submit()
           }}
-          className="space-y-5 p-4"
+          className="p-4"
         >
+          <fieldset disabled={pending || Boolean(savedHref)} className="min-w-0 space-y-5">
           {draft.step === 1 && (
             <div className="space-y-4">
               <div>
@@ -692,6 +754,7 @@ export function ConversationCaptureClient({
               )}
             </div>
           </div>
+          </fieldset>
         </form>
       </div>
     </details>

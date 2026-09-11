@@ -10,7 +10,8 @@ type CoachRecord = Record<string, unknown> & {
   _mediaAvgSeverity?: number | null
 }
 
-function cell(value: unknown): string {
+function cell(value: unknown, key?: string): string {
+  if (key?.endsWith('_risk_flag')) return value === true ? 'Flag recorded — investigate' : 'No flag recorded — not assessed'
   if (value == null) return '—'
   if (typeof value === 'boolean') return value ? 'Yes' : 'No'
   if (Array.isArray(value)) return value.length ? value.join(', ') : '—'
@@ -48,7 +49,7 @@ function Section({
                 key={`${row.key}-${c.id}`}
                 className="px-4 py-2 text-sm text-foreground border-b border-border/50"
               >
-                {cell(c[row.key])}
+                {cell(c[row.key], row.key)}
               </div>
             ))}
           </React.Fragment>
@@ -63,17 +64,6 @@ export function CompareTable({ coachRecords }: { coachRecords: CoachRecord[] }) 
   const colCount = coaches.length
   const cols = `180px repeat(${colCount}, minmax(120px, 1fr))`
 
-  const coreScoreRows = [
-    { label: 'Overall manual score', key: 'overall_manual_score' },
-    { label: 'Intelligence confidence', key: 'intelligence_confidence' },
-    { label: 'Tactical fit score', key: 'tactical_fit_score' },
-    { label: 'Leadership score', key: 'leadership_score' },
-    { label: 'Development score', key: 'development_score' },
-    { label: 'Recruitment fit score', key: 'recruitment_fit_score' },
-    { label: 'Media risk score', key: 'media_risk_score' },
-    { label: 'Cultural alignment score', key: 'cultural_alignment_score' },
-    { label: 'Adaptability score', key: 'adaptability_score' },
-  ]
   const snapshotRows = [
     { label: 'Name', key: 'name' },
     { label: 'Availability', key: 'availability_status' },
@@ -117,7 +107,6 @@ export function CompareTable({ coachRecords }: { coachRecords: CoachRecord[] }) 
       </div>
 
       <Section title="Snapshot" rows={snapshotRows} coaches={coaches} cols={cols} />
-      <Section title="Core scores" rows={coreScoreRows} coaches={coaches} cols={cols} />
       <Section title="Tactical identity" rows={tacticalRows} coaches={coaches} cols={cols} />
       <Section title="Leadership and staff management" rows={leadershipRows} coaches={coaches} cols={cols} />
 
@@ -170,7 +159,7 @@ export function CompareTable({ coachRecords }: { coachRecords: CoachRecord[] }) 
       <section className="border-b border-border">
         <div className="grid gap-0" style={{ gridTemplateColumns: cols }}>
           <div className="px-4 py-2 bg-surface/50 font-medium text-xs text-muted-foreground uppercase tracking-wider border-b border-border">
-            Evidence count
+            Recorded source items
           </div>
           {coaches.map((c) => (
             <div key={c.id} className="px-4 py-2 text-sm text-foreground tabular-nums border-b border-border">
@@ -184,7 +173,7 @@ export function CompareTable({ coachRecords }: { coachRecords: CoachRecord[] }) 
       <section className="border-b border-border">
         <div className="grid gap-0" style={{ gridTemplateColumns: cols }}>
           <div className="px-4 py-2 bg-surface/50 font-medium text-xs text-muted-foreground uppercase tracking-wider">
-            Profile completeness
+            Profile details completed
           </div>
           {coaches.map((c) => (
             <div key={c.id} className="px-4 py-2 text-sm text-muted-foreground tabular-nums">

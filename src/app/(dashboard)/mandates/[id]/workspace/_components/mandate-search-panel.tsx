@@ -172,6 +172,7 @@ export function MandateSearchPanel({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [sessionExcluded, setSessionExcluded] = useState<ExcludedEntryData[]>([])
+  const [generationError, setGenerationError] = useState<string | null>(null)
   const [showExcluded, setShowExcluded] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)
   const [addedThisSession, setAddedThisSession] = useState<Set<string>>(new Set())
@@ -181,11 +182,15 @@ export function MandateSearchPanel({
 
   function handleGenerate() {
     startTransition(async () => {
-      const result = await generateLonglistAction(mandateId)
-      if (result.excluded?.length) {
+      setGenerationError(null)
+      try {
+        const result = await generateLonglistAction(mandateId)
         setSessionExcluded(result.excluded)
+        if (result.error) setGenerationError(result.error)
+        router.refresh()
+      } catch {
+        setGenerationError('Generation was not confirmed. Reconnect and regenerate before relying on the displayed rankings.')
       }
-      router.refresh()
     })
   }
 
@@ -210,12 +215,13 @@ export function MandateSearchPanel({
 
   return (
     <div className="h-full flex flex-col gap-3">
+      {generationError && <p role="alert" className="rounded border border-red-700/30 bg-red-50 p-3 text-sm text-red-900">{generationError} Displayed rankings may be from an earlier run.</p>}
       {/* Header */}
       <div className="flex items-center justify-between gap-2 shrink-0">
         <div>
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Curated longlist</h2>
           <p className="mt-0.5 text-[10px] text-muted-foreground">
-            Expert reviewed candidates from scoring, market logic and mandate realism.
+            Generated suggestions require analyst review. Scores are heuristics, not verified suitability.
           </p>
           {hasData && (
             <p className="text-[10px] text-muted-foreground mt-0.5">

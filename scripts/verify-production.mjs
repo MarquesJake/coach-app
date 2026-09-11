@@ -23,7 +23,7 @@ check(home.headers.get('strict-transport-security')?.includes('includeSubDomains
 check(home.headers.get('x-content-type-options') === 'nosniff', 'MIME sniffing protection is missing')
 check(home.headers.get('x-frame-options') === 'DENY', 'Frame denial header is missing')
 
-for (const path of ['/login', '/coach/login']) {
+for (const path of ['/login', '/club/login', '/coach/login']) {
   const response = await request(path)
   check(response.status === 200, `${path} returned ${response.status}`)
 }
@@ -41,9 +41,16 @@ if (health.status === 200) {
   check(health.headers.get('cache-control')?.includes('no-store'), 'Health response can be cached')
 }
 
-const protectedPage = await request('/dashboard', { redirect: 'manual' })
-check([302, 303, 307, 308].includes(protectedPage.status), `Protected dashboard returned ${protectedPage.status}`)
-check(protectedPage.headers.get('location')?.includes('/login'), 'Protected dashboard did not redirect to login')
+for (const [path, loginPath] of [
+  ['/dashboard', '/login'], ['/coaches', '/login'], ['/clubs', '/login'],
+  ['/mandates', '/login'], ['/succession', '/login'],
+  ['/club/dossiers', '/club/login'], ['/coach/profile', '/coach/login'],
+]) {
+  const protectedPage = await request(path, { redirect: 'manual' })
+  check([302, 303, 307, 308].includes(protectedPage.status), `${path} returned ${protectedPage.status}`)
+  const location = protectedPage.headers.get('location')
+  check(location && new URL(location, baseUrl).pathname === loginPath, `${path} did not redirect to ${loginPath}`)
+}
 
 if (failures.length) {
   console.error('Production readiness verification failed:')

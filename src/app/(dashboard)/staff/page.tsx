@@ -3,8 +3,11 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
-import { PageState } from '@/components/ui/page-state'
+import { countLinkedCoaches } from '@/lib/staff/forms'
 import { StaffListFilters } from './_components/staff-list-filters'
+
+export const metadata = { title: 'Staff' }
+
 
 export default async function StaffPage({
   searchParams,
@@ -19,12 +22,12 @@ export default async function StaffPage({
   const q = (params.q ?? '').trim().toLowerCase()
   const roleFilter = (params.role ?? '').trim()
 
-  const { data: staff } = await supabase
+  const { data: staff, error } = await supabase
     .from('staff')
     .select('id, full_name, primary_role, specialties, notes, created_at')
     .order('full_name')
 
-  if (staff === null) return <PageState state="error" message="Failed to load staff" minHeight="sm" />
+  if (error || staff === null) throw new Error('Could not load staff')
 
   let filtered = staff
   if (q) filtered = filtered.filter((s) => s.full_name.toLowerCase().includes(q))
@@ -33,15 +36,16 @@ export default async function StaffPage({
   const staffIds = filtered.map((s) => s.id)
   const linkStats: Record<string, { count: number; maxStrength: number | null; hasCurrent: boolean; maxEndedOn: string | null }> = {}
   if (staffIds.length > 0) {
-    const { data: history } = await supabase
+    const { data: history, error: historyError } = await supabase
       .from('coach_staff_history')
-      .select('staff_id, relationship_strength, ended_on')
+      .select('staff_id, coach_id, relationship_strength, ended_on')
       .in('staff_id', staffIds)
+    if (historyError) throw new Error('Could not load staff relationships')
     for (const s of staffIds) linkStats[s] = { count: 0, maxStrength: null, hasCurrent: false, maxEndedOn: null }
     for (const h of history ?? []) {
       const cur = linkStats[h.staff_id]
       if (!cur) continue
-      cur.count++
+      cur.count = countLinkedCoaches((history ?? []).filter((row) => row.staff_id === h.staff_id))
       if (h.relationship_strength != null && (cur.maxStrength == null || h.relationship_strength > cur.maxStrength))
         cur.maxStrength = h.relationship_strength
       if (h.ended_on == null) cur.hasCurrent = true
@@ -70,14 +74,14 @@ export default async function StaffPage({
           <EmptyState
             title={staff.length === 0 ? 'No staff network mapped yet' : 'No staff match this view'}
             description={staff.length === 0 ? 'Add assistants, analysts and trusted operators to understand the team around each coach.' : 'Adjust the role or search filter to bring staff relationships back into view.'}
-            actionLabel={staff.length === 0 ? 'Add staff' : undefined}
-            actionHref={staff.length === 0 ? '/staff/new' : undefined}
+            actionLabel={staff.length === 0 ? 'Add staff' : 'Clear filters'}
+            actionHref={staff.length === 0 ? '/staff/new' : '/staff'}
           />
         </div>
       ) : (
         <div className="rounded-lg border border-border bg-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="border-b border-border bg-surface/50">
                   <th className="text-left py-2.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/80">Name</th>
@@ -92,7 +96,7 @@ export default async function StaffPage({
               <tbody className="divide-y divide-border/50">
                 {filtered.map((s) => {
                   const stats = linkStats[s.id]
-                  const mostRecent = stats?.hasCurrent ? 'Current' : (stats?.maxEndedOn ? new Date(stats.maxEndedOn).toLocaleDateString() : '—')
+                  const mostRecent = stats?.hasCurrent ? 'End date not recorded' : (stats?.maxEndedOn ? new Date(stats.maxEndedOn).toLocaleDateString() : 'Not recorded')
                   return (
                     <tr key={s.id} className="hover:bg-surface-overlay/30">
                       <td className="py-3 px-4">

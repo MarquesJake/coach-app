@@ -17,8 +17,8 @@ export default function NoAccessPage() {
             No workspace assigned
           </h1>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            This account is signed in but has not been granted access to a Coach
-            First workspace. Access is issued by invitation, so nothing is
+            This account is signed in but has not been granted access to a Gaffa
+            workspace. Access is issued by invitation, so nothing is
             available here until an administrator adds this account to an
             organization.
           </p>

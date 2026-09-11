@@ -4,6 +4,9 @@ import { getAlertsForUser } from '@/lib/db/alerts'
 import Link from 'next/link'
 import { AlertRow } from './_components/alert-row'
 
+export const metadata = { title: 'Alerts' }
+
+
 export default async function AlertsPage({
   searchParams,
 }: {
@@ -15,7 +18,7 @@ export default async function AlertsPage({
 
   const params = await searchParams
   const filter = params.filter === 'unseen' ? 'unseen' : 'all'
-  const { data: list } = await getAlertsForUser(user.id, { unseenOnly: filter === 'unseen' })
+  const { data: list, error } = await getAlertsForUser(user.id, { unseenOnly: filter === 'unseen' })
 
   return (
     <div className="space-y-4">
@@ -25,29 +28,32 @@ export default async function AlertsPage({
       </div>
 
       <section className="rounded-lg border border-border bg-card p-6">
-        <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <h2 className="text-lg font-medium text-foreground">Activity</h2>
           <div className="flex gap-1">
             <Link
               href="/alerts?filter=all"
+              aria-current={filter === 'all' ? 'page' : undefined}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filter === 'all' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
             >
               All
             </Link>
             <Link
               href="/alerts?filter=unseen"
+              aria-current={filter === 'unseen' ? 'page' : undefined}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filter === 'unseen' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}`}
             >
               Unseen
             </Link>
           </div>
         </div>
-        {list.length === 0 ? (
+        {error ? <div role="alert" className="rounded-lg border border-destructive/30 p-4"><p>Alerts could not be loaded. This is not an all-clear.</p><a href={`/alerts?filter=${filter}`} className="mt-3 inline-flex min-h-10 items-center text-sm underline">Retry loading alerts</a></div> : list.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-surface/40 px-4 py-8 text-center">
-            <p className="text-sm font-medium text-foreground">No active alerts</p>
+            <p className="text-sm font-medium text-foreground">{filter === 'unseen' ? 'No unseen alerts' : 'No alerts recorded'}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Market changes, mandate risks and intelligence triggers will appear here when they need attention.
+              This list shows recorded alerts, not a guarantee that all football risks have been checked.
             </p>
+            <Link href={filter === 'unseen' ? '/alerts?filter=all' : '/dashboard'} className="mt-3 inline-flex min-h-10 items-center text-sm underline">{filter === 'unseen' ? 'View all alerts' : 'Return to Today'}</Link>
           </div>
         ) : (
           <ul className="divide-y divide-border">

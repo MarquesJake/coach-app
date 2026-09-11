@@ -1,16 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowRight, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { classifyOrganizationAccess } from '@/lib/organizations/access'
+import { authenticatedPortalDestination, isPortalInvitation, portalDestination, portalRecoveryHref } from '@/lib/organizations/portal-entry'
 
 const inputClass =
   'w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 placeholder:text-slate-400 focus:border-emerald-800 focus:outline-none focus:ring-1 focus:ring-emerald-800/25'
 
 export default function CoachLoginPage() {
+  return <Suspense fallback={<p className="p-8">Loading coach sign in...</p>}><CoachLoginForm /></Suspense>
+}
+
+function CoachLoginForm() {
+  const searchParams = useSearchParams()
+  const next = portalDestination('coach', searchParams.get('next'))
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,50 +28,47 @@ export default function CoachLoginPage() {
     event.preventDefault()
     setLoading(true)
     setError(null)
-    const supabase = createClient()
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-    if (signInError) {
-      setError(signInError.message)
-      setLoading(false)
-      return
-    }
-
-    const { data: memberships } = await supabase
-      .from('organization_memberships')
-      .select('role, status')
-      .eq('user_id', data.user.id)
-    const access = classifyOrganizationAccess(memberships)
-    if (!access.hasCoachIdentity && !access.hasActiveInternalAccess) {
-      await supabase.auth.signOut()
-      setError('This account has not been invited to a coach profile.')
-      setLoading(false)
-      return
-    }
-
-    if (access.hasActiveCoachAccess) await supabase.rpc('record_coach_first_login')
-    router.push(access.hasCoachIdentity ? '/coach/profile' : '/dashboard')
-    router.refresh()
+    try {
+      const supabase = createClient()
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError || !data.user) { setError('Sign-in failed. Check your email and password, then retry.'); return }
+      const [memberships, investor] = await Promise.all([
+        supabase.from('organization_memberships').select('role, status').eq('user_id', data.user.id),
+        supabase.from('investor_access').select('user_id').eq('user_id', data.user.id).maybeSingle(),
+      ])
+      if (memberships.error || investor.error) { setError('Workspace access could not be confirmed. Retry before continuing.'); return }
+      const access = classifyOrganizationAccess(memberships.data)
+      if (!access.hasCoachIdentity && !access.hasActiveInternalAccess && !investor.data && !isPortalInvitation('coach', next)) {
+        await supabase.auth.signOut()
+        setError('This account has not been invited to a coach profile.')
+        return
+      }
+      if (access.hasActiveCoachAccess && !investor.data) await supabase.rpc('record_coach_first_login')
+      router.push(authenticatedPortalDestination('coach', next, access, Boolean(investor.data)))
+      router.refresh()
+    } catch { setError('Unable to connect. Check your connection and retry.') }
+    finally { setLoading(false) }
   }
 
   return (
     <main className="min-h-screen bg-[#f6f4ef] text-slate-950">
-      <div className="mx-auto grid min-h-screen max-w-6xl grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
-        <section className="flex flex-col justify-between px-6 py-8 lg:px-10">
-          <Link href="/" className="text-sm font-semibold text-emerald-950">COACH FIRST</Link>
+      <div className="mx-auto grid min-h-screen max-w-6xl grid-cols-1 content-start lg:content-normal lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="flex flex-col justify-start px-6 py-6 lg:justify-between lg:px-10 lg:py-8">
+          <Link href="/" className="text-sm font-semibold text-emerald-950">GAFFA</Link>
 
-          <div className="max-w-xl py-14">
+          <div className="max-w-xl py-6 lg:py-14">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-800">
               Private coach profile
             </p>
-            <h1 className="mt-4 font-serif text-5xl font-semibold leading-[1.03] text-slate-950">
+            <h1 className="mt-3 font-serif text-3xl font-semibold leading-[1.08] text-slate-950 lg:text-5xl">
               Your football work, prepared properly.
             </h1>
-            <p className="mt-5 max-w-lg text-base leading-7 text-slate-650">
+            <p className="mt-5 hidden max-w-lg text-base leading-7 text-slate-600 lg:block">
               Keep your game model, training work, presentation, staff plan and career
-              circumstances current in one controlled profile. Coach First reviews every
+              circumstances current in one controlled profile. Gaffa reviews every
               submission before it can support a club appointment process.
             </p>
-            <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mt-8 hidden gap-3 lg:grid lg:grid-cols-3">
               {[
                 ['01', 'Maintain your profile'],
                 ['02', 'Submit private work'],
@@ -78,13 +82,13 @@ export default function CoachLoginPage() {
             </div>
           </div>
 
-          <p className="max-w-md text-xs leading-5 text-slate-500">
-            Access is invite-only. Coach-supplied information remains separate from Coach
-            First&apos;s independent research, references and appointment conclusions.
+          <p className="hidden max-w-md text-xs leading-5 text-slate-500 lg:block">
+            Access is invite-only. Coach-supplied information remains separate from
+            Gaffa&apos;s independent research, references and appointment conclusions.
           </p>
         </section>
 
-        <section className="flex items-center bg-white px-6 py-10 shadow-[0_0_80px_rgba(15,23,42,0.08)] lg:px-12">
+        <section className="flex items-start bg-white px-6 py-8 shadow-[0_0_80px_rgba(15,23,42,0.08)] lg:items-center lg:px-12 lg:py-10">
           <div className="w-full">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-950 text-white">
@@ -105,7 +109,7 @@ export default function CoachLoginPage() {
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="coach@example.com"
                   type="email"
-                  autoComplete="email"
+                  autoComplete="username"
                   required
                 />
               </label>
@@ -121,7 +125,7 @@ export default function CoachLoginPage() {
                 />
               </label>
               {error && (
-                <p className="rounded-md border border-red-700/20 bg-red-50 px-3 py-2 text-sm text-red-900">
+                <p role="alert" className="rounded-md border border-red-700/20 bg-red-50 px-3 py-2 text-sm text-red-900">
                   {error}
                 </p>
               )}
@@ -134,7 +138,7 @@ export default function CoachLoginPage() {
               </button>
             </form>
             <div className="mt-3 text-right">
-              <Link href="/auth/recover?portal=coach" className="text-xs font-medium text-emerald-900">
+              <Link href={portalRecoveryHref('coach', next)} className="text-xs font-medium text-emerald-900">
                 Forgot password?
               </Link>
             </div>
@@ -143,7 +147,7 @@ export default function CoachLoginPage() {
               <div className="flex gap-3">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-800" />
                 <p className="text-xs leading-5 text-emerald-950">
-                  Need access? Ask your Coach First contact for a fresh private invitation.
+                  Need access? Ask your Gaffa contact for a fresh private invitation.
                   There is no open coach registration.
                 </p>
               </div>

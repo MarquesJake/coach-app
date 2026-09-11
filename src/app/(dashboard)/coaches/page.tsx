@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { readResearchContext, researchHref } from '@/lib/research-context'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/types/db'
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,7 @@ import {
   saveCoachDuplicateReviewAction,
   type CoachDuplicateReviewDecision,
 } from './actions'
+import { researchedCoachChoices, isRecordedAvailable } from '@/lib/coaches/research-picker'
 import { findCoachDuplicateGroups } from '@/lib/coaches/duplicate-review'
 
 const MIN_COMPARE = 2
@@ -101,6 +103,7 @@ const BASE_FILTERS = {
 
 export default function CoachesPage() {
   const router = useRouter()
+  const context = readResearchContext(useSearchParams())
   const [coaches, setCoaches] = useState<Coach[]>([])
   const [counts, setCounts] = useState<Record<string, { stintCount: number; intelligenceCount: number; researchCount: number }>>({})
   const [duplicateReviews, setDuplicateReviews] = useState<CoachDuplicateReviewDecision[]>([])
@@ -146,6 +149,10 @@ export default function CoachesPage() {
     loadCoaches()
   }, [supabase])
 
+  // Read the sync status once, then poll only while a sync is in progress. It
+  // used to poll every 4s for as long as the page was open, including when the
+  // import had long completed and for users who cannot see the admin panel.
+  const syncActive = syncingEngland || syncStatus === 'running'
   useEffect(() => {
     let cancelled = false
     async function loadSyncStatus() {
@@ -161,12 +168,13 @@ export default function CoachesPage() {
       }
     }
     loadSyncStatus()
+    if (!syncActive) return () => { cancelled = true }
     const interval = setInterval(loadSyncStatus, 4000)
     return () => {
       cancelled = true
       clearInterval(interval)
     }
-  }, [])
+  }, [syncActive])
 
   async function refreshCoaches() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -271,6 +279,7 @@ export default function CoachesPage() {
     }
   }
 
+  const researchedIds = new Set(researchedCoachChoices(coaches, counts, duplicateReviews).map(c => c.id))
   const filtered = coaches
     .filter((c) => {
       const searchLower = search.trim().toLowerCase()
@@ -282,8 +291,7 @@ export default function CoachesPage() {
         (Array.isArray(c.league_experience) && c.league_experience.some((l: string) => l.toLowerCase().includes(searchLower)))
       const matchStatus = statusFilter === 'all' || c.available_status === statusFilter
       if (!matchSearch || !matchStatus) return false
-      const hasResearch = (counts[c.id]?.researchCount ?? 0) > 0
-      if (profileScope === 'researched' && !searchLower && !hasResearch) return false
+      if (profileScope === 'researched' && !researchedIds.has(c.id)) return false
       if (profileScope === 'duplicates' && !duplicateCoachIds.has(c.id)) return false
       if (filters.pressing_intensity && (c.pressing_intensity || '') !== filters.pressing_intensity) return false
       if (filters.build_preference && (c.build_preference || '') !== filters.build_preference) return false
@@ -299,7 +307,7 @@ export default function CoachesPage() {
         if (!leagues.includes(filters.league_experience)) return false
       }
       if (filters.employed_only === 'employed' && !(c.club_current && c.club_current.trim())) return false
-      if (filters.employed_only === 'available' && c.club_current && c.club_current.trim()) return false
+      if (filters.employed_only === 'available' && !isRecordedAvailable(c)) return false
       if (filters.age_min && ((c.age ?? 0) < Number(filters.age_min))) return false
       if (filters.age_max && ((c.age ?? 999) > Number(filters.age_max))) return false
       if (filters.club_current_query) {
@@ -341,7 +349,7 @@ export default function CoachesPage() {
       return (a.name || '').localeCompare(b.name || '')
     })
 
-  const researchedCount = coaches.filter((coach) => (counts[coach.id]?.researchCount ?? 0) > 0).length
+  const researchedCount = researchedIds.size
   const availableCount = filtered.filter(c => c.available_status === 'Available').length
   const interestedCount = filtered.filter(c => c.available_status === 'Open to offers' || c.available_status === 'Under contract - interested').length
 
@@ -363,7 +371,7 @@ export default function CoachesPage() {
     const ids = Array.from(selectedIds)
     if (ids.length < MIN_COMPARE || ids.length > MAX_COMPARE) return
     setStoredCompareIds(ids)
-    router.push(`/coaches/compare?ids=${encodeURIComponent(ids.join(','))}`)
+    router.push(researchHref(`/coaches/compare?ids=${encodeURIComponent(ids.join(','))}`, context))
   }
 
   const canCompare = selectedIds.size >= MIN_COMPARE && selectedIds.size <= MAX_COMPARE
@@ -436,11 +444,9 @@ export default function CoachesPage() {
     return (
       <div className="space-y-4">
         <div className="flex justify-end">
-          <Link href="/coaches/new">
-            <Button className="gap-1.5">
-              <Plus className="w-3.5 h-3.5" />
-              Add coach
-            </Button>
+          <Link href="/coaches/new" className="inline-flex min-h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20">
+            <Plus className="w-3.5 h-3.5" />
+            Add coach
           </Link>
         </div>
         <div className="rounded-lg border border-border bg-card p-6">
@@ -457,7 +463,7 @@ export default function CoachesPage() {
 
   return (
     <div>
-      <h1 className="text-lg font-medium text-foreground mb-4">Coach profiles</h1>
+      <h2 className="text-lg font-medium text-foreground mb-4">Coach profiles</h2>
       <details className="mb-4 rounded-lg border border-border/70 bg-card/70">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
           <div>
@@ -531,18 +537,16 @@ export default function CoachesPage() {
           </div>
         </div>
       </details>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <p className="text-sm text-muted-foreground">
-            {researchedCount} researched profiles &middot; {availableCount} available &middot; {interestedCount} open to offers
+            {researchedCount} researched profiles &middot; {availableCount} recorded available &middot; {interestedCount} open to offers
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/coaches/new">
-            <Button className="gap-1.5">
-              <Plus className="w-3.5 h-3.5" />
-              Add coach
-            </Button>
+          <Link href="/coaches/new" className="inline-flex min-h-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20">
+            <Plus className="w-3.5 h-3.5" />
+            Add coach
           </Link>
           {canCompare && (
             <Button
@@ -674,7 +678,7 @@ export default function CoachesPage() {
           <span className="text-2xs uppercase tracking-wide text-muted-foreground">Presets</span>
           <button onClick={() => applyFilterPreset('recruiting-now')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">Recruiting now</button>
           <button onClick={() => applyFilterPreset('efl-available')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">EFL available</button>
-          <button onClick={() => applyFilterPreset('high-readiness-low-risk')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">High readiness, low risk</button>
+          <button onClick={() => applyFilterPreset('high-readiness-low-risk')} className="px-2 py-1 rounded border border-border text-2xs hover:bg-secondary/50">Recorded confidence, low risk</button>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex-1 min-w-[200px] relative">
@@ -816,7 +820,7 @@ export default function CoachesPage() {
                   <select value={filters.employed_only} onChange={(e) => setFilters((f) => ({ ...f, employed_only: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm">
                     <option value="">Any</option>
                     <option value="employed">Currently employed</option>
-                    <option value="available">No current club</option>
+                    <option value="available">Recorded available</option>
                   </select>
                   <label className="block text-xs text-foreground">Current club contains</label>
                   <input type="text" value={filters.club_current_query} onChange={(e) => setFilters((f) => ({ ...f, club_current_query: e.target.value }))} className="w-full rounded border border-border bg-surface px-2 py-1.5 text-sm" placeholder="e.g. United" />
@@ -864,7 +868,7 @@ export default function CoachesPage() {
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Reputation</span>
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Wage</span>
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Complete</span>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Ready</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Research</span>
           <span />
         </div>
 
@@ -872,14 +876,8 @@ export default function CoachesPage() {
         <div className="divide-y divide-border/50">
           {filtered.map((coach, i) => {
             const completeness = computeCoachCompleteness(coach as Record<string, unknown>, counts[coach.id])
-            const intelligenceConf = (coach.intelligence_confidence as number | null | undefined) ?? 0
-            const readiness = Math.round(completeness * 0.6 + intelligenceConf * 0.4)
-            const readinessBadge =
-              readiness >= 70
-                ? 'border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400'
-                : readiness >= 40
-                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                  : 'border-border bg-muted/50 text-muted-foreground'
+            const researchLabel = (counts[coach.id]?.researchCount ?? 0) > 0 ? 'Research recorded' : 'Source index'
+            const readinessBadge = 'border-border bg-muted/50 text-muted-foreground'
             return (
             <div
               key={coach.id}
@@ -909,14 +907,14 @@ export default function CoachesPage() {
                   )}
                 </div>
                 <span className="text-2xs text-muted-foreground truncate block">
-                  {coach.role_current}{coach.club_current ? ` · ${coach.club_current}` : ''}
+                  Recorded, unverified: {coach.role_current || 'Role not recorded'}{coach.club_current ? ` · ${coach.club_current}` : ' · Employment not recorded'}
                 </span>
                 <div className="mt-2 flex flex-wrap items-center gap-2 lg:hidden">
                   <Badge variant={STATUS_VARIANT[coach.available_status] || 'outline'}>
-                    {coach.available_status === 'Under contract - interested' ? 'Interested' : coach.available_status}
+                    Recorded: {coach.available_status === 'Under contract - interested' ? 'Interested' : coach.available_status}
                   </Badge>
                   <span className={cn('inline-flex rounded-md border px-2 py-0.5 text-2xs font-medium tabular-nums', readinessBadge)}>
-                    Ready {readiness}%
+                    {researchLabel}
                   </span>
                   <span className="text-2xs text-muted-foreground">Profile {completeness}%</span>
                 </div>
@@ -938,7 +936,7 @@ export default function CoachesPage() {
               {/* Status */}
               <div className="hidden lg:block">
                 <Badge variant={STATUS_VARIANT[coach.available_status] || 'outline'}>
-                  {coach.available_status === 'Under contract - interested' ? 'Interested' : coach.available_status}
+                  Recorded: {coach.available_status === 'Under contract - interested' ? 'Interested' : coach.available_status}
                 </Badge>
               </div>
 
@@ -962,13 +960,13 @@ export default function CoachesPage() {
               {/* Readiness */}
               <div className="hidden lg:block">
                 <span className={cn('inline-flex rounded-md border px-2 py-0.5 text-2xs font-medium tabular-nums', readinessBadge)}>
-                  {readiness}%
+                  {researchLabel}
                 </span>
               </div>
 
               {/* Arrow */}
               <div className="hidden justify-end lg:flex">
-                <Link href={`/coaches/${coach.id}`} className="inline-flex">
+                <Link href={`/coaches/${coach.id}`} className="inline-flex" aria-hidden="true" tabIndex={-1}>
                   <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary/50 transition-colors" />
                 </Link>
               </div>

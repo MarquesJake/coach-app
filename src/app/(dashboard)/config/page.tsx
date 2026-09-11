@@ -13,6 +13,9 @@ import {
   Scale,
 } from 'lucide-react'
 
+export const metadata = { title: 'Config' }
+
+
 const configCards = [
   { label: 'Pipeline stages', href: '/config/pipeline-stages', icon: GitBranch },
   { label: 'Reputation tiers', href: '/config/reputation-tiers', icon: Award },

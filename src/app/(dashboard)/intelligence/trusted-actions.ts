@@ -1,4 +1,5 @@
 'use server'
+import { readResearchContext, researchContextNote, contextFromResearchNote, type ResearchContext } from '@/lib/research-context'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -175,6 +176,7 @@ export type DraftClaimInput = {
 }
 
 export async function createIntelligenceSessionAction(input: {
+  researchContext?: ResearchContext
   title: string
   contactId?: string | null
   coachId?: string | null
@@ -192,6 +194,15 @@ export async function createIntelligenceSessionAction(input: {
   try {
     const { db, user, organizationId } = await requireInternalContext()
     if (!input.title.trim()) return { ok: false, error: 'Conversation title is required.' }
+    const context = readResearchContext(input.researchContext ?? {})
+    if (context.mandate) {
+      const { data: mandate } = await db.from('mandates').select('id').eq('id', context.mandate).maybeSingle()
+      if (!mandate) return { ok: false, error: 'Mandate unavailable.' }
+    }
+    if (context.question) {
+      const { data: question, error } = await db.from('coach_research_questions').select('coach_id,mandate_id').eq('id', context.question).maybeSingle()
+      if (error || !question || question.coach_id !== input.coachId || question.mandate_id !== (context.mandate ?? null)) return { ok: false, error: 'Research question does not match this coach and appointment.' }
+    }
     const allowedMethods = ['analyst_notes', 'pasted_transcript', 'transcript_document', 'audio_recording', 'video_recording']
     if (!allowedMethods.includes(input.intakeMethod)) return { ok: false, error: 'Unknown intake method.' }
     if (['audio_recording', 'video_recording'].includes(input.intakeMethod) && process.env.INTELLIGENCE_RECORDINGS_ENABLED !== 'true') {
@@ -217,7 +228,7 @@ export async function createIntelligenceSessionAction(input: {
       consent_status: input.consentStatus || 'not_required',
       transcript_text: input.transcriptText?.trim() || null,
       transcript_storage_path: input.transcriptStoragePath || null,
-      analyst_notes: input.analystNotes?.trim() || null,
+      analyst_notes: [input.analystNotes?.trim(), researchContextNote({ ...context, coach: input.coachId ?? undefined })].filter(Boolean).join('\n') || null,
       sensitivity: input.sensitivity || 'standard',
       processing_status: 'reviewing',
     }).select('id').single()
@@ -246,7 +257,7 @@ export async function createIntelligenceSessionAction(input: {
           evidence_summary: claim.evidenceSummary.trim(),
           source_type: 'trusted_network_conversation',
           source_name: null,
-          source_notes: input.careerContext?.trim() || null,
+          source_notes: [input.careerContext?.trim(), researchContextNote({ ...context, coach: input.coachId ?? undefined })].filter(Boolean).join('\n') || null,
           confidence: claim.confidence ?? null,
           sensitivity: input.sensitivity === 'legal_review' ? 'confidential' : input.sensitivity || 'standard',
           verification_status: claim.evidenceStrength === 'disputed' ? 'disputed' : 'unverified',
@@ -313,7 +324,7 @@ export async function createSessionFindingAction(formData: FormData): Promise<Ac
         claimed_value: claimedValue,
         evidence_summary: evidenceSummary,
         source_type: 'trusted_network_conversation',
-        source_notes: session.career_context,
+        source_notes: [session.career_context, researchContextNote(contextFromResearchNote(session.analyst_notes))].filter(Boolean).join('\n') || null,
         sensitivity: session.sensitivity === 'legal_review' ? 'confidential' : session.sensitivity || 'standard',
         verification_status: 'unverified',
         review_status: 'pending',

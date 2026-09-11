@@ -107,7 +107,7 @@ export function ExternalOnboardingForm({
           <span>
             I understand this account is for {isClub
               ? 'the club appointment process and approved decision material'
-              : 'maintaining coach-owned information and submitting work for Coach First review'}.
+              : 'maintaining coach-owned information and submitting work for Gaffa review'}.
           </span>
         </label>
       </div>

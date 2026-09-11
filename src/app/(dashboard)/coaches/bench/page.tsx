@@ -1,9 +1,13 @@
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
+import { assertRouteQueries } from '@/lib/coaches/route-audit'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { calculateBenchEligibility } from '@/lib/intelligence/trusted-network'
 import { TrustedBenchClient } from '../_components/trusted-bench-client'
+
+export const metadata = { title: 'Bench · Coaches' }
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -14,13 +18,14 @@ export default async function TrustedBenchPage() {
   const organizationId = await getInternalOrganizationId(user.id)
   if (!organizationId) return <p className="text-sm text-destructive">Internal analyst access is required.</p>
   const db = supabase as any
-  const [{ data: entries }, { data: coaches }, { data: claims }, { data: sourceRelationships }, { data: contacts }] = await Promise.all([
+  const [{ data: entries, error: entriesError }, { data: coaches, error: coachesError }, { data: claims, error: claimsError }, { data: sourceRelationships, error: relationshipsError }, { data: contacts, error: contactsError }] = await Promise.all([
     db.from('trusted_bench_entries').select('*').eq('org_id', organizationId).order('updated_at', { ascending: false }),
     supabase.from('coaches').select('id, name, club_current, nationality, availability_status').order('name'),
     db.from('profile_claims').select('coach_id, contact_id, methodology_criteria, fact_check_status, review_status, reviewed_at').eq('org_id', organizationId).in('review_status', ['accepted', 'applied']).is('deleted_at', null),
     db.from('contact_coach_relationships').select('coach_id, contact_id, stakeholder_group, first_hand, independence_confirmed').eq('org_id', organizationId),
     db.from('football_contacts').select('id, full_name').eq('org_id', organizationId).order('full_name'),
   ])
+  assertRouteQueries('Trusted bench', ...[entriesError, coachesError, claimsError, relationshipsError, contactsError].map(error => ({ error })))
   const entryMap = new Map((entries ?? []).map((entry: Record<string, unknown>) => [entry.coach_id, entry]))
   const rows: Array<Record<string, any>> = (coaches ?? []).filter((coach) => entryMap.has(coach.id)).map((coach) => {
     const entry = entryMap.get(coach.id) as Record<string, string | null>
@@ -41,5 +46,5 @@ export default async function TrustedBenchPage() {
     })
     return { ...coach, ...(entry as Record<string, unknown>), coach_id: coach.id, eligibility, accepted_claims: coachClaims.length, source_count: new Set(coachSources.map((row: Record<string, string>) => row.contact_id)).size }
   })
-  return <div className="space-y-4"><TrustedBenchClient coaches={coaches ?? []} contacts={contacts ?? []} /><div className="overflow-x-auto border border-border bg-card"><table className="w-full min-w-[900px] text-left text-sm"><thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground"><tr><th className="px-4 py-3 font-medium">Coach</th><th className="px-4 py-3 font-medium">Bench stage</th><th className="px-4 py-3 font-medium">Research depth</th><th className="px-4 py-3 font-medium">Eligibility</th><th className="px-4 py-3 font-medium">Next review</th></tr></thead><tbody className="divide-y divide-border">{rows.map((row) => <tr key={row.id}><td className="px-4 py-3"><Link href={`/coaches/${row.coach_id}/intelligence`} className="font-medium hover:text-primary">{row.name}</Link><p className="text-xs text-muted-foreground">{row.club_current || 'Available'} · {row.nationality || 'Nationality not recorded'}</p></td><td className="px-4 py-3 font-medium capitalize">{String(row.stage).replaceAll('_', ' ')}</td><td className="px-4 py-3 text-muted-foreground">{row.accepted_claims} reviewed findings · {row.source_count} sources</td><td className="px-4 py-3 text-xs text-muted-foreground">{row.eligibility.placementReady ? 'Placement-ready gate passed' : row.eligibility.vetted ? `Vetted · ${row.eligibility.placementMissing.length} placement checks open` : row.eligibility.vettedMissing.slice(0, 2).join(' · ')}</td><td className="px-4 py-3 text-xs text-muted-foreground">{row.next_review_at ? new Date(row.next_review_at).toLocaleDateString('en-GB') : 'Not scheduled'}</td></tr>)}{!rows.length && <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No coaches have been nominated to the Trusted Bench.</td></tr>}</tbody></table></div></div>
+  return <div className="space-y-4"><h1 className="sr-only">Trusted Bench</h1><TrustedBenchClient coaches={coaches ?? []} contacts={contacts ?? []} /><div role="region" aria-label="Trusted bench records" tabIndex={0} className="overflow-x-auto border border-border bg-card"><table className="w-full min-w-[900px] text-left text-sm"><thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground"><tr><th className="px-4 py-3 font-medium">Coach</th><th className="px-4 py-3 font-medium">Bench stage</th><th className="px-4 py-3 font-medium">Research depth</th><th className="px-4 py-3 font-medium">Eligibility</th><th className="px-4 py-3 font-medium">Next review</th></tr></thead><tbody className="divide-y divide-border">{rows.map((row) => <tr key={row.id}><td className="px-4 py-3"><Link href={`/coaches/${row.coach_id}/intelligence?returnTo=%2Fcoaches%2Fbench`} className="font-medium hover:text-primary">{row.name}</Link><p className="text-xs text-muted-foreground">{row.club_current || 'Employment not recorded'} · {row.nationality || 'Nationality not recorded'}</p></td><td className="px-4 py-3 font-medium capitalize">{String(row.stage).replaceAll('_', ' ')}</td><td className="px-4 py-3 text-muted-foreground">{row.accepted_claims} reviewed findings · {row.source_count} sources</td><td className="px-4 py-3 text-xs text-muted-foreground">{row.eligibility.placementReady ? 'Placement-ready gate passed' : row.eligibility.vetted ? `Vetted · ${row.eligibility.placementMissing.length} placement checks open` : row.eligibility.vettedMissing.slice(0, 2).join(' · ')}</td><td className="px-4 py-3 text-xs text-muted-foreground">{row.next_review_at ? new Date(row.next_review_at).toLocaleDateString('en-GB') : 'Not scheduled'}</td></tr>)}{!rows.length && <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No coaches have been nominated to the Trusted Bench.</td></tr>}</tbody></table></div></div>
 }

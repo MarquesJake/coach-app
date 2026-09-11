@@ -1,5 +1,12 @@
 import type { Config } from "tailwindcss";
 
+// Theme colours are CSS variables holding hex values, which Tailwind cannot add
+// opacity to: every class like bg-primary/10 or hover:bg-secondary/50 used to be
+// dropped from the build (770 uses). color-mix applies the opacity instead; with
+// no modifier <alpha-value> is 1, so solid colours are unchanged.
+const tone = (variable: string) =>
+  `color-mix(in srgb, ${variable} calc(<alpha-value> * 100%), transparent)`;
+
 const config: Config = {
   darkMode: "class",
   content: [
@@ -11,58 +18,58 @@ const config: Config = {
     extend: {
       colors: {
         background: {
-          DEFAULT: "var(--background)",
-          subtle: "var(--background-subtle, var(--background))",
+          DEFAULT: tone("var(--background)"),
+          subtle: tone("var(--background-subtle, var(--background))"),
         },
         foreground: {
-          DEFAULT: "var(--foreground)",
-          muted: "var(--foreground-muted, var(--muted-foreground))",
+          DEFAULT: tone("var(--foreground)"),
+          muted: tone("var(--foreground-muted, var(--muted-foreground))"),
         },
         card: {
-          DEFAULT: "var(--card)",
-          foreground: "var(--card-foreground)",
+          DEFAULT: tone("var(--card)"),
+          foreground: tone("var(--card-foreground)"),
         },
         popover: {
-          DEFAULT: "var(--popover)",
-          foreground: "var(--popover-foreground)",
+          DEFAULT: tone("var(--popover)"),
+          foreground: tone("var(--popover-foreground)"),
         },
         primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
+          DEFAULT: tone("var(--primary)"),
+          foreground: tone("var(--primary-foreground)"),
         },
         secondary: {
-          DEFAULT: "var(--secondary)",
-          foreground: "var(--secondary-foreground)",
+          DEFAULT: tone("var(--secondary)"),
+          foreground: tone("var(--secondary-foreground)"),
         },
         muted: {
-          DEFAULT: "var(--muted)",
-          foreground: "var(--muted-foreground)",
+          DEFAULT: tone("var(--muted)"),
+          foreground: tone("var(--muted-foreground)"),
         },
         accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
+          DEFAULT: tone("var(--accent)"),
+          foreground: tone("var(--accent-foreground)"),
         },
         destructive: {
-          DEFAULT: "var(--destructive)",
-          foreground: "var(--destructive-foreground)",
+          DEFAULT: tone("var(--destructive)"),
+          foreground: tone("var(--destructive-foreground)"),
         },
         border: {
-          DEFAULT: "var(--border)",
-          subtle: "var(--border-subtle, var(--border))",
-          light: "var(--light-border)",
+          DEFAULT: tone("var(--border)"),
+          subtle: tone("var(--border-subtle, var(--border))"),
+          light: tone("var(--light-border)"),
         },
-        input: "var(--input)",
-        ring: "var(--ring)",
+        input: tone("var(--input)"),
+        ring: tone("var(--ring)"),
         surface: {
-          DEFAULT: "var(--surface)",
-          raised: "var(--surface-raised, var(--surface))",
-          overlay: "var(--surface-overlay, var(--surface))",
+          DEFAULT: tone("var(--surface)"),
+          raised: tone("var(--surface-raised, var(--surface))"),
+          overlay: tone("var(--surface-overlay, var(--surface))"),
         },
         light: {
-          DEFAULT: "var(--light-surface)",
-          hover: "var(--light-surface-hover, var(--light-surface))",
-          fg: "var(--light-foreground, var(--foreground))",
-          muted: "var(--light-foreground-muted, var(--muted-foreground))",
+          DEFAULT: tone("var(--light-surface)"),
+          hover: tone("var(--light-surface-hover, var(--light-surface))"),
+          fg: tone("var(--light-foreground, var(--foreground))"),
+          muted: tone("var(--light-foreground-muted, var(--muted-foreground))"),
         },
         score: {
           excellent: "#10b981",
@@ -82,7 +89,7 @@ const config: Config = {
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       },
       fontSize: {
-        "2xs": ["0.625rem", { lineHeight: "0.875rem" }],
+        "2xs": ["0.75rem", { lineHeight: "1.125rem" }],
       },
       keyframes: {
         "score-fill": {

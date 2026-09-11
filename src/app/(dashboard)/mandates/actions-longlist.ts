@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { mandateToContext } from '@/lib/scoring/mandate-adapter'
 import { computeMandateFit } from '@/lib/scoring/engine'
+import { reconcileGeneratedLonglist } from '@/lib/mandates/reconcile-longlist'
 import type { CoachStint } from '@/lib/scoring/engine'
 import {
   generateExplanation,
@@ -93,20 +94,23 @@ export async function generateLonglistAction(mandateId: string): Promise<{
   const ctx = mandateToContext(mandateRow)
 
   // ── 2. Coaches ────────────────────────────────────────────────────────────
-  const { data: coaches } = await supabase
+  const { data: coaches, error: coachesError } = await supabase
     .from('coaches')
     .select('*')
 
-  if (!coaches?.length) return { data: [], excluded: [], error: null }
+  if (coachesError || !coaches) return { data: null, excluded: [], error: 'Could not load coaches. Existing rankings have not been changed.' }
+  if (!coaches.length) return { data: [], excluded: [], error: null }
 
   // ── 3. Stints ─────────────────────────────────────────────────────────────
   const coachIds = coaches.map((c) => c.id)
-  const { data: allStints } = await supabase
+  const { data: allStints, error: stintsError } = await supabase
     .from('coach_stints')
     .select(
       'coach_id, role_title, club_name, started_on, ended_on, league, win_rate, points_per_game, country'
     )
     .in('coach_id', coachIds)
+
+  if (stintsError || !allStints) return { data: null, excluded: [], error: 'Could not load career evidence. Existing rankings have not been changed.' }
 
   const stintsByCoach = new Map<string, CoachStint[]>()
   for (const s of allStints ?? []) {
@@ -231,32 +235,15 @@ export async function generateLonglistAction(mandateId: string): Promise<{
     })
   }
 
-  // ── 7. Upsert ─────────────────────────────────────────────────────────────
-  const scoredAt = new Date().toISOString()
-  if (rows.length > 0) {
-    await supabase
-      .from('mandate_longlist')
-      .upsert(
-        rows.map((r) => ({
-          mandate_id: mandateId,
-          coach_id: r.coach_id,
-          ranking_score: r.ranking_score,
-          fit_explanation: r.fit_explanation,
-          created_at: scoredAt,
-        })),
-        { onConflict: 'mandate_id,coach_id', ignoreDuplicates: false }
-      )
-  }
+  const { data: updated, error: persistenceError } = await reconcileGeneratedLonglist(
+    supabase, mandateId, rows, excluded.map((entry) => entry.coachId),
+  )
 
   revalidatePath(`/mandates/${mandateId}`)
   revalidatePath(`/mandates/${mandateId}/workspace`)
   revalidatePath(`/mandates/${mandateId}/longlist`)
 
-  const { data: updated } = await supabase
-    .from('mandate_longlist')
-    .select('id, coach_id, ranking_score, fit_explanation')
-    .eq('mandate_id', mandateId)
-    .order('ranking_score', { ascending: false })
+  if (persistenceError) return { data: null, excluded, error: persistenceError }
 
   const mappedData = (updated ?? []).map((r) => ({
     ...r,
@@ -294,6 +281,9 @@ export async function addCandidateFromLonglistAction(mandateId: string, coachId:
 
   revalidatePath(`/mandates/${mandateId}/workspace`)
   revalidatePath(`/mandates/${mandateId}`)
+  revalidatePath(`/mandates/${mandateId}/candidates`)
+  revalidatePath(`/mandates/${mandateId}/longlist`)
+  revalidatePath(`/mandates/${mandateId}/decision`)
   return { error: null }
 }
 

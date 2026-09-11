@@ -6,7 +6,7 @@ type InteractionInsert = Database['public']['Tables']['agent_interactions']['Ins
 
 export type { InteractionRow, InteractionInsert }
 
-export async function listInteractionsForAgent(userId: string, agentId: string, limit = 100) {
+export async function listInteractionsForAgent(agentId: string, limit = 100) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('agent_interactions')
@@ -17,7 +17,7 @@ export async function listInteractionsForAgent(userId: string, agentId: string, 
   return { data: (data ?? []) as InteractionRow[], error }
 }
 
-export async function listInteractionsGlobal(userId: string, limit = 100) {
+export async function listInteractionsGlobal(limit = 100) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('agent_interactions')
@@ -36,7 +36,7 @@ export async function createInteraction(userId: string, input: Omit<InteractionI
     .single()
 }
 
-export async function updateInteraction(userId: string, id: string, input: Partial<InteractionInsert>) {
+export async function updateInteraction(id: string, input: Partial<InteractionInsert>) {
   const supabase = await db()
   return supabase
     .from('agent_interactions')
@@ -46,12 +46,12 @@ export async function updateInteraction(userId: string, id: string, input: Parti
     .single()
 }
 
-export async function deleteInteraction(userId: string, id: string) {
+export async function deleteInteraction(id: string) {
   const supabase = await db()
   return supabase.from('agent_interactions').delete().eq('id', id)
 }
 
-export async function getLastInteractionForAgent(userId: string, agentId: string) {
+export async function getLastInteractionForAgent(agentId: string) {
   const supabase = await db()
   const { data, error } = await supabase
     .from('agent_interactions')

@@ -1,196 +1,40 @@
-import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import {
-  MandateWorkspaceClient,
-  type Mandate,
-  type Candidate,
-  type SeasonResult,
-  type CoachingRecord,
-  type SuggestedLonglistCandidate,
-} from './_components/mandate-workspace-client'
+import { displayClubName } from '@/lib/display-names'
+import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
+import { DecisionBriefReview } from '../../_components/decision-brief-fields'
+import { MandateBriefNotice } from '@/components/clubs/mandate-brief-notice'
 import { MandateTabNav } from '../_components/mandate-tab-nav'
-import { computeCoachingStability } from '@/lib/analysis/coaching-stability'
-import { getMandateSuggestionsForUser } from '../../actions-suggestions'
 
-function toStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
-}
+export const metadata = { title: 'Brief' }
 
-export default async function MandateWorkspacePage(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+
+export default async function AppointmentBrief({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  // Fetch mandate + full club intelligence
-  const { data: mandate, error: mandateError } = await supabase
-    .from('mandates')
-    .select(`
-      id, strategic_objective, board_risk_appetite, budget_band, succession_timeline,
-      custom_club_name, status, priority,
-      clubs (
-        id, name, league, country, tier, ownership_model,
-        tactical_model, pressing_model, build_model,
-        board_risk_tolerance, strategic_priority,
-        market_reputation, media_pressure, development_vs_win_now,
-        environment_assessment, instability_risk,
-        stadium, founded_year, current_manager, website, badge_url,
-        notes, last_synced_at
-      )
-    `)
-    .eq('id', params.id)
-    .single()
-
-  if (mandateError || !mandate) notFound()
-
-  const clubId = (mandate.clubs as { id?: string } | null)?.id ?? null
-
-  // Fetch shortlist with fit fields
-  const { data: shortlist } = await supabase
-    .from('mandate_shortlist')
-    .select(`
-      id, coach_id, candidate_stage, placement_probability, risk_rating, status, notes,
-      network_source, network_recommender, network_relationship,
-      fit_tactical, fit_cultural, fit_level, fit_communication, fit_network, fit_notes,
-      coaches ( name, club_current, nationality )
-    `)
-    .eq('mandate_id', params.id)
-    .order('created_at', { ascending: true })
-
-  const shortlistRows = shortlist ?? []
-  const shortlistCoachIds = shortlistRows.map((row) => row.coach_id)
-
-  const [recommendationsRes, assessmentsRes, evidenceRes] = shortlistCoachIds.length
-    ? await Promise.all([
-        supabase
-          .from('candidate_recommendations')
-          .select('coach_id, verdict, confidence, summary, key_strengths, key_risks, mitigation')
-          .eq('mandate_id', params.id)
-          .in('coach_id', shortlistCoachIds),
-        supabase
-          .from('candidate_assessments')
-          .select('coach_id, criterion, status')
-          .eq('mandate_id', params.id)
-          .in('coach_id', shortlistCoachIds),
-        supabase
-          .from('assessment_evidence')
-          .select('coach_id, criterion')
-          .eq('mandate_id', params.id)
-          .in('coach_id', shortlistCoachIds),
-      ])
-    : [{ data: [] }, { data: [] }, { data: [] }]
-
-  const recommendationMap = new Map((recommendationsRes.data ?? []).map((row) => [row.coach_id, row]))
-  const completeCountMap = new Map<string, number>()
-  const coverageMap = new Map<string, Set<string>>()
-  for (const row of assessmentsRes.data ?? []) {
-    if (row.status === 'complete') {
-      completeCountMap.set(row.coach_id, (completeCountMap.get(row.coach_id) ?? 0) + 1)
-    }
-  }
-  for (const row of evidenceRes.data ?? []) {
-    const set = coverageMap.get(row.coach_id) ?? new Set<string>()
-    set.add(row.criterion)
-    coverageMap.set(row.coach_id, set)
-  }
-  const enrichedShortlist = shortlistRows.map((row) => {
-    const recommendation = recommendationMap.get(row.coach_id)
-    return {
-      ...row,
-      recommendation_verdict: recommendation?.verdict ?? null,
-      recommendation_confidence: recommendation?.confidence ?? null,
-      recommendation_summary: recommendation?.summary ?? null,
-      recommendation_key_strengths: recommendation?.key_strengths ?? null,
-      recommendation_key_risks: recommendation?.key_risks ?? null,
-      recommendation_mitigation: recommendation?.mitigation ?? null,
-      assessment_complete_count: completeCountMap.get(row.coach_id) ?? 0,
-      evidence_coverage_count: coverageMap.get(row.coach_id)?.size ?? 0,
-    }
-  })
-
-  // Fetch club season results — up to 8 seasons, sorted oldest first for trajectory reading
-  const { data: seasonResults } = clubId
-    ? await supabase
-        .from('club_season_results')
-        .select('season, league_position, points, goals_for, goals_against')
-        .eq('club_id', clubId)
-        .order('season', { ascending: true })
-        .limit(8)
-    : { data: [] }
-
-  // Fetch club coaching history — up to 10, sorted oldest first
-  const { data: coachingHistory } = clubId
-    ? await supabase
-        .from('club_coaching_history')
-        .select('coach_name, start_date, end_date, reason_for_exit, style_tags, data_source')
-        .eq('club_id', clubId)
-        .order('start_date', { ascending: true })
-        .limit(10)
-    : { data: [] }
-
-  // Compute stability metrics server-side from the already-fetched coaching history
-  const stabilityMetrics = computeCoachingStability(coachingHistory ?? [])
-
-  // Fetch pre-computed longlist entries (scoring engine output)
-  const { data: longlistRaw } = await supabase
-    .from('mandate_longlist')
-    .select('id, coach_id, ranking_score, fit_explanation')
-    .eq('mandate_id', params.id)
-    .gt('ranking_score', 0)
-    .order('ranking_score', { ascending: false })
-    .limit(30)
-
-  // Enrich with coach display fields (name, status, club)
-  const longlistEntries: import('@/app/(dashboard)/mandates/actions-longlist').LonglistEntryData[] = []
-  if (longlistRaw?.length) {
-    const coachIds = longlistRaw.map((e) => e.coach_id)
-    const { data: coachMeta } = await supabase
-      .from('coaches')
-      .select('id, name, available_status, club_current')
-      .in('id', coachIds)
-
-    const coachMap = new Map((coachMeta ?? []).map((c) => [c.id, c]))
-    for (const entry of longlistRaw) {
-      const c = coachMap.get(entry.coach_id)
-      longlistEntries.push({
-        id: entry.id,
-        coach_id: entry.coach_id,
-        ranking_score: entry.ranking_score ?? 0,
-        fit_explanation: entry.fit_explanation,
-        coach_name: c?.name ?? null,
-        coach_available_status: c?.available_status ?? null,
-        coach_club: c?.club_current ?? null,
-      })
-    }
-  }
-
-  const suggestionsRaw = await getMandateSuggestionsForUser(params.id)
-  const suggestions: SuggestedLonglistCandidate[] = suggestionsRaw.map((suggestion) => ({
-    id: suggestion.id,
-    coach_id: suggestion.coach_id,
-    status: suggestion.status,
-    score: suggestion.score,
-    confidence: suggestion.confidence,
-    source_coverage: suggestion.source_coverage,
-    reason_tags: suggestion.reason_tags,
-    evidence_snippets: toStringArray(suggestion.evidence_snippets),
-    risk_notes: suggestion.risk_notes,
-    generated_at: suggestion.generated_at,
-    coaches: suggestion.coaches,
-  }))
-
-  return (
-    <div>
-      <MandateTabNav mandateId={params.id} />
-      <MandateWorkspaceClient
-        mandate={mandate as Mandate}
-        shortlist={enrichedShortlist as Candidate[]}
-        seasonResults={(seasonResults ?? []) as SeasonResult[]}
-        coachingHistory={(coachingHistory ?? []) as CoachingRecord[]}
-        stabilityMetrics={stabilityMetrics}
-        longlistEntries={longlistEntries}
-        suggestions={suggestions}
-      />
-    </div>
-  )
+  const { data: brief, error } = await supabase.from('mandates').select('id, custom_club_name, strategic_objective, tactical_model_required, pressing_intensity_required, build_preference_required, leadership_profile_required, budget_band, succession_timeline, board_risk_appetite, decision_brief, clubs(name)').eq('id', id).maybeSingle()
+  if (error) throw new Error('The appointment brief could not be loaded. Please retry.')
+  if (!brief) notFound()
+  const fields = [
+    ['Appointment objective', brief.strategic_objective],
+    ['Game model', brief.tactical_model_required],
+    ['Pressing', brief.pressing_intensity_required],
+    ['Build-up', brief.build_preference_required],
+    ['Leadership', brief.leadership_profile_required],
+    ['Budget', brief.budget_band],
+    ['Appointment timing', brief.succession_timeline],
+    ['Board risk appetite', brief.board_risk_appetite],
+  ]
+  return <div className="mx-auto max-w-[1200px] space-y-5">
+    <MandateTabNav mandateId={id} />
+    <header className="flex flex-wrap items-start justify-between gap-4">
+      <div><p className="gaffa-eyebrow">Mandate brief</p><h1 className="mt-2 font-serif text-2xl">{displayClubName(brief.custom_club_name, brief.clubs?.name)}</h1><p className="mt-2 text-sm text-muted-foreground">The requirements candidates will be assessed against. Candidate decisions live in Candidates, not in this brief.</p></div>
+      <Link className="gaffa-action gaffa-action-secondary" href={`/mandates/${id}/edit`}>Review or amend requirements</Link>
+    </header>
+    <MandateBriefNotice mandateId={id} />
+    <dl className="grid gap-5 rounded-lg border border-border bg-card p-5 sm:grid-cols-2">{fields.map(([label, value]) => <div key={label}><dt className="text-xs font-semibold text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-wrap text-sm">{value?.trim() || 'Not yet agreed'}</dd></div>)}</dl>
+    <DecisionBriefReview value={safeDecisionBrief(brief.decision_brief)} expanded />
+    <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><Link className="gaffa-action gaffa-action-secondary" href={`/mandates/${id}/decision`}>Back to overview</Link><Link className="gaffa-action gaffa-action-primary" href={`/mandates/${id}/candidates`}>Continue to candidates</Link></footer>
+  </div>
 }

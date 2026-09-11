@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
@@ -129,7 +129,7 @@ export function RiskSection({ coachId, coach, evidence, dueDiligenceItems, cover
             {legalRisk ? (
               <Badge variant="danger" className="gap-1"><AlertTriangle className="w-3 h-3" /> Flagged</Badge>
             ) : (
-              <Badge variant="secondary">None</Badge>
+              <Badge variant="secondary">Not assessed</Badge>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -137,7 +137,7 @@ export function RiskSection({ coachId, coach, evidence, dueDiligenceItems, cover
             {integrityRisk ? (
               <Badge variant="danger" className="gap-1"><AlertTriangle className="w-3 h-3" /> Flagged</Badge>
             ) : (
-              <Badge variant="secondary">None</Badge>
+              <Badge variant="secondary">Not assessed</Badge>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export function RiskSection({ coachId, coach, evidence, dueDiligenceItems, cover
             {safeguardingRisk ? (
               <Badge variant="danger" className="gap-1"><AlertTriangle className="w-3 h-3" /> Flagged</Badge>
             ) : (
-              <Badge variant="secondary">None</Badge>
+              <Badge variant="secondary">Not assessed</Badge>
             )}
           </div>
         </div>

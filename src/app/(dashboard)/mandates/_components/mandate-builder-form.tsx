@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useId, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
+import { unstable_rethrow, useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { FlexibleSelect } from '@/components/ui/flexible-select'
@@ -14,20 +15,23 @@ import {
 } from '@/lib/mandates/appointment-plan'
 import { createMandateBuilderAction, updateMandateBuilderAction } from '../actions-builder'
 
+import { safeDecisionBrief, BRIEF_FIELDS, type DecisionBrief } from '@/lib/mandates/decision-brief'
+import { DecisionBriefFields, DecisionBriefReview } from './decision-brief-fields'
+
 // ── Option sets ───────────────────────────────────────────────────────────────
 
-const TACTICAL_MODELS = [
+const TACTICAL_MODELS = ['Not yet agreed',
   'High press / dominant',
   'Possession / build-out',
   'Counter-attack / compact',
   'Hybrid / flexible',
 ]
 
-const PRESSING_INTENSITIES = ['High', 'Medium', 'Low']
+const PRESSING_INTENSITIES = ['Not yet agreed', 'High', 'Medium', 'Low']
 
-const BUILD_PREFERENCES = ['Short build', 'Long ball / direct', 'Mixed']
+const BUILD_PREFERENCES = ['Not yet agreed', 'Short build', 'Long ball / direct', 'Mixed']
 
-const LEADERSHIP_PROFILES = [
+const LEADERSHIP_PROFILES = ['Not yet agreed',
   'Strategic',
   'Demanding',
   'Developer',
@@ -46,7 +50,7 @@ const STRATEGIC_OBJECTIVES = [
   'Achieve promotion',
 ]
 
-const BUDGET_BANDS = [
+const BUDGET_BANDS = ['Not yet agreed',
   'Under £1m',
   '£1m - £5m',
   '£5m - £15m',
@@ -56,14 +60,14 @@ const BUDGET_BANDS = [
   '£100m+',
 ]
 
-const SUCCESSION_TIMELINES = [
+const SUCCESSION_TIMELINES = ['Not yet agreed',
   'Immediate / within 30 days',
   'Within 60 days',
   'Within 90 days',
   'End of season / 6+ months',
 ]
 
-const BOARD_RISK_APPETITES = ['Conservative', 'Moderate', 'Aggressive']
+const BOARD_RISK_APPETITES = ['Not yet agreed', 'Conservative', 'Moderate', 'Aggressive']
 
 // ── Preset definitions ────────────────────────────────────────────────────────
 
@@ -137,20 +141,8 @@ const PRESETS: Record<PresetKey, { label: string; values: ScoringFields }> = {
 
 // ── Inline hints ──────────────────────────────────────────────────────────────
 
-function objectiveHint(val: string): string | null {
-  if (val === 'Win trophies / Champions League') return 'Elite Pressure archetype — Strategic or Demanding leader recommended.'
-  if (val === 'Avoid relegation / stabilise') return 'Stabilisation archetype — Motivator or Pragmatic leader recommended.'
-  if (val === 'Develop youth / academy focus') return 'Development archetype — leadership weighted at 35% in scoring.'
-  if (val === 'Rebuild / new identity') return 'Rebuild archetype — Developer or Visionary leader recommended.'
-  if (val === 'Achieve promotion') return 'Promotion archetype — Motivator or Demanding leader recommended.'
-  return null
-}
-
-function timelineHint(val: string): string | null {
-  if (val === 'Immediate / within 30 days') return 'URGENT: availability weighted at 25% in scoring. Contracted coaches with no interest signal excluded.'
-  if (val === 'Within 60 days') return 'MEDIUM urgency: availability weighted higher. Stretch-tier candidates de-prioritised.'
-  return null
-}
+function objectiveHint(val: string): string | null { return val ? 'Define success measures below and test the requirements against the actual squad and resources.' : null }
+function timelineHint(val: string): string | null { return val ? 'Confirm the decision deadline and the coach start date separately.' : null }
 
 // ── Completeness ──────────────────────────────────────────────────────────────
 
@@ -172,6 +164,7 @@ function completeness(vals: ScoringFields): number {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type MandateBuilderInitialValues = Partial<ScoringFields> & {
+  decision_brief?: unknown
   engagement_owner?: string | null
   language_requirements?: string | null
   relocation_required?: boolean | null
@@ -196,6 +189,7 @@ export function MandateBuilderForm({
   backHref,
   prefilledClubId,
   prefilledClubDisplay,
+  sourceBriefId,
 }: {
   mode: 'create' | 'edit'
   mandateId?: string
@@ -205,15 +199,19 @@ export function MandateBuilderForm({
   backHref: string
   prefilledClubId?: string
   prefilledClubDisplay?: string
+  sourceBriefId?: string
 }) {
+  const fieldId = useId()
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [activePreset, setActivePreset] = useState<PresetKey | null>(null)
   const [touched, setTouched] = useState(false)
   const [activeSection, setActiveSection] = useState(1)
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement | null>(null)
   const saveTimerRef = useRef<number | null>(null)
-  const draftKey = 'coach-first:mandate-brief-draft'
+  const draftKey = sourceBriefId ? `gaffa:source-brief-draft:${sourceBriefId}` : prefilledClubId ? `gaffa:club-brief-draft:${prefilledClubId}` : 'coach-first:mandate-brief-draft'
 
   // Only pre-fill values that match the standardised option sets — non-standard
   // free-text values from the old flow show as empty, accurately reflecting that
@@ -229,12 +227,13 @@ export function MandateBuilderForm({
     pressing_intensity_required: normalise(initialValues.pressing_intensity_required, PRESSING_INTENSITIES),
     build_preference_required: normalise(initialValues.build_preference_required, BUILD_PREFERENCES),
     leadership_profile_required: normalise(initialValues.leadership_profile_required, LEADERSHIP_PROFILES),
-    budget_band: normalise(initialValues.budget_band, BUDGET_BANDS),
+    budget_band: normalise(initialValues.budget_band, BUDGET_BANDS) || 'Not yet agreed',
     succession_timeline: normalise(initialValues.succession_timeline, SUCCESSION_TIMELINES),
     board_risk_appetite: normalise(initialValues.board_risk_appetite, BOARD_RISK_APPETITES),
   })
+  const [decisionBrief, setDecisionBrief] = useState<DecisionBrief>(() => safeDecisionBrief(initialValues.decision_brief))
   const [languageRequirements, setLanguageRequirements] = useState(initialValues.language_requirements ?? '')
-  const [relocationRequired, setRelocationRequired] = useState(initialValues.relocation_required ?? false)
+  const [relocationRequired, setRelocationRequired] = useState<boolean | null>(initialValues.relocation_required ?? null)
   const [serviceModel, setServiceModel] = useState<ServiceModel>(
     initialValues.service_model && isServiceModel(initialValues.service_model)
       ? initialValues.service_model
@@ -246,10 +245,11 @@ export function MandateBuilderForm({
 
   useEffect(() => {
     if (mode !== 'create') return
-    const rawDraft = window.localStorage.getItem(draftKey)
-    if (!rawDraft) return
     try {
+      const rawDraft = window.localStorage.getItem(draftKey)
+      if (!rawDraft) return
       const saved = JSON.parse(rawDraft) as Record<string, string>
+      if (saved.decision_brief) setDecisionBrief(safeDecisionBrief(JSON.parse(saved.decision_brief)))
       setFields((current) => ({
         ...current,
         strategic_objective: saved.strategic_objective ?? current.strategic_objective,
@@ -257,13 +257,13 @@ export function MandateBuilderForm({
         pressing_intensity_required: saved.pressing_intensity_required ?? current.pressing_intensity_required,
         build_preference_required: saved.build_preference_required ?? current.build_preference_required,
         leadership_profile_required: saved.leadership_profile_required ?? current.leadership_profile_required,
-        budget_band: saved.budget_band ?? current.budget_band,
+        budget_band: saved.budget_band || current.budget_band,
         succession_timeline: saved.succession_timeline ?? current.succession_timeline,
         board_risk_appetite: saved.board_risk_appetite ?? current.board_risk_appetite,
       }))
       if (isServiceModel(saved.service_model)) setServiceModel(saved.service_model)
       setLanguageRequirements(saved.language_requirements ?? '')
-      setRelocationRequired(saved.relocation_required === 'true')
+      setRelocationRequired(saved.relocation_required === 'true' ? true : saved.relocation_required === 'false' ? false : null)
       setClubValue(saved.club_id_or_name ?? prefilledClubId ?? '')
       window.requestAnimationFrame(() => {
         const form = formRef.current
@@ -271,6 +271,7 @@ export function MandateBuilderForm({
         for (const [name, value] of Object.entries(saved)) {
           if (
             [
+              'decision_brief',
               'strategic_objective',
               'tactical_model_required',
               'pressing_intensity_required',
@@ -297,7 +298,7 @@ export function MandateBuilderForm({
       })
       setDraftSavedAt('restored')
     } catch {
-      window.localStorage.removeItem(draftKey)
+      setDraftSavedAt('unavailable')
     }
   }, [draftKey, mode, prefilledClubId])
 
@@ -311,7 +312,12 @@ export function MandateBuilderForm({
       data.forEach((value, key) => {
         if (typeof value === 'string') saved[key] = value
       })
-      window.localStorage.setItem(draftKey, JSON.stringify(saved))
+      try {
+        window.localStorage.setItem(draftKey, JSON.stringify(saved))
+      } catch {
+        setDraftSavedAt('unavailable')
+        return
+      }
       setDraftSavedAt(
         new Intl.DateTimeFormat('en-GB', {
           hour: '2-digit',
@@ -327,26 +333,49 @@ export function MandateBuilderForm({
   }
 
   function applyPreset(key: PresetKey) {
-    setFields(PRESETS[key].values)
+    setFields(prev => ({ ...prev, strategic_objective: PRESETS[key].values.strategic_objective }))
     setActivePreset(key)
     setTouched(false)
   }
 
-  const pct = completeness(fields)
-  const allRequired = pct === 100
+  const pct = Math.round((BRIEF_FIELDS.filter(f => decisionBrief[f.key]?.value).length / BRIEF_FIELDS.length) * 100)
+  const allRequired = completeness(fields) === 100
   const objHint = objectiveHint(fields.strategic_objective)
   const tlHint = timelineHint(fields.succession_timeline)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (isPending) return
+    const form = e.currentTarget
+    if (!form.checkValidity()) {
+      const invalid = form.querySelector(':invalid')
+      const section = invalid?.closest('section')
+      const sectionIndex = Array.from(form.querySelectorAll(':scope > section')).findIndex((item) => item === section)
+      if (sectionIndex >= 0) setActiveSection(sectionIndex + 1)
+      setTouched(true)
+      window.requestAnimationFrame(() => form.reportValidity())
+      return
+    }
     if (!allRequired) { setTouched(true); return }
     const formData = new FormData(e.currentTarget)
-    if (mode === 'create') window.localStorage.removeItem(draftKey)
+    setSubmitError(null)
     startTransition(async () => {
-      if (mode === 'create') {
-        await createMandateBuilderAction(formData)
-      } else {
-        await updateMandateBuilderAction(formData)
+      try {
+        if (mode === 'create') {
+          const result = await createMandateBuilderAction(formData)
+          if (!result.ok) {
+            setSubmitError(result.error)
+            return
+          }
+          if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current)
+          try { window.localStorage.removeItem(draftKey) } catch { /* Browser storage may be unavailable. */ }
+          router.push(result.redirectTo)
+        } else {
+          await updateMandateBuilderAction(formData)
+        }
+      } catch (error) {
+        unstable_rethrow(error)
+        setSubmitError('Save could not be confirmed. Keep this page open and check the mandate list before retrying to avoid a duplicate.')
       }
     })
   }
@@ -360,19 +389,22 @@ export function MandateBuilderForm({
     )
   }
 
-  function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
+  function FieldLabel({ children, required, htmlFor }: { children: React.ReactNode; required?: boolean; htmlFor?: string }) {
+    // A real <label> only when it names a control by id; some fields already sit
+    // inside a wrapping <label>, where a second label element would be invalid.
+    const Tag = htmlFor ? 'label' : 'span'
     return (
-      <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1">
+      <Tag htmlFor={htmlFor} className="text-xs uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1">
         {children}
         {required && <span className="text-red-400">*</span>}
-      </span>
+      </Tag>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5 pb-10">
+    <div className="gaffa-form mx-auto space-y-6 pb-10">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link
             href={backHref}
@@ -403,7 +435,7 @@ export function MandateBuilderForm({
             'text-[10px] font-semibold tabular-nums',
             pct === 100 ? 'text-emerald-400' : pct >= 57 ? 'text-amber-400' : 'text-muted-foreground'
           )}>
-            {pct}%
+            {pct}% requirements recorded
           </span>
         </div>
       </div>
@@ -418,7 +450,7 @@ export function MandateBuilderForm({
                 type="button"
                 onClick={() => setActiveSection(section)}
                 className={cn(
-                  'inline-flex h-8 items-center gap-2 rounded px-3 text-xs font-medium',
+                  'inline-flex h-11 items-center gap-2 rounded-lg px-4 text-sm font-medium',
                   activeSection === section
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -433,7 +465,7 @@ export function MandateBuilderForm({
       </div>
 
       {/* Presets */}
-      <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+      <div className={cn("rounded-lg border border-border bg-card p-4 space-y-2", activeSection !== 1 && "hidden")}>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Starting point</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {(Object.keys(PRESETS) as PresetKey[]).map((key) => (
@@ -452,13 +484,16 @@ export function MandateBuilderForm({
             </button>
           ))}
         </div>
-        <p className="text-[9px] text-muted-foreground/60">Use only as a first pass, then replace assumptions with the club conversation.</p>
+        <p className="text-[9px] text-muted-foreground/60">Sets the strategic objective only. Football methods, leadership, budgets and timing need their own discussion.</p>
       </div>
 
-      <form ref={formRef} onSubmit={handleSubmit} onInput={saveDraft} className="space-y-4">
+      <form ref={formRef} noValidate onSubmit={handleSubmit} onInput={saveDraft} className="space-y-4">
+        {submitError && <p role="alert" className="rounded-md border border-red-400/40 bg-red-500/10 p-3 text-sm text-red-600">{submitError}</p>}
         {mode === 'edit' && mandateId && (
           <input type="hidden" name="mandate_id" value={mandateId} />
         )}
+        <input type="hidden" name="decision_brief" value={JSON.stringify(decisionBrief)} />
+        {sourceBriefId && <input type="hidden" name="source_brief_id" value={sourceBriefId} />}
         {/* Hidden controlled values */}
         <input type="hidden" name="strategic_objective" value={fields.strategic_objective} />
         <input type="hidden" name="tactical_model_required" value={fields.tactical_model_required} />
@@ -469,7 +504,7 @@ export function MandateBuilderForm({
         <input type="hidden" name="succession_timeline" value={fields.succession_timeline} />
         <input type="hidden" name="board_risk_appetite" value={fields.board_risk_appetite} />
         <input type="hidden" name="language_requirements" value={languageRequirements ?? ''} />
-        <input type="hidden" name="relocation_required" value={String(relocationRequired)} />
+        <input type="hidden" name="relocation_required" value={String(decisionBrief.relocation ? (decisionBrief.relocation.value === "Required" ? true : decisionBrief.relocation.value === "Not required" ? false : null) : relocationRequired)} />
         <input type="hidden" name="service_model" value={serviceModel} />
 
         {/* ── Section 1: Context ─────────────────────────────────────────── */}
@@ -499,8 +534,8 @@ export function MandateBuilderForm({
           )}
 
           <div className="space-y-1">
-            <FieldLabel required>Coach First service</FieldLabel>
-            <select
+            <FieldLabel required htmlFor={`${fieldId}-gaffa-service`}>Gaffa service</FieldLabel>
+            <select id={`${fieldId}-gaffa-service`}
               value={serviceModel}
               onChange={(event) => setServiceModel(event.target.value as ServiceModel)}
               className="h-10 w-full rounded border border-border bg-surface px-3 text-sm text-foreground"
@@ -516,7 +551,7 @@ export function MandateBuilderForm({
 
           <label className="space-y-1 block">
             <FieldLabel required>Internal owner</FieldLabel>
-            <input
+            <input id={`${fieldId}-internal-owner`}
               name="engagement_owner"
               required
               defaultValue={initialValues.engagement_owner ?? ''}
@@ -527,7 +562,7 @@ export function MandateBuilderForm({
 
           <label className="space-y-1 block">
             <FieldLabel required>Appointment situation and trigger</FieldLabel>
-            <textarea
+            <textarea id={`${fieldId}-appointment-situation-and-trigger`}
               name="ownership_structure"
               required
               rows={4}
@@ -539,7 +574,7 @@ export function MandateBuilderForm({
 
           <label className="space-y-1 block">
             <FieldLabel required>Decision makers</FieldLabel>
-            <textarea
+            <textarea id={`${fieldId}-decision-makers`}
               name="key_stakeholders"
               required
               rows={2}
@@ -553,7 +588,7 @@ export function MandateBuilderForm({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <label className="space-y-1 block">
               <FieldLabel required>Engagement date</FieldLabel>
-              <input
+              <input id={`${fieldId}-engagement-date`}
                 name="engagement_date"
                 type="date"
                 required
@@ -563,7 +598,7 @@ export function MandateBuilderForm({
             </label>
             <label className="space-y-1 block">
               <FieldLabel required>Decision target</FieldLabel>
-              <input
+              <input id={`${fieldId}-decision-target`}
                 name="target_completion_date"
                 type="date"
                 required
@@ -573,7 +608,7 @@ export function MandateBuilderForm({
             </label>
             <label className="space-y-1 block">
               <FieldLabel required>Confidentiality</FieldLabel>
-              <select
+              <select id={`${fieldId}-confidentiality`}
                 name="confidentiality_level"
                 required
                 defaultValue={initialValues.confidentiality_level ?? 'High'}
@@ -587,8 +622,8 @@ export function MandateBuilderForm({
           </div>
 
           <div className="space-y-1">
-            <FieldLabel required>Strategic objective</FieldLabel>
-            <select
+            <FieldLabel required htmlFor={`${fieldId}-strategic-objective`}>Strategic objective</FieldLabel>
+            <select id={`${fieldId}-strategic-objective`}
               value={fields.strategic_objective}
               onChange={(e) => set('strategic_objective', e.target.value)}
               className={fieldCls('strategic_objective')}
@@ -607,6 +642,7 @@ export function MandateBuilderForm({
               </p>
             )}
           </div>
+        <DecisionBriefFields step={1} value={decisionBrief} onChange={v => { setDecisionBrief(v); saveDraft() } } />
         </section>
 
         {/* ── Section 2: Tactical Identity ──────────────────────────────── */}
@@ -618,8 +654,8 @@ export function MandateBuilderForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <FieldLabel required>Tactical model</FieldLabel>
-              <select
+              <FieldLabel required htmlFor={`${fieldId}-tactical-model`}>Tactical model</FieldLabel>
+              <select id={`${fieldId}-tactical-model`}
                 value={fields.tactical_model_required}
                 onChange={(e) => set('tactical_model_required', e.target.value)}
                 className={fieldCls('tactical_model_required')}
@@ -633,8 +669,8 @@ export function MandateBuilderForm({
             </div>
 
             <div className="space-y-1">
-              <FieldLabel required>Pressing intensity</FieldLabel>
-              <select
+              <FieldLabel required htmlFor={`${fieldId}-pressing-intensity`}>Pressing intensity</FieldLabel>
+              <select id={`${fieldId}-pressing-intensity`}
                 value={fields.pressing_intensity_required}
                 onChange={(e) => set('pressing_intensity_required', e.target.value)}
                 className={fieldCls('pressing_intensity_required')}
@@ -648,8 +684,8 @@ export function MandateBuilderForm({
             </div>
 
             <div className="space-y-1">
-              <FieldLabel required>Build preference</FieldLabel>
-              <select
+              <FieldLabel required htmlFor={`${fieldId}-build-preference`}>Build preference</FieldLabel>
+              <select id={`${fieldId}-build-preference`}
                 value={fields.build_preference_required}
                 onChange={(e) => set('build_preference_required', e.target.value)}
                 className={fieldCls('build_preference_required')}
@@ -662,6 +698,7 @@ export function MandateBuilderForm({
               )}
             </div>
           </div>
+        <DecisionBriefFields step={2} value={decisionBrief} onChange={v => { setDecisionBrief(v); saveDraft() } } />
         </section>
 
         {/* ── Section 3: Leadership & Culture ───────────────────────────── */}
@@ -672,8 +709,8 @@ export function MandateBuilderForm({
           </div>
 
           <div className="space-y-1">
-            <FieldLabel required>Leadership profile required</FieldLabel>
-            <select
+            <FieldLabel required htmlFor={`${fieldId}-leadership-profile-required`}>Leadership profile required</FieldLabel>
+            <select id={`${fieldId}-leadership-profile-required`}
               value={fields.leadership_profile_required}
               onChange={(e) => set('leadership_profile_required', e.target.value)}
               className={fieldCls('leadership_profile_required')}
@@ -688,8 +725,8 @@ export function MandateBuilderForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <FieldLabel>Languages required</FieldLabel>
-              <input
+              <FieldLabel htmlFor={`${fieldId}-languages-required`}>Languages required</FieldLabel>
+              <input id={`${fieldId}-languages-required`}
                 type="text"
                 value={languageRequirements ?? ''}
                 onChange={(e) => setLanguageRequirements(e.target.value)}
@@ -698,27 +735,8 @@ export function MandateBuilderForm({
               />
             </div>
 
-            <div className="space-y-1">
-              <FieldLabel>Relocation required</FieldLabel>
-              <div className="flex items-center gap-3 h-10">
-                {[true, false].map((val) => (
-                  <button
-                    key={String(val)}
-                    type="button"
-                    onClick={() => setRelocationRequired(val)}
-                    className={cn(
-                      'px-4 h-8 rounded border text-xs font-medium transition-colors',
-                      relocationRequired === val
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    {val ? 'Yes' : 'No'}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
+        <DecisionBriefFields step={3} value={decisionBrief} onChange={v => { setDecisionBrief(v); saveDraft() } } />
         </section>
 
         {/* ── Section 4: Constraints ────────────────────────────────────── */}
@@ -730,23 +748,8 @@ export function MandateBuilderForm({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <FieldLabel required>Budget band</FieldLabel>
-              <select
-                value={fields.budget_band}
-                onChange={(e) => set('budget_band', e.target.value)}
-                className={fieldCls('budget_band')}
-              >
-                <option value="">Select band…</option>
-                {BUDGET_BANDS.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-              {touched && !fields.budget_band && (
-                <p className="text-[10px] text-red-400">Required</p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <FieldLabel required>Succession timeline</FieldLabel>
-              <select
+              <FieldLabel required htmlFor={`${fieldId}-succession-timeline`}>Succession timeline</FieldLabel>
+              <select id={`${fieldId}-succession-timeline`}
                 value={fields.succession_timeline}
                 onChange={(e) => set('succession_timeline', e.target.value)}
                 className={fieldCls('succession_timeline')}
@@ -765,8 +768,8 @@ export function MandateBuilderForm({
             </div>
 
             <div className="space-y-1">
-              <FieldLabel>Board risk appetite</FieldLabel>
-              <select
+              <FieldLabel htmlFor={`${fieldId}-board-risk-appetite`}>Board risk appetite</FieldLabel>
+              <select id={`${fieldId}-board-risk-appetite`}
                 value={fields.board_risk_appetite}
                 onChange={(e) => set('board_risk_appetite', e.target.value)}
                 className="w-full h-10 rounded bg-surface border border-border px-3 text-sm text-foreground"
@@ -776,6 +779,8 @@ export function MandateBuilderForm({
               </select>
             </div>
           </div>
+        <DecisionBriefFields step={4} value={decisionBrief} onChange={v => { setDecisionBrief(v); saveDraft() } } />
+<DecisionBriefReview value={decisionBrief} expanded />
         </section>
 
         {/* Actions */}
@@ -785,11 +790,11 @@ export function MandateBuilderForm({
               <p className="text-[10px] text-red-400">Complete all required fields to save.</p>
             )}
             {allRequired && (
-              <p className="text-[10px] text-emerald-400">All required fields complete.</p>
+              <p className="text-[10px] text-emerald-400">Core fields recorded. Review unresolved requirements before saving.</p>
             )}
             {mode === 'create' && draftSavedAt && (
               <p className="text-[10px] text-muted-foreground">
-                {draftSavedAt === 'restored' ? 'Unfinished brief restored.' : `Draft saved ${draftSavedAt}.`}
+                {draftSavedAt === 'unavailable' ? 'Browser draft storage unavailable. Keep this page open until your brief is saved.' : draftSavedAt === 'restored' ? 'Unfinished brief restored.' : `Draft saved ${draftSavedAt}.`}
               </p>
             )}
           </div>
