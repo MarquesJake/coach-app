@@ -272,7 +272,7 @@ export default async function CoachPortalDetailPage(
             </div>
             <div className="text-right text-xs text-muted-foreground">
               <p>{materialSummary.entries} entries · {materialSummary.uploaded} uploaded files</p>
-              <p>{materialSummary.reviewedUploads} reviewed uploads · {materialSummary.illustrative} illustrative entries</p>
+              <p>{materialSummary.reviewedUploads} reviewed uploads</p>
               <p>{liveRequests} open access requests</p>
             </div>
           </div>

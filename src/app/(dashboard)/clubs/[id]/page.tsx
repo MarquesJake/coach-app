@@ -435,7 +435,7 @@ export default function ClubOverviewPage() {
       {/* ── Layer A continued: Club identity form ──────────────────────────── */}
       <details className="rounded-lg border border-border bg-card p-6">
         <summary className="cursor-pointer text-sm font-medium text-foreground">Admin controls: club details</summary>
-        <p className="text-xs text-muted-foreground mt-1 mb-4">Raw identity fields and destructive controls. Keep collapsed during stakeholder walkthroughs.</p>
+        <p className="text-xs text-muted-foreground mt-1 mb-4">Raw identity fields and destructive controls. Keep collapsed during client meetings.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">

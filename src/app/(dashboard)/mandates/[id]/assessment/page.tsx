@@ -113,7 +113,7 @@ export default async function MandateAssessmentIndexPage(
       <MandateTabNav mandateId={mandateId} />
       <h1 className="text-lg font-semibold text-foreground">Candidate assessment · {clubName}</h1>
       <p className="text-xs text-muted-foreground mt-0.5">
-        Recorded assessments, illustrative examples and reviewed evidence are counted separately. A recorded human recommendation does not authorize publication.
+        Recorded assessments and reviewed evidence are counted separately. A recorded human recommendation does not authorize publication.
       </p>
 
       {decisionSet.length > 0 && (
@@ -151,7 +151,7 @@ export default async function MandateAssessmentIndexPage(
         <div className="hidden lg:grid grid-cols-[minmax(170px,1fr)_130px_110px_120px_160px] gap-3 px-5 py-2.5 border-b border-border bg-surface/50 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
           <span>Candidate</span>
           <span>Reviewed evidence</span>
-          <span>Recorded / illustrative</span>
+          <span>Assessments</span>
           <span>Verdict</span>
           <span></span>
         </div>
@@ -186,7 +186,7 @@ export default async function MandateAssessmentIndexPage(
                     </div>
                     <span className="text-2xs tabular-nums text-muted-foreground">{status.reviewedLabel}</span>
                   </div></div>
-                  <span className="text-2xs tabular-nums text-muted-foreground"><span className="mb-1 block text-xs lg:hidden">Assessment entries</span>{status.recordedLabel}<br />{status.illustrativeLabel}</span>
+                  <span className="text-2xs tabular-nums text-muted-foreground"><span className="mb-1 block text-xs lg:hidden">Assessment entries</span>{status.recordedLabel}</span>
                   <span
                     className={cn(
                       'text-2xs font-medium',

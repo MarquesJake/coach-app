@@ -286,7 +286,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
   return (
     <div className="space-y-5">
       {publicSnapshot && <VerifiedExampleCard example={publicSnapshot} />}
-      <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Recorded profile, not a current-facts certificate. Imported roles, availability and assessments may be stale or illustrative. Only individually dated, cited evidence should support a decision; a sync timestamp or completeness score is not verification.</p>
+      <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Recorded profile, not a current-facts certificate. Imported roles, availability and assessments may be stale. Only individually dated, cited evidence should support a decision; a sync timestamp or completeness score is not verification.</p>
       <section className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border bg-card px-6 py-5">
           <div className="flex flex-wrap items-start justify-between gap-4">

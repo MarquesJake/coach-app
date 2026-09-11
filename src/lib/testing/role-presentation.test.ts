@@ -11,10 +11,10 @@ test('coach profile grid permits phone-width columns and wrapping material contr
   assert(page.includes('flex flex-col items-start justify-between gap-4 py-3 sm:flex-row'))
 })
 
-test('printed documents omit mobile navigation while retaining the prototype warning', () => {
+test('printed documents omit mobile navigation', () => {
   assert(read('(dashboard)/_components/sidebar.tsx').includes('md:hidden print:hidden'))
   assert(read('(dashboard)/layout.tsx').includes('print:!pl-0 print:!pt-0'))
-  assert(read('(dashboard)/layout.tsx').includes('Imported facts and appointment scenarios need review.'))
+  assert(!read('(dashboard)/layout.tsx').includes('gaffa-notice'))
   assert(read('(dashboard)/_components/section-shell.tsx').includes('flex flex-col gap-3 pb-0 pt-1 print:hidden'))
 })
 

@@ -1,4 +1,4 @@
-export const INVESTOR_STEPS = ['Start here', 'Club brief', 'Public examples', 'Practice shortlist', 'Board summary'] as const
+export const INVESTOR_STEPS = ['Start here', 'Club brief', 'Candidate profiles', 'Shortlist', 'Board summary'] as const
 
 export function investorStep(value: string | null): number {
   return value !== null && /^[0-4]$/.test(value) ? Number(value) : 0

@@ -75,7 +75,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
 <body>
   <h1>Internal Mandate Shortlist</h1>
   <p><strong>DRAFT WORKING LIST - NOT AN APPROVED BOARD REPORT</strong></p>
-  <p class="muted">Stored workflow entries, not evidence-backed suitability findings. Entries may include illustrative material or unreviewed imports. Use the Board report workflow for assessed recommendations and controlled release.</p>
+  <p class="muted">Stored workflow entries, not evidence-backed suitability findings. Entries may include unreviewed imports. Use the Board report workflow for assessed recommendations and controlled release.</p>
   <p class="muted">${escapeHtml(String(clubName))} · Confidential</p>
 
   <h2>Club context</h2>

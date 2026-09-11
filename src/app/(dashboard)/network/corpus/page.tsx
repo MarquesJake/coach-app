@@ -140,7 +140,7 @@ export default async function CorpusOperationsPage() {
         <Link href="/coaches/bench" className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium hover:bg-surface-raised"><Plus className="mr-2 h-4 w-4" />Manage research pool</Link>
       </div>
 
-      <p className="text-xs text-muted-foreground">Research coverage is not placement approval or release clearance. Illustrative material is excluded; reviewed findings require a recorded review date. Source links alone are not recommendations.</p>
+      <p className="text-xs text-muted-foreground">Research coverage is not placement approval or release clearance. Reviewed findings require a recorded review date. Source links alone are not recommendations.</p>
       <div className="relative overflow-x-auto border border-border bg-card">
         <table className="w-full min-w-[1180px] text-left text-sm">
           <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
