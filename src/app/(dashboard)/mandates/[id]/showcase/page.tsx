@@ -58,7 +58,7 @@ export default async function TottenhamShowcase({ params }: { params: Promise<{ 
     </section>
 
     <section id="field" className="case-section">
-      <Heading number="02" title="Why these seven." subtitle="In research order. Each one tests a different route — this is not a ranked shortlist."/>
+      <Heading number="02" title="Why these seven." subtitle="In research order — each one tests a different route. The ranked view, with a board report for every coach, is in the Assessment tab."/>
       <div className="divide-y divide-border border-y border-border">{dossier.coaches.map((c,index)=><article key={c.id} className="case-grid grid gap-3 py-5 sm:grid-cols-[2fr_2fr_2fr]">
         <div className="flex gap-4"><span className="case-label pt-1">{String(index+1).padStart(2,'0')}</span><div><a className="font-serif text-xl underline decoration-border underline-offset-4" href={`#coach-${c.key}`}>{c.name}</a><p className="mt-1 text-xs text-muted-foreground">{c.club}</p></div></div><div><p className="text-sm font-medium">{c.route}</p><p className="case-copy mt-1">{c.angle}</p></div><p className="case-copy">{c.obstacle}</p>
       </article>)}</div>

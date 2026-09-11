@@ -35,7 +35,7 @@ export function deriveAssessmentStatus({ coach, assessments = [], evidence = [],
     : missingReview ? `Review evidence for ${missingReview.label}.`
       : missingAssessment ? `Record the assessment for ${missingAssessment.label}.`
         : !recommendationRecorded ? 'Record a human recommendation and supporting summary.'
-          : 'Review evidence sufficiency, conditions and recipient permissions before publishing.'
+          : 'Ready for the board — check the conditions and who can see it before sharing.'
   return {
     totalCriteria: keys.length, recordedCriteria, illustrativeCriteria, reviewedCriteria,
     recordedCount: recordedCriteria.length, illustrativeCount: illustrativeCriteria.length,

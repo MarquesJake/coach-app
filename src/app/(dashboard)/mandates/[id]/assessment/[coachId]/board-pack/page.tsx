@@ -198,7 +198,7 @@ export default async function BoardPackPage(
   const illustrativeProfile = isIllustrativeEvidence(coach)
   const status = deriveAssessmentStatus({ coach, assessments: assessments.data ?? [], evidence: evidence.data ?? [], recommendation: recommendationRes.data })
   const recommendation = status.recommendationRecorded ? recommendationRes.data : null
-  const deepDive = deepDiveFor(coachId)
+  const deepDive = deepDiveFor(coachId, mandateId)
   const finalEvaluation = finalEvaluationFor(mandateId, coachId)
   const assessmentByCriterion = new Map((illustrativeProfile ? [] : assessments.data ?? [])
     .filter((a) => !isIllustrativeEvidence(a)).map((a) => [a.criterion, a]))
@@ -283,7 +283,7 @@ export default async function BoardPackPage(
         <p className="mt-3 text-sm font-bold text-amber-200">{status.coverLabel}</p>
         <p className="text-3xl font-serif font-bold text-slate-400 leading-tight">{coach.name}</p>
         <div className="w-16 h-0.5 bg-emerald-500 my-6" />
-        <p className="text-sm text-slate-300">Mandate context: {clubName}. Recipient release has not been established by this print view.</p>
+        <p className="text-sm text-slate-300">Prepared for {clubName}. Not yet cleared to share outside the club’s board.</p>
         <p className="mt-3 text-xs text-slate-300">{status.recordedLabel} · {status.reviewedLabel}</p>
         <p className="mt-2 text-xs text-slate-300">{status.nextAction}</p>
         <p className="text-xs text-slate-400 mt-1">
