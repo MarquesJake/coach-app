@@ -1,4 +1,4 @@
-import type { DeepDive, FinalEvaluation } from './deep-dive'
+import type { DeepDiveBase, FinalEvaluation } from './deep-dive'
 
 // Gaffa's indicative data model for the West Ham shortlist. Public career facts
 // (clubs, seasons, points) are real; xG, physical, wage and market-value figures
@@ -15,7 +15,7 @@ const CARRICK = '26de8946-e9c0-42e6-babb-e02e8d55ba2d'
 const PERSONALITY_HEADINGS = ['Life story', 'Leadership', 'Personality', 'Communication', 'Decision-making', 'Handling conflict', 'Career decisions', 'Reputation', 'Club fit', 'Risks'] as const
 const personality = (texts: string[]) => PERSONALITY_HEADINGS.map((heading, i) => ({ heading, text: texts[i] }))
 
-export const DEEP_DIVES: Record<string, DeepDive> = {
+export const DEEP_DIVES: Record<string, DeepDiveBase> = {
   [MCKENNA]: {
     profile: {
       playingCareer: 'Came through Tottenham’s academy; his playing career ended early and he moved straight into coaching there.',
@@ -129,8 +129,8 @@ export const DEEP_DIVES: Record<string, DeepDive> = {
         { season: '2023/24', club: 'Hull', league: 'Championship', played: 46, w: 19, d: 13, l: 14, gf: 68, ga: 60, xgf: 65.2, xga: 56.4, finish: '7th' },
         { season: '2024/25', club: 'Strasbourg', league: 'Ligue 1', played: 34, w: 16, d: 9, l: 9, gf: 56, ga: 44, xgf: 52.6, xga: 45.9, finish: '7th' },
       ],
-      xgFor: { transition: 0.29, buildUp: 0.68, restart: 0.13, corners: 0.15, directFk: 0.03, indirectFk: 0.07, throwIns: 0.04 },
-      xgAgainst: { transition: 0.36, buildUp: 0.45, restart: 0.12, corners: 0.14, directFk: 0.03, indirectFk: 0.07, throwIns: 0.03 },
+      xgFor: { transition: 0.33, buildUp: 0.76, restart: 0.15, corners: 0.17, directFk: 0.03, indirectFk: 0.07, throwIns: 0.04 },
+      xgAgainst: { transition: 0.42, buildUp: 0.52, restart: 0.12, corners: 0.14, directFk: 0.03, indirectFk: 0.07, throwIns: 0.03 },
       physical: [
         { metric: 'Total distance', value: '111.4 km', vsLeague: 1 },
         { metric: 'High-intensity running', value: '6.9 km', vsLeague: 4 },
@@ -323,7 +323,7 @@ export const DEEP_DIVES: Record<string, DeepDive> = {
         { season: '2024/25', club: 'Ajax', league: 'Eredivisie', played: 34, w: 24, d: 6, l: 4, gf: 67, ga: 32, xgf: 62.8, xga: 34.6, finish: '2nd' },
         { season: '2025/26', club: 'Porto', league: 'Liga Portugal', played: 34, w: 25, d: 5, l: 4, gf: 70, ga: 24, xgf: 66.1, xga: 27.3, finish: '2nd' },
       ],
-      xgFor: { transition: 0.28, buildUp: 0.85, restart: 0.12, corners: 0.14, directFk: 0.03, indirectFk: 0.06, throwIns: 0.03 },
+      xgFor: { transition: 0.36, buildUp: 1.08, restart: 0.15, corners: 0.18, directFk: 0.04, indirectFk: 0.08, throwIns: 0.05 },
       xgAgainst: { transition: 0.24, buildUp: 0.30, restart: 0.09, corners: 0.10, directFk: 0.02, indirectFk: 0.04, throwIns: 0.02 },
       physical: [
         { metric: 'Total distance', value: '112.8 km', vsLeague: 2 },
@@ -340,7 +340,7 @@ export const DEEP_DIVES: Record<string, DeepDive> = {
       elo: { start: 1650, peak: 1782, end: 1770, note: 'A big jump at Ajax, sustained at Porto.' },
       injuries: 'Squad injury days 8% below the league average.',
       strengths: ['Best defensive numbers on the shortlist.', 'Dominates the ball in build-up.', 'Instant improvement at every club.'],
-      concerns: ['Goals scored dropped at Ajax.', 'Never managed in England.', 'Needs a big staff and time.'],
+      concerns: ['Ajax scored fewer league goals than the season before (67 v 74).', 'Never managed in England.', 'Needs a big staff and time.'],
     },
     tactical: {
       formations: [{ shape: '4-3-3', share: 70 }, { shape: '3-4-3', share: 20 }, { shape: '4-2-3-1', share: 10 }],
@@ -419,8 +419,8 @@ export const DEEP_DIVES: Record<string, DeepDive> = {
         { season: '2023/24', club: 'Wolves', league: 'Premier League', played: 38, w: 13, d: 7, l: 18, gf: 50, ga: 65, xgf: 47.5, xga: 61.0, finish: '14th' },
         { season: '2024/25', club: 'Wolves', league: 'Premier League', played: 16, w: 2, d: 3, l: 11, gf: 27, ga: 40, xgf: 21.4, xga: 30.8, finish: 'Left in December' },
       ],
-      xgFor: { transition: 0.36, buildUp: 0.40, restart: 0.13, corners: 0.15, directFk: 0.03, indirectFk: 0.06, throwIns: 0.04 },
-      xgAgainst: { transition: 0.40, buildUp: 0.56, restart: 0.15, corners: 0.17, directFk: 0.04, indirectFk: 0.08, throwIns: 0.04 },
+      xgFor: { transition: 0.36, buildUp: 0.48, restart: 0.13, corners: 0.15, directFk: 0.03, indirectFk: 0.06, throwIns: 0.04 },
+      xgAgainst: { transition: 0.46, buildUp: 0.62, restart: 0.20, corners: 0.17, directFk: 0.04, indirectFk: 0.08, throwIns: 0.04 },
       physical: [
         { metric: 'Total distance', value: '110.1 km', vsLeague: 0 },
         { metric: 'High-intensity running', value: '6.6 km', vsLeague: 1 },
@@ -647,6 +647,7 @@ export const FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     risks: [
       { risk: 'Falls out with the board over signings', likelihood: 'Medium', impact: 'High', mitigation: 'Agree recruitment roles in writing.' },
       { risk: 'Premier League ceiling', likelihood: 'High', impact: 'Medium', mitigation: 'Plan the post-promotion squad early.' },
+      { risk: 'Academy players squeezed out', likelihood: 'Medium', impact: 'Medium', mitigation: 'Agree minimum academy minutes in the brief.' },
     ],
     probabilityOfSuccess: 58,
     probabilityRationale: 'Very likely to win promotion; less likely to build a lasting Premier League side.',
@@ -655,7 +656,7 @@ export const FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     executiveSummary: 'Farioli is the best coach on the shortlist on pure football, with outstanding defensive numbers at Nice, Ajax and Porto. But he is under contract at Porto, would cost a lot to prise away, needs a big staff and has never worked in England. One to monitor, not to appoint now.',
     swot: {
       strengths: ['Best defensive numbers', 'Dominant possession', 'Instant impact'],
-      weaknesses: ['Never worked in England', 'Goals dropped at Ajax'],
+      weaknesses: ['Never worked in England', 'Ajax scored fewer goals than the year before', 'Needs a large staff'],
       opportunities: ['A long-term project after promotion'],
       threats: ['Compensation cost', 'Porto won’t let him go easily'],
     },
@@ -664,7 +665,8 @@ export const FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     budgetNote: 'Well over budget because of the compensation.',
     risks: [
       { risk: 'Porto refuse to release him', likelihood: 'High', impact: 'High', mitigation: 'Monitor only.' },
-      { risk: 'Adapting to the Championship', likelihood: 'High', impact: 'Medium', mitigation: 'Not applicable now.' },
+      { risk: 'Adapting to the Championship', likelihood: 'High', impact: 'Medium', mitigation: 'Revisit only after promotion.' },
+      { risk: 'Staff costs well over budget', likelihood: 'High', impact: 'Medium', mitigation: 'Benchmark only; no approach this window.' },
     ],
     probabilityOfSuccess: 44,
     probabilityRationale: 'High football quality, but the cost and the difficulty of getting him make it a low-probability route.',
