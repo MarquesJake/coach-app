@@ -4,6 +4,7 @@
 // (xG, physical, market value) is connected.
 
 import { DEEP_DIVES, FINAL_EVALUATIONS } from './deep-dive-data'
+import { DEEP_DIVE_EXTRAS } from './deep-dive-extras'
 
 export type SeasonRow = { season: string; club: string; league: string; played: number; w: number; d: number; l: number; gf: number; ga: number; xgf: number; xga: number; finish: string }
 export type XgSplit = { transition: number; buildUp: number; restart: number; corners: number; directFk: number; indirectFk: number; throwIns: number }
@@ -20,7 +21,24 @@ export type FinalEvaluation = {
   probabilityRationale: string
 }
 
-export type DeepDive = {
+export type Aspect = { aspect: string; note: string }
+export type Fit = 'Strong' | 'Partial' | 'Weak'
+
+// Items the methodology lists under each area, beyond the headline data.
+export type DeepDiveExtras = {
+  xgSeason: string
+  career: { period: string; club: string; role: string }[]
+  tacticalFit: Aspect[]
+  matchBehaviour: Aspect[]
+  matchStats: { label: string; value: string }[]
+  trainingAspects: Aspect[]
+  developmentAspects: Aspect[]
+  mediaChannels: Aspect[]
+  traits: { trait: string; rating: number }[]
+  clubAlignment: { aspect: string; fit: Fit; note: string }[]
+}
+
+export type DeepDiveBase = {
   profile: { playingCareer: string; keyAchievements: string[]; keyStaff: string; familyRelocation: string; salaryBand: string; representation: string }
   performance: {
     seasons: SeasonRow[]
@@ -48,8 +66,12 @@ export type DeepDive = {
   culturalFit: { bestFit: { dimension: string; fit: string }[]; frictionPoints: string[]; successFactors: string[] }
 }
 
+export type DeepDive = DeepDiveBase & DeepDiveExtras
+
 export function deepDiveFor(coachId: string): DeepDive | null {
-  return DEEP_DIVES[coachId] ?? null
+  const base = DEEP_DIVES[coachId]
+  const extras = DEEP_DIVE_EXTRAS[coachId]
+  return base && extras ? { ...base, ...extras } : null
 }
 
 export function finalEvaluationFor(mandateId: string, coachId: string): FinalEvaluation | null {
