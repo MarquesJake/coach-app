@@ -20,6 +20,8 @@ import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { declarationReviewLabel } from '@/lib/assessment/material-status'
 import { canPrintCircumstances, referencesForPack } from '@/lib/assessment/pack-release'
+import { deepDiveFor, finalEvaluationFor } from '@/lib/assessment/deep-dive'
+import { AreaDeepDive, FinalEvaluationSection } from '@/components/assessment/deep-dive-sections'
 
 // The tab title doubles as the default filename when the pack is saved as a
 // PDF, so it names the candidate and the club rather than the page type.
@@ -196,6 +198,8 @@ export default async function BoardPackPage(
   const illustrativeProfile = isIllustrativeEvidence(coach)
   const status = deriveAssessmentStatus({ coach, assessments: assessments.data ?? [], evidence: evidence.data ?? [], recommendation: recommendationRes.data })
   const recommendation = status.recommendationRecorded ? recommendationRes.data : null
+  const deepDive = deepDiveFor(coachId)
+  const finalEvaluation = finalEvaluationFor(mandateId, coachId)
   const assessmentByCriterion = new Map((illustrativeProfile ? [] : assessments.data ?? [])
     .filter((a) => !isIllustrativeEvidence(a)).map((a) => [a.criterion, a]))
   const gbe = calculateGbe(stints.data ?? [], coach.coaching_licence)
@@ -327,6 +331,13 @@ export default async function BoardPackPage(
           </div>
         </div>
       </section>
+
+      {finalEvaluation && (
+        <section className="mt-8">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Final evaluation</h2>
+          <div className="mt-3"><FinalEvaluationSection e={finalEvaluation} verdict={recommendation?.verdict ?? null} confidence={recommendation?.confidence ?? null} /></div>
+        </section>
+      )}
 
       <section className="mt-6 rounded border border-border p-4 print:break-inside-avoid">
         <h2 className="font-semibold text-sm">What we still need to check</h2>
@@ -600,6 +611,7 @@ export default async function BoardPackPage(
                     ))}
                   </ul>
                 )}
+                {deepDive && <AreaDeepDive area={criterion.key} d={deepDive} />}
                 {excludedCount > 0 && (
                   <p className="text-2xs text-muted-foreground/50 mt-1.5 pl-3">
                     {excludedCount} evidence item{excludedCount === 1 ? '' : 's'} on file, excluded from this recommendation.

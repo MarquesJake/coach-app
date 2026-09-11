@@ -1,3 +1,4 @@
+import { CoachDeepDivePanel } from '@/components/assessment/coach-deep-dive-panel'
 import { CoachAssessment } from '../_components/coach-assessment'
 import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
@@ -17,5 +18,5 @@ export default async function CoachLeadershipPage(props: { params: Promise<{ id:
   if (error) throw new Error('Coach profile could not be loaded. Reload before making changes.')
   if (!coach) notFound()
 
-  return <div className="space-y-5"><CoachAssessment coachId={params.id} areas={['personality_profile', 'media_comms', 'cultural_org_fit']}/><LeadershipSection coachId={params.id} coach={coach as Record<string, unknown>} /></div>
+  return <div className="space-y-5"><CoachAssessment coachId={params.id} areas={['personality_profile', 'media_comms', 'cultural_org_fit']}/><CoachDeepDivePanel coachId={params.id} areas={['personality_profile', 'media_comms', 'cultural_org_fit']} /><LeadershipSection coachId={params.id} coach={coach as Record<string, unknown>} /></div>
 }

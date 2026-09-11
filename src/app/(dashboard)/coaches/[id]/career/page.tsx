@@ -1,3 +1,4 @@
+import { CoachDeepDivePanel } from '@/components/assessment/coach-deep-dive-panel'
 import { CoachAssessment } from '../_components/coach-assessment'
 import { redirect, notFound } from 'next/navigation'
 import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
@@ -114,6 +115,7 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
   return (
     <div className="space-y-6">
       <CoachAssessment coachId={params.id} areas={['performance_impact']}/>
+      <CoachDeepDivePanel coachId={params.id} areas={['performance_impact']} />
       <CareerTab coachId={params.id} stints={stints} clubs={clubsRes.data ?? []} />
 
       <ManagerContextTrendsCard summary={managerContext} />

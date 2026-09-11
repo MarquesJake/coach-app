@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { isIllustrativeEvidence, isVerifiedEvidence } from '@/lib/assessment/evidence-integrity'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
+import type { DeepDive, FinalEvaluation } from '@/lib/assessment/deep-dive'
+import { AreaDeepDive, FinalEvaluationSection } from '@/components/assessment/deep-dive-sections'
 import { deriveMaterialStatus, summarizeMaterials } from '@/lib/assessment/material-status'
 import {
   ASSESSMENT_CRITERIA,
@@ -598,6 +600,8 @@ export function AssessmentWorkspaceClient({
   accessRequests,
   gbe,
   coachingLicence,
+  deepDive = null,
+  finalEvaluation = null,
 }: {
   mandateId: string
   coachId: string
@@ -613,6 +617,8 @@ export function AssessmentWorkspaceClient({
   accessRequests: ConfidentialAccessRequestRow[]
   gbe: GbeResult
   coachingLicence: string | null
+  deepDive?: DeepDive | null
+  finalEvaluation?: FinalEvaluation | null
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -868,6 +874,8 @@ export function AssessmentWorkspaceClient({
 
       {error && <p className="text-xs text-red-400">{error}</p>}
 
+      {deepDive && <AreaDeepDive area={selected} d={deepDive} />}
+
       {/* Selected criterion detail */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="card-surface rounded-lg p-5 space-y-4">
@@ -1110,6 +1118,7 @@ export function AssessmentWorkspaceClient({
 
       {/* Final recommendation */}
       <div className={cn('card-surface rounded-lg p-5', workspaceSection !== 'recommendation' && 'hidden')}>
+        {finalEvaluation && <div className="mb-6"><h3 className="mb-3 text-sm font-semibold text-foreground">Final evaluation</h3><FinalEvaluationSection e={finalEvaluation} verdict={recommendation?.verdict ?? null} confidence={recommendation?.confidence ?? null} /></div>}
         <h3 className="text-sm font-semibold text-foreground">Human recommendation</h3>
         <p className="mt-2 text-xs text-muted-foreground">{status.recommendationLabel}. Saving a recommendation does not approve the evidence or authorize sharing.</p>
         <p className="text-2xs text-muted-foreground mt-0.5 mb-3">
