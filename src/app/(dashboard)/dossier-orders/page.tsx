@@ -16,6 +16,16 @@ function formatPrice(amount: number, currency: string) {
   catch { return 'Currency needs review' }
 }
 
+// Plain-English stage names — the stored values read like a shop, and this desk
+// is about who can see a report, not about the money.
+const OFFER_STAGE: Record<string, string> = {
+  draft: 'Draft',
+  published: 'Preview with club',
+  purchased: 'Full report requested',
+  withdrawn: 'Withdrawn',
+  expired: 'Expired',
+}
+
 export default async function DossierOrdersPage() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -103,7 +113,7 @@ export default async function DossierOrdersPage() {
         {!orders?.length && <div className="rounded-md border border-border bg-card px-5 py-10 text-center"><PackageCheck className="mx-auto h-5 w-5 text-muted-foreground" /><p className="mt-3 text-sm font-medium text-foreground">No club purchase requests yet</p><p className="mt-1 text-xs text-muted-foreground">Clubs only see published previews — drafts stay hidden.</p></div>}
       </section>
 
-      <section className="mt-8 overflow-hidden rounded-md border border-border bg-card"><div className="flex items-center gap-2 border-b border-border px-5 py-3"><FileLock2 className="h-4 w-4 text-primary" /><h2 className="text-sm font-semibold text-foreground">Club previews and drafts</h2></div><div className="divide-y divide-border/60">{(offers ?? []).map((offer) => <div key={offer.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_160px_120px_100px] sm:items-center"><div><p className="text-sm font-medium text-foreground">{offer.coach_name}</p><p className="mt-0.5 text-xs text-muted-foreground">{offer.headline}</p></div><span className="text-xs text-muted-foreground">{buyerMap.get(offer.buyer_organization_id) ?? 'Assigned club'}</span><span className="text-xs font-medium capitalize text-foreground">{offer.status}</span>{offer.mandate_id ? <Link href={`/mandates/${offer.mandate_id}/pack`} className="inline-flex min-h-10 items-center text-xs font-medium text-primary">Open pack desk</Link> : <span className="text-xs text-muted-foreground">Appointment not linked</span>}</div>)}</div>{!offers.length && <div className="p-5 text-sm text-muted-foreground">No club previews have been prepared. <Link href="/mandates" className="inline-flex min-h-10 items-center underline">Open a mandate to prepare a report</Link></div>}</section>
+      <section className="mt-8 overflow-hidden rounded-md border border-border bg-card"><div className="flex items-center gap-2 border-b border-border px-5 py-3"><FileLock2 className="h-4 w-4 text-primary" /><h2 className="text-sm font-semibold text-foreground">Club previews and drafts</h2></div><div className="divide-y divide-border/60">{(offers ?? []).map((offer) => <div key={offer.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_160px_120px_100px] sm:items-center"><div><p className="text-sm font-medium text-foreground">{offer.coach_name}</p><p className="mt-0.5 text-xs text-muted-foreground">{offer.headline}</p></div><span className="text-xs text-muted-foreground">{buyerMap.get(offer.buyer_organization_id) ?? 'Assigned club'}</span><span className="text-xs font-medium text-foreground">{OFFER_STAGE[offer.status] ?? offer.status}</span>{offer.mandate_id ? <Link href={`/mandates/${offer.mandate_id}/pack`} className="inline-flex min-h-10 items-center text-xs font-medium text-primary">Open pack desk</Link> : <span className="text-xs text-muted-foreground">Appointment not linked</span>}</div>)}</div>{!offers.length && <div className="p-5 text-sm text-muted-foreground">No club previews have been prepared. <Link href="/mandates" className="inline-flex min-h-10 items-center underline">Open a mandate to prepare a report</Link></div>}</section>
     </div>
   )
 }
