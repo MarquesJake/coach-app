@@ -41,7 +41,19 @@ export default async function MandatePackPage(props: { params: Promise<{ id: str
   }
   const shortlist = shortlistRes.data
   const recommendations = recommendationsRes.data
+  // Decision order, so the board's lead candidate sits at the top of the desk
+  // and the names already ruled out fall to the bottom.
+  const VERDICT_RANK = new Map([['Proceed', 0], ['Target', 1], ['Shortlist', 2], ['Monitor', 3], ['Dismiss', 4]])
+  const recommendationByCoach = new Map((recommendations ?? []).map((row) => [row.coach_id, row]))
   const coachIds = [...new Set([...(shortlist ?? []), ...(recommendations ?? [])].map((row) => row.coach_id))]
+    .sort((a, b) => {
+      const recA = recommendationByCoach.get(a)
+      const recB = recommendationByCoach.get(b)
+      const rankA = VERDICT_RANK.get(recA?.verdict ?? '') ?? 9
+      const rankB = VERDICT_RANK.get(recB?.verdict ?? '') ?? 9
+      if (rankA !== rankB) return rankA - rankB
+      return (recB?.confidence ?? 0) - (recA?.confidence ?? 0)
+    })
   const [coachesRes, materialsRes, buyersRes, offersRes] = await Promise.all([
     coachIds.length ? supabase.from('coaches').select('id, name, club_current, due_diligence_summary, compliance_notes').in('id', coachIds) : Promise.resolve({ data: [] }),
     coachIds.length ? supabase.from('coach_private_materials').select('coach_id, title, description, source_label, storage_path, upload_status, verification_status, external_url').in('coach_id', coachIds) : Promise.resolve({ data: [] }),
