@@ -351,7 +351,7 @@ export default async function CoachPortalDetailPage(
           <div>
             <h3 className="text-sm font-semibold text-foreground">Profile completeness checklist</h3>
             <p className="mt-0.5 text-2xs text-muted-foreground">
-              A filled-in profile and uploaded material are a start. They don’t confirm accuracy, permission to speak to referees or that anything can be shared.
+              A filled-in profile and uploaded material are a start. They don’t confirm accuracy, permission to speak to his references or that anything can be shared.
             </p>
           </div>
           {requestedMaterials > 0 && (

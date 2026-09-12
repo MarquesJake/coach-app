@@ -90,13 +90,18 @@ export default async function MandateAssessmentIndexPage(
   const decided = (shortlist ?? [])
     .map((row) => ({ row, rec: verdicts.get(row.coach_id) }))
     .filter((c) => c.rec?.verdict)
-  const lead = decided
+  const backed = decided
     .filter((c) => c.rec!.verdict === 'Proceed' || c.rec!.verdict === 'Target')
-    .sort((a, b) => (b.rec!.confidence ?? 0) - (a.rec!.confidence ?? 0))[0]
+    .sort((a, b) => (b.rec!.confidence ?? 0) - (a.rec!.confidence ?? 0))
+  // Lead first, then the next name in line — the board's real question is
+  // "who instead?", so the alternative sits ahead of the watching brief.
+  const lead = backed[0]
+  const alternative = backed[1]
   const monitor = decided.find((c) => c.rec!.verdict === 'Monitor')
   const rejected = decided.find((c) => c.rec!.verdict === 'Dismiss')
   const decisionSet = [
     lead && { tag: 'Lead recommendation', tone: 'text-emerald-400 border-emerald-500/40', c: lead },
+    alternative && { tag: 'Next in line', tone: 'text-emerald-400/80 border-emerald-500/30', c: alternative },
     monitor && { tag: 'Monitor', tone: 'text-amber-400 border-amber-500/40', c: monitor },
     rejected && { tag: 'Do not proceed', tone: 'text-red-400 border-red-500/40', c: rejected },
   ].filter(Boolean) as Array<{ tag: string; tone: string; c: (typeof decided)[number] }>

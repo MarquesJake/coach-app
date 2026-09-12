@@ -17,7 +17,7 @@ export function VerifiedExampleCard({ example, showProfileLink = false }: { exam
         <p className="mt-2 text-xs text-muted-foreground">Worked out from the results listed — not an Elo rating, not his whole career and not a measure of his personal impact. Five games is a small sample.</p>
       </div>}
       <p className="text-sm"><strong>Why it matters:</strong> {example.use}</p>
-      <p className="text-xs text-muted-foreground">This doesn’t tell us whether he’s available, what he’d cost, what referees say or whether he’s interested.</p>
+      <p className="text-xs text-muted-foreground">This doesn’t tell us whether he’s available, what he’d cost, what his references say or whether he’s interested.</p>
       {showProfileLink && <Link href={`/coaches/${example.coachId}`} className="inline-block text-sm underline">Open existing profile</Link>}
     </section>
   )
