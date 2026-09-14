@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { deriveCoachMatchMetrics } from '../src/lib/integrations/coach-match-metrics.ts';
@@ -54,6 +55,7 @@ export function eligibleFixture(f, period, leagues, allowed, cutoff) {
     return null;
 }
 export function exactLineup(f, coachId, periods) {
+    if ((f.lineups ?? []).filter(l => l.coach?.id === coachId && [f.teams.home.id, f.teams.away.id].includes(l.team?.id)).length !== 1) return null;
     const lines = (f.lineups ?? []).filter(l => l.coach?.id === coachId && [f.teams.home.id, f.teams.away.id].includes(l.team?.id) && periods.some(p => p.teamId === l.team.id && p.season === f.league.season));
     if (lines.length !== 1)
         return null;
@@ -64,6 +66,7 @@ export function exactLineup(f, coachId, periods) {
 function coverage(fixtures) { return { fixtures: fixtures.length, withLineups: fixtures.filter(f => f.lineups?.length).length, withEvents: fixtures.filter(f => f.events?.length).length, withStatistics: fixtures.filter(f => f.statistics?.some(t => t.statistics?.some(s => s.value !== null && s.value !== undefined))).length, withPlayers: fixtures.filter(f => f.players?.some(t => t.players?.length)).length, withExpectedGoals: fixtures.filter(f => f.statistics?.some(t => t.statistics?.some(s => s.type === 'expected_goals' && s.value !== null && s.value !== undefined))).length }; }
 export async function collect(manifestPath, options = {}) {
     const m = read(manifestPath), home = path.dirname(path.resolve(manifestPath));
+    if (m.mode === 'deep') return collectDeep(manifestPath, options);
     const resolve = p => path.resolve(home, p);
     const out = resolve(m.output);
     fs.mkdirSync(out, { recursive: true });
@@ -444,4 +447,189 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     }
     else
         collect(path.resolve(args[i + 1]), { planOnly: args.includes('--plan-only'), offline: args.includes('--offline'), validateOnly: args.includes('--validate-only') }).catch(e => { console.error('STOPPED:', e.message); process.exitCode = 1; });
+}
+
+/** Deep mode keeps immutable raw caches in place and writes references, not duplicate fixture bodies.
+ * Reviewed alternate IDs are scoped to a club/season and retain the original lineup ID in metrics.
+ */
+export function deepPeriodKey(p) { return `${p.teamId}:${p.season}:${p.lineupCoachId}`; }
+export function chronologyConflict(f, period) {
+    const date = f.fixture?.date?.slice(0, 10);
+    return (period.chronologyRules ?? []).find(rule => date && ((rule.notBefore && date < rule.notBefore) || (rule.notAfter && date > rule.notAfter))) ?? null;
+}
+export function deepLineup(f, period) {
+    if (chronologyConflict(f, period)) return null;
+    const lines = (f.lineups ?? []).filter(l => l.team?.id === period.teamId);
+    const participants = [f.teams?.home?.id, f.teams?.away?.id];
+    if ((f.lineups ?? []).some(l => l.team?.id !== period.teamId && participants.includes(l.team?.id) && l.coach?.id === period.lineupCoachId)) return null;
+    return lines.length === 1 && lines[0].coach?.id === period.lineupCoachId ? lines[0] : null;
+}
+export function deepFixtureReason(f, period, leagues, cutoff) {
+    const league = leagues.get(f.league?.id);
+    if (!league || league.league.type !== 'League' || !league.country?.name || league.country.name === 'World' || /women|youth|U\d{2}|reserve/i.test(league.league.name)) return 'not-senior-domestic-league';
+    const round = f.league.round ?? '';
+    if (!/^(Regular Season|1st Phase|2nd Phase|Apertura|Clausura|Championship Round|Championship Group|Relegation Round|Relegation Group) - \d+$/i.test(round)) return 'knockout-or-unrecognised-round';
+    // Reuse the original result/date/identity checks after validating a post-split league round.
+    const originalRound = /^(Championship|Relegation) (Round|Group) - \d+$/i.test(round);
+    const checked = originalRound ? { ...f, league: { ...f.league, round: 'Regular Season - 1' } } : f;
+    return eligibleFixture(checked, period, leagues, new Set([f.league.id]), cutoff);
+}
+export function readMatchEnvelope(file) {
+    const resolved = !fs.existsSync(file) && !file.endsWith('.gz') && fs.existsSync(file + '.gz') ? file + '.gz' : file;
+    const bytes = fs.readFileSync(resolved);
+    return JSON.parse(resolved.endsWith('.gz') ? gunzipSync(bytes).toString() : bytes.toString());
+}
+export function loadCoachFixtures(source, root, load = readMatchEnvelope) {
+    const fixtures = Array.isArray(source.fixtures) ? source.fixtures : source.fixtureRefs.map(ref => {
+        const envelope = load(path.resolve(root, ref.source));
+        const f = (ref.format === 'coach-export' ? envelope.fixtures : envelope.data.response).find(f => f.fixture.id === ref.fixtureId);
+        assert.ok(f, 'Missing referenced fixture ' + ref.fixtureId);
+        return f;
+    });
+    return fixtures.map(f => {
+        if (Array.isArray(f.events) && f.events.length === 0) { const result = { ...f }; delete result.events; return result; }
+        return f;
+    });
+}
+export async function collectDeep(manifestPath, options = {}) {
+    const m = read(manifestPath), resolve = p => path.resolve(path.dirname(manifestPath), p), out = resolve(m.output);
+    fs.mkdirSync(path.join(out, 'raw'), { recursive: true });
+    fs.mkdirSync(path.join(out, 'coaches'), { recursive: true });
+    const save = (name, data) => { const file = path.join(out, name); fs.writeFileSync(file + '.tmp', JSON.stringify(data)); fs.renameSync(file + '.tmp', file); };
+    const lock = path.join(out, '.collector.lock');
+    if (fs.existsSync(lock)) { let alive = true; try { process.kill(read(lock).pid, 0); } catch(e) { if(e.code === 'ESRCH') alive = false; } if(alive) throw Error('Collector already running'); fs.unlinkSync(lock); }
+    fs.writeFileSync(lock, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }));
+    const ledger = path.join(out, 'requests.jsonl');
+    const calls = fs.existsSync(ledger) ? fs.readFileSync(ledger, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse) : [];
+    let lastCall = calls.length ? Date.parse(calls.at(-1).startedAt) : 0;
+    let ownBytes = fs.readdirSync(path.join(out, 'raw')).reduce((n,f)=>n+fs.statSync(path.join(out,'raw',f)).size,0);
+    // Faster pacing requires an explicitly verified paid-plan limit in the manifest.
+    let spacing = Math.max(m.verifiedRequestsPerMinute >= 300 ? 500 : 2100, m.minRequestIntervalMs ?? 2100);
+    let cooldownUntil = 0;
+    assert.ok(positive(m.maxRequests) && m.maxRequests <= 6000);
+    try {
+        const queryCache = new Map(), fullCache = new Map(), lru = new Map();
+        const load = file => { if(lru.has(file)) return lru.get(file); const v = readMatchEnvelope(file); lru.set(file,v); if(lru.size > 5) lru.delete(lru.keys().next().value); return v; };
+        const indexEnvelope = (raw,file) => {
+            if(raw.httpStatus!==200 || !errorFree(raw.data) || !raw.query) return;
+            queryCache.set(canonical(raw.query), file);
+            if(/^\/fixtures\?(ids|id)=/.test(raw.query)) for(const f of raw.data.response) if(positive(f.fixture?.id)) fullCache.set(f.fixture.id,{source:path.relative(out,file),retrievedAt:raw.retrievedAt});
+        };
+        const roots = [...new Set([...(m.cacheDirs??[]).map(resolve),out])];
+        for(const root of roots) {
+            const rawDir=path.join(root,'raw');
+            if(fs.existsSync(rawDir)) for(const filename of fs.readdirSync(rawDir).filter(f=>/\.json(\.gz)?$/.test(f))) { const file=path.join(rawDir,filename); indexEnvelope(readMatchEnvelope(file),file); }
+            const coachDir=path.join(root,'coaches');
+            if(root!==out && fs.existsSync(coachDir)) for(const filename of fs.readdirSync(coachDir).filter(f=>f.endsWith('.json'))) { const file=path.join(coachDir,filename),c=read(file); for(const f of c.fixtures??[]) if(!fullCache.has(f.fixture.id)) fullCache.set(f.fixture.id,{source:path.relative(out,file),format:'coach-export',retrievedAt:null,originalSource:c.fixtureSources?.[f.fixture.id]??null}); }
+        }
+        const cachedFixture=id=>{const ref=fullCache.get(id);if(!ref)return null;const raw=load(path.resolve(out,ref.source));return (ref.format==='coach-export'?raw.fixtures:raw.data.response).find(f=>f.fixture.id===id);};
+        const diskCheck=()=>{const disk=fs.statfsSync(out);assert.ok(disk.bavail*disk.bsize>=(m.minFreeBytes??536870912),'Disk reserve reached');assert.ok(ownBytes<(m.maxNewRawBytes??805306368),'Compressed new-cache limit reached');};
+        async function api(endpoint,params={},force=false) {
+            const query=endpoint+'?'+new URLSearchParams(params),key=canonical(query),own=path.join(out,'raw',hash(query)+'.json.gz');
+            if(queryCache.has(key)&&(!force||queryCache.get(key)===own)) { const f=queryCache.get(key);return {...load(f),cacheFile:path.relative(out,f)}; }
+            if(options.offline||options.validateOnly)throw Error('Offline cache miss '+query);
+            assert.ok(calls.length<m.maxRequests,'Cumulative request cap reached');diskCheck();
+            if(!process.env.API_FOOTBALL_KEY)process.loadEnvFile(resolve(m.envFile));
+            const credential=process.env.API_FOOTBALL_KEY?.trim();assert.ok(credential,'Missing API credential');
+            await new Promise(r=>setTimeout(r,Math.max(0,spacing-(Date.now()-lastCall),cooldownUntil-Date.now())));lastCall=Date.now();
+            const call={sequence:calls.length+1,query,startedAt:new Date(lastCall).toISOString()};calls.push(call);fs.appendFileSync(ledger,JSON.stringify(call)+'\n');
+            let response;
+            try{response=await fetch(BASE_URL+query,{headers:{'x-apisports-key':credential},signal:AbortSignal.timeout(45000)});}catch(e){fs.appendFileSync(path.join(out,'transport-failures.jsonl'),JSON.stringify({sequence:call.sequence,query,error:e.name})+'\n');throw e;}
+            const data=await response.json(),raw={query,retrievedAt:new Date().toISOString(),httpStatus:response.status,rateLimitRemaining:response.headers.get('x-ratelimit-requests-remaining'),minuteLimit:response.headers.get('x-ratelimit-limit'),minuteRemaining:response.headers.get('x-ratelimit-remaining'),data};
+            if(Number(raw.minuteLimit)>0)spacing=Math.max(spacing,Math.ceil(60000/Number(raw.minuteLimit))+100);
+            if(raw.minuteRemaining!==null&&Number(raw.minuteRemaining)<10)cooldownUntil=Date.now()+60000;
+            const bytes=gzipSync(JSON.stringify(raw),{level:6});fs.writeFileSync(own+'.tmp',bytes);fs.renameSync(own+'.tmp',own);ownBytes+=bytes.length;
+            if(!response.ok||!errorFree(data))throw Error('Provider error; stopped at '+query+' HTTP '+response.status);
+            indexEnvelope(raw,own);lru.delete(own);
+            if(raw.rateLimitRemaining!==null&&Number(raw.rateLimitRemaining)<(m.quotaReserve??200))throw Error('Daily API reserve reached');
+            return {...raw,cacheFile:path.relative(out,own)};
+        }
+        const profiles=[];
+        for(const x of m.profileModules){const profileModule=await import(pathToFileURL(resolve(x.path)));profiles.push(...profileModule[x.exportName]);}
+        if(m.additionalProfilesFile) for(const profile of read(resolve(m.additionalProfilesFile))) { assert.ok(positive(profile.apiId)&&profile.name,'Unverified additional identity');if(!profiles.some(p=>p.apiId===profile.apiId))profiles.push(profile); }
+        assert.equal(profiles.length,m.expectedCoaches??50);assert.equal(new Set(profiles.map(p=>p.apiId)).size,profiles.length);
+        const identities=[];
+        for(const dir of m.identityCacheDirs??[])for(const filename of fs.readdirSync(resolve(dir)).filter(f=>f.endsWith('.json'))){const file=path.join(resolve(dir),filename),raw=read(file),body=raw.body??raw.data??raw;
+            for(const row of Array.isArray(body.response)?body.response:[])if(positive(row.id)&&Array.isArray(row.career))identities.push({record:row,source:file,retrievedAt:raw.retrievedAt??null});}
+        for(const file of m.freshIdentityFiles??[])for(const row of read(resolve(file)))if(row.payload?.id)identities.push({record:row.payload,source:resolve(file),retrievedAt:row.retrievedAt});
+        const official=read(resolve(m.employmentFile));
+        const metadata=await api('/leagues');const leagues=new Map(metadata.data.response.map(l=>[l.league.id,l]));
+        const plans=[],gaps=[];
+        const min=m.minSeason??2018,max=m.maxSeason??2026;
+        const reviews=m.identityReviews??[];
+        for(const rule of m.chronologyRules??[])assert.ok(rule.apiIds?.every(positive)&&positive(rule.teamId)&&Number.isInteger(rule.fromSeason)&&rule.sourceUrl?.startsWith('https://')&&rule.checkedAt&&rule.note&&(rule.notBefore||rule.notAfter),'Incomplete official chronology rule');
+        for(const r of reviews){assert.ok(profiles.some(p=>p.apiId===r.coachApiId));assert.ok(positive(r.lineupCoachId)&&positive(r.teamId)&&r.seasons.every(Number.isInteger));assert.ok(r.sourceUrl?.startsWith('https://')&&r.checkedAt&&r.reason);assert.ok(identities.some(x=>x.record.id===r.lineupCoachId&&x.record.career.some(c=>c.team.id===r.teamId)),'Reviewed alias absent from provider evidence');}
+        for(const p of profiles){
+            const records=identities.filter(x=>x.record.id===p.apiId);assert.ok(records.length,'Missing identity '+p.apiId);
+            const periods=new Map(),rejected=[];
+            const add=(teamId,teamName,season,lineupCoachId,evidence)=>{if(season<min||season>max)return;const period={teamId,teamName,season,lineupCoachId,selectionEvidence:evidence};const key=deepPeriodKey(period);if(!periods.has(key))periods.set(key,period);};
+            const roles=new Map();for(const record of records)for(const role of record.record.career){if(!positive(role.team?.id)||!role.start||/\bU\d{2}\b|\bII\b|\b B$| XI$|Amateurs|Talang/i.test(role.team.name)){rejected.push({team:role.team,reason:'unverified-or-non-first-team-role'});continue;}const key=role.team.id+':'+role.start+':'+role.end;if(!roles.has(key))roles.set(key,{...role,source:record.source});}
+            for(const role of roles.values()){
+                if((role.end??'9999')<min+'-01-01')continue;
+                const t=await api('/teams',{id:role.team.id});const team=t.data.response.find(t=>t.team.id===role.team.id)?.team;
+                if(!team||team.national!==false){rejected.push({team:role.team,reason:'national-or-unverified-club'});continue;}
+                // Calendar-year career boundaries are search hints only. One adjacent year covers rounding errors.
+                const first=Math.max(min,Number(role.start.slice(0,4))-1),last=Math.min(max,role.end?Number(role.end.slice(0,4))+1:max);
+                for(let year=first;year<=last;year++)add(team.id,team.name,year,p.apiId,{kind:'provider-career-search-only',source:role.source,careerStart:role.start,careerEnd:role.end});
+            }
+            for(const r of reviews.filter(r=>r.coachApiId===p.apiId))for(const year of r.seasons)add(r.teamId,r.teamName,year,r.lineupCoachId,{kind:'reviewed-provider-identity',...r});
+            for(const r of (m.officialPeriods??[]).filter(r=>r.coachApiId===p.apiId)){
+                assert.ok(r.sourceUrl?.startsWith('https://')&&r.checkedAt);const t=await api('/teams',{id:r.teamId});const team=t.data.response.find(t=>t.team.id===r.teamId)?.team;assert.ok(team&&team.national===false);
+                if(r.expectedTeamName)assert.ok(norm(team.name).includes(norm(r.expectedTeamName)),'Official club search resolved a different provider team');
+                for(const year of r.seasons)add(r.teamId,team.name,year,r.lineupCoachId??p.apiId,{kind:'official-role-search',...r});
+            }
+            const employment=official.find(r=>r.apiId===p.apiId);
+            for(const period of periods.values())period.chronologyRules=(m.chronologyRules??[]).filter(rule=>rule.apiIds.includes(period.lineupCoachId)&&rule.teamId===period.teamId&&period.season>=rule.fromSeason);
+            plans.push({coachApiId:p.apiId,name:p.name,currentEmployment:employment,requestedPeriods:[...periods.values()].sort((a,b)=>b.season-a.season||a.teamId-b.teamId||a.lineupCoachId-b.lineupCoachId),rejectedRoles:rejected});
+            console.log('DEEP PLAN',p.name,periods.size,'periods');
+        }
+        save('plan.json',{createdAt:new Date().toISOString(),manifest:m,plans});
+        if(options.planOnly)return {coaches:plans.length,periods:plans.reduce((n,p)=>n+p.requestedPeriods.length,0),requests:calls.length};
+        const listings=new Map(),candidates=new Map(),excluded=[];
+        for(const p of plans)for(const period of p.requestedPeriods){
+            const key=period.teamId+':'+period.season;if(listings.has(key))continue;
+            const raw=await api('/fixtures',{team:period.teamId,season:period.season,status:'FT'},period.season===max);
+            const ids=[];
+            for(const f of raw.data.response){const reason=deepFixtureReason(f,period,leagues,Date.parse(raw.retrievedAt));if(reason){excluded.push({fixtureId:f.fixture.id,teamSeason:key,leagueId:f.league.id,round:f.league.round,reason});continue;}ids.push(f.fixture.id);candidates.set(f.fixture.id,f);}
+            listings.set(key,{teamId:period.teamId,season:period.season,listed:raw.data.response.length,eligibleFixtureIds:ids,source:raw.cacheFile});
+            if(!ids.length)gaps.push({teamId:period.teamId,season:period.season,reason:raw.data.response.length?'no-fixtures-pass-league-policy':'empty-provider-fixture-list'});
+            if(listings.size%10===0)console.log('DEEP LIST',listings.size,'team-seasons;',candidates.size,'candidates; requests',calls.length);
+        }
+        save('periods.json',[...listings.values()]);save('excluded-fixtures.json',excluded);
+        const pending=[...candidates.keys()].filter(id=>!fullCache.has(id));
+        const refreshTeams=new Set(m.refreshFullPeriods??[]);
+        for(const [id,f]of candidates)if([f.teams.home.id,f.teams.away.id].some(team=>refreshTeams.has(team+':'+f.league.season))){const ref=fullCache.get(id);if(ref&&!path.resolve(out,ref.source).startsWith(path.join(out,'raw')+path.sep)&&!pending.includes(id))pending.push(id);}
+        console.log('DEEP FULL PLAN',pending.length,'uncached/refresh fixtures,',Math.ceil(pending.length/20),'requests');
+        for(let i=0;i<pending.length;i+=20){const ids=pending.slice(i,i+20),raw=await api('/fixtures',{ids:ids.join('-')});assert.equal(new Set(raw.data.response.map(f=>f.fixture.id)).size,ids.length,'Incomplete fixture batch');assert.ok(raw.data.response.every(f=>ids.includes(f.fixture.id)));if(i%200===0)console.log('DEEP FULL',Math.min(i+20,pending.length)+'/'+pending.length,'requests',calls.length,'new compressed MB',Math.round(ownBytes/1048576));}
+        const index=[],summary=[],now=new Date().toISOString();
+        for(const p of plans){
+            const refs=new Map(),periods=[],rejected=[];
+            for(const period of p.requestedPeriods){const list=listings.get(period.teamId+':'+period.season),observed=[];
+                for(const id of list.eligibleFixtureIds){const f=cachedFixture(id);assert.ok(f,'Missing full fixture');const reason=deepFixtureReason(f,period,leagues,Date.parse(now));
+                    const conflict=chronologyConflict(f,period),originalCoach=(f.lineups??[]).find(l=>l.team?.id===period.teamId)?.coach??null;
+                    if(reason||!deepLineup(f,period)){rejected.push({fixtureId:id,teamId:period.teamId,season:period.season,lineupCoachId:period.lineupCoachId,reason:reason??(conflict&&originalCoach?.id===period.lineupCoachId?'official-chronology-conflict':'different-or-missing-lineup-coach'),chronologyEvidence:conflict&&originalCoach?.id===period.lineupCoachId?conflict:undefined,observedCoach:originalCoach});continue;}
+                    observed.push(f);refs.set(id,{fixtureId:id,...fullCache.get(id)});
+                }
+                observed.sort((a,b)=>Date.parse(a.fixture.date)-Date.parse(b.fixture.date));
+                periods.push({...period,excludedForOfficialChronology:rejected.filter(r=>r.teamId===period.teamId&&r.season===period.season&&r.lineupCoachId===period.lineupCoachId&&r.reason==='official-chronology-conflict').length,eligibleCount:list.eligibleFixtureIds.length,observedCount:observed.length,firstObservedAt:observed[0]?.fixture.date??null,lastObservedAt:observed.at(-1)?.fixture.date??null,firstFiveObservedFixtureIds:observed.slice(0,5).map(f=>f.fixture.id)});
+            }
+            const limitations=['Domestic senior league sample from '+min+' through '+max+'; not a complete career or causal impact estimate.','Only completed regulation-time league matches, including numbered championship/relegation groups; cups, knockout playoffs, internationals and youth/reserve teams are excluded.','Every included match requires the exact source lineup coach ID on the selected team. Reviewed alternate IDs are disclosed per period; no lineup rewriting or tenure fallback.','Official dated employment sources select current searches; provider career dates are search hints, never current-employment proof.','Missing lineups exclude attribution. Event reconciliation and individual metric denominators remain mandatory; coverage is not a quality judgement.','First-five and 6–20/21+ windows refer to observed matches within a selected team-season, not necessarily the start of a tenure.'];
+            const conflicts=rejected.filter(r=>r.reason==='official-chronology-conflict');
+            if(conflicts.length)limitations.push(`${conflicts.length} provider-labelled observations excluded because official dated appointment/departure evidence contradicts attribution. They are not reassigned to another coach. Sources: ${[...new Set(conflicts.map(r=>r.chronologyEvidence.sourceUrl))].join(' ')}`);
+            const source={...p,retrievedAt:now,requestedPeriods:periods,fixtureRefs:[...refs.values()],limitations,rejectedCandidates:rejected};save('coaches/'+p.coachApiId+'.json',source);
+            const fixtures=loadCoachFixtures(source,out,load),metricPeriods=[];
+            for(const period of periods){const selected=fixtures.filter(f=>f.league.season===period.season&&deepLineup(f,period));if(!selected.length)continue;
+                const metrics=deriveCoachMatchMetrics({teamId:period.teamId,coachId:period.lineupCoachId,matches:selected.map(toInput)});assert.equal(metrics.selection.includedMatches,selected.length);assert.equal(metrics.selection.tenureFallbackMatches,0);
+                metricPeriods.push({club:period.teamName,season:period.season,lineupCoachId:period.lineupCoachId,first:period.firstObservedAt,last:period.lastObservedAt,metrics});}
+            const row={coachApiId:p.coachApiId,name:p.name,path:'coaches/'+p.coachApiId+'.json',fixtures:refs.size,requestedPeriods:periods,coveredPeriods:metricPeriods.length,coverage:Object.fromEntries(['results','possession','xgFor','xgAgainst','pointsFromLosingPositions','goalsBySubstitutes','averageFirstSubstitutionMinute'].map(k=>[k,metricPeriods.reduce((n,x)=>n+x.metrics[k].coverage.coveredMatches,0)]))};
+            index.push(row);summary.push({...row,currentEmployment:p.currentEmployment,periods:metricPeriods.map(({metrics,...period})=>({...period,matches:metrics.selection.includedMatches,coverage:Object.fromEntries(['possession','xgFor','pointsFromLosingPositions','goalsBySubstitutes'].map(k=>[k,metrics[k].coverage.coveredMatches]))}))});
+            console.log('DEEP COACH',p.name,refs.size,'matches;',metricPeriods.length,'periods');
+        }
+        const totals={coaches:index.length,observations:index.reduce((n,x)=>n+x.fixtures,0),periods:index.reduce((n,x)=>n+x.coveredPeriods,0),apiRequests:calls.length,newCompressedBytes:ownBytes,zeroCoverage:index.filter(x=>!x.fixtures).map(x=>x.name)};
+        save('index.json',{status:'complete',format:'fixture-references-v1',retrievedAt:now,totals,coaches:index});
+        save('coverage.json',{checkedAt:now,totals,coaches:summary,gaps});
+        save('validation.json',{status:'passed',checkedAt:now,totals,checks:[`${profiles.length} distinct requested provider IDs; canonical identities are not merged by this collector`,'immutable cache reuse without copying','exact lineup ID/team-season attribution','reviewed alternate IDs preserve source IDs','no tenure fallback','per-metric event/stat coverage','bounded disk and cumulative API budget']});
+        fs.rmSync(path.join(out,'STOPPED.json'),{force:true});console.log('DEEP COMPLETE',JSON.stringify(totals));return totals;
+    }catch(e){save('STOPPED.json',{at:new Date().toISOString(),requests:calls.length,error:e.message});throw e;}
+    finally{fs.rmSync(lock,{force:true});}
 }

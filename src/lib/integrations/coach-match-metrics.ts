@@ -282,6 +282,10 @@ function deriveSummary(input: CoachMatchMetricsInput): CoachMatchMetricSummary {
     if (teamLineups.length > 1) { exclude('duplicate-team-lineup'); continue }
     const lineup = teamLineups[0]
     const recordedCoach = lineup?.coach?.id
+    const opposingTeamId = f.teams.home.id === teamId ? f.teams.away.id : f.teams.home.id
+    if (!lineupProblem && match.lineups!.data.some(l => l.team.id === opposingTeamId && l.coach?.id === coachId)) {
+      exclude(recordedCoach === coachId ? 'ambiguous-coach-on-both-teams' : 'coach-recorded-for-opponent'); continue
+    }
     let attribution: 'lineup-coach' | 'explicit-tenure'
     if (recordedCoach === coachId) { attribution = 'lineup-coach'; selection.verifiedLineupMatches++ }
     else {
