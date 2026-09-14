@@ -1,3 +1,5 @@
+import { isLegacySeededStint } from '@/lib/coaches/legacy-seed-provenance'
+import { savedProfileLabel } from '@/lib/coaches/saved-profile-label'
 import { CoachDeepDivePanel } from '@/components/assessment/coach-deep-dive-panel'
 import { CoachAssessment } from '../_components/coach-assessment'
 import { redirect, notFound } from 'next/navigation'
@@ -101,7 +103,7 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
   const queryError = stintsRes.error || mandateRes.error || clubsRes.error
   if (queryError) throw new Error(`Failed to load coach career: ${queryError.message}`)
 
-  const stints = stintsRes.data ?? []
+  const stints = (stintsRes.data ?? []).map(stint => ({ ...stint, provenanceLabel: savedProfileLabel(stint, isLegacySeededStint(coach.user_id, params.id, stint.id)) }))
   const linkedClubIds = Array.from(new Set(stints.map((stint) => stint.club_id).filter((clubId): clubId is string => Boolean(clubId))))
   const seasonResults = linkedClubIds.length
     ? await supabase
@@ -126,7 +128,7 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
       </section>}
       <CareerTab coachId={params.id} stints={stints} clubs={clubsRes.data ?? []} />
 
-      <ManagerContextTrendsCard summary={managerContext} />
+      <div><p className="mb-2 text-xs text-muted-foreground print:text-black">{stints.some(stint => stint.provenanceLabel.startsWith('DEMO')) ? 'DEMO DATA · includes legacy example tenures.' : 'Calculated from saved career and club-season records; source review needed.'} Coverage does not establish verification of the underlying records.</p><ManagerContextTrendsCard summary={managerContext} /></div>
 
       {/* ── Mandate Presence ────────────────────────────────────────────── */}
       <section className="rounded-lg border border-border bg-card p-6">

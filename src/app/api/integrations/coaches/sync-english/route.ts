@@ -189,9 +189,7 @@ function isMissingTableError(message: string | undefined): boolean {
   return m.includes('could not find the table') || m.includes('relation') && m.includes('does not exist')
 }
 
-function clampScore(value: number, min = 0, max = 100): number {
-  return Math.max(min, Math.min(max, Math.round(value)))
-}
+
 
 async function insertCoachStintsResilient(
   supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>,
@@ -292,7 +290,7 @@ export async function POST(request: Request) {
   let updated = 0
   let stintsInserted = 0
   let externalProfilesUpdated = 0
-  let dataProfilesUpdated = 0
+  const dataProfilesUpdated = 0
   let mediaEventsInserted = 0
   let recruitmentRowsInserted = 0
   let matchedCoaches = 0
@@ -679,7 +677,7 @@ export async function POST(request: Request) {
             source_name: 'API-Football',
             source_link: null,
             source_notes: 'Career entry imported from coach profile endpoint',
-            confidence: 78,
+            confidence: null,
             verified: false,
           }
         })
@@ -690,71 +688,8 @@ export async function POST(request: Request) {
         else stintsInserted += insertedResult.inserted
       }
 
-      const completedStints = (coach.career ?? []).filter((s) => !!s.end).length
-      const activeStints = (coach.career ?? []).filter((s) => !s.end).length
-      const clubNameCounts = new Map<string, number>()
-      for (const s of coach.career ?? []) {
-        const teamName = nonEmptyString(s.team?.name ?? null)
-        if (!teamName) continue
-        clubNameCounts.set(teamName, (clubNameCounts.get(teamName) ?? 0) + 1)
-      }
-      const repeatClubCount = Array.from(clubNameCounts.values()).filter((count) => count > 1).length
-      const roleCount = (coach.career ?? []).length
-      const volatility = roleCount > 0 ? completedStints / roleCount : 0
-      const mediaPressureScore = clampScore(30 + volatility * 60 + repeatClubCount * 5)
-      const mediaAccountabilityScore = clampScore(45 + Math.min(roleCount, 8) * 4)
-      const mediaConfrontationScore = clampScore(25 + volatility * 45)
-      const confidenceScore = clampScore(40 + Math.min(roleCount, 10) * 4)
-
-      const derivedProfile = {
-        avg_squad_age: null,
-        avg_starting_xi_age: null,
-        minutes_u21: null,
-        minutes_21_24: null,
-        minutes_25_28: null,
-        minutes_29_plus: null,
-        recruitment_avg_age: null,
-        recruitment_repeat_player_count: 0,
-        recruitment_repeat_agent_count: repeatClubCount,
-        media_pressure_score: mediaPressureScore,
-        media_accountability_score: mediaAccountabilityScore,
-        media_confrontation_score: mediaConfrontationScore,
-        social_presence_level: 'Medium',
-        narrative_risk_summary: `Auto-generated from API-Football profile and ${stints.length} career entries. Active roles: ${activeStints}. Repeat clubs: ${repeatClubCount}.`,
-        confidence_score: confidenceScore,
-      }
-      const existingDataProfile = await supabase
-        .from('coach_data_profiles')
-        .select('id')
-        .eq('coach_id', coachRowId)
-        .maybeSingle()
-      if (existingDataProfile.error && isMissingTableError(existingDataProfile.error.message)) {
-        // Optional enrichment table may not exist in older environments; skip without failing sync.
-      } else if (existingDataProfile.data?.id) {
-        const { error: profileUpdateErr } = await supabase
-          .from('coach_data_profiles')
-          .update(derivedProfile)
-          .eq('id', existingDataProfile.data.id)
-        if (profileUpdateErr) {
-          if (!isMissingTableError(profileUpdateErr.message)) {
-            errors.push(`data profile ${name}: ${profileUpdateErr.message}`)
-          }
-        }
-        else dataProfilesUpdated++
-      } else {
-        const { error: profileInsertErr } = await supabase
-          .from('coach_data_profiles')
-          .insert({
-            coach_id: coachRowId,
-            ...derivedProfile,
-          })
-        if (profileInsertErr) {
-          if (!isMissingTableError(profileInsertErr.message)) {
-            errors.push(`data profile ${name}: ${profileInsertErr.message}`)
-          }
-        }
-        else dataProfilesUpdated++
-      }
+      // API coach biographies/career dates do not measure squad ages, recruitment
+      // relationships or media behaviour. Do not create or overwrite analyst data profiles.
 
       // Populate media events from career transitions (real events from API career dates).
       const deleteMediaRes = await supabase
@@ -776,10 +711,10 @@ export async function POST(request: Request) {
                 category: 'Appointment',
                 headline: `${name} appointed at ${teamName}`,
                 summary: `Career timeline indicates appointment at ${teamName}.`,
-                severity_score: 35,
+                severity_score: null,
                 occurred_at: isoDate(s.start),
                 source: 'API-Football',
-                confidence: 78,
+                confidence: null,
                 source_type: 'api-football',
                 source_name: 'API-Football',
                 source_link: null,
@@ -793,10 +728,10 @@ export async function POST(request: Request) {
                 category: 'Departure',
                 headline: `${name} departed ${teamName}`,
                 summary: `Career timeline indicates departure from ${teamName}.`,
-                severity_score: 48,
+                severity_score: null,
                 occurred_at: isoDate(s.end),
                 source: 'API-Football',
-                confidence: 74,
+                confidence: null,
                 source_type: 'api-football',
                 source_name: 'API-Football',
                 source_link: null,

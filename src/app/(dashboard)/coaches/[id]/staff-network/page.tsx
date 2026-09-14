@@ -1,3 +1,4 @@
+import { isIllustrativeStaff } from '@/lib/staff/provenance'
 import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
@@ -19,7 +20,7 @@ export default async function CoachStaffNetworkPage(props: { params: Promise<{ i
 
   const { data: history, error: historyError } = await supabase
     .from('coach_staff_history')
-    .select('id, staff_id, club_name, role_title, started_on, ended_on, times_worked_together, followed_from_previous, relationship_strength, impact_summary, source_type, source_name, confidence, verified')
+    .select('id, staff_id, club_name, role_title, started_on, ended_on, times_worked_together, followed_from_previous, relationship_strength, impact_summary, before_after_observation, source_type, source_name, source_link, source_notes, confidence, verified, verified_by')
     .eq('coach_id', params.id)
     .order('ended_on', { ascending: false, nullsFirst: true })
     .order('started_on', { ascending: false })
@@ -27,7 +28,7 @@ export default async function CoachStaffNetworkPage(props: { params: Promise<{ i
   assertRouteQueries('Staff history', { error: historyError })
   const staffIds = Array.from(new Set((history ?? []).map((h) => h.staff_id)))
   const { data: staffRows, error: staffError } = staffIds.length
-    ? await supabase.from('staff').select('id, full_name').in('id', staffIds)
+    ? await supabase.from('staff').select('id, full_name, notes').in('id', staffIds)
     : { data: [], error: null }
   const staffMap = new Map((staffRows ?? []).map((s) => [s.id, s.full_name]))
 
@@ -39,7 +40,7 @@ export default async function CoachStaffNetworkPage(props: { params: Promise<{ i
     <StaffNetworkSection
       coachId={params.id}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      history={(history ?? []) as any}
+      history={(history ?? []).map(row => ({ ...row, illustrative: isIllustrativeStaff(row) || isIllustrativeStaff(staffRows?.find(staff => staff.id === row.staff_id)) })) as any}
       staffMap={staffMap}
       allStaff={allStaff ?? []}
     />

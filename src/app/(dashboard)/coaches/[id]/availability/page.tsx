@@ -1,7 +1,8 @@
 import { CoachDeepDivePanel } from '@/components/assessment/coach-deep-dive-panel'
 import { CoachAssessment } from '../_components/coach-assessment'
 import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
-import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
+import { savedProfileLabel } from '@/lib/coaches/saved-profile-label'
+import { legacyCoachSeedIndex } from '@/lib/coaches/legacy-seed-provenance'
 import { notFound, redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
@@ -18,11 +19,11 @@ export default async function AvailabilityPage({ params }: { params: Promise<{ i
   if (error) throw new Error('Availability could not be loaded. Reload before relying on this view.')
   if (!coach) notFound()
   const record = coach as unknown as Record<string, unknown>
-  const text = (key: string) => typeof record[key] === 'string' && String(record[key]).trim() ? String(record[key]) : 'Not recorded'
+  const text = (key: string) => typeof record[key] === 'string' && String(record[key]).trim() ? String(record[key]) : 'Data not yet connected'
   return <div className="space-y-5"><CoachAssessment coachId={id} areas={['coach_profile']}/><CoachDeepDivePanel coachId={id} areas={['coach_profile']} /><section className="rounded-xl border bg-card p-5">
     <h2 className="text-xl font-semibold">Availability and terms</h2>
     <p className="mt-2 text-sm text-muted-foreground">What we have on file. Confirm the current terms with the coach or his representative before any approach.</p>
-    {isIllustrativeEvidence(coach) && <p className="mt-3 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">Some details on this profile still need confirming. Check terms and relocation directly before relying on them.</p>}
+    <p className="mt-3 rounded border p-3 text-sm print:text-black">{savedProfileLabel(coach, legacyCoachSeedIndex(coach.user_id, id) >= 0)}. These saved terms do not confirm current availability or an agreed salary.</p>
     <dl className="mt-5 grid gap-3 sm:grid-cols-2">{[
       ['Availability', 'availability_status'], ['Contract ends', 'contract_expiry'],
       ['Release clause', 'release_clause'], ['Salary expectation', 'wage_expectation'],

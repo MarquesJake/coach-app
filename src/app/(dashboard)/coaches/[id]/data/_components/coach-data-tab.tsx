@@ -127,6 +127,14 @@ export function CoachDataTab({
   const profileBusy = useRef(false)
   const [profileSaving, setProfileSaving] = useState(false)
   const p = profile
+  // Legacy importer derived these scores from career counts, not measured match/media data.
+  // Keep this provenance separate from external identity and independently sourced rows.
+  const illustrativeProfile = /auto[- ]generated from API-Football profile|\b(?:demo|illustrative|synthetic|fictional)\b/i.test(p?.narrative_risk_summary ?? '')
+  const profileProvenance = p
+    ? illustrativeProfile
+      ? 'ILLUSTRATIVE / DEMO DATA — legacy profile figures are generated estimates or demo entries, not verified squad, recruitment or media measurements. Do not use them as factual evidence. The displayed confidence score does not verify them.'
+      : 'UNVERIFIED ANALYST DATA — legacy profile figures and confidence have not been independently verified. Check dated sources and methodology before relying on them.'
+    : 'No legacy data profile recorded.'
   const repeatPlayerCount = p?.recruitment_repeat_player_count ?? null
   const repeatAgentCount = p?.recruitment_repeat_agent_count ?? null
   const repeatSignings = recruitment.filter((r) => r.repeated_signing).length
@@ -316,6 +324,7 @@ export function CoachDataTab({
           </h2>
           <Button variant="outline" onClick={openProfileDrawer}>Edit</Button>
         </div>
+        <p data-legacy-profile-provenance className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">{profileProvenance}</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Avg squad age</p>
@@ -358,6 +367,7 @@ export function CoachDataTab({
           </h2>
           <Button variant="outline" onClick={openRecruitmentAdd}>Add</Button>
         </div>
+        <p data-legacy-profile-provenance className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">{profileProvenance} Recruitment entries below have their own source and verification details.</p>
         <p className="text-xs text-muted-foreground mb-2">Repeated signings: {repeatSignings}</p>
         {recruitment.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4">No data available.</p>
@@ -404,6 +414,7 @@ export function CoachDataTab({
         <h2 className="text-lg font-medium text-foreground mb-4">
           Network bias indicators
         </h2>
+        <p data-legacy-profile-provenance className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">{profileProvenance}</p>
         <div className="flex flex-wrap gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Repeated agents</p>
@@ -430,6 +441,7 @@ export function CoachDataTab({
           </h2>
           <Button variant="outline" onClick={openMediaAdd}>Add event</Button>
         </div>
+        <p data-legacy-profile-provenance className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">{profileProvenance}</p>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Pressure score</p>
@@ -479,6 +491,7 @@ export function CoachDataTab({
         <h2 className="text-lg font-medium text-foreground mb-4">
           Confidence
         </h2>
+        <p data-legacy-profile-provenance className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">{profileProvenance}</p>
         <div className="flex items-center gap-4">
           <p className="text-sm font-medium text-foreground">Data profile confidence: {formatNum(p?.confidence_score)}</p>
           <span className={cn('text-sm font-medium', confidenceLabel(p?.confidence_score).className)}>

@@ -8,11 +8,10 @@ import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   const v = value?.trim()
-  if (v == null || v === '') return null
   return (
     <div className="flex justify-between py-2 border-b border-border/50 last:border-0">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-foreground max-w-[70%] text-right">{v}</span>
+      <span className="text-sm font-medium text-foreground max-w-[70%] text-right">{v || 'Data not yet connected'}</span>
     </div>
   )
 }
@@ -30,7 +29,7 @@ const LEADERSHIP_FIELDS: EditCoachField[] = [
 
 type CoachRecord = Record<string, unknown>
 
-export function LeadershipSection({ coachId, coach }: { coachId: string; coach: CoachRecord }) {
+export function LeadershipSection({ coachId, coach, provenanceLabel = 'Saved record · source review needed' }: { coachId: string; coach: CoachRecord; provenanceLabel?: string }) {
   const router = useRouter()
   const leadershipStyle = coach.leadership_style as string | null | undefined
   const staffManagementStyle = coach.staff_management_style as string | null | undefined
@@ -78,6 +77,7 @@ export function LeadershipSection({ coachId, coach }: { coachId: string; coach: 
             onSuccess={() => router.refresh()}
           />
         </div>
+        <p className="mb-3 text-xs text-muted-foreground print:text-black">{provenanceLabel}. Saved notes below need dated sources; any later edits need their own review.</p>
         <div className="space-y-0">
           <Row label="Leadership style" value={leadershipStyle} />
           <Row label="How they manage staff" value={staffManagementStyle} />

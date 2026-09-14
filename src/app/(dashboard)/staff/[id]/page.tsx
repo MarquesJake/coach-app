@@ -1,3 +1,4 @@
+import { isIllustrativeStaff } from '@/lib/staff/provenance'
 import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
@@ -20,7 +21,7 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
 
   const { data: history, error: historyError } = await supabase
     .from('coach_staff_history')
-    .select('id, coach_id, club_name, role_title, started_on, ended_on, times_worked_together, followed_from_previous, relationship_strength, confidence, verified')
+    .select('id, coach_id, club_name, role_title, started_on, ended_on, times_worked_together, followed_from_previous, relationship_strength, confidence, verified, source_name, source_notes, impact_summary, before_after_observation')
     .eq('staff_id', id)
     .order('ended_on', { ascending: false, nullsFirst: true })
     .order('started_on', { ascending: false })
@@ -33,17 +34,25 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
   if (coachesError) throw new Error('Could not load linked coaches')
   const coachMap = new Map((coaches ?? []).map((c) => [c.id, c.name]))
 
-  const totalCoaches = coachIds.length
-  const repeatCollaborations = (history ?? []).filter((h) => (h.times_worked_together ?? 0) > 1).length
-  const strengthValues = (history ?? []).map((h) => h.relationship_strength).filter((v): v is number => v != null)
+  const fictionalStaff = isIllustrativeStaff(staff)
+  const isDemoHistory = (row: object) => fictionalStaff || isIllustrativeStaff(row)
+  const metricGroups = [false, true].map(illustrative => {
+  const rows = (history ?? []).filter(row => isDemoHistory(row) === illustrative)
+  const totalCoaches = new Set(rows.map(row => row.coach_id)).size
+  const repeatCollaborations = rows.filter((h) => (h.times_worked_together ?? 0) > 1).length
+  const strengthValues = rows.map((h) => h.relationship_strength).filter((v): v is number => v != null)
   const avgStrength = strengthValues.length ? Math.round(strengthValues.reduce((a, b) => a + b, 0) / strengthValues.length) : null
-  const currentClubInvolvement = (history ?? []).filter((h) => h.ended_on == null).length
+  const currentClubInvolvement = rows.filter((h) => h.ended_on == null).length
+
+  return { illustrative, totalCoaches, repeatCollaborations, avgStrength, currentClubInvolvement, count: rows.length }
+  }).filter(group => group.count > 0)
 
   return (
     <div className="max-w-[900px] mx-auto">
       <div className="mb-6">
         <Link href="/staff" className="text-xs text-muted-foreground hover:text-foreground">← Staff</Link>
         <h1 className="text-lg font-semibold text-foreground mt-1">{staff.full_name}</h1>
+        {fictionalStaff && <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">DEMO — fictional staff profile. No real staff member is represented. Roles and figures are illustrative, not verified intelligence.</p>}
         <p className="text-xs text-muted-foreground mt-0.5">
           {staff.primary_role ?? 'No role set'}
         </p>
@@ -79,9 +88,9 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
           </dl>
         </div>
 
-        {history && history.length > 0 && (
-          <div className="card-surface rounded-lg p-5">
-            <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Network summary</h2>
+        {metricGroups.map(({ illustrative, totalCoaches, repeatCollaborations, avgStrength, currentClubInvolvement }) => (
+          <div key={String(illustrative)} className="card-surface rounded-lg p-5">
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Network summary{illustrative ? ' — DEMO figures, fictional relationships' : ''}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Linked coaches</p>
@@ -101,7 +110,7 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
               </div>
             </div>
           </div>
-        )}
+        ))}
 
         <div className="card-surface rounded-lg p-5">
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Work history with coaches</h2>
@@ -129,6 +138,7 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
                         <Link href={`/coaches/${h.coach_id}/staff-network`} className="font-medium text-primary hover:underline">
                           {coachMap.get(h.coach_id) ?? h.coach_id}
                         </Link>
+                        {isDemoHistory(h) && <span className="block text-xs text-amber-700 dark:text-amber-300">DEMO — fictional relationship</span>}
                       </td>
                       <td className="py-2 text-muted-foreground">{h.club_name}</td>
                       <td className="py-2 text-muted-foreground">{h.role_title}</td>
@@ -145,7 +155,7 @@ export default async function StaffDetailPage(props: { params: Promise<{ id: str
                       </td>
                       <td className="py-2 tabular-nums">{h.relationship_strength != null ? `${h.relationship_strength}%` : '—'}</td>
                       <td className="py-2 tabular-nums">{h.confidence != null ? `${h.confidence}%` : '—'}</td>
-                      <td className="py-2">{h.verified ? 'Yes' : 'No'}</td>
+                      <td className="py-2">{isDemoHistory(h) ? 'DEMO — not verified' : h.verified ? 'Yes' : 'No'}</td>
                     </tr>
                   ))}
                 </tbody>

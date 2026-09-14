@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
-import { SourceConfidenceFields, IntelPill } from '@/components/source-confidence-fields'
+import { SourceConfidenceFields } from '@/components/source-confidence-fields'
 import { upsertStintAction, deleteStintAction } from '../../actions'
 
 type Stint = {
@@ -23,6 +23,8 @@ type Stint = {
   source_type?: string | null
   source_name?: string | null
   confidence?: number | null
+  provenanceLabel?: string
+  source_notes?: string | null
   verified?: boolean
 }
 
@@ -268,14 +270,14 @@ export function CareerTab({
   return (
     <div className="space-y-4">
       {!drawerOpen && submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
+      <p className="text-xs text-muted-foreground print:text-black">{stints.some(s => s.provenanceLabel?.startsWith('DEMO')) ? 'DEMO DATA · summary includes legacy example stints.' : 'Summary of saved career records · source review needed.'} PPG and win rate are unweighted averages of recorded stint values. Tenure estimates use today when the end date is missing; this does not confirm current employment.</p>
       {/* ── Career Stats Bar ─────────────────────────────────────────────── */}
-      {totalRoles > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { label: 'Total roles', value: String(totalRoles) },
-            { label: 'Avg tenure', value: avgTenure ? `${avgTenure} yrs` : '—' },
-            { label: 'Avg PPG', value: avgPPG ? `${avgPPG} PPG` : '—' },
-            { label: 'Avg win rate', value: avgWR != null ? `${avgWR}%` : '—' },
+            { label: 'Avg tenure', value: avgTenure ? `${avgTenure} yrs` : 'Data not yet connected' },
+            { label: 'Avg PPG', value: avgPPG ? `${avgPPG} PPG` : 'Data not yet connected' },
+            { label: 'Avg win rate', value: avgWR != null ? `${avgWR}%` : 'Data not yet connected' },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-lg border border-border bg-card p-4 text-center">
               <p className="text-xs text-muted-foreground mb-2">{label}</p>
@@ -283,7 +285,6 @@ export function CareerTab({
             </div>
           ))}
         </div>
-      )}
 
       {/* ── Career Timeline ───────────────────────────────────────────────── */}
       <section className="rounded-lg border border-border bg-card p-6">
@@ -310,7 +311,7 @@ export function CareerTab({
                     {/* Dates + tenure */}
                     <div className="flex flex-wrap items-center gap-2 mt-1.5">
                       <span className="text-xs text-muted-foreground">
-                        {formatDisplayDate(s.started_on)} – {s.ended_on ? formatDisplayDate(s.ended_on) : 'Present'}
+                        {formatDisplayDate(s.started_on)} – {s.ended_on ? formatDisplayDate(s.ended_on) : 'End date not recorded'}
                       </span>
                       {s.started_on && (
                         <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
@@ -335,13 +336,7 @@ export function CareerTab({
 
                     {/* Intel pill */}
                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <IntelPill
-                        confidence={s.confidence}
-                        verified={s.verified}
-                        sourceType={s.source_type}
-                        sourceName={s.source_name}
-                        className="flex items-center gap-1"
-                      />
+                      <span className="text-xs text-muted-foreground print:text-black">{s.provenanceLabel || 'Saved record · source review needed'}{s.verified ? ' · saved verification flag requires provenance review' : ' · unverified'}{s.source_name ? ` · ${s.source_name}` : ' · source not recorded'}</span>
                     </div>
 
                     {/* Notable outcomes */}

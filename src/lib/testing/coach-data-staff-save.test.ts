@@ -5,6 +5,7 @@ import { createRequire } from 'node:module'
 import { test } from 'node:test'
 import { isValidElement } from 'react'
 import ts from 'typescript'
+import * as staffProvenance from '../staff/provenance.ts'
 const require = createRequire(import.meta.url)
 function load(file: string, modules: Record<string, any>, form = false) {
   const source = readFileSync(new URL('../../app/(dashboard)/' + file, import.meta.url), 'utf8')
@@ -20,7 +21,7 @@ function elements(value: any): any[] {
 function mount(file: string, name: string, props: any, extra: Record<string, any>) {
   const slots: any[] = []; let cursor = 0; let refreshes = 0
   const react = { ...require('react'), useMemo: (fn: any) => fn(), useCallback: (fn: any) => fn, useId: () => 'test-form', useState(initial: any) { const i = cursor++; if (!(i in slots)) slots[i] = initial; return [slots[i], (v: any) => { slots[i] = v }] }, useRef(initial: any) { const i = cursor++; if (!(i in slots)) slots[i] = { current: initial }; return slots[i] } }
-  const component = load(file, { react, 'next/navigation': { useRouter: () => ({ refresh: () => refreshes++ }) }, '@/components/ui/drawer': { Drawer: 'drawer' }, '@/components/ui/button': { Button: 'button' }, '@/components/source-confidence-fields': { SourceConfidenceFields: 'source-fields', IntelPill: 'pill' }, '@/lib/utils': { cn: () => '' }, '@/lib/ui/toast': { toastSuccess() {}, toastError() {} }, ...extra }, true)[name]
+  const component = load(file, { '@/lib/staff/provenance': staffProvenance, react, 'next/navigation': { useRouter: () => ({ refresh: () => refreshes++ }) }, '@/components/ui/drawer': { Drawer: 'drawer' }, '@/components/ui/button': { Button: 'button' }, '@/components/source-confidence-fields': { SourceConfidenceFields: 'source-fields', IntelPill: 'pill' }, '@/lib/utils': { cn: () => '' }, '@/lib/ui/toast': { toastSuccess() {}, toastError() {} }, ...extra }, true)[name]
   return { render: () => { cursor = 0; return component(props) }, refreshes: () => refreshes }
 }
 function form(tree: any) { return elements(tree).find(e => e.type === 'form') }
@@ -113,4 +114,42 @@ test('staff late autofill cannot populate a reopened drawer; failure releases sa
   await new Promise(r=>setImmediate(r))
   assert.ok(elements(page.render()).some(e=>e.props.role==='alert'))
   assert.equal(elements(page.render()).find(e=>e.props.form==='staff-history-form').props.disabled,false)
+})
+
+test('generated legacy profile is visibly illustrative in every legacy section without changing figures',()=>{
+  const profile={id:'legacy',avg_squad_age:42,avg_starting_xi_age:42,media_pressure_score:50,media_accountability_score:55,media_confrontation_score:40,confidence_score:99,narrative_risk_summary:'Auto-generated from API-Football profile and 2 career entries.'}
+  const page=mount(dataFile,'CoachDataTab',{...dataProps,profile},{})
+  const tree=page.render();const notices=elements(tree).filter(e=>e.props['data-legacy-profile-provenance'])
+  assert.equal(notices.length,5)
+  assert.ok(notices.every(e=>JSON.stringify(e.props.children).includes('ILLUSTRATIVE / DEMO DATA')))
+  assert.ok(notices.every(e=>JSON.stringify(e.props.children).includes('not verified')))
+  for(const value of ['42','50','55','40']) assert.ok(elements(tree).some(e=>e.props.children===value))
+  assert.equal(profile.avg_squad_age,42);assert.equal(profile.confidence_score,99)
+})
+test('unmarked analyst data stays unverified even with high confidence; explicit demo stays illustrative',()=>{
+  for(const [note,label] of [['Analyst estimate pending source review','UNVERIFIED ANALYST DATA'],['DEMO DATA for presentation','ILLUSTRATIVE / DEMO DATA'],['','UNVERIFIED ANALYST DATA']]){
+    const page=mount(dataFile,'CoachDataTab',{...dataProps,profile:{confidence_score:100,narrative_risk_summary:note}},{})
+    const notices=elements(page.render()).filter(e=>e.props['data-legacy-profile-provenance'])
+    assert.equal(notices.length,5);assert.ok(notices.every(e=>JSON.stringify(e.props.children).includes(label)))
+  }
+})
+
+test('coach importer never overwrites analyst data profiles or invents event scores from career dates',()=>{
+  const source=readFileSync(new URL('../../app/api/integrations/coaches/sync-english/route.ts',import.meta.url),'utf8')
+  const ast=ts.createSourceFile('route.ts',source,ts.ScriptTarget.Latest,true)
+  const profileTables:string[]=[]
+  function visit(node:ts.Node){
+    if(ts.isCallExpression(node)&&ts.isPropertyAccessExpression(node.expression)&&node.expression.name.text==='from'){
+      for(const arg of node.arguments) if(ts.isStringLiteral(arg)&&arg.text==='coach_data_profiles') profileTables.push(arg.text)
+    }
+    ts.forEachChild(node,visit)
+  }
+  visit(ast);assert.deepEqual(profileTables,[],'biographical sync must not write legacy analyst metrics')
+  const start=source.indexOf('        const mediaRows =');const end=source.indexOf('        if (mediaRows.length',start)
+  assert.ok(start>=0&&end>start)
+  const code=ts.transpileModule(source.slice(start,end)+'\nreturn mediaRows',{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
+  const rows=new Function('coach','coachRowId','name','nonEmptyString','isoDate',code)({age:42,career:[{team:{name:'Club'},start:'2025-01-01',end:'2026-01-01'}]},'coach','Gary',(s:string)=>s,(s:string)=>s)
+  assert.equal(rows.length,2)
+  for(const row of rows){assert.equal(row.coach_id,'coach');assert.equal(row.severity_score,null);assert.equal(row.confidence,null);assert.equal(row.verified,false)}
+  assert.deepEqual(rows.map((r:any)=>r.occurred_at),['2025-01-01','2026-01-01'])
 })
