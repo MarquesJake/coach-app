@@ -683,7 +683,7 @@ export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
       { risk: 'Dressing room loses belief', likelihood: 'Low', impact: 'High', mitigation: 'Simplify the attack; early wins.' },
     ],
     probabilityOfSuccess: 55,
-    probabilityRationale: 'Best short-term option: no disruption and a proven coach. Held back by the poor start and the risk of the model not clicking.',
+    probabilityRationale: 'Back him for now despite McKenna’s higher probability: changing coach brings compensation costs and another reset for the squad. Review the improvement plan after Aston Villa. The poor start and uncertainty over the football keep the probability at 55%.',
   },
   [`${TOTTENHAM}:${MCKENNA}`]: {
     executiveSummary: 'McKenna is the first successor to research. He knows the club from his academy days, builds clear attacking teams and develops players. The questions are whether he wants the job now, and whether his Ipswich record carries into the top half of the Premier League.',

@@ -127,6 +127,9 @@ export default async function MandateAssessmentIndexPage(
           <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
             Our recommendations · internal
           </h2>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Confidence is how sure the analyst is about the verdict. Probability of success is the estimated chance of meeting the brief. The recommendation also weighs timing, cost and disruption, so the highest probability does not automatically come first.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
             {decisionSet.map(({ tag, tone, c }) => (
               <Link
@@ -139,7 +142,7 @@ export default async function MandateAssessmentIndexPage(
                   {coachName(c.row)}
                   {c.rec!.confidence !== null && (
                     <span className="text-xs font-normal text-muted-foreground ml-2 tabular-nums">
-                      {c.rec!.verdict} · {c.rec!.confidence}%
+                      {c.rec!.verdict} · {c.rec!.confidence}% confidence
                     </span>
                   )}
                 </p>
@@ -206,7 +209,7 @@ export default async function MandateAssessmentIndexPage(
                     <span className="mb-1 block text-xs text-muted-foreground lg:hidden">Recommendation</span>
                     {status.recommendationLabel}
                     {rec?.confidence !== null && rec?.confidence !== undefined && (
-                      <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}%</span>
+                      <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}% confidence</span>
                     )}
                     {finalEvaluationFor(mandateId, row.coach_id) && (
                       <span className="mt-0.5 block text-2xs font-normal text-muted-foreground">Probability of success {finalEvaluationFor(mandateId, row.coach_id)!.probabilityOfSuccess}%</span>
