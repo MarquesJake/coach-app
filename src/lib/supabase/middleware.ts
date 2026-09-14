@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { copySessionCookies, loginPathFor } from './session-cookies'
+import { createSupabaseReadFetch } from './read-fetch'
 import { demoBlocksIntegration } from '@/lib/demo-safety.mjs'
 import {
   canEnterAnalystApplication,
@@ -29,6 +30,7 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      global: { fetch: createSupabaseReadFetch(process.env.NEXT_PUBLIC_SUPABASE_URL!) },
       cookies: {
         getAll() {
           return request.cookies.getAll()

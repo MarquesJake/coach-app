@@ -132,6 +132,9 @@ export default async function MandateAssessmentIndexPage(
           <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
             {mandateId === '09420a64-b4d2-4245-8088-af0dc88266eb' ? 'Successor research · internal' : 'Our recommendations · internal'}
           </h2>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Recorded confidence reflects the assessment workflow; demonstration assessments remain illustrative. Computed football fit is explained in Candidates and is not a probability of success. Appointment feasibility depends on this club’s budget, verified terms, timing and the coach’s interest.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
             {decisionSet.map(({ tag, tone, c }) => (
               <Link
@@ -144,7 +147,7 @@ export default async function MandateAssessmentIndexPage(
                   {coachName(c.row)}
                   {c.rec!.confidence !== null && (
                     <span className="text-xs font-normal text-muted-foreground ml-2 tabular-nums">
-                      {c.rec!.verdict} · {c.rec!.confidence}%
+                      {c.rec!.verdict} · {c.rec!.confidence}% confidence
                     </span>
                   )}
                 </p>
@@ -212,7 +215,7 @@ export default async function MandateAssessmentIndexPage(
                     <span className="mb-1 block text-xs text-muted-foreground lg:hidden">Recommendation</span>
                     {benchmark ? 'Benchmark only' : status.recommendationLabel}
                     {!benchmark && rec?.confidence !== null && rec?.confidence !== undefined && (
-                      <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}%</span>
+                      <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}% recorded confidence</span>
                     )}
                     {benchmark && rec?.verdict && <span className="mt-1 block font-normal text-muted-foreground">Stored benchmark verdict: {rec.verdict}{rec.confidence != null ? ` · ${rec.confidence}% recorded confidence` : ''}. Not a successor choice.</span>}
                   </span>
