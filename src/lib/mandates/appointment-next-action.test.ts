@@ -3,8 +3,10 @@ import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import ts from 'typescript'
 import { ASSESSMENT_CRITERIA } from '../assessment/criteria.ts'
-import * as nextActions from './appointment-next-action.ts'
-import { type AppointmentActionData, type AppointmentMandate, deriveAppointmentNextAction, appointmentBriefCompleteness } from './appointment-next-action.ts'
+import { loadScopedAction } from '../testing/load-scoped-action.ts'
+const nextActions = loadScopedAction(new URL('./appointment-next-action.ts', import.meta.url)) as typeof import('./appointment-next-action.ts')
+const { deriveAppointmentNextAction, appointmentBriefCompleteness } = nextActions
+import type { AppointmentActionData, AppointmentMandate } from './appointment-next-action.ts'
 
 const now = new Date('2026-09-10T12:00:00Z')
 const mandate: AppointmentMandate = {
@@ -245,4 +247,30 @@ test('decision, board and Today retain the same loader API and the Mandate actio
   assert.match(decision, /nextAction.href/)
   assert.match(read('dashboard/page.tsx'), /label: 'Mandate actions'/)
   assert.doesNotMatch(read('mandates/_components/mandates-board.tsx'), /function nextActionLabel/)
+})
+
+
+test('known unmarked demo dossiers and Tottenham benchmark never drive readiness or release', () => {
+  const deep = loadScopedAction(new URL('../assessment/deep-dive.ts', import.meta.url))
+  const spurs = { ...mandate, id: '09420a64-b4d2-4245-8088-af0dc88266eb' }
+  const demoId = '78552079-813c-4239-8654-e05769d221d8'
+  assert.ok(deep.deepDiveFor(demoId, spurs.id))
+  const data = fixture()
+  for (const rows of [data.shortlist, data.assessments, data.evidence, data.recommendations, data.interviews, data.references]) {
+    for (const row of rows) { row.mandate_id = spurs.id; row.coach_id = demoId }
+  }
+  data.shortlist[0].coaches = { ...coach, id: demoId, name: 'Roberto De Zerbi' }
+  data.profiles[0].coach_id = demoId
+  data.orders = [{ mandate_id: spurs.id, coach_id: demoId, id: 'order', buyer_organization_id: 'buyer', status: 'active', expires_at: null }]
+  data.grants = [{ order_id: 'order', coach_id: demoId, buyer_organization_id: 'buyer', status: 'active', expires_at: '2026-10-01', revoked_at: null }]
+  const result = deriveAppointmentNextAction(spurs, data, now)
+  assert.equal(result.lead, null)
+  assert.equal(result.facts.candidateCount, 0)
+  assert.equal(result.facts.recommendationCount, 0)
+  assert.equal(result.facts.releaseCount, 0)
+  assert.equal(result.facts.leadFeasibilityVerified, false)
+  // Known coach-level demo data remains demo outside Tottenham, without assigning a benchmark role.
+  assert.equal(deep.isCurrentManagerBenchmark(mandate.id, demoId), false)
+  for (const row of data.shortlist) row.mandate_id = mandate.id
+  assert.equal(deriveAppointmentNextAction(mandate, data, now).facts.candidateCount, 0)
 })

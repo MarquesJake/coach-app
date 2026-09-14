@@ -453,7 +453,7 @@ export async function upsertRecruitmentAction(coachId: string, formData: FormDat
       verified_at: sc.verified_at,
       verified_by: sc.verified_by,
     }
-    const { error } = await supabase.from('coach_recruitment_history').update(update).eq('id', id).eq('coach_id', coachId)
+    const { error } = await supabase.from('coach_recruitment_history').update(update).eq('id', id).eq('coach_id', coachId).select('id').single()
     if (error) return { error: error.message }
   } else {
     const insert: CoachRecruitmentInsert = {
@@ -487,7 +487,7 @@ export async function upsertRecruitmentAction(coachId: string, formData: FormDat
 export async function deleteRecruitmentAction(coachId: string, recruitmentId: string) {
   await assertCoachOwnership(coachId)
   const supabase = await createServerSupabaseClient()
-  const { error } = await supabase.from('coach_recruitment_history').delete().eq('id', recruitmentId).eq('coach_id', coachId)
+  const { error } = await supabase.from('coach_recruitment_history').delete().eq('id', recruitmentId).eq('coach_id', coachId).select('id').single()
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
   revalidatePath(`/coaches/${coachId}/data`)
@@ -510,10 +510,10 @@ export async function upsertMediaEventAction(coachId: string, formData: FormData
   const confidence = clamp(toNum(formData.get('confidence')), 0, 100)
   const sc = parseSourceConfidenceFromFormData(formData)
 
-  const occurredAtIso = occurredAt ? new Date(occurredAt).toISOString() : null
   if (occurredAt && Number.isNaN(new Date(occurredAt).getTime())) {
     return { error: 'Invalid date' }
   }
+  const occurredAtIso = occurredAt ? new Date(occurredAt).toISOString() : null
 
   if (id) {
     const update: CoachMediaUpdate = {
@@ -532,7 +532,7 @@ export async function upsertMediaEventAction(coachId: string, formData: FormData
       verified_at: sc.verified_at,
       verified_by: sc.verified_by,
     }
-    const { error } = await supabase.from('coach_media_events').update(update).eq('id', id).eq('coach_id', coachId)
+    const { error } = await supabase.from('coach_media_events').update(update).eq('id', id).eq('coach_id', coachId).select('id').single()
     if (error) return { error: error.message }
   } else {
     const insert: CoachMediaInsert = {
@@ -564,7 +564,7 @@ export async function upsertMediaEventAction(coachId: string, formData: FormData
 export async function deleteMediaEventAction(coachId: string, eventId: string) {
   await assertCoachOwnership(coachId)
   const supabase = await createServerSupabaseClient()
-  const { error } = await supabase.from('coach_media_events').delete().eq('id', eventId).eq('coach_id', coachId)
+  const { error } = await supabase.from('coach_media_events').delete().eq('id', eventId).eq('coach_id', coachId).select('id').single()
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
   revalidatePath(`/coaches/${coachId}/data`)
@@ -670,7 +670,7 @@ export async function upsertStaffHistoryAction(coachId: string, formData: FormDa
       verified_at: sc.verified_at,
       verified_by: sc.verified_by,
     }
-    const { error } = await supabase.from('coach_staff_history').update(update).eq('id', id).eq('coach_id', coachId)
+    const { error } = await supabase.from('coach_staff_history').update(update).eq('id', id).eq('coach_id', coachId).select('id').single()
     if (error) return { error: error.message }
   } else {
     const insert: CoachStaffHistoryInsert = {
@@ -797,7 +797,7 @@ export async function getStaffLinkAutofillAction(coachId: string, staffId: strin
 export async function deleteStaffHistoryAction(coachId: string, historyId: string) {
   await assertCoachOwnership(coachId)
   const supabase = await createServerSupabaseClient()
-  const { error } = await supabase.from('coach_staff_history').delete().eq('id', historyId).eq('coach_id', coachId)
+  const { error } = await supabase.from('coach_staff_history').delete().eq('id', historyId).eq('coach_id', coachId).select('id').single()
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
   revalidatePath(`/coaches/${coachId}/staff-network`)

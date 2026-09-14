@@ -136,6 +136,8 @@ export function CoachDataTab({
   const [recruitmentEditing, setRecruitmentEditing] = useState<RecruitmentRow | null>(null)
   const [mediaDrawerOpen, setMediaDrawerOpen] = useState(false)
   const [mediaEditing, setMediaEditing] = useState<MediaEvent | null>(null)
+  const rowBusy = useRef(false)
+  const [rowSaving, setRowSaving] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const openProfileDrawer = () => {
@@ -185,45 +187,44 @@ export function CoachDataTab({
       setProfileSaving(false)
     }
   }
+  const runRowMutation = async (operation: () => Promise<{ error: string | null }>, close: () => void) => {
+    if (rowBusy.current) return
+    rowBusy.current = true
+    setRowSaving(true)
+    setSubmitError(null)
+    try {
+      const result = await operation()
+      if (result.error) { setSubmitError(result.error); return }
+      close()
+      router.refresh()
+    } catch {
+      setSubmitError('Save could not be confirmed. Your entries are kept. Check the record before retrying.')
+    } finally {
+      rowBusy.current = false
+      setRowSaving(false)
+    }
+  }
+  const closeRecruitment = () => { setRecruitmentDrawerOpen(false); setRecruitmentEditing(null) }
+  const closeMedia = () => { setMediaDrawerOpen(false); setMediaEditing(null) }
   const onRecruitmentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setSubmitError(null)
-    const form = e.currentTarget
-    const formData = new FormData(form)
+    const formData = new FormData(e.currentTarget)
     formData.set('id', recruitmentEditing?.id ?? '')
-    const result = await upsertRecruitmentAction(coachId, formData)
-    if (result.error) {
-      setSubmitError(result.error)
-      return
-    }
-    setRecruitmentDrawerOpen(false)
-    setRecruitmentEditing(null)
+    await runRowMutation(() => upsertRecruitmentAction(coachId, formData), closeRecruitment)
   }
   const onRecruitmentDelete = async (id: string) => {
-    if (!confirm('Delete this recruitment entry?')) return
-    await deleteRecruitmentAction(coachId, id)
-    setRecruitmentDrawerOpen(false)
-    setRecruitmentEditing(null)
+    if (rowBusy.current || !confirm('Delete this recruitment entry?')) return
+    await runRowMutation(() => deleteRecruitmentAction(coachId, id), closeRecruitment)
   }
   const onMediaSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setSubmitError(null)
-    const form = e.currentTarget
-    const formData = new FormData(form)
+    const formData = new FormData(e.currentTarget)
     formData.set('id', mediaEditing?.id ?? '')
-    const result = await upsertMediaEventAction(coachId, formData)
-    if (result.error) {
-      setSubmitError(result.error)
-      return
-    }
-    setMediaDrawerOpen(false)
-    setMediaEditing(null)
+    await runRowMutation(() => upsertMediaEventAction(coachId, formData), closeMedia)
   }
   const onMediaDelete = async (id: string) => {
-    if (!confirm('Delete this media event?')) return
-    await deleteMediaEventAction(coachId, id)
-    setMediaDrawerOpen(false)
-    setMediaEditing(null)
+    if (rowBusy.current || !confirm('Delete this media event?')) return
+    await runRowMutation(() => deleteMediaEventAction(coachId, id), closeMedia)
   }
 
   return (
@@ -561,20 +562,21 @@ export function CoachDataTab({
       {/* Recruitment drawer */}
       <Drawer
         open={recruitmentDrawerOpen}
-        onClose={() => { setRecruitmentDrawerOpen(false); setRecruitmentEditing(null); setSubmitError(null) }}
+        onClose={() => { if (!rowBusy.current) { closeRecruitment(); setSubmitError(null) } }}
         title={recruitmentEditing ? 'Edit recruitment' : 'Add recruitment'}
         footer={
           <>
             {recruitmentEditing && (
-              <Button variant="destructive" className="mr-auto" onClick={() => onRecruitmentDelete(recruitmentEditing.id)}>Delete</Button>
+              <Button variant="destructive" className="mr-auto" disabled={rowSaving} onClick={() => onRecruitmentDelete(recruitmentEditing.id)}>Delete</Button>
             )}
-            <Button variant="outline" onClick={() => setRecruitmentDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" form="recruitment-form">{recruitmentEditing ? 'Save' : 'Add'}</Button>
+            <Button variant="outline" disabled={rowSaving} onClick={closeRecruitment}>Cancel</Button>
+            <Button disabled={rowSaving} type="submit" form="recruitment-form">{recruitmentEditing ? 'Save' : 'Add'}</Button>
           </>
         }
       >
-        <form id="recruitment-form" onSubmit={onRecruitmentSubmit} className="space-y-4">
-          {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+        {recruitmentDrawerOpen && <form key={recruitmentEditing?.id ?? 'new'} id="recruitment-form" onSubmit={onRecruitmentSubmit} className="space-y-4">
+          {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
+          <fieldset disabled={rowSaving} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Player name</label>
             <input name="player_name" defaultValue={recruitmentEditing?.player_name ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
@@ -621,26 +623,28 @@ export function CoachDataTab({
               verified_at: null,
             }}
           />
-        </form>
+                  </fieldset>
+        </form>}
       </Drawer>
 
       {/* Media event drawer */}
       <Drawer
         open={mediaDrawerOpen}
-        onClose={() => { setMediaDrawerOpen(false); setMediaEditing(null); setSubmitError(null) }}
+        onClose={() => { if (!rowBusy.current) { closeMedia(); setSubmitError(null) } }}
         title={mediaEditing ? 'Edit media event' : 'Add media event'}
         footer={
           <>
             {mediaEditing && (
-              <Button variant="destructive" className="mr-auto" onClick={() => onMediaDelete(mediaEditing.id)}>Delete</Button>
+              <Button variant="destructive" className="mr-auto" disabled={rowSaving} onClick={() => onMediaDelete(mediaEditing.id)}>Delete</Button>
             )}
-            <Button variant="outline" onClick={() => setMediaDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" form="media-form">{mediaEditing ? 'Save' : 'Add'}</Button>
+            <Button variant="outline" disabled={rowSaving} onClick={closeMedia}>Cancel</Button>
+            <Button disabled={rowSaving} type="submit" form="media-form">{mediaEditing ? 'Save' : 'Add'}</Button>
           </>
         }
       >
-        <form id="media-form" onSubmit={onMediaSubmit} className="space-y-4">
-          {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+        {mediaDrawerOpen && <form key={mediaEditing?.id ?? 'new'} id="media-form" onSubmit={onMediaSubmit} className="space-y-4">
+          {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
+          <fieldset disabled={rowSaving} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Category</label>
             <input name="category" defaultValue={mediaEditing?.category ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
@@ -683,7 +687,8 @@ export function CoachDataTab({
               verified_at: null,
             }}
           />
-        </form>
+                  </fieldset>
+        </form>}
       </Drawer>
     </div>
   )

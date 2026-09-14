@@ -8,6 +8,7 @@ import { parseDecisionBrief } from '@/lib/mandates/decision-brief'
 import type { Json } from '@/lib/types/database'
 import { isServiceModel } from '@/lib/mandates/appointment-plan'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
+import { parseBoardRiskAppetite } from '@/lib/mandates/board-risk-appetite'
 
 function toText(value: FormDataEntryValue | null): string {
   return typeof value === 'string' ? value.trim() : ''
@@ -54,7 +55,8 @@ export async function createMandateBuilderAction(formData: FormData) {
   const leadershipProfile = toText(formData.get('leadership_profile_required'))
   const budgetBand = toText(formData.get('budget_band'))
   const successionTimeline = toText(formData.get('succession_timeline'))
-  const boardRiskAppetite = toText(formData.get('board_risk_appetite'))
+  const boardRiskAppetite = parseBoardRiskAppetite(formData.get('board_risk_appetite'))
+  if (!boardRiskAppetite.ok) return { ok: false as const, error: boardRiskAppetite.error }
   const languageRequirements = toList(formData.get('language_requirements'))
   const relocationRequired = formData.get('relocation_required') === 'true' ? true : formData.get('relocation_required') === 'false' ? false : null
   const serviceModelInput = toText(formData.get('service_model'))
@@ -119,7 +121,7 @@ export async function createMandateBuilderAction(formData: FormData) {
       leadership_profile_required: leadershipProfile,
       budget_band: budgetBand,
       succession_timeline: successionTimeline,
-      board_risk_appetite: boardRiskAppetite || 'Moderate',
+      board_risk_appetite: boardRiskAppetite.value,
       language_requirements: languageRequirements,
       relocation_required: relocationRequired,
       service_model: serviceModel,
@@ -164,7 +166,8 @@ export async function updateMandateBuilderAction(formData: FormData) {
   const leadershipProfile = toText(formData.get('leadership_profile_required'))
   const budgetBand = toText(formData.get('budget_band'))
   const successionTimeline = toText(formData.get('succession_timeline'))
-  const boardRiskAppetite = toText(formData.get('board_risk_appetite'))
+  const boardRiskAppetite = parseBoardRiskAppetite(formData.get('board_risk_appetite'))
+  if (!boardRiskAppetite.ok) redirect(`/mandates/${mandateId}/edit?error=${encodeURIComponent(boardRiskAppetite.error)}`)
   const languageRequirements = toList(formData.get('language_requirements'))
   const relocationRequired = formData.get('relocation_required') === 'true' ? true : formData.get('relocation_required') === 'false' ? false : null
   const serviceModelInput = toText(formData.get('service_model'))
@@ -187,7 +190,7 @@ export async function updateMandateBuilderAction(formData: FormData) {
     redirect(`/mandates/${mandateId}/edit?error=Choose+a+valid+confidentiality+level`)
   }
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from('mandates')
     .update({
       decision_brief: decisionBrief,
@@ -198,7 +201,7 @@ export async function updateMandateBuilderAction(formData: FormData) {
       leadership_profile_required: leadershipProfile || undefined,
       budget_band: budgetBand || undefined,
       succession_timeline: successionTimeline || undefined,
-      board_risk_appetite: boardRiskAppetite || undefined,
+      board_risk_appetite: boardRiskAppetite.value,
       language_requirements: languageRequirements,
       relocation_required: relocationRequired,
       service_model: serviceModel,
@@ -210,9 +213,10 @@ export async function updateMandateBuilderAction(formData: FormData) {
       confidentiality_level: confidentialityLevel,
     })
     .eq('id', mandateId)
+    .select('id').maybeSingle()
 
-  if (error) {
-    redirect(`/mandates/${mandateId}/edit?error=${encodeURIComponent(error.message)}`)
+  if (error || !updated) {
+    redirect(`/mandates/${mandateId}/edit?error=${encodeURIComponent(error?.message || 'No writable mandate was found. Your changes were not saved.')}`)
   }
 
   revalidatePath('/mandates')

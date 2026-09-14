@@ -226,10 +226,10 @@ test('confirmed review-form submission cannot be replayed unchanged, even if ref
   assert.equal(saves, 2)
 })
 
-async function corpus(failedTable?: string, extraClaims: any[] = []) {
+async function corpus(failedTable?: string, extraClaims: any[] = [], extraSessions: any[] = []) {
   const tables: Record<string, any[]> = {
     trusted_bench_entries: [{ id: 'entry', coach_id: 'coach', stage: 'researching' }], coaches: [{ id: 'coach', name: 'Example coach', club_current: null }],
-    intelligence_sessions: [], contact_coach_relationships: [], profile_claims: extraClaims,
+    intelligence_sessions: extraSessions, contact_coach_relationships: [], profile_claims: extraClaims,
     reference_campaigns: [], reference_campaign_contacts: [], football_contacts: [],
   }
   const schema = readFileSync(new URL('../types/database.ts', import.meta.url), 'utf8')
@@ -315,5 +315,67 @@ test('conversation save resolves Paris local time before crossing the server bou
   } finally {
     if (previousTimezone === undefined) delete process.env.TZ
     else process.env.TZ = previousTimezone
+  }
+})
+
+
+test('fictional demo conversations cannot change rendered corpus readiness', async () => {
+  const baseline = await corpus()
+  const sessions = Array.from({ length: 12 }, (_, i) => ({ id: `demo-${i}`, coach_id: 'coach', contact_id: `contact-${i}`, title: 'DEMO — training conversation', analyst_notes: 'DEMO DATA — FICTIONAL TRAINING SCENARIO. No real conversation occurred.', occurred_at: '2026-09-14T10:00:00Z', processing_status: 'captured' }))
+  assert.equal(await corpus(undefined, [], sessions), baseline)
+  assert.equal(await corpus(undefined, [], [{ ...sessions[0], title: 'Conversation', analyst_notes: null, transcript_text: 'DEMO DATA — FICTIONAL TRAINING SCENARIO.' }]), baseline)
+})
+
+test('session review renders full fictional transcript with zero claims and no finding controls', async () => {
+  const session = { id: 'session', title: 'DEMO — fictional interview', contact_id: 'contact', analyst_notes: 'DEMO DATA — FICTIONAL TRAINING SCENARIO. No real conversation occurred.', transcript_text: 'Beginning of transcript.\nLast line must remain visible.' }
+  const filters: any[] = []
+  const tables: Record<string, any[]> = { intelligence_sessions: [session], profile_claims: [], football_contacts: [{ id: 'contact', full_name: 'DEMO — Scout (fictional)' }], coaches: [], claim_relationships: [] }
+  const db = { auth: { getUser: async () => ({ data: { user: { id: 'user' } } }) }, from(table: string) {
+    let single = false
+    const q: any = new Proxy({}, { get(_t, method) {
+      if (method === 'then') return (resolve: any) => resolve({ data: single ? tables[table][0] : tables[table], error: null })
+      if (method === 'maybeSingle') return () => { single = true; return q }
+      if (method === 'eq') return (key: string, value: string) => { filters.push([table, key, value]); return q }
+      return () => q
+    } }); return q
+  } }
+  const page = load('intelligence/review/page.tsx', {
+    'next/navigation': { redirect: () => { throw Error('Unexpected redirect') } },
+    '@/lib/supabase/server': { createServerSupabaseClient: async () => db },
+    '@/lib/organizations/context': { getInternalOrganizationId: async () => 'org' },
+    '@/lib/research-context': { readResearchContext: () => ({ coach: 'coach' }), contextFromResearchNote: () => ({}), researchHref: (v: string) => v },
+    '@/lib/assessment/evidence-integrity': integrity,
+    '../_components/claim-review-queue-client': { ClaimReviewQueueClient: () => { throw Error('DEMO must not mount accept/apply controls') } },
+  }).default
+  const html = renderToStaticMarkup(await page({ searchParams: Promise.resolve({ session: 'session' }) }))
+  assert.match(html, /No real conversation occurred/)
+  assert.match(html, /Full transcript/)
+  assert.match(html, /Last line must remain visible/)
+  assert.doesNotMatch(html, /<button|<form/)
+  assert.ok(filters.some(([table, key, value]) => table === 'intelligence_sessions' && key === 'org_id' && value === 'org'))
+  assert.ok(filters.some(([table, key, value]) => table === 'intelligence_sessions' && key === 'id' && value === 'session'))
+})
+
+test('conversation and review pages fail visibly for every dependent read failure', async () => {
+  for (const [file, tables] of [
+    ['intelligence/conversations/page.tsx', ['intelligence_sessions', 'football_contacts', 'coaches', 'profile_claims']],
+    ['intelligence/review/page.tsx', ['intelligence_sessions', 'football_contacts', 'coaches', 'profile_claims', 'claim_relationships']],
+  ] as const) {
+    for (const failedTable of tables) {
+      const db = { auth: { getUser: async () => ({ data: { user: { id: 'user' } } }) }, from(table: string) {
+        const q: any = new Proxy({}, { get(_t, method) {
+          if (method === 'then') return (resolve: any) => resolve({ data: [], error: table === failedTable ? { message: 'Offline' } : null })
+          return () => q
+        } }); return q
+      } }
+      const page = load(file, {
+        'next/navigation': { redirect: () => { throw Error('Unexpected redirect') } },
+        '@/lib/supabase/server': { createServerSupabaseClient: async () => db }, '@/lib/organizations/context': { getInternalOrganizationId: async () => 'org' },
+        '@/lib/research-context': { readResearchContext: () => ({ coach: 'coach' }) },
+        '@/lib/assessment/evidence-integrity': integrity, '@/lib/intelligence/display': {},
+        '../_components/claim-review-queue-client': {}, '../_components/conversation-capture-client': {},
+      }).default
+      await assert.rejects(page({ searchParams: Promise.resolve({}) }), /Could not load/)
+    }
   }
 })
