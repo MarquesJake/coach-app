@@ -10,7 +10,7 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   return (
     <div className="flex justify-between py-2 border-b border-border/50 last:border-0">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-foreground">{v || 'Data not yet connected'}</span>
+      <span className="text-sm font-medium text-foreground">{v || 'Not available from the current source'}</span>
     </div>
   )
 }
@@ -20,7 +20,7 @@ function ListRow({ label, values }: { label: string; values: string[] }) {
     <div className="py-2 border-b border-border/50 last:border-0">
       <span className="text-xs text-muted-foreground block mb-1">{label}</span>
       <div className="flex flex-wrap gap-1.5">
-        {!values.length && <span className="text-sm text-muted-foreground">Data not yet connected</span>}
+        {!values.length && <span className="text-sm text-muted-foreground">Not available from the current source</span>}
         {values.map((s) => (
           <span key={s} className="inline-flex rounded-md px-2 py-0.5 text-xs bg-surface border border-border">
             {s}

@@ -905,7 +905,7 @@ export default function CoachesPage() {
               >
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                    {sourcedProfile?.name ?? canonicalCoachName(coach.id, coach.name)}
+                    {canonicalCoachName(coach.id, sourcedProfile?.name ?? coach.name)}
                   </span>
                   {coach.nationality && (
                     <span className="text-2xs text-muted-foreground/50 hidden lg:inline">{coach.nationality}</span>

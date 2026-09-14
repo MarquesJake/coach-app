@@ -15,11 +15,14 @@ export default async function ShortlistReportPage(props: { params: Promise<{ id:
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const [{ data: mandate }, ranking, recs] = await Promise.all([
+  const [{ data: mandate }, ranking, recs, findingsRes] = await Promise.all([
     supabase.from('mandates').select('id, custom_club_name, strategic_objective, tactical_model_required, pressing_intensity_required, build_preference_required, engagement_owner, clubs(name, current_manager)').eq('id', id).maybeSingle(),
     loadMandateRanking(id),
     supabase.from('candidate_recommendations').select('coach_id, verdict, summary, updated_at').eq('mandate_id', id),
+    supabase.from('profile_claims').select('coach_id, claimed_value, source_type, source_name, reviewed_at').in('review_status', ['accepted', 'applied']).is('deleted_at', null).in('claim_type', ['approach_route', 'availability', 'current_status', 'contract', 'staff']),
   ])
+  const findingsByCoach = new Map<string, NonNullable<typeof findingsRes.data>>()
+  for (const finding of findingsRes.data ?? []) findingsByCoach.set(finding.coach_id, [...(findingsByCoach.get(finding.coach_id) ?? []), finding])
   if (!mandate || !ranking) notFound()
   const club = displayClubName(mandate.custom_club_name, (mandate.clubs as { name?: string } | null)?.name, 'Mandate')
   const top = ranking.shortlist.slice(0, 5)
@@ -58,6 +61,7 @@ export default async function ShortlistReportPage(props: { params: Promise<{ id:
           <p className="mt-2 text-sm">{coach.profile.summary}</p>
           <p className="mt-2 text-xs"><span className="font-semibold">Situation:</span> {coach.eligibility.headline}. {coach.eligibility.reason}</p>
           <p className="mt-1 text-xs text-muted-foreground">Evidence: {coach.fit.dimensions.map(row => `${row.label} ${row.score}`).join(' · ')}</p>
+          {coach.record && (findingsByCoach.get(coach.record.id) ?? []).map((finding, index) => <p key={index} className="mt-1 text-xs"><span className="font-semibold">{/demo/i.test(`${finding.source_type} ${finding.source_name}`) ? 'Approved finding (DEMO · fictional):' : 'Approved finding:'}</span> {finding.claimed_value}</p>)}
         </div>)}
       </div>
     </section>

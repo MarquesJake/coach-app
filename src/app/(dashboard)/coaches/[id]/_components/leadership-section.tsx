@@ -11,7 +11,7 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   return (
     <div className="flex justify-between py-2 border-b border-border/50 last:border-0">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-foreground max-w-[70%] text-right">{v || 'Data not yet connected'}</span>
+      <span className="text-sm font-medium text-foreground max-w-[70%] text-right">{v || 'Not available from the current source'}</span>
     </div>
   )
 }

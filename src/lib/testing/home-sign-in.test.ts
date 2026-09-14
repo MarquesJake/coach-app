@@ -15,7 +15,7 @@ test('homepage Sign in opens login rather than a same-page workspace anchor', as
   const nodes = await home()
   const signIn = nodes.find(node => Array.isArray(node.props.children) && node.props.children.includes('Sign in'))!
   assert.equal(signIn.props.href, '/login')
-  const chooser = nodes.find(node => Array.isArray(node.props.children) && node.props.children.includes('Choose your workspace'))!
+  const chooser = nodes.find(node => Array.isArray(node.props.children) && node.props.children.includes('Pick your door'))!
   assert.equal(chooser.type, 'a')
   assert.equal(chooser.props.href, '#workspaces')
   for (const entry of portals.PORTAL_ENTRIES) {

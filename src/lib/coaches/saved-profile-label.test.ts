@@ -24,7 +24,7 @@ test('owned presentations preserve missing rows, suppress bare verified career p
   const base = new URL('../../app/(dashboard)/coaches/[id]/', import.meta.url)
   for (const file of ['_components/leadership-section.tsx', '_components/tactical-section.tsx']) {
     const code = readFileSync(new URL(file, base), 'utf8')
-    assert.match(code, /Data not yet connected/)
+    assert.match(code, /Not available from the current source/)
     assert.match(code, /provenanceLabel/)
     assert.match(code, /print:text-black/)
     assert.doesNotMatch(code, /if \(v == null.*return null|if \(!values\?\.length\) return null/)
@@ -35,6 +35,6 @@ test('owned presentations preserve missing rows, suppress bare verified career p
   assert.match(career, /DEMO DATA · summary includes/)
   assert.match(career, /unweighted averages/)
   const availability = readFileSync(new URL('availability/page.tsx', base), 'utf8')
-  assert.match(availability, /Data not yet connected/)
+  assert.match(availability, /Not available from the current source/)
   assert.match(availability, /do not confirm current availability/)
 })

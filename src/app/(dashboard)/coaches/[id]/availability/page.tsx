@@ -29,7 +29,7 @@ export default async function AvailabilityPage({ params }: { params: Promise<{ i
   const research = researchProfileForName(coach.name)
   const eligibility = research ? eligibilityFor(research, {}) : null
   const stateLabel: Record<string, string> = { pending: 'Draft — waiting for review', accepted: 'Approved by analyst', applied: 'Approved and applied', rejected: 'Rejected at review' }
-  const text = (key: string) => typeof record[key] === 'string' && String(record[key]).trim() ? String(record[key]) : 'Data not yet connected'
+  const text = (key: string) => typeof record[key] === 'string' && String(record[key]).trim() ? String(record[key]) : 'Not available from the current source'
   return <div className="space-y-5"><CoachAssessment coachId={id} areas={['coach_profile']}/><CoachDeepDivePanel coachId={id} areas={['coach_profile']} />{eligibility && <section className="rounded-xl border bg-card p-5">
     <h2 className="text-xl font-semibold">Can we realistically go for him?</h2>
     <p className="mt-2 text-sm font-medium">{eligibility.headline}</p>

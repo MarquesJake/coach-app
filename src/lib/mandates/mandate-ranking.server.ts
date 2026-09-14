@@ -35,7 +35,7 @@ export function standingLabel(row: RankedCoach | undefined): string {
   if (!row) return 'Not in the researched pool — not ranked'
   if (row.eligibility.status === 'incumbent') return 'Current manager — benchmark only'
   if (!row.eligibility.recommendable) return `${row.eligibility.headline} · fit ${row.fit.score}`
-  return `${positionLabel(row)} of the list · fit ${row.fit.score}`
+  return `${positionLabel(row)} on the list · fit ${row.fit.score}`
 }
 
 const VERDICT_ORDER: Record<string, number> = { Proceed: 0, Target: 1, Shortlist: 2, Monitor: 3, Dismiss: 4 }

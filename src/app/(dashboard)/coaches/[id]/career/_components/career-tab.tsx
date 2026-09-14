@@ -275,9 +275,9 @@ export function CareerTab({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { label: 'Total roles', value: String(totalRoles) },
-            { label: 'Avg tenure', value: avgTenure ? `${avgTenure} yrs` : 'Data not yet connected' },
-            { label: 'Avg PPG', value: avgPPG ? `${avgPPG} PPG` : 'Data not yet connected' },
-            { label: 'Avg win rate', value: avgWR != null ? `${avgWR}%` : 'Data not yet connected' },
+            { label: 'Avg tenure', value: avgTenure ? `${avgTenure} yrs` : 'Not available from the current source' },
+            { label: 'Avg PPG', value: avgPPG ? `${avgPPG} PPG` : 'Not available from the current source' },
+            { label: 'Avg win rate', value: avgWR != null ? `${avgWR}%` : 'Not available from the current source' },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-lg border border-border bg-card p-4 text-center">
               <p className="text-xs text-muted-foreground mb-2">{label}</p>

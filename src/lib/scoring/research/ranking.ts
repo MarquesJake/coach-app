@@ -35,23 +35,50 @@ function recordFor(profile: ResearchProfile, records: readonly CoachRecord[] | n
   return rows.find(row => normalizeCoachName(row.name) === normalizeCoachName(profile.name)) ?? [...rows].sort((a, b) => a.id.localeCompare(b.id))[0] ?? null
 }
 
+const RECORD_ORDER = ['European trophy', 'Top-four finish', 'Domestic title', 'Top-flight experience', 'Promotion']
+function best(recorded: string) {
+  const found = RECORD_ORDER.find(item => recorded.includes(item))
+  return found ? found.replace(/^European/, 'a European').replace(/^Domestic title/, 'a domestic title').replace(/^Top-four finish/, 'a top-four finish').replace(/^Top-flight experience/, 'top-flight experience').replace(/^Promotion/, 'a promotion') : 'no major honour'
+}
+function frontFoot(recorded: string) {
+  const match = recorded.match(/(\d+)% possession, (\d+)% of the match xG/)
+  return match ? { possession: match[1], xg: match[2] } : null
+}
+const season = (recorded: string) => recorded.match(/\d{4}\/\d{2}/)?.[0] ?? 'no recent season'
+
+/** One plain reason per dimension, phrased the way an analyst would say it. */
+function phrase(key: string, upper: string, lower: string): string {
+  switch (key) {
+    case 'record': return `a stronger record — ${best(upper)} against ${best(lower)}`
+    case 'front-foot': {
+      const a = frontFoot(upper), b = frontFoot(lower)
+      return a && b ? `more control of games — ${a.possession}% possession and ${a.xg}% of the xG, against ${b.possession}% and ${b.xg}%` : 'more evidence of front-foot football in the match data'
+    }
+    case 'recent': return `more recent time in charge — ${season(upper)} against ${season(lower)}`
+    case 'style': return `a playing identity closer to the brief — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
+    case 'build': return `a build-up closer to the brief — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
+    case 'pressing': return `pressing closer to the brief — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
+    default: return 'a closer match to the brief'
+  }
+}
+
 function explainGap(upper: RankedCoach, lower: RankedCoach): string {
   if (upper.fit.score === lower.fit.score) {
     const a = upper.evidence?.recentMatches ?? 0, b = lower.evidence?.recentMatches ?? 0
     return a !== b
-      ? `Level with ${lower.profile.name} on ${upper.fit.score}. Listed first on weight of evidence: ${a} verified league matches in his last three seasons against ${b}.`
-      : `Level with ${lower.profile.name} on ${upper.fit.score} and on weight of evidence. Nothing in the data separates them yet.`
+      ? `Level with ${lower.profile.name} on ${upper.fit.score}. Listed first because there is more evidence behind him: ${a} verified league matches in his last three seasons against ${b}.`
+      : `Level with ${lower.profile.name} on ${upper.fit.score}, with as much evidence behind each. The data does not separate them yet.`
   }
   const lowerRows = new Map(lower.fit.dimensions.map(row => [row.key, row]))
   const diffs = upper.fit.dimensions
     .map(row => ({ row, other: lowerRows.get(row.key), delta: row.contribution - (lowerRows.get(row.key)?.contribution ?? 0) }))
     .filter(item => Math.abs(item.delta) >= 0.05)
     .sort((a, b) => b.delta - a.delta)
-  const gains = diffs.filter(item => item.delta > 0).slice(0, 2)
-    .map(item => `${item.row.label.toLowerCase()} (${item.row.recorded} against ${item.other?.recorded ?? 'not assessed'}, +${item.delta.toFixed(1)})`)
+  const gains = diffs.filter(item => item.delta > 0).slice(0, 2).map(item => phrase(item.row.key, item.row.recorded, item.other?.recorded ?? ''))
   const loss = diffs.filter(item => item.delta < 0).at(-1)
   const gap = (upper.fit.score - lower.fit.score).toFixed(1)
-  return `${gap} points ahead of ${lower.profile.name}: stronger on ${gains.join(' and ') || 'the brief overall'}.${loss ? ` ${lower.profile.name} is better on ${loss.row.label.toLowerCase()} (${loss.delta.toFixed(1)}).` : ''}`
+  const lead = `${gap} ahead of ${lower.profile.name}: ${gains.join('; and ') || 'a closer match to the brief overall'}.`
+  return loss ? `${lead} ${lower.profile.name.split(' ').at(-1)} has ${phrase(loss.row.key, loss.other?.recorded ?? '', loss.row.recorded).replace(/^a stronger record/, 'the better record').replace(/^a /, 'the ')}.` : lead
 }
 
 /**
