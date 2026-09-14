@@ -112,16 +112,16 @@ test('network validation failure retains the draft and confirmed saves are not r
 })
 
 const draft = { title: 'Source conversation', contactId: 'contact', coachId: 'coach', intakeMethod: 'analyst_notes', occurredAt: '2026-09-10T12:00', channel: '', careerContext: '', consentStatus: 'not_required', transcriptText: '', analystNotes: 'Retain these notes', sensitivity: 'standard', claims: [], step: 2 }
-function conversation(options: { getFails?: boolean; setFails?: boolean; removeFails?: boolean; invalidDraft?: boolean; uploadFails?: boolean; action?: () => Promise<any> } = {}) {
+function conversation(options: { getFails?: boolean; setFails?: boolean; removeFails?: boolean; invalidDraft?: boolean; uploadFails?: boolean; occurredAt?: string; action?: (input: any) => Promise<any> } = {}) {
   const calls: string[] = []
   const timers: Array<() => void> = []
   const storage = {
-    getItem: () => { if (options.getFails) throw Error('Blocked'); return options.invalidDraft ? '{bad json' : JSON.stringify(draft) },
+    getItem: () => { if (options.getFails) throw Error('Blocked'); return options.invalidDraft ? '{bad json' : JSON.stringify({ ...draft, occurredAt: options.occurredAt ?? draft.occurredAt }) },
     setItem: () => { calls.push('store'); if (options.setFails) throw Error('Quota') },
     removeItem: () => { calls.push('remove-local'); if (options.removeFails) throw Error('Blocked') },
   }
   const page = mount('intelligence/_components/conversation-capture-client.tsx', 'ConversationCaptureClient', { organizationId: 'org', contacts: [], coaches: [] }, {
-    '../trusted-actions': { createIntelligenceSessionAction: async () => { calls.push('save'); return options.action ? options.action() : { ok: true, id: 'session' } } },
+    '../trusted-actions': { createIntelligenceSessionAction: async (input: any) => { calls.push('save'); return options.action ? options.action(input) : { ok: true, id: 'session' } } },
     '@/lib/supabase/client': { createClient: () => ({ storage: { from: () => ({ upload: async () => { calls.push('upload'); if (options.uploadFails) throw Error('Upload offline'); return { error: null } }, remove: () => { throw Error('Remote cleanup prohibited') } }) } }) },
   }, { localStorage: storage, setTimeout: (fn: () => void) => { timers.push(fn); return timers.length }, clearTimeout() {}, confirm: () => true })
   page.render(); page.effects(); page.render()
@@ -279,4 +279,41 @@ test('corpus excludes illustrative and unreviewed findings, keeps pending legal 
   assert.match(html, /Club not recorded/)
   assert.doesNotMatch(html, />placement ready<|>Available</)
   assert.match(html, /More research doesn’t mean a coach is approved/)
+})
+
+test('Continue cancels native activation and mounts a distinct Save button without saving the conversation', async () => {
+  const page = conversation()
+  const next = elements(page.render()).find(element => element.type === 'button' && textOf(element).includes('Continue'))
+  assert.equal(next.props.type, 'button')
+  let prevented = false
+  next.props.onClick({ preventDefault() { prevented = true } })
+  assert.equal(prevented, true)
+  assert.equal(page.slots[0].step, 3)
+  const save = elements(page.render()).find(element => element.type === 'button' && element.props.type === 'submit')
+  assert.ok(save)
+  assert.notEqual(next.key, save.key)
+  assert.ok(!page.storageCalls.includes('save'))
+  await page.save()
+  assert.equal(page.storageCalls.filter(call => call === 'save').length, 1)
+})
+
+test('conversation save resolves Paris local time before crossing the server boundary in summer and winter', async () => {
+  const previousTimezone = process.env.TZ
+  process.env.TZ = 'Europe/Paris'
+  try {
+    for (const [entered, stored] of [
+      ['2026-09-14T18:05', '2026-09-14T16:05:00.000Z'],
+      ['2026-01-14T18:05', '2026-01-14T17:05:00.000Z'],
+    ]) {
+      let submitted: any
+      const page = conversation({ occurredAt: entered, action: async input => { submitted = input; return { ok: true, id: 'session' } } })
+      await page.save()
+      assert.equal(submitted.occurredAt, stored)
+      assert.equal(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(submitted.occurredAt)), '18:05')
+      assert.equal(page.slots[0].occurredAt, entered, 'Local draft stays in the input format')
+    }
+  } finally {
+    if (previousTimezone === undefined) delete process.env.TZ
+    else process.env.TZ = previousTimezone
+  }
 })

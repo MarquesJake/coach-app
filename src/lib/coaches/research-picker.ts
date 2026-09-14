@@ -1,3 +1,4 @@
+import { researchProfileForName } from '../scoring/research/catalogue.ts'
 import { findCoachDuplicateGroups, type DuplicateReviewCoach } from './duplicate-review.ts'
 
 type IdentityReview = { coach_a_id: string; coach_b_id: string; decision: string; canonical_coach_id: string | null }
@@ -22,7 +23,7 @@ export function researchedCoachChoices<T extends DuplicateReviewCoach>(coaches: 
       if (!decisions.has(key(a, b))) { blocked.add(a); blocked.add(b) }
     }
   }
-  return coaches.filter(coach => (counts[coach.id]?.researchCount ?? 0) > 0 && !blocked.has(coach.id))
+  return coaches.filter(coach => ((counts[coach.id]?.researchCount ?? 0) > 0 || Boolean(researchProfileForName(coach.name))) && !blocked.has(coach.id))
 }
 
 export function selectedComparisonIds(requested: string | undefined, candidates: string[], allowed: string[], max = 4) {

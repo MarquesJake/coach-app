@@ -380,7 +380,7 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-foreground">Active mandate links</h2>
-              <p className="text-xs text-muted-foreground">Mandates he is already part of.</p>
+              <p className="text-xs text-muted-foreground">Saved workflow associations, not calculated football-fit recommendations.</p>
             </div>
             <Link href="/mandates" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
               Mandates
@@ -410,8 +410,9 @@ export default async function CoachOverviewPage(props: { params: Promise<{ id: s
                     </Link>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {entry.probability != null ? `Placement probability ${entry.probability}%` : entry.rankingScore != null ? `Longlist score ${Math.round(entry.rankingScore)}` : 'Awaiting score evidence'}
+                    {entry.probability != null ? `Legacy saved placement field: ${entry.probability}%` : entry.rankingScore != null ? `Legacy saved longlist rating: ${Math.round(entry.rankingScore)}` : 'No legacy rating recorded'}. These stored values may include demo or manual inputs; they are not sourced football fit or a validated probability of success.
                   </p>
+                  <Link href={`/mandates/${entry.mandate.id}/candidates#brief-matches`} className="mt-2 inline-block text-xs text-primary underline">View sourced football fit and evidence</Link>
                 </li>
               ))}
             </ul>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
@@ -122,6 +123,9 @@ export function CoachDataTab({
   recruitment: RecruitmentRow[]
   mediaEvents: MediaEvent[]
 }) {
+  const router = useRouter()
+  const profileBusy = useRef(false)
+  const [profileSaving, setProfileSaving] = useState(false)
   const p = profile
   const repeatPlayerCount = p?.recruitment_repeat_player_count ?? null
   const repeatAgentCount = p?.recruitment_repeat_agent_count ?? null
@@ -161,16 +165,25 @@ export function CoachDataTab({
 
   const onProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setSubmitError(null)
-    const form = e.currentTarget
-    const formData = new FormData(form)
+    if (profileBusy.current) return
+    const formData = new FormData(e.currentTarget)
     formData.set('profile_id', p?.id ?? '')
-    const result = await upsertDataProfileAction(coachId, formData)
-    if (result.error) {
-      setSubmitError(result.error)
-      return
+    profileBusy.current = true
+    setProfileSaving(true)
+    setSubmitError(null)
+    let confirmed = false
+    try {
+      const result = await upsertDataProfileAction(coachId, formData)
+      if (result.error) { setSubmitError(result.error); return }
+      confirmed = true
+      setProfileDrawerOpen(false)
+      router.refresh()
+    } catch {
+      setSubmitError(confirmed ? 'Saved, but the page did not refresh. Reload to check.' : 'Save could not be confirmed. Your entries are kept. Check the record before retrying.')
+    } finally {
+      profileBusy.current = false
+      setProfileSaving(false)
     }
-    setProfileDrawerOpen(false)
   }
   const onRecruitmentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -215,6 +228,7 @@ export function CoachDataTab({
 
   return (
     <div className="space-y-6">
+      {!profileDrawerOpen && !recruitmentDrawerOpen && !mediaDrawerOpen && submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
       {/* Section 0 – External Profile */}
       <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-lg font-medium text-foreground mb-4">
@@ -481,17 +495,17 @@ export function CoachDataTab({
       {/* Profile drawer */}
       <Drawer
         open={profileDrawerOpen}
-        onClose={() => { setProfileDrawerOpen(false); setSubmitError(null) }}
+        onClose={() => { if (!profileBusy.current) { setProfileDrawerOpen(false); setSubmitError(null) } }}
         title="Edit data profile"
         footer={
           <>
-            <Button variant="outline" onClick={() => setProfileDrawerOpen(false)}>Cancel</Button>
-            <Button type="submit" form="profile-form">Save</Button>
+            <Button variant="outline" disabled={profileSaving} onClick={() => setProfileDrawerOpen(false)}>Cancel</Button>
+            <Button type="submit" form="profile-form" disabled={profileSaving}>{profileSaving ? 'Saving…' : 'Save'}</Button>
           </>
         }
       >
-        <form id="profile-form" onSubmit={onProfileSubmit} className="space-y-4">
-          {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+        {profileDrawerOpen && <form id="profile-form" onSubmit={onProfileSubmit} className="space-y-4">
+          {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Avg squad age</label>
@@ -541,7 +555,7 @@ export function CoachDataTab({
             <label className="block text-xs font-medium text-muted-foreground mb-1">Confidence score (0–100)</label>
             <input type="number" min={0} max={100} name="confidence_score" defaultValue={p?.confidence_score ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
           </div>
-        </form>
+        </form>}
       </Drawer>
 
       {/* Recruitment drawer */}

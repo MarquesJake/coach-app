@@ -1,41 +1,12 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { EditCoachDrawer, type EditCoachField } from './edit-coach-drawer'
 import { updateCoachCoreAction } from '@/app/(dashboard)/coaches/[id]/actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import { useRouter } from 'next/navigation'
 
-function formatScore(v: number | null | undefined): string {
-  if (v == null) return '—'
-  const n = Number(v)
-  return Number.isNaN(n) ? '—' : String(Math.round(n))
-}
-
-function scoreBarClass(value: number | null | undefined): string {
-  if (value == null) return 'bg-red-500/70'
-  const n = Math.max(0, Math.min(100, Number(value)))
-  if (n >= 70) return 'bg-green-500'
-  if (n >= 40) return 'bg-amber-500'
-  return 'bg-red-500/70'
-}
-
 function ScoreRow({ label, value }: { label: string; value: number | null | undefined }) {
-  const n = value != null ? Math.max(0, Math.min(100, Number(value))) : 0
-  return (
-    <div className="py-2 border-b border-border/50 last:border-0">
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium tabular-nums text-foreground">{formatScore(value)}</span>
-      </div>
-      <div className="h-2 rounded-full bg-muted overflow-hidden">
-        <div
-          className={cn('h-full rounded-full transition-all', scoreBarClass(value))}
-          style={{ width: `${n}%` }}
-        />
-      </div>
-    </div>
-  )
+  return <div className="flex justify-between gap-3 border-b border-border/50 py-2 text-sm last:border-0"><span className="text-muted-foreground">{label}</span><span className="text-right text-foreground">{value != null && Number.isFinite(Number(value)) ? 'Saved rating · source review needed' : 'No rating recorded'}</span></div>
 }
 
 type VersionedScores = {
@@ -136,7 +107,7 @@ export function ScoringSection({
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-medium text-foreground">Score Breakdown</p>
             {useVersioned && (
-              <span className="text-xs text-muted-foreground">From versioned model</span>
+              <span className="text-xs text-muted-foreground">Legacy score snapshot</span>
             )}
           </div>
           <div className="space-y-0">
@@ -152,7 +123,7 @@ export function ScoringSection({
           <div className="space-y-3 text-sm text-muted-foreground">
             <div className="flex justify-between">
               <span>Intelligence confidence</span>
-              <span className="tabular-nums text-foreground">{formatScore(intelligenceConfidence)}</span>
+              <span className="tabular-nums text-foreground">{intelligenceConfidence != null ? 'Recorded · not a calibrated probability' : 'Not recorded'}</span>
             </div>
             <div className="flex justify-between">
               <span>Evidence count</span>
@@ -172,7 +143,7 @@ export function ScoringSection({
             </div>
             <div className="pt-2 border-t border-border/50 text-sm text-muted-foreground">
               {completenessPercent < 40 && (
-                <p>The profile is thin, so the ranking may be less accurate.</p>
+                <p>The profile has missing fields. Completeness does not measure football fit.</p>
               )}
               {evidenceCount < 3 && (
                 <p className={completenessPercent < 40 ? 'mt-1' : ''}>Not much intelligence yet.</p>
@@ -184,7 +155,7 @@ export function ScoringSection({
           </div>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground italic">Weightings coming soon.</p>
+      <p className="text-xs text-muted-foreground italic">Legacy ratings remain editable records. They are not the sourced mandate football-fit calculation and do not establish suitability.</p>
     </div>
   )
 }

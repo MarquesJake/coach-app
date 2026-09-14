@@ -43,3 +43,12 @@ test('a source-index record stays excluded even after its name stops matching th
   const reviews = [{ coach_a_id: 'full', coach_b_id: 'import', decision: 'canonical_selected', canonical_coach_id: 'full' }]
   assert.deepEqual(researchedCoachChoices(renamed, counts, reviews).map(row => row.id), ['full', 'distinct'])
 })
+
+test('published source research qualifies without a separate analyst question, but unresolved duplicate identity still blocks it', () => {
+  const canonical = { id: 'mckenna', name: 'Kieran McKenna', club_current: 'Ipswich Town' }
+  assert.deepEqual(researchedCoachChoices([canonical], {}, []).map(row => row.id), ['mckenna'])
+  const duplicate = { id: 'mckenna-import', name: 'K. McKenna', club_current: 'Different stale employer' }
+  assert.deepEqual(researchedCoachChoices([canonical, duplicate], {}, []), [])
+  const reviews = [{ coach_a_id: canonical.id, coach_b_id: duplicate.id, decision: 'canonical_selected', canonical_coach_id: canonical.id }]
+  assert.deepEqual(researchedCoachChoices([canonical, duplicate], {}, reviews).map(row => row.id), ['mckenna'])
+})

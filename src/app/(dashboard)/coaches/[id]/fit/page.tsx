@@ -2,8 +2,6 @@ import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { getMandatesForTeam } from '@/lib/db/mandate'
-import { getEvidenceCountForCoach } from '@/lib/db/fit'
-import { computeCompleteness } from '@/app/(dashboard)/coaches/[id]/_lib/coach-completeness'
 import { FitClient } from './_components/fit-client'
 import { displayClubName } from '@/lib/display-names'
 
@@ -19,29 +17,12 @@ export default async function CoachFitPage(props: { params: Promise<{ id: string
   const { data: coach, error: coachError } = await getCoachById(params.id)
   if (coachError || !coach) notFound()
 
-  const { data: mandatesList } = await getMandatesForTeam()
+  const { data: mandatesList, error: mandatesError } = await getMandatesForTeam()
+  if (mandatesError) throw new Error('Club briefs could not be loaded. Please retry.')
   const mandates = (mandatesList ?? []).map((m: { id: string; custom_club_name?: string | null; clubs?: { name?: string | null } | null }) => ({
     id: m.id,
     label: displayClubName(m.custom_club_name, (m.clubs as { name?: string } | null)?.name, 'Mandate'),
   }))
 
-  const evidenceCount = await getEvidenceCountForCoach(params.id)
-  const completeness = computeCompleteness(coach as Record<string, unknown>)
-
-  return (
-    <FitClient
-      coachId={params.id}
-      coach={{
-        name: coach.name,
-        preferred_name: coach.preferred_name,
-        availability_status: coach.availability_status,
-        market_status: coach.market_status,
-        overall_manual_score: coach.overall_manual_score,
-        intelligence_confidence: coach.intelligence_confidence,
-      }}
-      mandates={mandates}
-      evidenceCount={evidenceCount}
-      completenessPercent={completeness}
-    />
-  )
+  return <FitClient coachId={params.id} mandates={mandates} />
 }

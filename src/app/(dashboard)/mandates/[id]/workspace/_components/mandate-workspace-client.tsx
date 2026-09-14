@@ -1466,7 +1466,7 @@ function FitAssessment({
             overall === 'weak' && 'text-red-400 bg-red-400/10 border-red-400/20',
             overall === 'unknown' && 'text-muted-foreground bg-surface border-border',
           )}>
-            {overall === 'unknown' ? 'Unscored' : overall}
+            {candidate.is_illustrative ? 'DEMO DATA · ' : 'Manual rating · '}{overall === 'unknown' ? 'Unscored' : overall}
           </span>
           {/* Decision Confidence badge — only when intel is loaded */}
           {!intelLoading && decisionConfidence && (
@@ -1476,7 +1476,7 @@ function FitAssessment({
               decisionConfidence === 'Medium' && 'text-amber-400 border-amber-400/30 bg-amber-400/5',
               decisionConfidence === 'Low' && 'text-red-400 border-red-400/30 bg-red-400/5',
             )}>
-              {decisionConfidence} confidence
+              {candidate.is_illustrative ? `Demo confidence · ${decisionConfidence}` : `${decisionConfidence} confidence`}
             </span>
           )}
         </div>
@@ -1567,6 +1567,7 @@ function FitAssessment({
         {/* Fit dimensions */}
         <section className="space-y-3">
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Fit assessment</h3>
+          <p className="text-xs text-muted-foreground">{candidate.is_illustrative ? 'DEMO DATA · These manual ratings are illustrative examples, not verified intelligence or the calculated football-fit score.' : 'These are saved manual ratings. Verify their supporting sources; they are separate from calculated football fit.'}</p>
           <div className="grid grid-cols-2 gap-3">
             <FitSignalSelect name="fit_tactical" label="Tactical / style fit" value={candidate.fit_tactical} />
             <FitSignalSelect name="fit_level" label="League / level fit" value={candidate.fit_level} />

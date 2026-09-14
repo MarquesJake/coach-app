@@ -22,6 +22,7 @@ import {
   saveCoachDuplicateReviewAction,
   type CoachDuplicateReviewDecision,
 } from './actions'
+import { researchProfileForName } from '@/lib/scoring/research/catalogue'
 import { researchedCoachChoices, isRecordedAvailable } from '@/lib/coaches/research-picker'
 import { findCoachDuplicateGroups } from '@/lib/coaches/duplicate-review'
 
@@ -867,7 +868,7 @@ export default function CoachesPage() {
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Status</span>
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Reputation</span>
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Wage</span>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Complete</span>
+          <span title="Recorded field coverage, not evidence quality or appointment readiness" className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Fields</span>
           <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60">Research</span>
           <span />
         </div>
@@ -876,7 +877,8 @@ export default function CoachesPage() {
         <div className="divide-y divide-border/50">
           {filtered.map((coach, i) => {
             const completeness = computeCoachCompleteness(coach as Record<string, unknown>, counts[coach.id])
-            const researchLabel = (counts[coach.id]?.researchCount ?? 0) > 0 ? 'Research recorded' : 'Source index'
+            const sourcedProfile = researchProfileForName(coach.name)
+            const researchLabel = sourcedProfile ? 'Sourced profile' : (counts[coach.id]?.researchCount ?? 0) > 0 ? 'Research recorded' : 'Source index'
             const readinessBadge = 'border-border bg-muted/50 text-muted-foreground'
             return (
             <div
@@ -900,7 +902,7 @@ export default function CoachesPage() {
               >
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                    {coach.name}
+                    {sourcedProfile?.name ?? coach.name}
                   </span>
                   {coach.nationality && (
                     <span className="text-2xs text-muted-foreground/50 hidden lg:inline">{coach.nationality}</span>
@@ -916,7 +918,7 @@ export default function CoachesPage() {
                   <span className={cn('inline-flex rounded-md border px-2 py-0.5 text-2xs font-medium tabular-nums', readinessBadge)}>
                     {researchLabel}
                   </span>
-                  <span className="text-2xs text-muted-foreground">Profile {completeness}%</span>
+                  <span className="text-2xs text-muted-foreground">Fields recorded {completeness}%</span>
                 </div>
                 {duplicateDisplayByCoach.has(coach.id) && (
                   <span className={cn(
@@ -930,7 +932,7 @@ export default function CoachesPage() {
 
               {/* Style */}
               <div className="hidden lg:block">
-                <span className="text-2xs text-muted-foreground">{coach.preferred_style}</span>
+                <span className="text-2xs text-muted-foreground">{sourcedProfile ? `${sourcedProfile.style} · sourced research` : coach.preferred_style || 'Not assessed'}</span>
               </div>
 
               {/* Status */}

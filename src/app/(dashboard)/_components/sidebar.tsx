@@ -29,13 +29,13 @@ import { ThemeToggle } from '@/components/theme-toggle'
 
 const primaryNav = [
   { label: 'Today', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Succession', href: '/succession', icon: Activity },
   { label: 'Mandates', href: '/mandates', icon: Briefcase },
   { label: 'Coaches', href: '/coaches', icon: Users },
   { label: 'Research & sources', href: '/intelligence', icon: Radio },
   { label: 'Club briefs', href: '/club-briefs', icon: Building2 },
   { label: 'Coach submissions', href: '/coach-portal', icon: ShieldCheck },
   { label: 'Report releases', href: '/dossier-orders', icon: PackageCheck },
+  { label: 'Succession', href: '/succession', icon: Activity },
 ]
 
 const networkNav = [

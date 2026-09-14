@@ -1,3 +1,4 @@
+import { SourcedCoachResearch } from '@/components/assessment/sourced-coach-research'
 import { ArrowUpRight, ChevronDown, Plus } from 'lucide-react'
 import { researchAreaLabel, evidenceLabel } from '@/lib/display-copy'
 import Link from 'next/link'
@@ -25,7 +26,7 @@ export default async function ResearchPage({ params, searchParams }: { params: P
   let questionQuery = db.from('coach_research_questions').select('*').eq('coach_id', id)
   questionQuery = requestedMandate && !general ? questionQuery.eq('mandate_id', requestedMandate) : questionQuery.is('mandate_id', null)
   const [{data:coach}, questions, claims, mandates] = await Promise.all([
-    db.from('coaches').select('id').eq('id',id).maybeSingle(),
+    db.from('coaches').select('id,name').eq('id',id).maybeSingle(),
     questionQuery.order('created_at',{ascending:false}),
     db.from('profile_claims').select('id, claimed_value, source_name, verification_status, occurred_at, evidence_summary').eq('coach_id',id).order('occurred_at',{ascending:false}),
     db.from('mandates').select('id,custom_club_name,clubs(name)').order('created_at',{ascending:false}),
@@ -40,6 +41,7 @@ export default async function ResearchPage({ params, searchParams }: { params: P
   const href = (path: string) => researchHref(path, context)
   const captureHref = (path: string) => researchHref(path, general ? { coach: id, returnTo: href(`/coaches/${id}/research?scope=general`) } : context)
   return <div className="space-y-5">
+    <SourcedCoachResearch name={coach.name} coachId={id} />
     {initialMandate && <Link className="text-sm text-primary underline" href={href(`/mandates/${initialMandate}/decision`)}>Back to mandate overview</Link>}
     <section className="flex flex-wrap items-start justify-between gap-4"><div><p className="gaffa-eyebrow mb-2">Build the evidence</p><h2 className="text-2xl font-semibold tracking-tight">Research</h2><p className="gaffa-description mt-2 hidden sm:block">Ask what could change the decision. Link your sources and note anyone who sees it differently.</p><div className="mt-4 hidden flex-wrap gap-4 sm:flex"><Link className="gaffa-link" href={captureHref(`/intelligence/conversations?coach=${id}`)}>Record conversation</Link><Link className="gaffa-link" href={captureHref(`/intelligence/inbox?coach=${id}`)}>Add source material</Link><Link className="gaffa-link" href={href(`/coaches/${id}/intelligence`)}>Review findings</Link></div></div><Link className="gaffa-action gaffa-action-primary" href="#new-question"><Plus className="h-4 w-4"/>New question</Link></section>
     {(questions.error || claims.error || mandates.error) && <p role="alert" className="rounded border border-destructive p-4 text-sm">Some research didn’t load. Refresh before making changes.</p>}

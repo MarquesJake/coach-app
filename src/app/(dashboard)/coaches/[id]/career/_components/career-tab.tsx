@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
 import { SourceConfidenceFields, IntelPill } from '@/components/source-confidence-fields'
@@ -154,22 +155,28 @@ export function CareerTab({
   stints: Stint[]
   clubs: ClubOption[]
 }) {
+  const router = useRouter()
+  const busy = useRef(false)
+  const [saving, setSaving] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<Stint | null>(null)
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const openAdd = () => {
+    if (busy.current) return
     setEditing(null)
     setSubmitError(null)
     setDrawerOpen(true)
   }
   const openEdit = (s: Stint) => {
+    if (busy.current) return
     setEditing(s)
     setSubmitError(null)
     setDrawerOpen(true)
   }
   const closeDrawer = () => {
+    if (busy.current) return
     setDrawerOpen(false)
     setEditing(null)
     setSubmitError(null)
@@ -177,25 +184,44 @@ export function CareerTab({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setSubmitError(null)
-    const form = e.currentTarget
-    const formData = new FormData(form)
+    if (busy.current) return
+    const formData = new FormData(e.currentTarget)
     formData.set('id', editing?.id ?? '')
-    const result = await upsertStintAction(coachId, formData)
-    if (result.error) {
-      setSubmitError(result.error)
-      return
+    busy.current = true
+    setSaving(true)
+    setSubmitError(null)
+    let confirmed = false
+    try {
+      const result = await upsertStintAction(coachId, formData)
+      if (result.error) { setSubmitError(result.error); return }
+      confirmed = true
+      busy.current = false
+      closeDrawer()
+      router.refresh()
+    } catch {
+      setSubmitError(confirmed ? 'Saved, but the page did not refresh. Reload before adding another stint.' : 'Save could not be confirmed. Your entries are kept. Check the record before retrying.')
+    } finally {
+      busy.current = false
+      setSaving(false)
     }
-    closeDrawer()
   }
 
   const handleDelete = async (stintId: string) => {
-    if (!confirm('Delete this stint?')) return
+    if (busy.current || !confirm('Delete this stint?')) return
+    busy.current = true
     setPendingDelete(stintId)
-    const result = await deleteStintAction(coachId, stintId)
-    setPendingDelete(null)
-    if (result.error) {
-      setSubmitError(result.error)
+    setSubmitError(null)
+    let confirmed = false
+    try {
+      const result = await deleteStintAction(coachId, stintId)
+      if (result.error) { setSubmitError(result.error); return }
+      confirmed = true
+      router.refresh()
+    } catch {
+      setSubmitError(confirmed ? 'Deleted, but the page did not refresh. Reload to check.' : 'Deletion could not be confirmed. Reload to check before retrying.')
+    } finally {
+      busy.current = false
+      setPendingDelete(null)
     }
   }
 
@@ -241,6 +267,7 @@ export function CareerTab({
 
   return (
     <div className="space-y-4">
+      {!drawerOpen && submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
       {/* ── Career Stats Bar ─────────────────────────────────────────────── */}
       {totalRoles > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -414,14 +441,14 @@ export function CareerTab({
             <Button variant="outline" onClick={closeDrawer}>
               Cancel
             </Button>
-            <Button type="submit" form="stint-form">
-              {editing ? 'Save' : 'Add'}
+            <Button type="submit" form="stint-form" disabled={saving}>
+              {saving ? 'Saving…' : editing ? 'Save' : 'Add'}
             </Button>
           </>
         }
       >
-        <form id="stint-form" onSubmit={handleSubmit} className="space-y-4">
-          {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+        {drawerOpen && <form key={editing?.id ?? 'new'} id="stint-form" onSubmit={handleSubmit} className="space-y-4">
+          {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
           <input type="hidden" name="id" value={editing?.id ?? ''} />
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Linked club record</label>
@@ -531,7 +558,7 @@ export function CareerTab({
               verified_at: null,
             }}
           />
-        </form>
+        </form>}
       </Drawer>
     </div>
   )

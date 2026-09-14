@@ -1,3 +1,4 @@
+import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
@@ -38,7 +39,7 @@ export default async function CoachScoringPage(props: { params: Promise<{ id: st
   assertRouteQueries('Scoring records', { error: evidenceError }, latestScore)
 
   return (
-    <ScoringSection
+    <div className="space-y-4"><p className="text-sm text-muted-foreground">This page contains legacy recorded assessments and evidence counts. Use a club brief for sourced football-fit research.</p><Link className="inline-block text-sm text-primary underline" href={`/coaches/${params.id}/fit`}>Open club brief assessment</Link><ScoringSection
       coachId={params.id}
       coach={coachRecord}
       evidenceCount={evidenceCount ?? 0}
@@ -47,6 +48,6 @@ export default async function CoachScoringPage(props: { params: Promise<{ id: st
       verifiedCoverage={coverage.verifiedCoverage}
       intelligenceWeightedConfidence={intelligenceConfidence.weightedConfidence}
       versionedScores={latestScore.data}
-    />
+    /></div>
   )
 }

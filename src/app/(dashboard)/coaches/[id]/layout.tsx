@@ -6,6 +6,7 @@ import { CoachCommandBar } from './_components/coach-command-bar'
 import { summariseEvidence } from '@/lib/decision-workflow'
 import { ResearchContextBanner } from '../_components/research-context-link'
 import type { Metadata } from 'next'
+import { researchProfileForName } from '@/lib/scoring/research/catalogue'
 
 // Names the entity in the tab so several open records can be told apart; child
 // tabs supply their own label through the template ("Career · Kieran McKenna").
@@ -27,5 +28,6 @@ export default async function CoachDetailLayout({children,params}:{children:Reac
  ])
  if(!coach)notFound()
  const summary=summariseEvidence(claims.data??[])
- return <div className="min-w-0 max-w-full space-y-4"><ResearchContextBanner/><CoachCommandBar coachId={id} coach={coach as Record<string,unknown>} evidenceLabel={claims.error?'Evidence unavailable':summary.label} onWatchlist={!!watchlist.data}/><CoachTabNav coachId={id}/><div className="min-w-0 max-w-full break-words">{children}</div></div>
+ const evidenceLabel = claims.error ? 'Evidence unavailable' : researchProfileForName(coach.name) && summary.label === 'Needs research' ? 'Football research sourced · diligence pending' : summary.label
+ return <div className="min-w-0 max-w-full space-y-4"><ResearchContextBanner/><CoachCommandBar coachId={id} coach={coach as Record<string,unknown>} evidenceLabel={evidenceLabel} onWatchlist={!!watchlist.data}/><CoachTabNav coachId={id}/><div className="min-w-0 max-w-full break-words">{children}</div></div>
 }
