@@ -1,6 +1,6 @@
 import { DecisionBriefReview } from '../../_components/decision-brief-fields'
 import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
-import { isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
+import { deepDiveFor, isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
 import { ResearchQueue } from '@/components/research-queue'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
@@ -152,9 +152,14 @@ export default async function MandatePlanPage(
   const lead = progress.lead
   const leadCoachId = lead?.coach_id ?? null
   const serviceModel = progress.facts.serviceModel
-  const gates = progress.gates
+  const demoLead = !!leadCoachId && (!!deepDiveFor(leadCoachId, params.id) || isCurrentManagerBenchmark(params.id, leadCoachId))
+  const hasDemoDossiers = (shortlist ?? []).some(row => !!deepDiveFor(row.coach_id, params.id) || isCurrentManagerBenchmark(params.id, row.coach_id))
+  const gates = progress.gates.map(gate => {
+    const demoDependent = (demoLead && ['assessment', 'human_evidence', 'feasibility'].includes(gate.key)) || (hasDemoDossiers && ['board', 'release'].includes(gate.key))
+    return demoDependent && gate.status !== 'not_required' ? { ...gate, status: 'attention' as const, detail: 'DEMO DATA · Saved dossier records include legacy examples. Review their sources before treating this check as current readiness.' } : gate
+  })
   const workItems = [...progress.workItems].sort((a, b) => a.due_date.localeCompare(b.due_date)) as WorkItemRow[]
-  const nextAction = progress.nextAction
+  const nextAction = demoLead ? { ...progress.nextAction, label: 'Review demo dossier evidence', detail: 'Replace legacy example criteria with sourced assessments and reviewed evidence before a board recommendation.', href: `/mandates/${params.id}/pack` } : progress.nextAction
   const clubName = displayClubName(
     mandate.custom_club_name,
     (mandate.clubs as { name?: string } | null)?.name,
@@ -172,6 +177,7 @@ export default async function MandatePlanPage(
     <div className="mx-auto max-w-[1200px]">
       <MandateTabNav mandateId={params.id} />
 
+      {hasDemoDossiers && <p className="my-4 rounded border border-border p-3 text-sm">DEMO DATA · This workflow includes legacy example dossiers. Saved criteria and verdicts do not establish current recommendation readiness. Current-manager benchmarks provide context only; this study does not advise retaining or dismissing an incumbent.</p>}
       <header className="flex flex-col justify-between gap-4 border-b border-border pb-5 lg:flex-row lg:items-end">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Appointment overview</p>
@@ -255,12 +261,12 @@ export default async function MandatePlanPage(
         <dl className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
           <div className="bg-card px-5 py-4">
             <dt className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Recommended</dt>
-            <dd className="mt-1 text-sm font-semibold text-foreground">{leadCoachId ? coachMap.get(leadCoachId) : 'Not recorded'}</dd>
+            <dd className="mt-1 text-sm font-semibold text-foreground">{demoLead ? `Legacy example: ${coachMap.get(leadCoachId!) ?? 'Current-manager benchmark'}` : leadCoachId ? coachMap.get(leadCoachId) : 'Not recorded'}</dd>
           </div>
           <div className="bg-card px-5 py-4">
             <dt className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Recommendation</dt>
             <dd className="mt-1 text-sm font-semibold text-foreground">
-              {lead?.verdict ? `${lead.verdict}${lead.confidence !== null ? ` · ${lead.confidence}%` : ''}` : 'Not recorded'}
+              {lead?.verdict ? `${demoLead ? 'DEMO DATA · legacy verdict: ' : ''}${lead.verdict}${lead.confidence !== null ? ` · ${lead.confidence}%${demoLead ? ' legacy confidence' : ''}` : ''}` : 'Not recorded'}
             </dd>
           </div>
           <div className="bg-card px-5 py-4">

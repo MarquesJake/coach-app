@@ -22,6 +22,7 @@ import {
   saveCoachDuplicateReviewAction,
   type CoachDuplicateReviewDecision,
 } from './actions'
+import { currentEmploymentForApiId, employmentLabel } from '@/lib/scoring/research/current-employment'
 import { researchProfileForName } from '@/lib/scoring/research/catalogue'
 import { researchedCoachChoices, isRecordedAvailable } from '@/lib/coaches/research-picker'
 import { findCoachDuplicateGroups } from '@/lib/coaches/duplicate-review'
@@ -878,6 +879,7 @@ export default function CoachesPage() {
           {filtered.map((coach, i) => {
             const completeness = computeCoachCompleteness(coach as Record<string, unknown>, counts[coach.id])
             const sourcedProfile = researchProfileForName(coach.name)
+            const employment = sourcedProfile && currentEmploymentForApiId(sourcedProfile.apiId)
             const researchLabel = sourcedProfile ? 'Sourced profile' : (counts[coach.id]?.researchCount ?? 0) > 0 ? 'Research recorded' : 'Source index'
             const readinessBadge = 'border-border bg-muted/50 text-muted-foreground'
             return (
@@ -909,7 +911,7 @@ export default function CoachesPage() {
                   )}
                 </div>
                 <span className="text-2xs text-muted-foreground truncate block">
-                  Recorded, unverified: {coach.role_current || 'Role not recorded'}{coach.club_current ? ` · ${coach.club_current}` : ' · Employment not recorded'}
+                  {employment ? `${employmentLabel(employment)} · checked ${employment.checkedAt}` : `Recorded, unverified: ${coach.role_current || 'Role not recorded'} · ${coach.club_current || 'Employment not recorded'}`}
                 </span>
                 <div className="mt-2 flex flex-wrap items-center gap-2 lg:hidden">
                   <Badge variant={STATUS_VARIANT[coach.available_status] || 'outline'}>

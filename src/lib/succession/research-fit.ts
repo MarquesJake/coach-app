@@ -1,3 +1,4 @@
+import { appointmentFeasibility, type AppointmentFeasibility, type AppointmentDecision, APPOINTMENT_DECISIONS } from '../appointments/feasibility.ts'
 import { calculateResearchFit, normalizeCoachName, type RankingBrief, type ResearchFit, type ResearchProfile } from '../scoring/research/brief-fit.ts'
 import { RESEARCH_PROFILES } from '../scoring/research/profiles.ts'
 import { isActiveAppointment } from '../coaches/route-audit.ts'
@@ -16,6 +17,7 @@ export type ReviewedSuccessionCoach = SuccessionCoach & {
   fitScore: number
   research: ResearchProfile
   fit: ResearchFit
+  feasibility: AppointmentFeasibility
 }
 
 const mappings: Record<ClubField, Record<string, string>> = {
@@ -115,7 +117,7 @@ export function scoreCoachForClub(coach: SuccessionCoach, club: SuccessionClub) 
   return { score: fit.score, status: fit.score === null ? 'needs-brief' as const : 'scored' as const, research, fit }
 }
 
-export function rankReviewedCoaches(coaches: SuccessionCoach[], club: SuccessionClub, requirements = clubResearchRequirements(club)) {
+export function rankReviewedCoaches(coaches: SuccessionCoach[], club: SuccessionClub, requirements = clubResearchRequirements(club), decisions: readonly AppointmentDecision[] = APPOINTMENT_DECISIONS) {
   const groups = new Map<number, { research: ResearchProfile; records: SuccessionCoach[] }>()
   let unreviewed = 0, ambiguous = 0
   for (const coach of coaches) {
@@ -126,6 +128,7 @@ export function rankReviewedCoaches(coaches: SuccessionCoach[], club: Succession
     groups.set(research.apiId, group)
   }
   const matches: ReviewedSuccessionCoach[] = []
+  const excluded: ReviewedSuccessionCoach[] = []
   let incumbent: ReviewedSuccessionCoach | null = null, reviewed = 0
   for (const { research, records } of groups.values()) {
     // Prefer the sole canonical-name row; otherwise do not choose an arbitrary duplicate record.
@@ -136,10 +139,12 @@ export function rankReviewedCoaches(coaches: SuccessionCoach[], club: Succession
     if (!requirements.ready) continue
     const fit = calculateResearchFit(requirements.brief, research)
     if (fit.score === null) continue
-    const result = { ...record, fitScore: fit.score, research, fit }
-    if (club.current_manager && [research.name, ...research.aliases].some(name => normalizeCoachName(name) === normalizeCoachName(club.current_manager!))) incumbent = result
+    const feasibility = appointmentFeasibility(research, { clubId: club.id, mandateId: requirements.source.mandateId, incumbentName: club.current_manager }, decisions)
+    const result = { ...record, fitScore: fit.score, research, fit, feasibility }
+    if (feasibility.status === 'incumbent') incumbent = result
+    else if (feasibility.excluded) excluded.push(result)
     else matches.push(result)
   }
   matches.sort((a, b) => b.fitScore - a.fitScore || a.research.name.localeCompare(b.research.name))
-  return { matches, incumbent, coverage: { reviewed, unreviewed, ambiguous } }
+  return { matches, excluded, incumbent, coverage: { reviewed, unreviewed, ambiguous } }
 }

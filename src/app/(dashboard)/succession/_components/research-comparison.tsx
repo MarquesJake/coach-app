@@ -1,6 +1,21 @@
+import { currentEmploymentForApiId } from '@/lib/scoring/research/current-employment'
 import Link from 'next/link'
 import type { RadarClub } from '@/lib/succession/radar'
 import type { ReviewedSuccessionCoach } from '@/lib/succession/research-fit'
+
+
+function CurrentRole({ apiId }: { apiId: number }) {
+  const record = currentEmploymentForApiId(apiId)
+  if (!record) return <p className="mt-2 text-xs text-muted-foreground">Current role not verified in the employment catalogue.</p>
+  const label = record.status === 'employed' ? [record.role, record.club].filter(Boolean).join(' · ') || 'Employed; role not supplied'
+    : record.status === 'unattached' ? 'Reported unattached' : 'Current employment not verified'
+  return <div className="mt-2 text-xs leading-5 text-muted-foreground">
+    <p>{label} · checked {record.checkedAt}</p>
+    {record.sourceUrl && <a href={record.sourceUrl} target="_blank" rel="noreferrer" className="text-primary underline">{record.sourceTitle || 'Employment source'}</a>}
+    <p>{record.note}</p>
+    <p>Employment evidence does not establish willingness or a route to appointment.</p>
+  </div>
+}
 
 function ScoreEvidence({ coach }: { coach: ReviewedSuccessionCoach }) {
   return <details className="mt-3 border-t border-border pt-3">
@@ -62,24 +77,37 @@ export function ResearchComparison({ plan, returnTo, compact = false }: { plan: 
   return <section className="rounded-lg border border-border bg-card p-4">
     <h2 className="text-sm font-semibold">Shadow shortlist · research comparisons</h2>
     <p className="mt-2 text-xs leading-5 text-muted-foreground">{plan.researchCoverage.reviewed} reviewed profiles matched to accessible coach records; {plan.researchCoverage.unreviewed} records without this research and {plan.researchCoverage.ambiguous} ambiguous records are not scored. {plan.requirements.dimensionCount} supported saved requirements.</p>
+    <p className="mt-2 text-xs text-muted-foreground">Appointment feasibility is unassessed unless an explicit review is shown. These are football comparisons, not confirmed realistic appointments.</p>
     <BriefSource plan={plan} />
     <details className="mt-3 text-xs leading-5">
       <summary className="cursor-pointer font-semibold">Where do the benchmarks come from?</summary>
       <p className="mt-2 text-muted-foreground">Gaffa’s reviewed research profiles code tactics from dated public analyses and official club or league sources. They are compared with the selected saved requirements, using the same published decision rule as appointment briefs. API-Football identifies coaches and records careers; it does not supply these tactical assessments.</p>
       <p className="mt-2 text-muted-foreground">Starting weights: playing identity 30, build-up 20, defensive approach 20, relevant achievement 30. Structured in-possession and out-of-possession priorities multiply their base weights: Essential × 1.5, Preferred × 1, Flexible × 0.5. Only supported requirements contribute, with active weights normalised to 100%. At least two are needed. These are editorial comparison rules, not validated success probabilities or market rankings. Equal scores are ties; names determine display order.</p>
-      <p className="mt-2 text-muted-foreground">Succession urgency is separate. Contract status, salary, release terms and willingness are not scored or inferred; being under contract does not exclude a coach. Each profile’s calculation and dated sources are below.</p>
+      <p className="mt-2 text-muted-foreground">Succession urgency is separate. Contract status, salary, release terms and willingness are not scored or inferred; being under contract alone does not exclude a coach. Explicit club or mandate appointment decisions are applied separately from football fit. Each profile’s calculation and dated sources are below.</p>
     </details>
     {!plan.requirements.ready ? <p className="mt-4 text-sm leading-6">{plan.requirements.source.kind === 'needs-choice' ? 'Choose a source brief above to compare coaches.' : `Needs brief: agree at least two supported requirements in the ${plan.requirements.source.kind === 'mandate' ? 'source mandate brief' : 'club profile'} before comparing names. Inferred defaults do not receive fit scores.`}</p>
-      : !plan.suggestedCoaches.length ? <p className="mt-4 text-sm leading-6">Needs research: no reviewed successor profiles could be matched unambiguously to the loaded coach records. No unreviewed names are substituted.</p>
+      : !plan.suggestedCoaches.length ? <p className="mt-4 text-sm leading-6">No successor comparisons remain after research, identity and appointment checks. No unreviewed names are substituted.</p>
         : <div className="mt-4 space-y-3">{displayed.map(coach => <article key={coach.id} className="rounded border border-border bg-background/40 p-3">
           <div className="flex items-start justify-between gap-3">
             <h3 className="text-sm font-semibold"><Link className="hover:text-primary" href={`/coaches/${coach.id}?returnTo=${encodeURIComponent(returnTo)}`}>{coach.research.name}</Link></h3>
             <p className="text-right text-sm font-semibold tabular-nums text-primary">{coach.fitScore}/100<span className="block text-[10px] font-normal text-muted-foreground">Football fit</span></p>
           </div>
+          <CurrentRole apiId={coach.research.apiId} />
           <p className="mt-2 text-xs leading-5 text-muted-foreground">{coach.research.summary}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{coach.feasibility.reason}</p>
           <ScoreEvidence coach={coach} />
         </article>)}</div>}
     {compact && plan.suggestedCoaches.length > displayed.length && <Link href={`/succession/${plan.club.id}`} className="mt-3 inline-block text-xs font-medium text-primary underline">View all {plan.suggestedCoaches.length} comparisons and saved requirements</Link>}
+    {plan.excludedCoaches.length > 0 && <div className="mt-4 border-t border-border pt-3">
+      <h3 className="text-sm font-semibold">Not pursuing · excluded from successor matches</h3>
+      {plan.excludedCoaches.map(coach => <div key={coach.id} className="mt-3 text-xs leading-5">
+        <p className="font-semibold">{coach.research.name} · {coach.fitScore}/100 football fit (unchanged)</p>
+        <CurrentRole apiId={coach.research.apiId} />
+        <p>{coach.feasibility.reason}</p>
+        {coach.feasibility.decision && <p>{coach.feasibility.decision.decidedBy} decision · checked {coach.feasibility.decision.checkedAt} · <a href={coach.feasibility.decision.source.url} target="_blank" rel="noreferrer" className="text-primary underline">{coach.feasibility.decision.source.title}</a></p>}
+        <ScoreEvidence coach={coach} />
+      </div>)}
+    </div>}
     {plan.incumbentBenchmark && <details className="mt-4 border-t border-border pt-3 text-xs leading-5">
       <summary className="cursor-pointer font-semibold">Recorded manager comparison: {plan.incumbentBenchmark.research.name} · {plan.incumbentBenchmark.fitScore}/100</summary>
       <p className="mt-2 text-muted-foreground">Matched to the club’s saved manager field and shown separately from successors. This is a comparison reference, not independent confirmation of current employment.</p>
