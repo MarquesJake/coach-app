@@ -22,7 +22,7 @@ export default async function ShortlistReportPage(props: { params: Promise<{ id:
     supabase.from('profile_claims').select('coach_id, claimed_value, source_type, source_name, reviewed_at').in('review_status', ['accepted', 'applied']).is('deleted_at', null).in('claim_type', ['approach_route', 'availability', 'current_status', 'contract', 'staff']),
   ])
   const findingsByCoach = new Map<string, NonNullable<typeof findingsRes.data>>()
-  for (const finding of findingsRes.data ?? []) findingsByCoach.set(finding.coach_id, [...(findingsByCoach.get(finding.coach_id) ?? []), finding])
+  for (const finding of findingsRes.data ?? []) if (finding.coach_id) findingsByCoach.set(finding.coach_id, [...(findingsByCoach.get(finding.coach_id) ?? []), finding])
   if (!mandate || !ranking) notFound()
   const club = displayClubName(mandate.custom_club_name, (mandate.clubs as { name?: string } | null)?.name, 'Mandate')
   const top = ranking.shortlist.slice(0, 5)
