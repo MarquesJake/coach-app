@@ -1,3 +1,4 @@
+import { BriefMatches } from '@/components/mandates/brief-matches'
 import { MandateBriefNotice } from '@/components/clubs/mandate-brief-notice'
 import { notFound, redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
@@ -13,6 +14,7 @@ import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { computeCoachingStability } from '@/lib/analysis/coaching-stability'
 import { getMandateSuggestionsForUser } from '../../actions-suggestions'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
+import { deepDiveFor, isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
 
 export const metadata = { title: 'Candidates' }
 
@@ -32,6 +34,7 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
     .from('mandates')
     .select(`
       id, strategic_objective, board_risk_appetite, budget_band, succession_timeline,
+      decision_brief, tactical_model_required, pressing_intensity_required, build_preference_required,
       custom_club_name, status, priority,
       clubs (
         id, name, league, country, tier, ownership_model,
@@ -63,7 +66,7 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
     .order('created_at', { ascending: true })
 
   if (shortlistError) throw new Error('Candidates didn’t load. Refresh to try again — nothing has been changed.')
-  const shortlistRows = shortlist ?? []
+  const shortlistRows = (shortlist ?? []).filter(row => !isCurrentManagerBenchmark(params.id, row.coach_id))
   const shortlistCoachIds = shortlistRows.map((row) => row.coach_id)
 
   const [recommendationsRes, assessmentsRes, evidenceRes] = shortlistCoachIds.length
@@ -102,7 +105,7 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
     const recommendation = progress.recommendationRecorded ? recordedRecommendation : null
     return {
       ...row,
-      is_illustrative: progress.illustrativeProfile,
+      is_illustrative: progress.illustrativeProfile || !!deepDiveFor(row.coach_id, params.id),
       recommendation_verdict: recommendation?.verdict ?? null,
       recommendation_confidence: progress.confidence,
       recommendation_summary: recommendation?.summary ?? null,
@@ -164,6 +167,7 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
     if (coachMetaError) throw new Error('Research pool identities could not be loaded. Please retry.')
     const coachMap = new Map((coachMeta ?? []).map((c) => [c.id, c]))
     for (const entry of longlistRaw) {
+      if (isCurrentManagerBenchmark(params.id, entry.coach_id)) continue
       const c = coachMap.get(entry.coach_id)
       longlistEntries.push({
         id: entry.id,
@@ -178,7 +182,7 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
   }
 
   const suggestionsRaw = await getMandateSuggestionsForUser(params.id)
-  const suggestions: SuggestedLonglistCandidate[] = suggestionsRaw.map((suggestion) => ({
+  const suggestions: SuggestedLonglistCandidate[] = suggestionsRaw.filter(suggestion => !isCurrentManagerBenchmark(params.id, suggestion.coach_id)).map((suggestion) => ({
     id: suggestion.id,
     coach_id: suggestion.coach_id,
     status: suggestion.status,
@@ -196,6 +200,7 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
     <div>
       <MandateTabNav mandateId={params.id} />
       <MandateBriefNotice mandateId={params.id} />
+      <BriefMatches mandate={mandate} />
       <MandateWorkspaceClient
         mandate={mandate as Mandate}
         shortlist={enrichedShortlist as Candidate[]}

@@ -12,12 +12,15 @@ export type XgSplit = { transition: number; buildUp: number; restart: number; co
 export type Level = 'Low' | 'Medium' | 'High'
 
 export type FinalEvaluation = {
+  mandateId?: string
+  currentManagerBenchmark?: boolean
   executiveSummary: string
   swot: { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[] }
   organisationalFit: string
   budget: { item: string; value: string }[]
   budgetNote: string
   risks: { risk: string; likelihood: Level; impact: Level; mitigation: string }[]
+  /** Legacy demo fixture only. Never display as probability or computed fit. */
   probabilityOfSuccess: number
   probabilityRationale: string
 }
@@ -85,5 +88,11 @@ export function deepDiveFor(coachId: string, mandateId?: string): DeepDive | nul
 
 export function finalEvaluationFor(mandateId: string, coachId: string): FinalEvaluation | null {
   const key = `${mandateId}:${coachId}`
-  return FINAL_EVALUATIONS[key] ?? TOTTENHAM_FINAL_EVALUATIONS[key] ?? null
+  const evaluation = FINAL_EVALUATIONS[key] ?? TOTTENHAM_FINAL_EVALUATIONS[key]
+  return evaluation ? { ...evaluation, mandateId, currentManagerBenchmark: isCurrentManagerBenchmark(mandateId, coachId) } : null
+}
+
+// This role belongs to this succession study only; other mandates are unchanged.
+export function isCurrentManagerBenchmark(mandateId: string | undefined, coachId: string): boolean {
+  return mandateId === '09420a64-b4d2-4245-8088-af0dc88266eb' && coachId === '78552079-813c-4239-8654-e05769d221d8'
 }

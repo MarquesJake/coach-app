@@ -1,4 +1,4 @@
-import { finalEvaluationFor } from '@/lib/assessment/deep-dive'
+import { isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -89,7 +89,7 @@ export default async function MandateAssessmentIndexPage(
     (row.coaches as { name?: string } | null)?.name ?? 'Unknown coach'
   const decided = (shortlist ?? [])
     .map((row) => ({ row, rec: verdicts.get(row.coach_id) }))
-    .filter((c) => c.rec?.verdict)
+    .filter((c) => c.rec?.verdict && !isCurrentManagerBenchmark(mandateId, c.row.coach_id))
   const backed = decided
     .filter((c) => c.rec!.verdict === 'Proceed' || c.rec!.verdict === 'Target')
     .sort((a, b) => (b.rec!.confidence ?? 0) - (a.rec!.confidence ?? 0))
@@ -109,6 +109,8 @@ export default async function MandateAssessmentIndexPage(
   // Decided candidates first (in decision order), then the rest of the shortlist.
   const verdictRank = new Map([['Proceed', 0], ['Target', 1], ['Shortlist', 2], ['Monitor', 3], ['Dismiss', 4]])
   const orderedShortlist = [...(shortlist ?? [])].sort((a, b) => {
+    const benchmarkOrder = Number(isCurrentManagerBenchmark(mandateId, a.coach_id)) - Number(isCurrentManagerBenchmark(mandateId, b.coach_id))
+    if (benchmarkOrder) return benchmarkOrder
     const ra = verdictRank.get(verdicts.get(a.coach_id)?.verdict ?? '') ?? 9
     const rb = verdictRank.get(verdicts.get(b.coach_id)?.verdict ?? '') ?? 9
     return ra - rb
@@ -122,10 +124,13 @@ export default async function MandateAssessmentIndexPage(
         Assessments and checked evidence are counted separately. A recommendation still needs approval before it is shared.
       </p>
 
+      {mandateId === '09420a64-b4d2-4245-8088-af0dc88266eb' && <p className="mt-2 text-xs text-muted-foreground">Successor research commissioned for a possible change. De Zerbi is the current-manager benchmark only; this study does not advise retaining or dismissing him.</p>}
+      <Link className="mt-3 inline-block text-xs text-primary underline" href={`/mandates/${mandateId}/candidates#brief-matches`}>View computed football fit, source evidence and rule breakdown</Link>
+
       {decisionSet.length > 0 && (
         <div className="mt-6">
           <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-            Our recommendations · internal
+            {mandateId === '09420a64-b4d2-4245-8088-af0dc88266eb' ? 'Successor research · internal' : 'Our recommendations · internal'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
             {decisionSet.map(({ tag, tone, c }) => (
@@ -169,6 +174,7 @@ export default async function MandateAssessmentIndexPage(
             </div>
           ) : (
             orderedShortlist.map((row) => {
+              const benchmark = isCurrentManagerBenchmark(mandateId, row.coach_id)
               const status = statuses.get(row.coach_id)!
               const covered = status.reviewedCount
               const rec = verdicts.get(row.coach_id)
@@ -181,7 +187,7 @@ export default async function MandateAssessmentIndexPage(
                   <div className="min-w-0 sm:col-span-2 lg:col-span-1">
                     <p className="text-sm font-medium text-foreground truncate">{coach?.name ?? 'Unknown coach'}</p>
                     <p className="text-2xs text-muted-foreground truncate">{coach?.club_current?.trim() || 'Current club not recorded'}</p>
-                    <p className="mt-1 text-2xs text-muted-foreground">{status.nextAction}</p>
+                    <p className="mt-1 text-2xs text-muted-foreground">{benchmark ? 'Current-manager benchmark · not a successor candidate' : status.nextAction}</p>
                   </div>
                   <div><span className="mb-1 block text-xs text-muted-foreground lg:hidden">Reviewed evidence</span><div className="flex items-center gap-2">
                     <div className="w-16 h-1.5 rounded-full bg-surface border border-border/50 overflow-hidden">
@@ -204,13 +210,11 @@ export default async function MandateAssessmentIndexPage(
                     )}
                   >
                     <span className="mb-1 block text-xs text-muted-foreground lg:hidden">Recommendation</span>
-                    {status.recommendationLabel}
-                    {rec?.confidence !== null && rec?.confidence !== undefined && (
+                    {benchmark ? 'Benchmark only' : status.recommendationLabel}
+                    {!benchmark && rec?.confidence !== null && rec?.confidence !== undefined && (
                       <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}%</span>
                     )}
-                    {finalEvaluationFor(mandateId, row.coach_id) && (
-                      <span className="mt-0.5 block text-2xs font-normal text-muted-foreground">Probability of success {finalEvaluationFor(mandateId, row.coach_id)!.probabilityOfSuccess}%</span>
-                    )}
+                    {benchmark && rec?.verdict && <span className="mt-1 block font-normal text-muted-foreground">Stored benchmark verdict: {rec.verdict}{rec.confidence != null ? ` · ${rec.confidence}% recorded confidence` : ''}. Not a successor choice.</span>}
                   </span>
                   <div className="flex flex-wrap items-start gap-3">
                     <Link

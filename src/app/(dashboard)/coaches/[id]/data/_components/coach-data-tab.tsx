@@ -123,8 +123,8 @@ export function CoachDataTab({
   mediaEvents: MediaEvent[]
 }) {
   const p = profile
-  const repeatPlayerCount = p?.recruitment_repeat_player_count ?? 0
-  const repeatAgentCount = p?.recruitment_repeat_agent_count ?? 0
+  const repeatPlayerCount = p?.recruitment_repeat_player_count ?? null
+  const repeatAgentCount = p?.recruitment_repeat_agent_count ?? null
   const repeatSignings = recruitment.filter((r) => r.repeated_signing).length
 
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false)
@@ -218,8 +218,9 @@ export function CoachDataTab({
       {/* Section 0 – External Profile */}
       <section className="rounded-lg border border-border bg-card p-6">
         <h2 className="text-lg font-medium text-foreground mb-4">
-          External profile (API sourced)
+          External profile
         </h2>
+        {externalProfile && <p className="mb-4 text-xs text-muted-foreground">{/demo/i.test(externalProfile.match_strategy ?? '') ? 'DEMO DATA — this legacy profile was entered as a demo. Its fields are not a verified API import.' : 'Provider record — check the source and last sync below. Reported employment can be stale and does not establish availability for a particular club.'}</p>}
         {!externalProfile ? (
           <p className="text-sm text-muted-foreground py-2">No external profile synced yet.</p>
         ) : (
@@ -264,7 +265,7 @@ export function CoachDataTab({
                 <p className="text-sm font-medium text-foreground">{externalProfile.weight ?? '—'}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Current team</p>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Team reported at last sync</p>
                 <p className="text-sm font-medium text-foreground">{externalProfile.current_team_name ?? '—'}</p>
               </div>
               <div>
@@ -391,16 +392,16 @@ export function CoachDataTab({
         <div className="flex flex-wrap gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Repeated agents</p>
-            <p className={cn('text-lg font-semibold', repeatAgentCount >= REPEAT_THRESHOLD ? 'text-amber-500' : 'text-foreground')}>
-              {repeatAgentCount}
-              {repeatAgentCount >= REPEAT_THRESHOLD && ' (above threshold)'}
+            <p className={cn('text-lg font-semibold', repeatAgentCount !== null && repeatAgentCount >= REPEAT_THRESHOLD ? 'text-amber-500' : 'text-foreground')}>
+              {repeatAgentCount ?? 'Data not yet connected'}
+              {repeatAgentCount !== null && repeatAgentCount >= REPEAT_THRESHOLD && ' (above threshold)'}
             </p>
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Repeated players</p>
-            <p className={cn('text-lg font-semibold', repeatPlayerCount >= REPEAT_THRESHOLD ? 'text-amber-500' : 'text-foreground')}>
-              {repeatPlayerCount}
-              {repeatPlayerCount >= REPEAT_THRESHOLD && ' (above threshold)'}
+            <p className={cn('text-lg font-semibold', repeatPlayerCount !== null && repeatPlayerCount >= REPEAT_THRESHOLD ? 'text-amber-500' : 'text-foreground')}>
+              {repeatPlayerCount ?? 'Data not yet connected'}
+              {repeatPlayerCount !== null && repeatPlayerCount >= REPEAT_THRESHOLD && ' (above threshold)'}
             </p>
           </div>
         </div>

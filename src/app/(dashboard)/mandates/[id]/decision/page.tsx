@@ -1,5 +1,6 @@
 import { DecisionBriefReview } from '../../_components/decision-brief-fields'
 import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
+import { isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
 import { ResearchQueue } from '@/components/research-queue'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
@@ -123,7 +124,8 @@ export default async function MandatePlanPage(
     .eq('mandate_id', params.id)
   if (shortlistError) throw new Error(`Failed to load candidates: ${shortlistError.message}`)
 
-  const coachIds = (shortlist ?? []).map((row) => row.coach_id)
+  const successorRows = (shortlist ?? []).filter(row => !isCurrentManagerBenchmark(params.id, row.coach_id))
+  const coachIds = successorRows.map((row) => row.coach_id)
   const [nextActions, outcomeResult, activityResult] = await Promise.all([
     loadAppointmentNextActions([params.id]),
     organizationId
@@ -142,7 +144,7 @@ export default async function MandatePlanPage(
   if (!progress) notFound()
 
   const coachMap = new Map<string, string>()
-  for (const row of shortlist ?? []) {
+  for (const row of successorRows) {
     const coach = row.coaches as { id?: string; name?: string } | null
     coachMap.set(row.coach_id, coach?.name ?? 'Unknown coach')
   }

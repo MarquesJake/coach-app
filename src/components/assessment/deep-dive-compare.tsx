@@ -1,8 +1,10 @@
-import { deepDiveFor, finalEvaluationFor } from '@/lib/assessment/deep-dive'
+import Link from 'next/link'
+import { DemoDataNotice } from './deep-dive-sections'
+import { deepDiveFor, isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
 
 // Headline numbers from the assessment depth, side by side for the compare page.
 export function DeepDiveCompare({ coaches, mandateId }: { coaches: { id: string; name: string | null }[]; mandateId?: string }) {
-  const rows = coaches.map(c => ({ c, d: deepDiveFor(c.id, mandateId), e: mandateId ? finalEvaluationFor(mandateId, c.id) : null })).filter(r => r.d)
+  const rows = coaches.map(c => ({ c, d: deepDiveFor(c.id, mandateId) })).filter(r => r.d)
   if (rows.length < 2) return null
   const latest = (r: typeof rows[number]) => r.d!.performance.seasons[r.d!.performance.seasons.length - 1]
   const per90 = (x: { transition: number; buildUp: number; restart: number; corners: number; directFk: number; indirectFk: number; throwIns: number }) => x.transition + x.buildUp + x.restart + x.corners + x.directFk + x.indirectFk + x.throwIns
@@ -17,13 +19,14 @@ export function DeepDiveCompare({ coaches, mandateId }: { coaches: { id: string;
     ['Under-21 minutes', r => r.d!.development.stats.find(s => s.label === 'Under-21 minutes')?.value ?? '—'],
     ['Positive media coverage', r => `${r.d!.media.sentiment.positive}%`],
   ]
-  if (rows.some(r => r.e)) metrics.push(['Probability of success', r => r.e ? `${r.e.probabilityOfSuccess}%` : '—'])
   return <section className="deep-dive rounded-lg border border-border bg-card p-4">
-    <h2 className="text-sm font-medium">Headline numbers</h2>
+    <h2 className="mb-3 text-sm font-medium">Headline numbers</h2>
+    <DemoDataNotice detail="Illustrative comparison figures. These are not verified coach metrics, computed football-fit scores or forecasts." />
     <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[560px] text-xs">
-      <thead><tr className="border-b border-border text-left"><th className="py-1.5 font-medium text-muted-foreground" />{rows.map(r => <th key={r.c.id} className="py-1.5 font-semibold">{r.c.name}</th>)}</tr></thead>
+      <thead><tr className="border-b border-border text-left"><th className="py-1.5 font-medium text-muted-foreground" />{rows.map(r => <th key={r.c.id} className="py-1.5 font-semibold">{r.c.name}{isCurrentManagerBenchmark(mandateId, r.c.id) && <span className="block font-normal text-muted-foreground">Current-manager benchmark · not a successor candidate</span>}</th>)}</tr></thead>
       <tbody>{metrics.map(([label, get]) => <tr key={label} className="border-b border-border/60"><td className="py-1.5 pr-3 text-muted-foreground">{label}</td>{rows.map(r => <td key={r.c.id} className="py-1.5 pr-3 tabular-nums">{get(r)}</td>)}</tr>)}</tbody>
     </table></div>
-    <p className="mt-2 text-[10px] text-muted-foreground/70">Source: Gaffa data model · indicative.</p>
+    <p className="mt-2 text-[10px] text-muted-foreground/70">Illustrative demo statistics, pending provider data. These are not computed football-fit scores or forecasts.</p>
+    {mandateId && <Link className="mt-2 block text-xs text-primary underline" href={`/mandates/${mandateId}/candidates#brief-matches`}>View computed football fit and source evidence in Candidates</Link>}
   </section>
 }

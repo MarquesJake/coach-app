@@ -40,6 +40,8 @@ export async function loadAppointmentNextActions(mandateIds: readonly string[], 
     coachIds.length ? allRows(supabase.from('coach_portal_profiles').select('coach_id, feasibility_review_status, feasibility_reviewed_at, football_identity, short_bio, personal_statement').in('coach_id', coachIds).order('id')) : [],
     orders.length ? allRows(supabase.from('confidential_access_grants').select('order_id, coach_id, buyer_organization_id, status, expires_at, revoked_at').in('order_id', orders.map(row => row.id)).order('id')) : [],
   ])
-  const data = { shortlist, assessments, evidence, recommendations, interviews, references, workItems, orders, profiles, grants }
+  // The incumbent remains in Tottenham's historical dossier, not its successor workflow.
+  const successorShortlist = shortlist.filter(row => !(row.mandate_id === '09420a64-b4d2-4245-8088-af0dc88266eb' && row.coach_id === '78552079-813c-4239-8654-e05769d221d8'))
+  const data = { shortlist: successorShortlist, assessments, evidence, recommendations, interviews, references, workItems, orders, profiles, grants }
   return new Map(mandates.map(mandate => [mandate.id, deriveAppointmentNextAction(mandate, data, now)]))
 }

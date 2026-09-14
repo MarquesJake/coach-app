@@ -1,3 +1,4 @@
+import { COACH_IMPORT_DEFAULTS } from '@/lib/integrations/coach-import-defaults'
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Database, Json } from '@/lib/types/db'
@@ -515,7 +516,6 @@ export async function POST(request: Request) {
       setIfEmpty(updatePayload, existing, 'age', coach.age ?? null)
       setIfEmpty(updatePayload, existing, 'date_of_birth', birthDate)
       setIfEmpty(updatePayload, existing, 'base_location', baseLocation)
-      setIfEmpty(updatePayload, existing, 'languages', nationality ? [nationality] : [])
       setIfEmpty(updatePayload, existing, 'role_current', 'Head Coach')
       setIfEmpty(updatePayload, existing, 'club_current', currentClub)
       setIfEmpty(updatePayload, existing, 'available_status', currentClub ? 'Under contract' : 'Open to offers')
@@ -543,7 +543,6 @@ export async function POST(request: Request) {
         age: coach.age ?? null,
         date_of_birth: birthDate,
         base_location: baseLocation,
-        languages: nationality ? [nationality] : [],
         role_current: 'Head Coach',
         club_current: currentClub,
         available_status: currentClub ? 'Under contract' : 'Open to offers',
@@ -552,13 +551,7 @@ export async function POST(request: Request) {
         league_experience: leagueExperience,
         last_updated: new Date().toISOString(),
         due_diligence_summary: dueDiligenceSummary,
-        preferred_style: 'Mixed',
-        pressing_intensity: 'Medium',
-        build_preference: 'Mixed',
-        leadership_style: 'Collaborative',
-        wage_expectation: 'TBC',
-        staff_cost_estimate: 'TBC',
-        reputation_tier: 'Established',
+        ...COACH_IMPORT_DEFAULTS,
         user_id: user.id,
       }
       const { data: inserted, error } = await supabase
