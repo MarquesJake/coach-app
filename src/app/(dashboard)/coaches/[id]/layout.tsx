@@ -6,6 +6,7 @@ import { CoachCommandBar } from './_components/coach-command-bar'
 import { summariseEvidence } from '@/lib/decision-workflow'
 import { ResearchContextBanner } from '../_components/research-context-link'
 import type { Metadata } from 'next'
+import { CurrentEmploymentNotice } from '@/components/assessment/current-employment'
 import { researchProfileForName } from '@/lib/scoring/research/catalogue'
 
 // Names the entity in the tab so several open records can be told apart; child
@@ -29,5 +30,5 @@ export default async function CoachDetailLayout({children,params}:{children:Reac
  if(!coach)notFound()
  const summary=summariseEvidence(claims.data??[])
  const evidenceLabel = claims.error ? 'Evidence unavailable' : researchProfileForName(coach.name) && summary.label === 'Needs research' ? 'Football research sourced · diligence pending' : summary.label
- return <div className="min-w-0 max-w-full space-y-4"><ResearchContextBanner/><CoachCommandBar coachId={id} coach={coach as Record<string,unknown>} evidenceLabel={evidenceLabel} onWatchlist={!!watchlist.data}/><CoachTabNav coachId={id}/><div className="min-w-0 max-w-full break-words">{children}</div></div>
+ return <div className="min-w-0 max-w-full space-y-4"><ResearchContextBanner/><CoachCommandBar coachId={id} coach={coach as Record<string,unknown>} evidenceLabel={evidenceLabel} onWatchlist={!!watchlist.data}/><CurrentEmploymentNotice name={coach.name}/><CoachTabNav coachId={id}/><div className="min-w-0 max-w-full break-words">{children}</div></div>
 }

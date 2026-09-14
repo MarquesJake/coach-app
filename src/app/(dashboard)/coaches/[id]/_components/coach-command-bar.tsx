@@ -1,4 +1,6 @@
 'use client'
+import { researchProfileForName } from '@/lib/scoring/research/catalogue'
+import { currentEmploymentForApiId, employmentLabel } from '@/lib/scoring/research/current-employment'
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { readResearchContext, researchHref } from '@/lib/research-context'
@@ -31,9 +33,11 @@ export function CoachCommandBar({coachId, coach, onWatchlist=false, evidenceLabe
  useEffect(()=>setWatchlist(onWatchlist),[onWatchlist])
  const initialValues=Object.fromEntries(MODIFY_PROFILE_FIELDS.map(f=>[f.key,coach[f.key] ?? (f.type==='comma'?[]:'')]))
  const name=String(coach.name ?? 'Coach')
+ const research=researchProfileForName(name)
+ const employment=research && currentEmploymentForApiId(research.apiId)
  return <header className="mb-6 min-w-0 pt-2">
   <div className="flex flex-wrap items-start justify-between gap-4">
-    <div className="min-w-0"><p className="gaffa-eyebrow mb-2">Coach profile</p><h1 className="break-words text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1><p className="mt-2 text-sm text-muted-foreground">{[coach.role_current,coach.club_current].filter(Boolean).map(String).join(' · ') || 'Current role requires confirmation'}</p></div>
+    <div className="min-w-0"><p className="gaffa-eyebrow mb-2">Coach profile</p><h1 className="break-words text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1><p className="mt-2 text-sm text-muted-foreground">{employment ? employmentLabel(employment) : [coach.role_current,coach.club_current].filter(Boolean).map(String).join(' · ') || 'Current role requires confirmation'}</p></div>
     <button aria-label={watchlist?'Remove from watchlist':'Add to watchlist'} aria-pressed={watchlist} disabled={pending} className="gaffa-action gaffa-action-secondary !p-2.5" onClick={async()=>{setPending(true);try{const r=await(watchlist?removeFromWatchlistAction(coachId):addToWatchlistAction(coachId));if(r.error)toastError(r.error);else{setWatchlist(!watchlist);router.refresh()}}finally{setPending(false)}}}><Star className={`h-4 w-4 ${watchlist?'fill-current text-primary':''}`}/></button>
   </div>
   <div className="mt-4 flex flex-wrap items-center justify-between gap-4">

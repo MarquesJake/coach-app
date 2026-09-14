@@ -110,6 +110,7 @@ export type RadarClub = {
   requirements: ClubResearchRequirements
   researchCoverage: { reviewed: number; unreviewed: number; ambiguous: number }
   incumbentBenchmark: ReviewedSuccessionCoach | null
+  excludedCoaches: ReviewedSuccessionCoach[]
   suggestedCoaches: ReviewedSuccessionCoach[]
 }
 
@@ -324,6 +325,7 @@ export function buildSuccessionRadar(params: {
       requirements,
       researchCoverage: ranking.coverage,
       incumbentBenchmark: ranking.incumbent,
+      excludedCoaches: ranking.excluded,
       suggestedCoaches,
     }
   }).sort((a, b) => b.score - a.score)

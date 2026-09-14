@@ -1,25 +1,42 @@
+import { currentEmploymentForApiId } from '@/lib/scoring/research/current-employment'
+import { appointmentFeasibility, type AppointmentDecision } from '@/lib/appointments/feasibility'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { calculateResearchFit, normalizeCoachName, type RankingBrief } from '@/lib/scoring/research/brief-fit'
 import { RESEARCH_PROFILES } from '@/lib/scoring/research/profiles'
 import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
 
+
+function CurrentRole({ apiId }: { apiId: number }) {
+  const record = currentEmploymentForApiId(apiId)
+  if (!record) return <p className="mt-2 text-xs text-muted-foreground">Current role not verified in the employment catalogue.</p>
+  const label = record.status === 'employed' ? [record.role, record.club].filter(Boolean).join(' · ') || 'Employed; role not supplied'
+    : record.status === 'unattached' ? 'Reported unattached' : 'Current employment not verified'
+  return <div className="mt-2 text-xs leading-5 text-muted-foreground">
+    <p>{label} · checked {record.checkedAt}</p>
+    {record.sourceUrl && <a href={record.sourceUrl} target="_blank" rel="noreferrer" className="text-primary underline">{record.sourceTitle || 'Employment source'}</a>}
+    <details className="mt-1"><summary className="cursor-pointer">Employment review notes</summary><p className="mt-2">{record.note}</p></details>
+    <p>Employment evidence does not establish willingness or a route to appointment.</p>
+  </div>
+}
+
 /** Read-only recomputation: saving a new brief never leaves a stale score snapshot. */
-export async function BriefMatches({ mandate }: { mandate: RankingBrief & { id: string } }) {
+export async function BriefMatches({ mandate, appointmentDecisions }: { mandate: RankingBrief & { id: string; club_id?: string | null; clubs?: { id?: string; current_manager?: string | null } | null }; appointmentDecisions?: readonly AppointmentDecision[] }) {
   const appointmentBrief = safeDecisionBrief(mandate.decision_brief)
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase.from('coaches').select('id,name').order('name').limit(1000)
   if (error) return <section className="my-6 rounded-xl border border-border p-5"><h2 className="font-semibold">Matches from this brief</h2><p role="alert" className="mt-2 text-sm">Coach records could not be loaded. Refresh to calculate the matches.</p></section>
-  const matches = RESEARCH_PROFILES.flatMap(profile => {
-    // Tottenham's commissioned study treats De Zerbi as the incumbent benchmark.
-    if (mandate.id === '09420a64-b4d2-4245-8088-af0dc88266eb' && profile.apiId === 2424) return []
+  const comparisons = RESEARCH_PROFILES.flatMap(profile => {
     const aliases = new Set([profile.name, ...profile.aliases].map(normalizeCoachName))
     const records = (data ?? []).filter(row => aliases.has(normalizeCoachName(row.name)))
     const record = records.find(row => row.name === profile.name) ?? records.sort((a, b) => a.id.localeCompare(b.id))[0]
     if (!record) return []
     const result = calculateResearchFit(mandate, profile)
-    return result.score === null ? [] : [{ profile, record, result }]
+    const feasibility = appointmentFeasibility(profile, { mandateId: mandate.id, clubId: mandate.club_id ?? mandate.clubs?.id, incumbentName: mandate.clubs?.current_manager }, appointmentDecisions)
+    return result.score === null ? [] : [{ profile, record, result, feasibility }]
   }).sort((a, b) => b.result.score! - a.result.score! || a.profile.name.localeCompare(b.profile.name))
+  const matches = comparisons.filter(row => !row.feasibility.excluded)
+  const excluded = comparisons.filter(row => row.feasibility.excluded)
   const first = matches[0]
   return <section id="brief-matches" className="my-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -27,19 +44,30 @@ export async function BriefMatches({ mandate }: { mandate: RankingBrief & { id: 
       <Link href={`/mandates/${mandate.id}/edit`} className="text-sm text-primary underline underline-offset-4">Change the brief</Link>
     </div>
     <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Calculated from the saved brief and sourced coach research. A fit score measures alignment with the assessed requirements; it is not a probability of success or confirmation that a coach can be appointed.</p>
+    <p className="mt-2 text-xs text-muted-foreground">Appointment feasibility is unassessed unless an explicit review is shown. Inclusion in these football comparisons does not mean a realistic deal has been established.</p>
     <details className="mt-4 rounded-lg border border-border bg-muted/30 p-4"><summary className="cursor-pointer text-sm font-medium">Could this club secure the appointment?</summary>
       <p className="mt-3 text-sm text-muted-foreground">Feasibility depends on this club and this deal. Being under contract does not automatically exclude a coach. A verified release clause within the club’s compensation budget may create a realistic route, subject to its conditions, salary, staff costs and the coach’s interest.</p>
       <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">{[['salary', 'Head coach salary'], ['staff_budget', 'Staff budget'], ['compensation', 'Compensation budget']].map(([key, label]) => <div key={key}><dt className="font-medium">{label}</dt><dd className="mt-1 text-muted-foreground">{appointmentBrief[key as keyof typeof appointmentBrief]?.value || 'Not yet agreed in this brief'}</dd></div>)}</dl>
       <p className="mt-3 text-xs text-muted-foreground">Network intelligence can identify a route to a deal. Record the source, date, currency, amount and clause conditions, then verify them before describing the coach as attainable. Unknown terms remain unresolved; they do not lower football fit or establish availability.</p>
     </details>
-    {mandate.id === '09420a64-b4d2-4245-8088-af0dc88266eb' && <p className="mt-2 text-xs text-muted-foreground">De Zerbi is the current-manager benchmark for this study and is excluded from successor matches.</p>}
-    {!first ? <p className="mt-5 text-sm">Agree at least two of playing identity, build-up, defensive approach and a supported strategic objective to calculate a useful comparison. Only researched profiles in your accessible coach database are included.</p> : <>
-      <p className="mt-3 text-xs text-muted-foreground">{matches.length} researched profiles compared from {data?.length ?? 0} accessible records. Profiles without this research are outside this comparison. Recalculated when the brief changes. Equal scores are ties; names only determine their display order.</p>
+    {excluded.length > 0 && <div className="mt-4 rounded-lg border border-border p-4">
+      <h3 className="text-sm font-semibold">Excluded from successor matches · football fit retained</h3>
+      {excluded.map(({ profile, result, feasibility }) => <div key={profile.apiId} className="mt-3 text-xs leading-5">
+        <p className="font-semibold">{profile.name} · {result.score}/100 football fit · {feasibility.status === 'incumbent' ? 'Incumbent benchmark' : 'Not pursuing'}</p>
+        <CurrentRole apiId={profile.apiId} />
+        <p>{feasibility.reason}</p>
+        {feasibility.decision && <p>{feasibility.decision.decidedBy} decision · checked {feasibility.decision.checkedAt} · <a href={feasibility.decision.source.url} target="_blank" rel="noreferrer" className="text-primary underline">{feasibility.decision.source.title}</a></p>}
+      </div>)}
+    </div>}
+    {!first ? <p className="mt-5 text-sm">No eligible successor comparisons to display. Agree at least two of playing identity, build-up, defensive approach and a supported strategic objective to calculate a useful comparison. Only researched profiles in your accessible coach database are included.</p> : <>
+      <p className="mt-3 text-xs text-muted-foreground">{matches.length} researched successor profiles after appointment exclusions, compared from {data?.length ?? 0} accessible records. Profiles without this research are outside this comparison. Recalculated when the brief changes. Equal scores are ties; names only determine their display order.</p>
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        {matches.slice(0, 3).map(({ profile, record, result }, index) => <article key={record.id} className="rounded-xl border border-border bg-background p-4">
+        {matches.slice(0, 3).map(({ profile, record, result, feasibility }, index) => <article key={record.id} className="rounded-xl border border-border bg-background p-4">
           <div className="flex items-center justify-between gap-2"><span className="text-xs text-muted-foreground">{index && matches[index - 1].result.score === result.score ? 'Joint match' : `Match ${index + 1}`}</span><span className="text-xs font-medium text-muted-foreground">Football fit</span></div>
           <h3 className="mt-3 text-lg font-semibold"><Link className="hover:underline" href={`/coaches/${record.id}`}>{profile.name}</Link></h3>
           <p className="mt-2 text-3xl font-semibold tabular-nums text-primary">{result.score}<span className="text-base font-normal text-muted-foreground"> / 100</span></p>
+          <CurrentRole apiId={profile.apiId} />
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{feasibility.reason}</p>
           <p className="mt-3 text-sm leading-relaxed">{profile.summary}</p>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{profile.limitation}</p>
           <details className="mt-4 border-t border-border pt-3"><summary className="cursor-pointer text-sm font-medium">Why this score?</summary>

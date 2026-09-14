@@ -192,3 +192,19 @@ test('identity aliases are exact, duplicate records are not arbitrary winners, a
   assert.equal(ambiguous.coverage.ambiguous, 2)
   assert.deepEqual(rankReviewedCoaches([...coaches].reverse(), possession), rankReviewedCoaches(coaches, possession))
 })
+
+test('Tottenham successor matches exclude Maresca by decision, preserve football fit and keep other employed coaches', () => {
+  const c = { ...possession, id: '4b296c0a-60e9-4f32-956f-ad3bd742ff0f', current_manager: 'Roberto De Zerbi' }
+  const records = [coach('Enzo Maresca'), coach('Roberto De Zerbi'), coach('Russell Martin', { available_status: 'Under contract', club_current: 'Test employer' })]
+  const result = radar(c, records)
+  assert.equal(result.suggestedCoaches.some(row => row.research.name === 'Enzo Maresca'), false)
+  assert.equal(result.suggestedCoaches.some(row => row.research.name === 'Roberto De Zerbi'), false)
+  assert.equal(result.incumbentBenchmark?.research.name, 'Roberto De Zerbi')
+  const excluded = result.excludedCoaches.find(row => row.research.name === 'Enzo Maresca')!
+  assert.ok(excluded)
+  assert.deepEqual(excluded.fit, calculateResearchFit(result.requirements.brief, excluded.research))
+  assert.equal(excluded.feasibility.status, 'not-pursuing')
+  assert.equal(result.suggestedCoaches[0].research.name, 'Russell Martin')
+  assert.equal(result.suggestedCoaches[0].feasibility.status, 'unknown')
+  assert.ok(radar({ ...c, id: 'another-club' }, records).suggestedCoaches.some(row => row.research.name === 'Enzo Maresca'))
+})
