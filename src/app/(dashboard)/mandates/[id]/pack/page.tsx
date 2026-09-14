@@ -92,6 +92,7 @@ export default async function MandatePackPage(props: { params: Promise<{ id: str
       </div>
 
       {isTottenhamScenario(params.id, mandate.custom_club_name) && <Link href={`/mandates/${params.id}/showcase#brief`} className="gaffa-panel mt-6 flex items-center justify-between gap-5 border-primary/30"><div><p className="gaffa-eyebrow">Board presentation</p><h2 className="mt-2 font-serif text-2xl">Open the Tottenham succession study</h2><p className="mt-2 text-sm text-muted-foreground">A dated research study with six potential successors and De Zerbi as the current-manager benchmark. It does not advise retaining or dismissing him.</p></div><ArrowRight className="h-5 w-5 shrink-0"/></Link>}
+      <Link href={`/mandates/${params.id}/shortlist-report`} className="gaffa-panel mt-6 flex items-center justify-between gap-5 border-primary/30"><div><p className="gaffa-eyebrow">Board output</p><h2 className="mt-2 font-serif text-2xl">Open the shortlist report</h2><p className="mt-2 text-sm text-muted-foreground">The ranking from the brief, why each coach sits where he does, and any analyst calls — ready to print.</p></div><ArrowRight className="h-5 w-5 shrink-0"/></Link>
       <div className="mt-6 space-y-3">
         {coachIds.map(coachId => {
           const recommendation = (recommendations ?? []).find(row => row.coach_id === coachId)

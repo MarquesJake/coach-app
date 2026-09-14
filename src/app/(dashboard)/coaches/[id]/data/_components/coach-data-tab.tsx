@@ -419,14 +419,14 @@ export function CoachDataTab({
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Repeated agents</p>
             <p className={cn('text-lg font-semibold', repeatAgentCount !== null && repeatAgentCount >= REPEAT_THRESHOLD ? 'text-amber-500' : 'text-foreground')}>
-              {repeatAgentCount ?? 'Data not yet connected'}
+              {repeatAgentCount ?? 'Not available from the current source'}
               {repeatAgentCount !== null && repeatAgentCount >= REPEAT_THRESHOLD && ' (above threshold)'}
             </p>
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Repeated players</p>
             <p className={cn('text-lg font-semibold', repeatPlayerCount !== null && repeatPlayerCount >= REPEAT_THRESHOLD ? 'text-amber-500' : 'text-foreground')}>
-              {repeatPlayerCount ?? 'Data not yet connected'}
+              {repeatPlayerCount ?? 'Not available from the current source'}
               {repeatPlayerCount !== null && repeatPlayerCount >= REPEAT_THRESHOLD && ' (above threshold)'}
             </p>
           </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { canonicalCoachName } from '@/lib/coaches/canonical-name'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { readResearchContext, researchHref } from '@/lib/research-context'
 import { createClient } from '@/lib/supabase/client'
@@ -580,7 +581,7 @@ export default function CoachesPage() {
             onClick={() => setProfileScope('duplicates')}
             className={cn('rounded px-3 py-1.5 text-xs font-medium', profileScope === 'duplicates' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground')}
           >
-            Duplicate review ({unresolvedDuplicateCount})
+            Duplicates · {unresolvedDuplicateCount} to review · {reviewedDuplicateCount} linked
           </button>
           <button
             type="button"
@@ -904,7 +905,7 @@ export default function CoachesPage() {
               >
                 <div className="flex items-center gap-2">
                   <span className="text-[13px] font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                    {sourcedProfile?.name ?? coach.name}
+                    {canonicalCoachName(coach.id, sourcedProfile?.name ?? coach.name)}
                   </span>
                   {coach.nationality && (
                     <span className="text-2xs text-muted-foreground/50 hidden lg:inline">{coach.nationality}</span>

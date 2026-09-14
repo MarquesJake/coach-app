@@ -14,7 +14,7 @@ test('changing the football brief changes the order rather than preserving prede
 
 test('the displayed contributions reproduce the final score and weights total 100', () => {
   const result = calculateResearchFit(brief, possession)
-  assert.equal(result.score, Math.round(result.dimensions.reduce((sum, row) => sum + row.contribution, 0)))
+  assert.equal(result.score, Math.round(result.dimensions.reduce((sum, row) => sum + row.contribution, 0) * 10) / 10)
   assert.ok(Math.abs(result.dimensions.reduce((sum, row) => sum + row.weight, 0) - 100) < 0.00001)
 })
 
@@ -46,4 +46,18 @@ test('opponent-dependent defending is not silently scored as a high press', () =
 test('research identity handles accents without merging different people', () => {
   assert.equal(normalizeCoachName('Sebastian Hoeneß'), normalizeCoachName('Sebastian Hoeness'))
   assert.notEqual(normalizeCoachName('Will Still'), normalizeCoachName('Edward Still'))
+})
+
+test('a generic adaptable label earns no bonus over a different identity', () => {
+  const adaptable: ResearchProfile = { ...possession, name: 'Adaptable example', apiId: 3, style: 'Adaptable' }
+  const flexibleBrief = { ...brief, tactical_model_required: 'Hybrid / flexible' }
+  const identity = (coach: ResearchProfile) => calculateResearchFit(flexibleBrief, coach, null).dimensions.find(row => row.key === 'style')!.score
+  assert.equal(identity(adaptable), identity(possession))
+})
+
+test('missing match data is shown as unavailable, never as zero', () => {
+  const result = calculateResearchFit(brief, possession, null)
+  const frontFoot = result.dimensions.find(row => row.key === 'front-foot')!
+  assert.equal(frontFoot.recorded, 'Not available from the current source')
+  assert.ok(frontFoot.score > 0)
 })

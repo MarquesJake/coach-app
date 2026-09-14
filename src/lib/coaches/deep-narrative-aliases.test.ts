@@ -23,7 +23,9 @@ test('all originally proven aliases resolve through the public UI lookup', () =>
   for (const [alias, target] of [[25762,16246],[26564,16373],[26573,627],[26578,618],[26677,14971]]) {
     assert.equal(findDeepResearchProfile(alias)?.apiId, target)
   }
-  assert.equal(identities.filter(row => findDeepResearchProfile(row.apiId)).length, 227)
+  // 226 of 227: the Luke Williams (26574) alias was withdrawn for lack of identity evidence.
+  assert.equal(identities.filter(row => findDeepResearchProfile(row.apiId)).length, 226)
+  assert.equal(findDeepResearchProfile(26574), undefined)
 })
 
 test('narrative-only identity review leaves provider/statistical aliases untouched', () => {

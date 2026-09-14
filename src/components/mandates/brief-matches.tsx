@@ -1,88 +1,94 @@
-import { currentEmploymentForApiId } from '@/lib/scoring/research/current-employment'
-import { appointmentFeasibility, type AppointmentDecision } from '@/lib/appointments/feasibility'
 import Link from 'next/link'
+import type { AppointmentDecision } from '@/lib/appointments/feasibility'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { calculateResearchFit, normalizeCoachName, type RankingBrief } from '@/lib/scoring/research/brief-fit'
-import { RESEARCH_PROFILES } from '@/lib/scoring/research/profiles'
+import type { RankingBrief } from '@/lib/scoring/research/brief-fit'
+import { rankResearchProfiles, positionLabel, type RankedCoach } from '@/lib/scoring/research/ranking'
 import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
 
-
-function CurrentRole({ apiId }: { apiId: number }) {
-  const record = currentEmploymentForApiId(apiId)
-  if (!record) return <p className="mt-2 text-xs text-muted-foreground">Current role not verified in the employment catalogue.</p>
-  const label = record.status === 'employed' ? [record.role, record.club].filter(Boolean).join(' · ') || 'Employed; role not supplied'
-    : record.status === 'unattached' ? 'Reported unattached' : 'Current employment not verified'
+function Situation({ coach }: { coach: RankedCoach }) {
+  const { eligibility } = coach
   return <div className="mt-2 text-xs leading-5 text-muted-foreground">
-    <p>{label} · checked {record.checkedAt}</p>
-    {record.sourceUrl && <a href={record.sourceUrl} target="_blank" rel="noreferrer" className="text-primary underline">{record.sourceTitle || 'Employment source'}</a>}
-    <details className="mt-1"><summary className="cursor-pointer">Employment review notes</summary><p className="mt-2">{record.note}</p></details>
-    <p>Employment evidence does not establish willingness or a route to appointment.</p>
+    <p className="font-medium text-foreground">{eligibility.headline}</p>
+    <p>{eligibility.reason}</p>
+    {eligibility.source && <p><a href={eligibility.source.url} target="_blank" rel="noreferrer" className="text-primary underline">{eligibility.source.title}</a> · checked {eligibility.source.checkedAt}</p>}
   </div>
 }
 
-/** Read-only recomputation: saving a new brief never leaves a stale score snapshot. */
+function ScoreBreakdown({ coach }: { coach: RankedCoach }) {
+  return <div className="mt-3 space-y-3">
+    {coach.fit.dimensions.map(row => <div key={row.key} className="text-xs leading-relaxed">
+      <p className="font-semibold">{row.label}: {row.score}/100 × {row.weight.toFixed(1)}% = {row.contribution.toFixed(1)}</p>
+      <p className="mt-1 text-muted-foreground">Brief asks for: {row.required}. He shows: {row.recorded}.</p>
+      <p className="mt-1 text-muted-foreground">{row.explanation}</p>
+    </div>)}
+    <p className="text-xs font-medium">Add the contributions: {coach.fit.score}/100.</p>
+    <div className="space-y-1">{coach.profile.sources.map(source => <p key={source.url} className="text-xs"><a className="text-primary underline" href={source.url} target="_blank" rel="noreferrer">{source.title}</a> <span className="text-muted-foreground">· period covered: {source.period}</span></p>)}</div>
+  </div>
+}
+
+/** Recalculated from the saved brief on every load, so a changed brief never leaves a stale ranking. */
 export async function BriefMatches({ mandate, appointmentDecisions }: { mandate: RankingBrief & { id: string; club_id?: string | null; clubs?: { id?: string; current_manager?: string | null } | null }; appointmentDecisions?: readonly AppointmentDecision[] }) {
   const appointmentBrief = safeDecisionBrief(mandate.decision_brief)
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase.from('coaches').select('id,name').order('name').limit(1000)
-  if (error) return <section className="my-6 rounded-xl border border-border p-5"><h2 className="font-semibold">Matches from this brief</h2><p role="alert" className="mt-2 text-sm">Coach records could not be loaded. Refresh to calculate the matches.</p></section>
-  const comparisons = RESEARCH_PROFILES.flatMap(profile => {
-    const aliases = new Set([profile.name, ...profile.aliases].map(normalizeCoachName))
-    const records = (data ?? []).filter(row => aliases.has(normalizeCoachName(row.name)))
-    const record = records.find(row => row.name === profile.name) ?? records.sort((a, b) => a.id.localeCompare(b.id))[0]
-    if (!record) return []
-    const result = calculateResearchFit(mandate, profile)
-    const feasibility = appointmentFeasibility(profile, { mandateId: mandate.id, clubId: mandate.club_id ?? mandate.clubs?.id, incumbentName: mandate.clubs?.current_manager }, appointmentDecisions)
-    return result.score === null ? [] : [{ profile, record, result, feasibility }]
-  }).sort((a, b) => b.result.score! - a.result.score! || a.profile.name.localeCompare(b.profile.name))
-  const matches = comparisons.filter(row => !row.feasibility.excluded)
-  const excluded = comparisons.filter(row => row.feasibility.excluded)
-  const first = matches[0]
+  if (error) return <section className="my-6 rounded-xl border border-border p-5"><h2 className="font-semibold">Ranking from this brief</h2><p role="alert" className="mt-2 text-sm">Coach records could not be loaded. Refresh to rebuild the ranking.</p></section>
+  const ranking = rankResearchProfiles({
+    brief: mandate,
+    context: { mandateId: mandate.id, clubId: mandate.club_id ?? mandate.clubs?.id, incumbentName: mandate.clubs?.current_manager },
+    records: data ?? [],
+    decisions: appointmentDecisions,
+  })
+  const top = ranking.shortlist.slice(0, 3)
+  const setAside = [...ranking.notPursuing, ...ranking.researchGaps]
+
   return <section id="brief-matches" className="my-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Brief-driven research · scoring rules v1</p><h2 className="mt-1 text-xl font-semibold">Your top three football matches</h2></div>
-      <Link href={`/mandates/${mandate.id}/edit`} className="text-sm text-primary underline underline-offset-4">Change the brief</Link>
+      <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ranked against the brief</p><h2 className="mt-1 text-xl font-semibold">Top three for this job</h2></div>
+      <Link href={`/mandates/${mandate.id}/edit`} className="text-sm text-primary underline underline-offset-4">View the brief</Link>
     </div>
-    <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Calculated from the saved brief and sourced coach research. A fit score measures alignment with the assessed requirements; it is not a probability of success or confirmation that a coach can be appointed.</p>
-    <p className="mt-2 text-xs text-muted-foreground">Appointment feasibility is unassessed unless an explicit review is shown. Inclusion in these football comparisons does not mean a realistic deal has been established.</p>
-    <details className="mt-4 rounded-lg border border-border bg-muted/30 p-4"><summary className="cursor-pointer text-sm font-medium">Could this club secure the appointment?</summary>
-      <p className="mt-3 text-sm text-muted-foreground">Feasibility depends on this club and this deal. Being under contract does not automatically exclude a coach. A verified release clause within the club’s compensation budget may create a realistic route, subject to its conditions, salary, staff costs and the coach’s interest.</p>
-      <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">{[['salary', 'Head coach salary'], ['staff_budget', 'Staff budget'], ['compensation', 'Compensation budget']].map(([key, label]) => <div key={key}><dt className="font-medium">{label}</dt><dd className="mt-1 text-muted-foreground">{appointmentBrief[key as keyof typeof appointmentBrief]?.value || 'Not yet agreed in this brief'}</dd></div>)}</dl>
-      <p className="mt-3 text-xs text-muted-foreground">Network intelligence can identify a route to a deal. Record the source, date, currency, amount and clause conditions, then verify them before describing the coach as attainable. Unknown terms remain unresolved; they do not lower football fit or establish availability.</p>
-    </details>
-    {excluded.length > 0 && <div className="mt-4 rounded-lg border border-border p-4">
-      <h3 className="text-sm font-semibold">Excluded from successor matches · football fit retained</h3>
-      {excluded.map(({ profile, result, feasibility }) => <div key={profile.apiId} className="mt-3 text-xs leading-5">
-        <p className="font-semibold">{profile.name} · {result.score}/100 football fit · {feasibility.status === 'incumbent' ? 'Incumbent benchmark' : 'Not pursuing'}</p>
-        <CurrentRole apiId={profile.apiId} />
-        <p>{feasibility.reason}</p>
-        {feasibility.decision && <p>{feasibility.decision.decidedBy} decision · checked {feasibility.decision.checkedAt} · <a href={feasibility.decision.source.url} target="_blank" rel="noreferrer" className="text-primary underline">{feasibility.decision.source.title}</a></p>}
-      </div>)}
-    </div>}
-    {!first ? <p className="mt-5 text-sm">No eligible successor comparisons to display. Agree at least two of playing identity, build-up, defensive approach and a supported strategic objective to calculate a useful comparison. Only researched profiles in your accessible coach database are included.</p> : <>
-      <p className="mt-3 text-xs text-muted-foreground">{matches.length} researched successor profiles after appointment exclusions, compared from {data?.length ?? 0} accessible records. Profiles without this research are outside this comparison. Recalculated when the brief changes. Equal scores are ties; names only determine their display order.</p>
+    <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Every researched coach is scored on how well his football matches this brief, backed by his match data. The score is fit with the brief — not a forecast of success, and not a sign he can be signed.</p>
+    <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Before anyone makes the list we take out the current manager, coaches at Premier League rivals, elite clubs or national teams, and anyone without recent evidence. Those names stay visible below with the reason.</p>
+
+    {!top.length ? <p className="mt-5 text-sm">Nobody to rank yet. The brief needs at least two of playing identity, build-up, defending and objective.</p> : <>
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        {matches.slice(0, 3).map(({ profile, record, result, feasibility }, index) => <article key={record.id} className="rounded-xl border border-border bg-background p-4">
-          <div className="flex items-center justify-between gap-2"><span className="text-xs text-muted-foreground">{index && matches[index - 1].result.score === result.score ? 'Joint match' : `Match ${index + 1}`}</span><span className="text-xs font-medium text-muted-foreground">Football fit</span></div>
-          <h3 className="mt-3 text-lg font-semibold"><Link className="hover:underline" href={`/coaches/${record.id}`}>{profile.name}</Link></h3>
-          <p className="mt-2 text-3xl font-semibold tabular-nums text-primary">{result.score}<span className="text-base font-normal text-muted-foreground"> / 100</span></p>
-          <CurrentRole apiId={profile.apiId} />
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{feasibility.reason}</p>
-          <p className="mt-3 text-sm leading-relaxed">{profile.summary}</p>
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{profile.limitation}</p>
-          <details className="mt-4 border-t border-border pt-3"><summary className="cursor-pointer text-sm font-medium">Why this score?</summary>
-            <div className="mt-3 space-y-3">{result.dimensions.map(row => <div key={row.key} className="text-xs leading-relaxed"><p className="font-semibold">{row.label}: {row.score}/100 × {row.weight.toFixed(1)}% = {row.contribution.toFixed(1)} points</p><p className="mt-1 text-muted-foreground">Brief: {row.required}. Research: {row.recorded}.</p><p className="mt-1 text-muted-foreground">{row.explanation}</p></div>)}<p className="text-xs font-medium">Sum the contributions, then round once: {result.score}/100.</p></div>
-            <div className="mt-4 space-y-2">{profile.sources.map(source => <p key={source.url} className="text-xs"><a className="text-primary underline" href={source.url} target="_blank" rel="noreferrer">{source.title}</a><span className="mt-1 block text-muted-foreground">Evidence period: {source.period}</span></p>)}</div>
-            {profile.apiRecord && <div className="mt-4 text-xs"><p className="font-semibold">API-Football career records · retrieved {profile.apiRecord.retrievedAt}</p><ul className="mt-2 space-y-1 text-muted-foreground">{profile.apiRecord.career.map((job, index) => <li key={index}>{job.club}: {job.start ?? 'Start not recorded'} to {job.end ?? 'end not supplied'}</li>)}</ul><p className="mt-2 text-muted-foreground">Provider dates may be incomplete or overlapping. An absent end date does not establish a current job or availability.</p></div>}
-          </details>
+        {top.map(coach => <article key={coach.profile.apiId} className="rounded-xl border border-border bg-background p-4">
+          <div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-muted-foreground">{positionLabel(coach)}</span><span className="text-xs text-muted-foreground">Fit with the brief</span></div>
+          <h3 className="mt-3 text-lg font-semibold">{coach.record ? <Link className="hover:underline" href={`/coaches/${coach.record.id}`}>{coach.profile.name}</Link> : coach.profile.name}</h3>
+          <p className="mt-2 text-3xl font-semibold tabular-nums text-primary">{coach.fit.score}<span className="text-base font-normal text-muted-foreground"> / 100</span></p>
+          {coach.aheadOfNext && <p className="mt-3 rounded-md bg-muted/40 p-2 text-xs leading-5"><span className="font-semibold">Why he is above the next man:</span> {coach.aheadOfNext}</p>}
+          <Situation coach={coach} />
+          <p className="mt-3 text-sm leading-relaxed">{coach.profile.summary}</p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Caveat: {coach.profile.limitation}</p>
+          <details className="mt-4 border-t border-border pt-3"><summary className="cursor-pointer text-sm font-medium">Why this score?</summary><ScoreBreakdown coach={coach} /></details>
         </article>)}
       </div>
-      <details className="mt-5 border-t border-border pt-4"><summary className="cursor-pointer text-sm font-medium">All {matches.length} matches and how the brief affects them</summary>
-        <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-border"><th className="py-2">Coach</th><th>Football fit</th><th>Identity · defence · build-up</th></tr></thead><tbody>{matches.map(({ profile, record, result }) => <tr key={record.id} className="border-b border-border"><td className="py-2"><Link className="text-primary hover:underline" href={`/coaches/${record.id}`}>{profile.name}</Link></td><td className="tabular-nums">{result.score}/100</td><td>{profile.style} · {profile.pressing} · {profile.build}</td></tr>)}</tbody></table></div>
-        <p className="mt-4 text-sm text-muted-foreground">Base weights: playing identity 30, build-up 20, defensive approach 20, relevant achievement 30. In-possession and out-of-possession priorities multiply their weight by 1.5 for Essential, 1 for Preferred and 0.5 for Flexible. Active weights are then normalised to 100%. Unrecognised or unanswered criteria are not scored.</p>
-        <p className="mt-2 text-sm text-muted-foreground">These are explicit starting rules, not learned probabilities. Tactical categories are our research interpretations of the cited periods. API-Football supplies identity and career records, not these assessments. A top score still requires the checks below before recommendation.</p>
+
+      <details className="mt-5 border-t border-border pt-4" open><summary className="cursor-pointer text-sm font-medium">Full ranking · {ranking.shortlist.length} coaches we could pursue</summary>
+        <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-border"><th className="py-2 pr-3">Rank</th><th className="pr-3">Coach</th><th className="pr-3">Fit</th><th className="pr-3">Situation</th><th>Why above the next</th></tr></thead><tbody>
+          {ranking.shortlist.map(coach => <tr key={coach.profile.apiId} className="border-b border-border align-top">
+            <td className="py-2 pr-3 whitespace-nowrap">{positionLabel(coach)}</td>
+            <td className="pr-3">{coach.record ? <Link className="text-primary hover:underline" href={`/coaches/${coach.record.id}`}>{coach.profile.name}</Link> : coach.profile.name}</td>
+            <td className="pr-3 tabular-nums">{coach.fit.score}</td>
+            <td className="pr-3 text-xs text-muted-foreground">{coach.eligibility.headline}</td>
+            <td className="text-xs text-muted-foreground">{coach.aheadOfNext ?? '—'}</td>
+          </tr>)}
+        </tbody></table></div>
       </details>
-      <details className="mt-4 border-t border-border pt-4"><summary className="cursor-pointer text-sm font-medium">Requirements still needing evidence and analyst review</summary><p className="mt-3 text-sm text-muted-foreground">These answers remain part of the brief but do not silently become numeric scores. Essential requirements must be resolved before an appointment recommendation.</p><ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">{first.result.manualChecks.map((item, index) => <li key={index}>{item}</li>)}</ul></details>
     </>}
+
+    {(ranking.incumbent || setAside.length > 0) && <details className="mt-4 border-t border-border pt-4"><summary className="cursor-pointer text-sm font-medium">Assessed but not on the list · {setAside.length + (ranking.incumbent ? 1 : 0)}</summary>
+      <div className="mt-3 space-y-3">
+        {[...(ranking.incumbent ? [ranking.incumbent] : []), ...setAside].map(coach => <div key={coach.profile.apiId} className="text-xs leading-5">
+          <p className="font-semibold">{coach.profile.name} · fit {coach.fit.score}</p>
+          <Situation coach={coach} />
+        </div>)}
+      </div>
+    </details>}
+
+    <details className="mt-4 border-t border-border pt-4"><summary className="cursor-pointer text-sm font-medium">How the score is built</summary>
+      <p className="mt-3 text-sm text-muted-foreground">Starting weights: playing identity 25, build-up 15, defending 15, relevant achievement 25, front-foot football in the match data 10, recent head-coach evidence 10. Essential build-up or defending counts 1.5 times, Flexible half. Weights are then scaled to 100.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Playing identity comes from dated tactical research on a named period. Match figures come from API-Football league matches where the coach is on the team sheet. Level scores are ordered by weight of recent verified matches; names are never used to split them.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Still to check by hand for every name: {[appointmentBrief.salary?.value && 'salary', appointmentBrief.staff_budget?.value && 'staff costs', appointmentBrief.compensation?.value && 'compensation', 'interest in the job', 'references', 'work permit'].filter(Boolean).join(', ')}.</p>
+    </details>
   </section>
 }

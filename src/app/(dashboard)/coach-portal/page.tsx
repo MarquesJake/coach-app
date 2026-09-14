@@ -1,3 +1,4 @@
+import { loadMandateRanking, standingLabel } from '@/lib/mandates/mandate-ranking.server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
@@ -110,6 +111,11 @@ export default async function CoachPortalPage() {
     return readiness(profile, materialsByCoach.get(coach.id) ?? []) >= 70
   }).length
 
+  const { data: activeMandates } = await supabase.from('mandates').select('id, custom_club_name, clubs(name)').eq('status', 'Active')
+  const standings = await Promise.all((activeMandates ?? []).map(async mandate => ({
+    label: (mandate as { custom_club_name?: string | null; clubs?: { name?: string } | null }).custom_club_name || (mandate as { clubs?: { name?: string } | null }).clubs?.name || 'Mandate',
+    ranking: await loadMandateRanking(mandate.id),
+  })))
   return (
     <div className="space-y-6">
       <section className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-4">
@@ -175,6 +181,7 @@ export default async function CoachPortalPage() {
                     <p className="text-2xs text-muted-foreground mt-0.5 truncate">
                       {[coach.club_current, coach.nationality, coach.tactical_identity].filter(Boolean).join(' · ') || 'Profile context missing'}
                     </p>
+                    {standings.map(({ label, ranking }) => ranking && <p key={label} className="text-2xs text-foreground/80 mt-0.5 truncate">{label}: {standingLabel(ranking.byCoachId.get(coach.id))}</p>)}
                   </div>
                   <span className={cn('justify-self-start rounded-full border px-2 py-1 text-[10px] font-medium', statusTone(profile && isIllustrativeEvidence(profile) ? 'needs_update' : status))}>
                     {declarationReviewLabel(profile)}

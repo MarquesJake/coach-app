@@ -44,7 +44,7 @@ export default async function AppointmentLayout({ children, params }: {
         {briefs.error || amendments.error ? <p role="alert" className="mt-1 text-xs text-amber-700 dark:text-amber-400">Club brief version not found. Check the brief before relying on these requirements.</p> : briefs.data?.length ? briefs.data.map(brief => {
           const agreed = effectiveBrief(brief, (amendments.data ?? []).filter(row => row.brief_id === brief.id))
           return <p className="mt-1 text-xs text-muted-foreground" key={brief.id}>{agreed.snapshot.role_title || 'Role not recorded'} · Club brief v{agreed.version}{(amendments.data ?? []).some(row => row.brief_id === brief.id && row.status === 'pending') ? ' · Amendment awaiting review' : ''}</p>
-        }) : <p className="mt-1 text-xs text-muted-foreground">Internal brief</p>}
+        }) : <p className="mt-1 text-xs text-muted-foreground"><span className="rounded border border-amber-600/30 bg-amber-50 px-1.5 py-0.5 font-medium text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">Analyst brief · demonstration</span> Written by Gaffa to show the process. The club has not supplied or approved it.</p>}
       </div>
     </aside>
     {children}

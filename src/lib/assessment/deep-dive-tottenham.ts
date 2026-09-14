@@ -686,7 +686,7 @@ export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     probabilityRationale: 'Current-manager benchmark only; excluded from successor recommendations.',
   },
   [`${TOTTENHAM}:${MCKENNA}`]: {
-    executiveSummary: 'McKenna is the first successor to research. He knows the club from his academy days, builds clear attacking teams and develops players. The questions are whether he wants the job now, and whether his Ipswich record carries into the top half of the Premier League.',
+    executiveSummary: 'McKenna is joint 4th on the brief, level with Farioli. He knows the club from his academy days, builds clear attacking teams and develops players. The questions are whether he wants the job now, and whether his Ipswich record carries into the top half of the Premier League.',
     swot: { strengths: ['Two promotions', 'Clear, teachable model', 'Develops players', 'Available'], weaknesses: ['Premier League relegation', 'Never managed a big club'], opportunities: ['Spurs’ wide players suit him', 'Academy connection'], threats: ['May not want it now', 'Big-club scrutiny'] },
     organisationalFit: 'Strong, with a sporting director who owns recruitment and protects his first month.',
     budget: budget('£4.0m–£5.0m', '£1.5m', 'None expected', '£5.5m–£6.5m'),
@@ -700,7 +700,7 @@ export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     probabilityRationale: 'Highest of the alternatives: available, affordable and a good fit. Held back by the Premier League record and the size of the step.',
   },
   [`${TOTTENHAM}:${HOENESS}`]: {
-    executiveSummary: 'Hoeneß is the strongest comparison: he turned Stuttgart from bottom to second in a year and won the DFB-Pokal. But he is under contract to 2028, has never worked in England, and his best season depended on a squad that was then sold.',
+    executiveSummary: 'Hoeneß is joint 7th on the brief and a useful Bundesliga comparison: he turned Stuttgart from bottom to second in a year and won the DFB-Pokal. But he is under contract to 2028, has never worked in England, and his best season depended on a squad that was then sold.',
     swot: { strengths: ['Remarkable turnaround', 'Trophy winner', 'Energetic, attacking football'], weaknesses: ['Never worked in England', 'Dip after key sales'], opportunities: ['Would bring energy and a clear plan'], threats: ['Stuttgart won’t let him go cheaply', 'His assistant may not come'] },
     organisationalFit: 'Good with a strong sporting director and a sell-on model; needs his assistant.',
     budget: budget('£4.0m–£5.0m', '£1.5m', '£6m–£8m', '£11.5m–£14.5m'),
@@ -713,7 +713,7 @@ export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     probabilityRationale: 'Strong coach, but the release and the move to England lower the odds.',
   },
   [`${TOTTENHAM}:${KNUTSEN}`]: {
-    executiveSummary: 'Knutsen is a longer-term option. His Bodø/Glimt side is one of Europe’s most joined-up teams, but it took years to build, he has never worked outside Norway, and he is under contract to 2029.',
+    executiveSummary: 'Knutsen is 3rd on the brief. His Bodø/Glimt side is one of Europe’s most joined-up teams, but it took years to build, he has never worked outside Norway, and he is under contract to 2029.',
     swot: { strengths: ['Four titles', 'Big European results', 'Strong culture'], weaknesses: ['Norwegian league level', 'Slow build'], opportunities: ['A long-term project'], threats: ['Not ready for an urgent job', 'Contract to 2029'] },
     organisationalFit: 'Needs patience and time — a poor fit for an urgent appointment.',
     budget: budget('£2.5m–£3.5m', '£1.2m', '£4m–£6m', '£7.7m–£10.7m'),
@@ -723,7 +723,7 @@ export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     probabilityRationale: 'Excellent coach, but the timing and the step up make it a long-term route.',
   },
   [`${TOTTENHAM}:${FARIOLI}`]: {
-    executiveSummary: 'Farioli has outstanding defensive numbers and dominant possession. But he is under contract at Porto, and his detailed model is close to De Zerbi’s — the question is whether it would be different enough to justify a change.',
+    executiveSummary: 'Farioli is joint 4th on the brief: outstanding defensive numbers and dominant possession. But he is under contract at Porto, and his detailed model is close to De Zerbi’s — the question is whether it would be different enough to justify a change.',
     swot: { strengths: ['Best defensive numbers', 'Instant impact'], weaknesses: ['Never worked in England', 'Similar model to De Zerbi'], opportunities: ['Tighter defence quickly'], threats: ['Porto compensation', 'Another reset for the squad'] },
     organisationalFit: 'Partial — needs recruitment built around him and time.',
     budget: budget('£4.0m–£4.5m', '£2.0m', '£8m–£10m', '£14m–£16.5m'),
@@ -733,7 +733,7 @@ export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     probabilityRationale: 'Strong coach, but the cost and the overlap with De Zerbi’s model lower the case.',
   },
   [`${TOTTENHAM}:${SILVA}`]: {
-    executiveSummary: 'Silva is the Premier League benchmark: reliable, knows the league and gives players clear roles. But his Fulham sides were steady rather than exciting, and he has only just committed to Benfica.',
+    executiveSummary: 'Silva is 21st on this brief — a Premier League benchmark rather than a fit: reliable, knows the league and gives players clear roles. But his Fulham sides were steady rather than exciting, and he has only just committed to Benfica.',
     swot: { strengths: ['Knows the Premier League', 'Reliable', 'Championship title'], weaknesses: ['Mid-table ceiling'], opportunities: ['A steady pair of hands'], threats: ['Just joined Benfica'] },
     organisationalFit: 'Good for stability; less so for Tottenham’s ambition.',
     budget: budget('£4.0m–£4.5m', '£1.2m', '£5m–£7m', '£10.2m–£12.7m'),
@@ -743,7 +743,7 @@ export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
     probabilityRationale: 'Reliable but unlikely to lift Tottenham, and hard to get.',
   },
   [`${TOTTENHAM}:${TERZIC}`]: {
-    executiveSummary: 'Terzić brings a big-game record — a DFB-Pokal and a Champions League final — and knows English football. But his league form was less consistent, and he has just started at Athletic Club.',
+    executiveSummary: 'Terzić is 16th on the brief. He brings a big-game record — a DFB-Pokal and a Champions League final — and knows English football. But his league form was less consistent, and he has just started at Athletic Club.',
     swot: { strengths: ['Big-game record', 'Strong communicator', 'Trusts young players'], weaknesses: ['League consistency'], opportunities: ['Fits Tottenham’s wide players'], threats: ['Just joined Athletic'] },
     organisationalFit: 'Good fit with a strong identity; timing is the problem.',
     budget: budget('£3.5m–£4.5m', '£1.2m', '£5m–£7m', '£9.7m–£12.7m'),

@@ -26,10 +26,10 @@ test('match evidence resolves reviewed API identity, preserves metrics and expos
   assert.ok(coach?.periods.length)
   const {VerifiedMatchEvidence}=load('verified-match-evidence.tsx',{'@/lib/integrations/coach-match-snapshots.json':snapshot,'@/lib/scoring/research/catalogue':{researchProfileForName:(name:string)=>name==='Röhl'?{apiId:22937}:undefined}})
   const html=renderToStaticMarkup(VerifiedMatchEvidence({coachName:'Röhl'}))
-  for(const label of ['Points per match','Possession (average)','xG for per match','xG against per match','Points from losing positions','Points after conceding first','Goals by substitutes','First substitution (average minute)','Reported starting formations','Results over the observed period']) assert.ok(html.includes(label),label)
+  for(const label of ['Points per match','Possession (average)','xG for per match','xG against per match','Points from losing positions','Points after conceding first','Goals by substitutes','First substitution (average minute)','Reported starting formations','Form across the spell']) assert.ok(html.includes(label),label)
   for(let i=0;i<coach.periods.length;i++){assert.ok(html.includes(`href="#match-period-22937-${i}"`));assert.ok(html.includes(`id="match-period-22937-${i}"`))}
   assert.match(html,/lineup-confirmed/);assert.match(html,/bounded-tenure fallback/);assert.match(html,/matches covered/)
-  assert.match(renderToStaticMarkup(VerifiedMatchEvidence({coachName:'unknown'})),/not yet been published/)
+  assert.match(renderToStaticMarkup(VerifiedMatchEvidence({coachName:'unknown'})),/No checked match data for this coach yet/)
 })
 
 test('provider history preserves incomplete dates without inventing employment or results', () => {
@@ -55,7 +55,7 @@ test('explicit reviewed provider IDs override names and empty identities never f
   const sample=snapshot.coaches.find((row:any)=>row.periods.length)
   const {VerifiedMatchEvidence,matchSnapshotForApiIds}=load('verified-match-evidence.tsx',{'@/lib/integrations/coach-match-snapshots.json':snapshot,'@/lib/scoring/research/catalogue':{researchProfileForName:()=>({apiId:sample.apiId})}})
   assert.equal(matchSnapshotForApiIds([-1,sample.apiId]).apiId,sample.apiId)
-  assert.match(renderToStaticMarkup(VerifiedMatchEvidence({coachName:'Different display name',apiIds:[sample.apiId]})),/Explore the observed record/)
+  assert.match(renderToStaticMarkup(VerifiedMatchEvidence({coachName:'Different display name',apiIds:[sample.apiId]})),/His record, season by season/)
   assert.equal(renderToStaticMarkup(VerifiedMatchEvidence({coachName:sample.name,apiIds:[],hideMissing:true})), '')
 })
 
@@ -137,9 +137,8 @@ test('same club-season lineup slices have distinct overview, collapsed and detai
     assert.ok(html.includes(`Salzburg · 2026 · lineup coach ID ${id}: slice results and coverage`))
   }
   assert.equal((html.match(/<details[^>]*open=""/g)??[]).length,1)
-  assert.match(html, /2 observed slices available/)
-  assert.match(html, /not necessarily the whole season/)
-  assert.match(html, /do not add their matches or metrics together/)
+  assert.match(html, /2 spells on record/)
+  assert.match(html, /not always the full season/)
   assert.equal((html.match(/>Match points</g)??[]).length,2)
 })
 
@@ -158,9 +157,9 @@ test('period chronology exclusions and dated official sources remain explicit, i
     assert.match(html,/Excluded matches are not reassigned/)
     if(count===undefined) assert.match(html,/An exclusion count is not supplied/)
     else assert.ok(html.includes(`${count} provider-labelled observations excluded`))
-    assert.match(html,/Individual source records may have been retrieved earlier/)
+    assert.match(html,/Each club and season is kept separate/)
     assert.doesNotMatch(html,/Snapshot retrieved|1970|Invalid Date/)
-    assert.match(html,/Snapshot dated Not supplied/)
+    assert.match(html,/data pulled Not supplied/)
     assert.match(html,/1 fixture references without a recorded retrieval date/)
   }
 })
