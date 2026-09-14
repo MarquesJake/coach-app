@@ -39,6 +39,7 @@ import {
   REFERENCE_QUESTIONS,
   type InterviewFocus,
 } from '@/lib/assessment/question-banks'
+import { INTERVIEW_PLAN, INTERVIEW_STATUS_LABELS, PRIORITY_REFERENCE_KEYS, STAKEHOLDER_GROUPS, boardCall, dimensionFor, interviewStatus, methodCoverage, referencePatterns, referenceQuestionsFor } from '@/lib/assessment/methodology'
 
 export type AssessmentRow = {
   criterion: string
@@ -79,6 +80,8 @@ export type InterviewAnswerRow = {
   interviewer: string | null
   confidence: number | null
   created_at: string
+  verification_status: string | null
+  used_in_recommendation: boolean | null
 }
 
 export type ReferenceAnswerRow = {
@@ -94,6 +97,8 @@ export type ReferenceAnswerRow = {
   would_hire_again: string
   risk_flag: boolean
   created_at: string
+  verification_status: string | null
+  used_in_recommendation: boolean | null
 }
 
 export type PrivateMaterialRow = {
@@ -147,6 +152,49 @@ const ACCESS_STATUS_LABELS: Record<string, string> = {
   withdrawn: 'Withdrawn',
 }
 
+export type BriefContext = {
+  clubName: string
+  objective: string | null
+  identity: string | null
+  squadProblem: string | null
+  leadership: string | null
+  successMeasures: string | null
+  analystBrief: boolean
+}
+
+function ProcessOverview({ briefContext, interviewAnswers, referenceAnswers, verdict }: { briefContext: BriefContext | null; interviewAnswers: InterviewAnswerRow[]; referenceAnswers: ReferenceAnswerRow[]; verdict: string | null }) {
+  const status = interviewStatus(interviewAnswers)
+  const patterns = referencePatterns(referenceAnswers)
+  const call = boardCall(verdict)
+  const groupCount = (group: string) => referenceAnswers.filter(answer => answer.stakeholder_group === group).length
+  return (
+    <div className="card-surface rounded-lg p-5 space-y-4 lg:col-span-2">
+      <div>
+        <h3 className="text-sm font-semibold text-foreground">The people side of the assessment</h3>
+        <p className="text-2xs text-muted-foreground mt-0.5">Interview and references follow the same standard questions for every coach, so answers can be compared. Nothing counts until an analyst has checked it.</p>
+      </div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="rounded border border-border/50 bg-surface/40 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Candidate interview</p>
+          <p className="mt-1 text-xs font-medium text-foreground">{INTERVIEW_STATUS_LABELS[status]}</p>
+          <p className="mt-1 text-2xs text-muted-foreground">{INTERVIEW_PLAN.standard.length + INTERVIEW_PLAN.revealing.length} standard questions · {INTERVIEW_PLAN.clubSpecific.length} about {briefContext?.clubName ?? 'this club'} · {interviewAnswers.length} answered</p>
+        </div>
+        <div className="rounded border border-border/50 bg-surface/40 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">References</p>
+          <p className="mt-1 text-xs font-medium text-foreground">{patterns.independentReferences} independent {patterns.independentReferences === 1 ? 'voice' : 'voices'} checked · {patterns.unreviewedAnswers} answer{patterns.unreviewedAnswers === 1 ? '' : 's'} waiting for review</p>
+          <p className="mt-1 text-2xs text-muted-foreground">{STAKEHOLDER_GROUPS.map(group => `${REFERENCE_GROUP_LABELS[group]} ${groupCount(group)}`).join(' · ')}</p>
+        </div>
+        <div className="rounded border border-border/50 bg-surface/40 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Pattern check · the five questions</p>
+          <p className="mt-1 text-xs font-medium text-foreground">{patterns.priorityAnswered} of {PRIORITY_REFERENCE_KEYS.length} answered by a checked reference · would hire again: {patterns.hireAgain}</p>
+          <p className="mt-1 text-2xs text-muted-foreground">{patterns.oneVoice ? 'One voice so far — a pattern needs at least two independent references.' : patterns.risksFlagged ? `${patterns.risksFlagged} risk${patterns.risksFlagged === 1 ? '' : 's'} flagged by references.` : 'No risks flagged by checked references yet.'}</p>
+        </div>
+      </div>
+      <p className="text-2xs text-muted-foreground">Board call from the analyst verdict: <span className="font-semibold text-foreground">{call.call}</span> — {call.meaning}</p>
+    </div>
+  )
+}
+
 function StructuredInterviewPanel({
   mandateId,
   coachId,
@@ -154,6 +202,7 @@ function StructuredInterviewPanel({
   submit,
   isPending,
   highlightedId,
+  briefContext,
 }: {
   mandateId: string
   coachId: string
@@ -161,6 +210,7 @@ function StructuredInterviewPanel({
   submit: SubmitAction
   isPending: boolean
   highlightedId: string | null
+  briefContext: BriefContext | null
 }) {
   const highlightRef = useRef<HTMLDivElement | null>(null)
   const recent = answers.slice(0, 3)
@@ -176,11 +226,34 @@ function StructuredInterviewPanel({
   return (
     <div className="card-surface rounded-lg p-5 space-y-4">
       <div>
-        <h3 className="text-sm font-semibold text-foreground">Structured interview</h3>
+        <h3 className="text-sm font-semibold text-foreground">Candidate interview</h3>
         <p className="text-2xs text-muted-foreground mt-0.5">
-          Record how the coach thinks, adapts and fits this club.
+          The same questions for every coach; the last five are about {briefContext?.clubName ?? 'this club'}. Status: {INTERVIEW_STATUS_LABELS[interviewStatus(answers)]}.
         </p>
       </div>
+
+      <details className="rounded border border-border/50 bg-surface/40 px-3 py-2">
+        <summary className="cursor-pointer text-xs font-medium text-foreground">Interview plan · {INTERVIEW_PLAN.standard.length + INTERVIEW_PLAN.revealing.length + INTERVIEW_PLAN.clubSpecific.length} questions</summary>
+        {briefContext && (
+          <div className="mt-2 rounded border border-primary/30 bg-primary/5 px-3 py-2 text-2xs">
+            <p className="font-semibold text-foreground">What the coach is being interviewed against{briefContext.analystBrief ? ' — analyst demonstration brief, not the club’s words' : ''}</p>
+            {briefContext.objective && <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Objective:</span> {briefContext.objective}</p>}
+            {briefContext.identity && <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Football:</span> {briefContext.identity}</p>}
+            {briefContext.squadProblem && <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Squad:</span> {briefContext.squadProblem}</p>}
+            {briefContext.leadership && <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">Who he would answer to:</span> {briefContext.leadership}</p>}
+            {briefContext.successMeasures && <p className="mt-1 text-muted-foreground"><span className="font-medium text-foreground">What success looks like:</span> {briefContext.successMeasures}</p>}
+          </div>
+        )}
+        <div className="mt-2 space-y-2 text-2xs">
+          <p className="font-semibold text-foreground">The three that tell you most</p>
+          <ol className="list-decimal space-y-1 pl-4 text-muted-foreground">{INTERVIEW_PLAN.revealing.map(question => <li key={question.key}>{question.question} <span className="text-muted-foreground/70">— {question.followUp}</span></li>)}</ol>
+          <p className="font-semibold text-foreground">Standard questions</p>
+          <ol className="list-decimal space-y-1 pl-4 text-muted-foreground">{INTERVIEW_PLAN.standard.map(question => <li key={question.key}>{question.question}</li>)}</ol>
+          <p className="font-semibold text-foreground">About {briefContext?.clubName ?? 'this club'}</p>
+          <ol className="list-decimal space-y-1 pl-4 text-muted-foreground">{INTERVIEW_PLAN.clubSpecific.map(question => <li key={question.key}>{question.question.replace(/our club|this club/g, briefContext?.clubName ?? 'this club').replace(/our current squad/g, `the current ${briefContext?.clubName ?? 'club'} squad`)} <span className="text-muted-foreground/70">— {question.followUp}</span></li>)}</ol>
+          <p className="text-muted-foreground/80">No interview has been held with this coach{answers.length ? ' beyond the answers recorded below' : ''}. Answers are typed in as given, with the interviewer and date, and only count once checked.</p>
+        </div>
+      </details>
 
       <form onSubmit={submit(addInterviewAnswerAction)} className="space-y-2">
         <input type="hidden" name="mandate_id" value={mandateId} />
@@ -286,9 +359,24 @@ function StructuredReferencesPanel({
       <div>
         <h3 className="text-sm font-semibold text-foreground">Reference process</h3>
         <p className="text-2xs text-muted-foreground mt-0.5">
-          Compare what owners, staff, players, contacts and media say, and look for patterns.
+          Standard questions for each type of person, so what owners, staff, players, the industry and journalists say can be compared like for like.
         </p>
       </div>
+
+      <details className="rounded border border-border/50 bg-surface/40 px-3 py-2">
+        <summary className="cursor-pointer text-xs font-medium text-foreground">Question sets by who you are speaking to</summary>
+        <div className="mt-2 space-y-2 text-2xs">
+          <p className="font-semibold text-foreground">The five to ask everyone</p>
+          <ol className="list-decimal space-y-1 pl-4 text-muted-foreground">{PRIORITY_REFERENCE_KEYS.map(key => { const question = REFERENCE_QUESTIONS.find(item => item.key === key); return question ? <li key={key}>{question.question}</li> : null })}</ol>
+          {STAKEHOLDER_GROUPS.map(group => (
+            <details key={group} className="rounded border border-border/40 px-2 py-1">
+              <summary className="cursor-pointer font-medium text-foreground">{REFERENCE_GROUP_LABELS[group]} · {referenceQuestionsFor(group).length} questions · {answers.filter(answer => answer.stakeholder_group === group).length} answered</summary>
+              <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-muted-foreground">{referenceQuestionsFor(group).map(question => <li key={question.key}>{question.question}</li>)}</ol>
+            </details>
+          ))}
+          <p className="text-muted-foreground/80">Every answer keeps its original wording, who said it, when, and whether an analyst has checked it. One person is an opinion; the same point from two independent people is a pattern; disagreement is shown, not averaged.</p>
+        </div>
+      </details>
 
       <form onSubmit={submit(addReferenceAnswerAction)} className="space-y-2">
         <input type="hidden" name="mandate_id" value={mandateId} />
@@ -364,6 +452,9 @@ function StructuredReferencesPanel({
             >
               <p className="text-xs font-medium text-foreground">{answer.question}</p>
               <p className="text-2xs text-muted-foreground mt-0.5">
+                {/demo|fictional/i.test(`${answer.reference_name ?? ''} ${answer.answer}`) && <span className="mr-1.5 rounded bg-amber-500/15 px-1 font-semibold text-amber-300">DEMO · fictional</span>}
+                <span className={answer.verification_status === 'verified' ? 'text-emerald-300' : 'text-amber-300'}>{answer.verification_status === 'verified' ? (answer.used_in_recommendation ? 'Checked · counts' : 'Checked · background') : 'Draft · waiting for review'}</span>
+                {' · '}
                 {REFERENCE_GROUP_LABELS[answer.stakeholder_group as keyof typeof REFERENCE_GROUP_LABELS] ?? answer.stakeholder_group}
                 {answer.reference_name ? ` · ${answer.reference_name}` : ''}
                 {answer.risk_flag ? ' · risk flagged' : ''}
@@ -602,6 +693,7 @@ export function AssessmentWorkspaceClient({
   coachingLicence,
   deepDive = null,
   finalEvaluation = null,
+  briefContext = null,
 }: {
   mandateId: string
   coachId: string
@@ -619,6 +711,7 @@ export function AssessmentWorkspaceClient({
   coachingLicence: string | null
   deepDive?: DeepDive | null
   finalEvaluation?: FinalEvaluation | null
+  briefContext?: BriefContext | null
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -774,7 +867,7 @@ export function AssessmentWorkspaceClient({
         <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
           {[
             { key: 'criteria', label: 'Criteria & evidence' },
-            { key: 'human', label: `Interviews & references (${interviewAnswers.length + referenceAnswers.length})` },
+            { key: 'human', label: `Interview & references (${interviewAnswers.length + referenceAnswers.length})` },
             { key: 'materials', label: `Private materials (${privateMaterials.length})` },
             { key: 'recommendation', label: 'Recommendation' },
           ].map((section) => (
@@ -884,6 +977,12 @@ export function AssessmentWorkspaceClient({
               {selectedMeta.num}. {selectedMeta.label}
             </h3>
             <p className="text-2xs text-muted-foreground mt-0.5">{selectedMeta.question}</p>
+            <p className="text-2xs text-muted-foreground mt-1"><span className="font-medium text-foreground">{dimensionFor(selected).label}</span> — {dimensionFor(selected).question}</p>
+            {(() => {
+              const contributed = new Set(EVIDENCE_METHODS.filter(method => (cellCounts.get(`${selected}:${method.key}`)?.verified ?? 0) > 0).map(method => method.key))
+              const coverage = methodCoverage(selected, contributed)
+              return <p className="text-2xs mt-1"><span className="text-emerald-300">Checked evidence from: {coverage.contributed.length ? coverage.contributed.join(', ') : 'nothing yet'}</span>{coverage.outstanding.length > 0 && <span className="text-amber-300"> · Still to do: {coverage.outstanding.join(', ')}</span>}</p>
+            })()}
             {status.illustrativeCriteria.includes(selected) && <p className="mt-2 text-xs text-amber-500">Not counted in the totals or reports.</p>}
           </div>
           <form onSubmit={submit(saveAssessmentAction)} className="space-y-3">
@@ -1087,6 +1186,7 @@ export function AssessmentWorkspaceClient({
 
       {/* Structured human evidence */}
       <div className={cn('grid grid-cols-1 lg:grid-cols-2 gap-5', workspaceSection !== 'human' && 'hidden')}>
+        <ProcessOverview briefContext={briefContext} interviewAnswers={interviewAnswers} referenceAnswers={referenceAnswers} verdict={recommendation?.verdict ?? null} />
         <StructuredInterviewPanel
           mandateId={mandateId}
           coachId={coachId}
@@ -1094,6 +1194,7 @@ export function AssessmentWorkspaceClient({
           submit={submit}
           isPending={isPending}
           highlightedId={highlightedInterviewId}
+          briefContext={briefContext}
         />
         <StructuredReferencesPanel
           mandateId={mandateId}
