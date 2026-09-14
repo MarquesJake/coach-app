@@ -243,6 +243,126 @@ export const REVIEWED_NARRATIVE_ALIASES: readonly ReviewedNarrativeAlias[] = [
       "https://images.gc.rotherhamunitedfcservices.co.uk/01f5afd0-361f-11f0-b74d-298b845c5142.pdf"
     ],
     "evidence": "Sparse Matthew Hamshaw exactly matches the canonical provider full name; both records identify Rotherham. The club’s 2025/26 brochure names Matt Hamshaw as first-team manager. This reviewed full-name and club link permits narratives only; missing sparse birth and nationality remain missing."
+  },
+  {
+    "apiId": 26596,
+    "narrativeApiId": 12497,
+    "canonicalName": "Andrew Crosby",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26596", "https://v3.football.api-sports.io/coachs?id=12497"],
+    "evidence": "Both records identify Andrew Crosby at provider team ID 1381 (Tranmere). Narrative routing is reviewed; dates, demographics and statistics remain separate."
+  },
+  {
+    "apiId": 26591,
+    "narrativeApiId": 14319,
+    "canonicalName": "Andy Woodman",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26591", "https://v3.football.api-sports.io/coachs?id=14319"],
+    "evidence": "Both records identify Andy Woodman at provider team ID 1832 (Bromley), and the canonical record supplies his full name. Narrative routing is reviewed; provider evidence remains separate."
+  },
+  {
+    "apiId": 26571,
+    "narrativeApiId": 685,
+    "canonicalName": "Ian Evatt",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26571", "https://v3.football.api-sports.io/coachs?id=685"],
+    "evidence": "The sparse full-name Ian Evatt record continues the canonical Ian Evatt career after Bolton and Barrow. This review permits narrative display only."
+  },
+  {
+    "apiId": 26570,
+    "narrativeApiId": 17954,
+    "canonicalName": "Jack Wilshere",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26570", "https://v3.football.api-sports.io/coachs?id=17954"],
+    "evidence": "The sparse Jack Wilshere full name matches canonical Jack Andrew Garry Wilshere, with a later career row. Only the narrative is routed."
+  },
+  {
+    "apiId": 26574,
+    "narrativeApiId": 9465,
+    "canonicalName": "Luke Williams",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26574", "https://v3.football.api-sports.io/coachs?id=9465"],
+    "evidence": "The sparse Luke Williams record follows the canonical Luke Williams career at Swindon, Notts County and Swansea. Provider dates and statistics stay isolated."
+  },
+  {
+    "apiId": 26594,
+    "narrativeApiId": 645,
+    "canonicalName": "Michael Appleton",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26594", "https://v3.football.api-sports.io/coachs?id=645"],
+    "evidence": "Both records identify Michael Appleton at provider team ID 1352 (Shrewsbury). Conflicting coarse dates are not reconciled; this is narrative routing only."
+  },
+  {
+    "apiId": 26593,
+    "narrativeApiId": 92,
+    "canonicalName": "Neil Harris",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26593", "https://v3.football.api-sports.io/coachs?id=92"],
+    "evidence": "Both records identify Neil Harris at provider team ID 1370 (Cambridge United). Narrative identity is reviewed; dates and match statistics remain attached to their original IDs."
+  },
+  {
+    "apiId": 26583,
+    "narrativeApiId": 580,
+    "canonicalName": "Paul Warne",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26583", "https://v3.football.api-sports.io/coachs?id=580"],
+    "evidence": "Both records identify Paul Warne at provider team ID 1348 (Milton Keynes Dons). Narrative routing does not merge dates or statistics."
+  },
+  {
+    "apiId": 28079,
+    "narrativeApiId": 687,
+    "canonicalName": "Pete Wild",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=28079", "https://v3.football.api-sports.io/coachs?id=687"],
+    "evidence": "The sparse Pete Wild record follows canonical Peter Wild history at Oldham, Halifax, Barrow and Fleetwood. Exact-name career continuity was reviewed for narrative display only."
+  },
+  {
+    "apiId": 26588,
+    "narrativeApiId": 17757,
+    "canonicalName": "Scott Lindsey",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26588", "https://v3.football.api-sports.io/coachs?id=17757"],
+    "evidence": "Both records identify Scott Lindsey at provider team ID 1362 (Crawley Town). Narrative identity is reviewed; all provider evidence remains separate."
+  },
+  {
+    "apiId": 26577,
+    "narrativeApiId": 21932,
+    "canonicalName": "Tom Cleverley",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26577", "https://v3.football.api-sports.io/coachs?id=21932"],
+    "evidence": "Both records identify Tom Cleverley at provider team ID 1357 (Plymouth), and the canonical record supplies his Watford history and full name. Narrative routing is reviewed only."
+  },
+  {
+    "apiId": 27667,
+    "narrativeApiId": 55,
+    "canonicalName": "Vitor Pereira",
+    "scope": "narrative_only",
+    "status": "reviewed_name_and_club_identity",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=27667", "https://v3.football.api-sports.io/coachs?id=55"],
+    "evidence": "The sparse unaccented Vitor Pereira record matches canonical Vítor Pereira and continues his provider career after Wolves. Narrative routing does not merge dates or statistics."
   }
 ]
 
