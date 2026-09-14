@@ -233,6 +233,8 @@ export default async function BoardPackPage(
   const claimRows = ((profileClaims.data ?? []) as Array<Record<string, any>>).filter((row) => !isIllustrativeEvidence(row))
   const referenceRows = referencesForPack((structuredReferences.data ?? []).filter((row) => !isIllustrativeEvidence(row)), evidenceRows)
   const legacyReferenceRows = (references.data ?? []).filter((row) => !isIllustrativeEvidence(row))
+  // Fictional references are shown apart from the evidence, never as part of it.
+  const demoReferenceRows = (structuredReferences.data ?? []).filter((row) => isIllustrativeEvidence(row))
   const omittedIllustrations = illustrativeProfile || evidenceRows.length !== (evidence.data ?? []).length
     || status.illustrativeCount > 0 || status.illustrativeRecommendation
     || (structuredReferences.data ?? []).some(isIllustrativeEvidence)
@@ -747,6 +749,22 @@ export default async function BoardPackPage(
           <p className="text-2xs text-muted-foreground mt-3">
             No references taken yet. Owners, coaching staff, players, the industry and journalists are each asked the same standard questions before any appointment.
           </p>
+        )}
+        {demoReferenceRows.length > 0 && (
+          <div className="mt-4 rounded border border-amber-400/60 bg-amber-50/40 p-3 dark:bg-amber-950/20 print:break-inside-avoid">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-800 dark:text-amber-300">Demo references — fictional, not evidence</p>
+            <p className="mt-1 text-2xs text-muted-foreground">Shown only to demonstrate how a checked reference reaches this appendix. Excluded from the assessment above.</p>
+            <div className="mt-2 space-y-2">
+              {demoReferenceRows.map((ref) => (
+                <div key={ref.id} className="border-l-2 border-amber-400 pl-3">
+                  <p className="text-xs font-semibold text-foreground">{ref.reference_name}<span className="font-normal text-muted-foreground">{ref.reference_role ? ` — ${ref.reference_role}` : ''}</span></p>
+                  <p className="text-2xs text-muted-foreground/80 mt-0.5">{stakeholderGroupLabel(ref.stakeholder_group)} · {ref.verification_status === 'verified' ? 'checked by analyst' : 'draft — not reviewed'}{ref.would_hire_again && ref.would_hire_again !== 'unknown' ? ` · would hire/work again: ${ref.would_hire_again}` : ''}{ref.risk_flag ? ' · risk flagged' : ''}</p>
+                  <p className="text-2xs text-foreground/80 mt-1">{ref.question}</p>
+                  <p className="text-2xs text-muted-foreground mt-0.5">{ref.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </section>
 
