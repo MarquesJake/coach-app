@@ -635,13 +635,20 @@ export default async function BoardPackPage(
       </section>
 
       {/* Confidential data room */}
-      {finalEvaluation && (
-        <section className="mt-8">
-          <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">10–13 · Overall assessment, club fit, key risks and recommendation</h2>
-          <p className="mt-2 text-xs text-muted-foreground">Board call: <span className="font-semibold text-foreground">{boardCall(recommendation?.verdict).call}</span> — {boardCall(recommendation?.verdict).meaning}{ranking ? ` Ranking from the brief: ${standingLabel(rankedRow)}.` : ''}</p>
+      <section className="mt-8">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">10–13 · Overall assessment, club fit, key risks and recommendation</h2>
+        <p className="mt-2 text-xs text-muted-foreground">Board call: <span className="font-semibold text-foreground">{boardCall(recommendation?.verdict).call}</span> — {boardCall(recommendation?.verdict).meaning}{ranking ? ` Ranking from the brief: ${standingLabel(rankedRow)}.` : ''}</p>
+        {finalEvaluation ? (
           <div className="mt-3"><FinalEvaluationSection e={finalEvaluation} verdict={recommendation?.verdict ?? null} confidence={recommendation?.confidence ?? null} /></div>
-        </section>
-      )}
+        ) : (
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 print:grid-cols-2">
+            <div className="rounded border border-border p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Overall assessment · analyst judgement</p><p className="mt-2 text-xs leading-relaxed whitespace-pre-line">{recommendation?.summary || 'Not written yet. The analyst\u2019s overall view goes here once the nine areas have enough checked evidence.'}</p></div>
+            <div className="rounded border border-border p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Club fit · analyst judgement</p><p className="mt-2 text-xs leading-relaxed whitespace-pre-line">{assessmentByCriterion.get('cultural_org_fit')?.summary || 'Not assessed yet — see 09 · Cultural & Organisational Fit for what is still to gather.'}</p></div>
+            <div className="rounded border border-border p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Key risks · analyst judgement</p><p className="mt-2 text-xs leading-relaxed whitespace-pre-line">{recommendation?.key_risks || 'Not recorded yet.'}</p>{recommendation?.mitigation && <p className="mt-2 text-2xs text-muted-foreground whitespace-pre-line">How we would manage them: {recommendation.mitigation}</p>}</div>
+            <div className="rounded border border-border p-3"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Recommendation</p><p className="mt-2 text-lg font-semibold">{boardCall(recommendation?.verdict).call}</p><p className="mt-1 text-xs text-muted-foreground">{recommendation?.verdict ? `Analyst verdict: ${recommendation.verdict}${recommendation.confidence != null ? ` · ${recommendation.confidence}% confidence` : ''}` : 'No verdict recorded. Nothing goes to a board without one.'}</p></div>
+          </div>
+        )}
+      </section>
 
       <section className="mt-6 rounded border border-border p-4 print:break-inside-avoid">
         <h2 className="font-semibold text-sm">Still to check before any approach</h2>
