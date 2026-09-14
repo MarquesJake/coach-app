@@ -284,16 +284,7 @@ export const REVIEWED_NARRATIVE_ALIASES: readonly ReviewedNarrativeAlias[] = [
     "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26570", "https://v3.football.api-sports.io/coachs?id=17954"],
     "evidence": "The sparse Jack Wilshere full name matches canonical Jack Andrew Garry Wilshere, with a later career row. Only the narrative is routed."
   },
-  {
-    "apiId": 26574,
-    "narrativeApiId": 9465,
-    "canonicalName": "Luke Williams",
-    "scope": "narrative_only",
-    "status": "reviewed_name_and_club_identity",
-    "checkedAt": "2026-09-14",
-    "sourceUrls": ["https://v3.football.api-sports.io/coachs?id=26574", "https://v3.football.api-sports.io/coachs?id=9465"],
-    "evidence": "The sparse Luke Williams record follows the canonical Luke Williams career at Swindon, Notts County and Swansea. Provider dates and statistics stay isolated."
-  },
+  // Luke Williams (26574 → 9465) removed 14 Sept 2026: common name, no shared club and no public source linking the records.
   {
     "apiId": 26594,
     "narrativeApiId": 645,
