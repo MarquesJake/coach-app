@@ -7,21 +7,20 @@ import { useRouter } from 'next/navigation'
 
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   const v = value?.trim()
-  if (v == null || v === '') return null
   return (
     <div className="flex justify-between py-2 border-b border-border/50 last:border-0">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-foreground">{v}</span>
+      <span className="text-sm font-medium text-foreground">{v || 'Data not yet connected'}</span>
     </div>
   )
 }
 
 function ListRow({ label, values }: { label: string; values: string[] }) {
-  if (!values?.length) return null
   return (
     <div className="py-2 border-b border-border/50 last:border-0">
       <span className="text-xs text-muted-foreground block mb-1">{label}</span>
       <div className="flex flex-wrap gap-1.5">
+        {!values.length && <span className="text-sm text-muted-foreground">Data not yet connected</span>}
         {values.map((s) => (
           <span key={s} className="inline-flex rounded-md px-2 py-0.5 text-xs bg-surface border border-border">
             {s}
@@ -45,7 +44,7 @@ const TACTICAL_FIELDS: EditCoachField[] = [
 
 type CoachRecord = Record<string, unknown>
 
-export function TacticalSection({ coachId, coach }: { coachId: string; coach: CoachRecord }) {
+export function TacticalSection({ coachId, coach, provenanceLabel = 'Saved record · source review needed' }: { coachId: string; coach: CoachRecord; provenanceLabel?: string }) {
   const router = useRouter()
   const tacticalIdentity = coach.tactical_identity as string | null | undefined
   const preferredSystems = (coach.preferred_systems as string[] | null | undefined) ?? []
@@ -93,6 +92,7 @@ export function TacticalSection({ coachId, coach }: { coachId: string; coach: Co
             onSuccess={() => router.refresh()}
           />
         </div>
+        <p className="mb-3 text-xs text-muted-foreground print:text-black">{provenanceLabel}. Saved notes below need dated sources; any later edits need their own review.</p>
         <div className="space-y-0">
           <Row label="Tactical identity" value={tacticalIdentity} />
           <ListRow label="Preferred systems" values={Array.isArray(preferredSystems) ? preferredSystems : []} />

@@ -1,5 +1,6 @@
 'use client'
 
+import { isIllustrativeStaff } from '@/lib/staff/provenance'
 import { useState, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
@@ -24,6 +25,9 @@ type StaffLinkDefaults = {
 
 type StaffRow = { id: string; full_name: string }
 type HistoryRow = {
+  illustrative?: boolean
+  source_notes?: string | null
+  before_after_observation?: string | null
   id: string
   staff_id: string
   club_name: string
@@ -39,6 +43,8 @@ type HistoryRow = {
   confidence?: number | null
   verified?: boolean
 }
+
+function isDemoRow(row: HistoryRow | null) { return Boolean(row?.illustrative || isIllustrativeStaff(row)) }
 
 function formatDate(s: string | null | undefined): string {
   if (!s) return ''
@@ -169,7 +175,10 @@ export function StaffNetworkSection({
     await runMutation(() => deleteStaffHistoryAction(coachId, id), 'Removed')
   }
 
-  const networkMetrics = useMemo(() => {
+  const networkMetricGroups = useMemo(() => {
+    const real = history.filter(row => !isDemoRow(row))
+    const demo = history.filter(isDemoRow)
+    return [{ rows: real, illustrative: false }, ...(demo.length ? [{ rows: demo, illustrative: true }] : [])].map(({ rows: history, illustrative }) => {
     const repeatCollaborationsCount = history.filter((h) => h.times_worked_together >= 2).length
     const totalMonthsTogether = history.reduce((sum, h) => sum + monthsBetween(h.started_on, h.ended_on), 0)
     const followedToNewClubs = history.some((h) => h.followed_from_previous)
@@ -178,25 +187,27 @@ export function StaffNetworkSection({
     const networkStrengthScore = strengthCount > 0 ? Math.round(strengthSum / strengthCount) : null
     const coreStaffGroup = repeatCollaborationsCount > 2
     // TODO: Performance delta together can later be derived from match/outcome data when integrated.
-    return {
-      networkStrengthScore: networkStrengthScore ?? 0,
+    return { illustrative, metrics: {
+      networkStrengthScore,
       repeatCollaborationsCount,
       totalMonthsTogether,
       followedToNewClubs,
       performanceDeltaTogether: null as number | null,
       coreStaffGroup,
-    }
+    } }
+    })
   }, [history])
 
   return (
     <div className="space-y-4">
-      {/* Network metrics */}
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-lg font-medium text-foreground mb-4">Network intelligence</h2>
+      {/* Keep demo figures visible, separate from recorded staff metrics. */}
+      {networkMetricGroups.map(({ illustrative, metrics: networkMetrics }) => <section key={String(illustrative)} className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-lg font-medium text-foreground mb-4">Network intelligence{illustrative ? ' — DEMO' : ''}</h2>
+        {illustrative && <p className="mb-4 text-sm text-amber-700 dark:text-amber-300">Fictional staff scenario. These figures do not establish real staff, collaboration or verified intelligence.</p>}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-4">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Network strength</p>
-            <p className="text-lg font-semibold tabular-nums text-foreground">{networkMetrics.networkStrengthScore}%</p>
+            <p className="text-lg font-semibold tabular-nums text-foreground">{networkMetrics.networkStrengthScore != null ? `${networkMetrics.networkStrengthScore}%` : '—'}</p>
           </div>
           <div>
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">Repeat collaborations</p>
@@ -220,7 +231,7 @@ export function StaffNetworkSection({
             Core Staff Group
           </span>
         )}
-      </section>
+      </section>)}
 
       <section className="rounded-lg border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-4">
@@ -252,6 +263,7 @@ export function StaffNetworkSection({
                       <Link href={`/staff/${h.staff_id}`} className="text-primary hover:underline font-medium">
                         {staffMap.get(h.staff_id) ?? h.staff_id}
                       </Link>
+                      {isDemoRow(h) && <span className="block text-xs text-amber-700 dark:text-amber-300">DEMO — fictional staff profile</span>}
                     </td>
                     <td className="py-2 text-muted-foreground">{h.role_title}</td>
                     <td className="py-2 text-muted-foreground">{h.club_name}</td>
@@ -260,7 +272,7 @@ export function StaffNetworkSection({
                     <td className="py-2 tabular-nums">{h.relationship_strength != null ? `${h.relationship_strength}%` : '—'}</td>
                     <td className="py-2 text-muted-foreground max-w-[200px] truncate">{h.impact_summary ?? '—'}</td>
                     <td className="py-2">
-                      <IntelPill confidence={h.confidence} verified={h.verified} sourceType={h.source_type} sourceName={h.source_name} />
+                      <>{isDemoRow(h) ? <span className="text-xs text-amber-700 dark:text-amber-300">DEMO · {h.confidence != null ? `${h.confidence}% illustrative confidence · ` : ''}not verified</span> : <IntelPill confidence={h.confidence} verified={h.verified} sourceType={h.source_type} sourceName={h.source_name} />}</>
                     </td>
                     <td className="py-2">
                       <Button variant="ghost" className="h-7 px-2 text-xs" onClick={() => openEdit(h)}>Edit</Button>
@@ -300,7 +312,7 @@ export function StaffNetworkSection({
             >
               <option value="">Select</option>
               {allStaff.map((s) => (
-                <option key={s.id} value={s.id}>{s.full_name}</option>
+                <option key={s.id} value={s.id}>{isIllustrativeStaff(s) ? 'DEMO — ' : ''}{s.full_name}</option>
               ))}
             </select>
           </div>
@@ -348,6 +360,7 @@ export function StaffNetworkSection({
             <label className="block text-xs font-medium text-muted-foreground mb-1">Before/after observation</label>
             <textarea name="before_after_observation" rows={2} defaultValue={(editing as { before_after_observation?: string | null })?.before_after_observation ?? linkDefaults?.before_after_observation ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm resize-none" />
           </div>
+          {isDemoRow(editing) && <p className="text-sm text-amber-700 dark:text-amber-300">DEMO — fictional staff link. Scores are illustrative and cannot establish real staff or verified intelligence.</p>}
           <SourceConfidenceFields
             initial={{
               source_type: editing?.source_type ?? null,
@@ -355,7 +368,7 @@ export function StaffNetworkSection({
               source_link: (editing as { source_link?: string | null })?.source_link ?? null,
               source_notes: (editing as { source_notes?: string | null })?.source_notes ?? null,
               confidence: editing?.confidence ?? linkDefaults?.confidence ?? null,
-              verified: (editing as { verified?: boolean })?.verified ?? false,
+              verified: !isDemoRow(editing) && (editing?.verified ?? false),
               verified_by: (editing as { verified_by?: string | null })?.verified_by ?? null,
               verified_at: null,
             }}
