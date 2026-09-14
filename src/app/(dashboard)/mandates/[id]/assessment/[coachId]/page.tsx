@@ -20,6 +20,7 @@ import {
 
 import { deepDiveFor, finalEvaluationFor } from '@/lib/assessment/deep-dive'
 import { VerifiedMatchEvidence } from '@/components/assessment/verified-match-evidence'
+import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
 
 export const metadata = { title: 'Assessment' }
 
@@ -39,10 +40,20 @@ export default async function CandidateAssessmentPage(
 
   const { data: mandate } = await supabase
     .from('mandates')
-    .select('id, custom_club_name, clubs(name)')
+    .select('id, custom_club_name, strategic_objective, tactical_model_required, pressing_intensity_required, build_preference_required, decision_brief, clubs(name)')
     .eq('id', mandateId)
     .single()
   if (!mandate) notFound()
+  const briefDetail = safeDecisionBrief((mandate as { decision_brief?: unknown }).decision_brief)
+  const briefContext = {
+    clubName: displayClubName((mandate as { custom_club_name?: string | null }).custom_club_name, (mandate as { clubs?: { name?: string } | null }).clubs?.name, 'the club'),
+    objective: (mandate as { strategic_objective?: string | null }).strategic_objective ?? null,
+    identity: [(mandate as { tactical_model_required?: string | null }).tactical_model_required, (mandate as { build_preference_required?: string | null }).build_preference_required, (mandate as { pressing_intensity_required?: string | null }).pressing_intensity_required ? `${(mandate as { pressing_intensity_required?: string | null }).pressing_intensity_required} press` : null].filter(Boolean).join(' · ') || null,
+    squadProblem: briefDetail.squad_problem?.value ?? null,
+    leadership: briefDetail.leadership_challenge?.value ?? null,
+    successMeasures: briefDetail.success_measures?.value ?? null,
+    analystBrief: true,
+  }
 
   // Assessment runs on shortlisted candidates only.
   const { data: shortlisted } = await supabase
@@ -95,14 +106,14 @@ export default async function CandidateAssessmentPage(
         .maybeSingle(),
       supabase
         .from('candidate_interview_answers')
-        .select('id, question_key, question, answer, criterion, interview_focus, interviewer, confidence, created_at')
+        .select('id, question_key, question, answer, criterion, interview_focus, interviewer, confidence, verification_status, used_in_recommendation, created_at')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .order('created_at', { ascending: false })
         .limit(20),
       supabase
         .from('candidate_reference_answers')
-        .select('id, stakeholder_group, reference_name, reference_role, question_key, question, answer, criterion, confidence, would_hire_again, risk_flag, created_at')
+        .select('id, stakeholder_group, reference_name, reference_role, question_key, question, answer, criterion, confidence, would_hire_again, risk_flag, verification_status, used_in_recommendation, created_at')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .order('created_at', { ascending: false })
@@ -218,6 +229,7 @@ export default async function CandidateAssessmentPage(
         accessRequests={(accessRequests.data ?? []) as ConfidentialAccessRequestRow[]}
         gbe={gbe}
         coachingLicence={coach.coaching_licence}
+        briefContext={briefContext}
       />
       <AssessmentClaimPromotion
         mandateId={mandateId}

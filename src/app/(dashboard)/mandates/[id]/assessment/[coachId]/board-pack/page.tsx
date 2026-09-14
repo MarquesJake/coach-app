@@ -18,6 +18,7 @@ import {
 import { canStaffMemberAppearInPack } from '@/lib/coach-appointment'
 import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
+import { boardCall, dimensionFor } from '@/lib/assessment/methodology'
 import { loadMandateRanking, standingLabel, isAnalystOverride } from '@/lib/mandates/mandate-ranking.server'
 import { declarationReviewLabel } from '@/lib/assessment/material-status'
 import { canPrintCircumstances, referencesForPack } from '@/lib/assessment/pack-release'
@@ -283,7 +284,8 @@ export default async function BoardPackPage(
         <span className="absolute top-6 right-6 bg-emerald-700 text-white text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 rounded-sm">
           CONFIDENTIAL
         </span>
-        <h1 className="text-3xl font-serif font-bold leading-tight">Head Coach Assessment<span className="sr-only">: {coach.name}</span></h1>
+        <h1 className="text-3xl font-serif font-bold leading-tight">Coach ID report<span className="sr-only">: {coach.name}</span></h1>
+        <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">Head coach assessment · {clubName}</p>
         <p className="mt-3 text-sm font-bold text-amber-200">{deepDive ? 'Worked example — illustrative assessment' : status.coverLabel}</p>
         <p className="text-3xl font-serif font-bold text-slate-400 leading-tight">{coach.name}</p>
         <div className="w-16 h-0.5 bg-emerald-500 my-6" />
@@ -315,7 +317,7 @@ export default async function BoardPackPage(
       {deepDive && <section role="note" className="my-5 rounded-lg border border-amber-500/60 p-4 text-sm print:break-inside-avoid"><strong>Worked example</strong><p className="mt-1">The nine-area scores, SWOT, budget and analyst verdict below show what a finished report looks like; they are illustrative. The ranking above, the verified match data and anything with a dated source are real.</p></section>}
       {/* At a glance — Strengths / Risks / Recommendation, per the target deck format */}
       <section className="mt-8 print:break-inside-avoid">
-        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Decision in brief</h2>
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">At a glance</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-5 mt-3">
           <div className="border-t-2 border-emerald-500 pt-3">
             <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-700 dark:text-emerald-400 uppercase">Strengths</p>
@@ -350,19 +352,9 @@ export default async function BoardPackPage(
         </div>
       </section>
 
-      {finalEvaluation && (
-        <section className="mt-8">
-          <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Final evaluation</h2>
-          <div className="mt-3"><FinalEvaluationSection e={finalEvaluation} verdict={recommendation?.verdict ?? null} confidence={recommendation?.confidence ?? null} /></div>
-        </section>
-      )}
-
-      <section className="mt-6 rounded border border-border p-4 print:break-inside-avoid">
-        <h2 className="font-semibold text-sm">What we still need to check</h2>
-        <p className="mt-2 text-xs text-muted-foreground">{deepDive ? 'Every claim needs checking, and terms confirming with the club, before this is used as a recommendation.' : status.nextAction}</p>
-        <p className="mt-2 text-xs text-muted-foreground">An area counts as covered once it has at least one checked piece of evidence. That doesn’t mean the evidence is complete, or that it can be shared.</p>
-        <p className="mt-2 text-xs text-muted-foreground">{recommendation?.mitigation ? `Conditions before appointment: ${recommendation.mitigation}` : 'Conditions before appointment have not been recorded.'}</p>
-        <Link className="mt-3 inline-block text-xs text-primary underline print:hidden" href={`/mandates/${mandateId}/decision`}>See the research questions and who owns them</Link>
+      <section className="mt-6 rounded border border-border p-4 text-2xs print:break-inside-avoid">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">How to read the evidence</p>
+        <p className="mt-2 text-muted-foreground"><span className="font-semibold text-foreground">Verified fact</span> — official or provider record with a date. <span className="font-semibold text-foreground">Calculated</span> — worked out from those records, coverage shown. <span className="font-semibold text-foreground">Sourced research</span> — dated public analysis of a named period. <span className="font-semibold text-foreground">Analyst judgement</span> — Gaffa’s view, signed and dated. <span className="font-semibold text-foreground">Interview</span> and <span className="font-semibold text-foreground">reference</span> — what people told us, in their words, checked before it counts. <span className="font-semibold text-foreground">Demo</span> — illustrative, not evidence. <span className="font-semibold text-foreground">Not available</span> — the heading stays; the evidence has not been gathered.</p>
       </section>
 
       {/* Profile + GBE */}
@@ -412,7 +404,7 @@ export default async function BoardPackPage(
       {/* Availability and terms */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
-          02 · Availability and terms
+          01 · Appointment feasibility — availability and terms
         </h2>
         <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
           Only up-to-date, checked details the coach has agreed can be shared appear here. Private terms need separate approval before they are released.
@@ -481,7 +473,7 @@ export default async function BoardPackPage(
       {/* Coach-submitted material */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
-          03 · Coach-submitted depth
+          01 · What the coach has told us himself
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-4 mt-3">
           {[
@@ -581,7 +573,7 @@ export default async function BoardPackPage(
       {/* Criterion findings */}
       <section className="mt-8">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
-          Assessment findings
+          02–09 · The nine assessment areas
         </h2>
         <div className="mt-3 space-y-5">
           {ASSESSMENT_CRITERIA.map((criterion) => {
@@ -598,6 +590,7 @@ export default async function BoardPackPage(
                 <div className="flex items-baseline justify-between">
                   <h3 className="text-sm font-semibold text-foreground">
                     {String(criterion.num).padStart(2, '0')} · {criterion.label}
+                    <span className="ml-2 text-2xs font-normal text-muted-foreground">{dimensionFor(criterion.key).label}</span>
                   </h3>
                   <span className="text-xs tabular-nums text-muted-foreground">
                     {assessment?.score !== null && assessment?.score !== undefined ? `${assessment.score}/100` : 'Not scored'}
@@ -642,6 +635,22 @@ export default async function BoardPackPage(
       </section>
 
       {/* Confidential data room */}
+      {finalEvaluation && (
+        <section className="mt-8">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">10–13 · Overall assessment, club fit, key risks and recommendation</h2>
+          <p className="mt-2 text-xs text-muted-foreground">Board call: <span className="font-semibold text-foreground">{boardCall(recommendation?.verdict).call}</span> — {boardCall(recommendation?.verdict).meaning}{ranking ? ` Ranking from the brief: ${standingLabel(rankedRow)}.` : ''}</p>
+          <div className="mt-3"><FinalEvaluationSection e={finalEvaluation} verdict={recommendation?.verdict ?? null} confidence={recommendation?.confidence ?? null} /></div>
+        </section>
+      )}
+
+      <section className="mt-6 rounded border border-border p-4 print:break-inside-avoid">
+        <h2 className="font-semibold text-sm">Still to check before any approach</h2>
+        <p className="mt-2 text-xs text-muted-foreground">{deepDive ? 'Every claim needs checking, and terms confirming with the club, before this is used as a recommendation.' : status.nextAction}</p>
+        <p className="mt-2 text-xs text-muted-foreground">An area counts as covered once it has at least one checked piece of evidence. That doesn’t mean the evidence is complete, or that it can be shared.</p>
+        <p className="mt-2 text-xs text-muted-foreground">{recommendation?.mitigation ? `Conditions before appointment: ${recommendation.mitigation}` : 'Conditions before appointment have not been recorded.'}</p>
+        <Link className="mt-3 inline-block text-xs text-primary underline print:hidden" href={`/mandates/${mandateId}/decision`}>See the research questions and who owns them</Link>
+      </section>
+
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
           Confidential data room
@@ -685,7 +694,7 @@ export default async function BoardPackPage(
       {/* References appendix — always present so the assessment-pack shape is complete */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
-          References — character &amp; working relationships
+          Appendix 1 · Character references
         </h2>
         {referenceRows.length > 0 ? (
           <div className="mt-3 space-y-3">
@@ -729,7 +738,7 @@ export default async function BoardPackPage(
           </div>
         ) : (
           <p className="text-2xs text-muted-foreground mt-3">
-            References still to come — owners, staff, players, industry contacts and media are spoken to before any appointment.
+            No references taken yet. Owners, coaching staff, players, the industry and journalists are each asked the same standard questions before any appointment.
           </p>
         )}
       </section>
