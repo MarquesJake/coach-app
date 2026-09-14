@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 const PRIMARY_TABS: { label: string; segment: string | null }[] = [
   { label: 'Overview', segment: null },
   { label: 'Football', segment: 'tactical' },
+  { label: 'Data', segment: 'data' },
   { label: 'Career', segment: 'career' },
   { label: 'Leadership', segment: 'leadership' },
   { label: 'Staff', segment: 'staff-network' },
@@ -20,7 +21,6 @@ const DETAIL_TABS = [
   { label: 'Coaching model', segment: 'coaching-model' },
   { label: 'Research', segment: 'research' },
   { label: 'Similar coaches', segment: 'similar' },
-  { label: 'Data', segment: 'data' },
   { label: 'Background checks', segment: 'risk' },
   { label: 'Scoring', segment: 'scoring' },
   { label: 'Fit', segment: 'fit' },

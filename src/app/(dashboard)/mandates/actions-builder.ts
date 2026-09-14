@@ -140,7 +140,7 @@ export async function createMandateBuilderAction(formData: FormData) {
   })
 
   revalidatePath('/mandates')
-  return { ok: true as const, redirectTo: sourceBriefId ? `/club-briefs?brief_id=${encodeURIComponent(sourceBriefId)}&created_mandate=${mandate.id}#brief-${encodeURIComponent(sourceBriefId)}` : `/mandates/${mandate.id}/decision?success=Appointment+created` }
+  return { ok: true as const, redirectTo: sourceBriefId ? `/club-briefs?brief_id=${encodeURIComponent(sourceBriefId)}&created_mandate=${mandate.id}#brief-${encodeURIComponent(sourceBriefId)}` : `/mandates/${mandate.id}/candidates#brief-matches` }
 }
 
 // ── Update ───────────────────────────────────────────────────────────────────
@@ -222,5 +222,5 @@ export async function updateMandateBuilderAction(formData: FormData) {
   revalidatePath(`/mandates/${mandateId}/decision`)
   revalidatePath(`/mandates/${mandateId}/candidates`)
   revalidatePath(`/mandates/${mandateId}/longlist`)
-  redirect(`/mandates/${mandateId}/decision?success=Appointment+updated`)
+  redirect(`/mandates/${mandateId}/candidates?success=Appointment+updated#brief-matches`)
 }

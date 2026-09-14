@@ -1,3 +1,4 @@
+import { COACH_IMPORT_DEFAULTS } from '@/lib/integrations/coach-import-defaults'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Database, Json } from '@/lib/types/db'
@@ -128,7 +129,6 @@ async function enrichClubCoachProfile(params: {
     if (empty(existing.age) && coach.age != null) update.age = coach.age
     if (empty(existing.date_of_birth)) update.date_of_birth = isoDate(coach.birth?.date)
     if (empty(existing.base_location)) update.base_location = baseLocation
-    if (empty(existing.languages) && nationality) update.languages = [nationality]
     const { error } = await supabase.from('coaches').update(update).eq('id', existing.id)
     if (error) return { created: false, updated: false, matched: true, skippedHistorical: false, error: error.message }
   } else if (!appearsCurrentForClub) {
@@ -148,7 +148,6 @@ async function enrichClubCoachProfile(params: {
       age: coach.age ?? null,
       date_of_birth: isoDate(coach.birth?.date),
       base_location: baseLocation,
-      languages: nationality ? [nationality] : [],
       role_current: 'Head Coach',
       club_current: clubName,
       available_status: 'Under contract',
@@ -156,13 +155,7 @@ async function enrichClubCoachProfile(params: {
       market_status: 'Not Available',
       league_experience: leagueExperience,
       last_updated: new Date().toISOString(),
-      preferred_style: 'Mixed',
-      pressing_intensity: 'Medium',
-      build_preference: 'Mixed',
-      leadership_style: 'Collaborative',
-      wage_expectation: 'TBC',
-      staff_cost_estimate: 'TBC',
-      reputation_tier: 'Established',
+      ...COACH_IMPORT_DEFAULTS,
     }).select('id').single()
     if (error) return { created: false, updated: false, matched: false, skippedHistorical: false, error: error.message }
     coachId = data.id

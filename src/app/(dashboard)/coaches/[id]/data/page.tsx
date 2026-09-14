@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CoachDataTab } from './_components/coach-data-tab'
+import { VerifiedMatchEvidence } from '@/components/assessment/verified-match-evidence'
 
 export const metadata = { title: 'Data' }
 
@@ -25,6 +26,8 @@ export default async function CoachDataPage(props: { params: Promise<{ id: strin
 
   if (profileError || externalError || recruitmentError || mediaError) throw new Error('Coach data could not be loaded. Reload before editing.')
   return (
+    <>
+    <VerifiedMatchEvidence coachName={coach.name} />
     <CoachDataTab
       coachId={params.id}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,5 +39,6 @@ export default async function CoachDataPage(props: { params: Promise<{ id: strin
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mediaEvents={(mediaEvents ?? []) as any}
     />
+    </>
   )
 }

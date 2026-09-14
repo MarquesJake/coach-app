@@ -131,8 +131,8 @@
       "name": "Roberto De Zerbi",
       "club": "Tottenham",
       "nationality": "Italian",
-      "route": "Current head coach",
-      "angle": "Improve what is already there",
+      "route": "Current-manager benchmark · not a successor candidate",
+      "angle": "Baseline for successor research",
       "obstacle": "Needs to show the attack is improving",
       "facts": "Appointed 31 March 2026 on a long-term deal. One point, no goals and five conceded from the first three league games. There was also a 5–1 cup win over Charlton and a 0–0 at Forest, after which he said the shape and spirit were better — so this is not three bad performances in a row.",
       "sources": [
@@ -142,17 +142,17 @@
         "spurs-forest",
         "spurs-cup"
       ],
-      "case": "He is the benchmark. Any alternative has to be clearly better once you count the cost, the disruption and the time it takes to bed in.",
+      "case": "He is the current-manager benchmark, not a successor candidate. Compare potential successors against the current football model, including transition cost and time to implement.",
       "against": "A new name can look better simply because we have not seen his problems yet. But the cost of change cannot become an excuse to ignore the same issues week after week.",
-      "gate": "A short improvement plan the board can see, with a review date. No vacancy assumed.",
+      "gate": "Record the current-manager baseline for the commissioned successor research. No vacancy is assumed, and this study does not advise retaining or dismissing him.",
       "areas": [
         {
           "key": "coach_profile",
           "title": "Career & appointment",
           "domain": "Career context",
-          "hypothesis": "Keep De Zerbi in charge for the next block and have the sporting director clear anything getting in his way. That is the fair comparison against bringing someone new in.",
+          "hypothesis": "Document De Zerbi’s current model and support structure as the benchmark for potential successors. His inclusion is context for the commissioned research, not a recommendation to retain or dismiss him.",
           "test": "Confirm with the club what support he has, who does what on the staff and what his contract says. Ask him what would make a real difference in the next two weeks.",
-          "counter": "The club has not asked for this and we have not heard his side. It does not mean he is under formal review."
+          "counter": "The succession commission does not establish that the incumbent is under formal review, and we have not heard his side."
         },
         {
           "key": "performance_impact",
@@ -783,7 +783,7 @@
       "title": "A fair comparison of all seven options",
       "owner": "Ben",
       "due": "14 September",
-      "body": "Give every coach the same squad, the same budget and the same first-month constraints. Compare how much would need to change, the first improvement we would see and how it could go wrong. De Zerbi gets the same scrutiny as the alternatives, and nobody gets credit for claims we have not tested.",
+      "body": "Give every coach the same squad, the same budget and the same first-month constraints. Compare how much would need to change, the first improvement we would see and how it could go wrong. De Zerbi provides the current-manager baseline only; he is not a successor candidate, and nobody gets credit for claims we have not tested.",
       "output": "A one-page comparison: reasons to keep researching, reasons to stop and the next piece of evidence needed. No fit percentages."
     },
     {
@@ -804,7 +804,7 @@
       "title": "Challenge session and board paper",
       "owner": "Jake, Ben and Rasmus",
       "due": "20 September",
-      "body": "Start with the strongest case against our preferred option. What would change our view, what do we still not know, and would a new coach genuinely improve on backing De Zerbi?",
+      "body": "Start with the strongest case against our preferred option. What would change our view, what do we still not know, and how does each potential successor compare with the current-manager baseline?",
       "output": "A short board paper, an evidence appendix and a record of the next decision."
     }
   ],

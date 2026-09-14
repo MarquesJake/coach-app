@@ -672,7 +672,7 @@ const budget = (salary: string, staff: string, compensation: string, total: stri
 
 export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
   [`${TOTTENHAM}:${DE_ZERBI}`]: {
-    executiveSummary: 'Back De Zerbi for now. One point from three league games is a poor start but a small sample, and the cup win and a tighter display at Forest count too. His record at Brighton and Marseille says the football can work. Give him a clear improvement plan and review after Aston Villa; changing now would cost more and risk another reset.',
+    executiveSummary: 'De Zerbi is the current-manager benchmark, not a successor candidate. The club has commissioned successor research for a possible change; this study does not advise retaining or dismissing him. One point from three league games is a poor start but a small sample, with the cup win and a tighter display at Forest also part of the historical context. His Brighton and Marseille record provides context for comparing football models.',
     swot: { strengths: ['Proven in the Premier League', 'Strong start at Marseille', 'Squad already knows his ideas'], weaknesses: ['Attack not connecting', 'Exposed on the counter', 'Second-season dip at Brighton'], opportunities: ['Simplify the attack quickly', 'Everton and Villa at home'], threats: ['Pressure growing', 'Falling out over recruitment'] },
     organisationalFit: 'Good if the club backs him publicly and the sporting director clears obstacles; strained if recruitment becomes a battle.',
     budget: budget('Current contract', 'Current staff', 'None', 'No extra cost'),
@@ -683,7 +683,7 @@ export const TOTTENHAM_FINAL_EVALUATIONS: Record<string, FinalEvaluation> = {
       { risk: 'Dressing room loses belief', likelihood: 'Low', impact: 'High', mitigation: 'Simplify the attack; early wins.' },
     ],
     probabilityOfSuccess: 55,
-    probabilityRationale: 'Back him for now despite McKenna’s higher probability: changing coach brings compensation costs and another reset for the squad. Review the improvement plan after Aston Villa. The poor start and uncertainty over the football keep the probability at 55%.',
+    probabilityRationale: 'Current-manager benchmark only; excluded from successor recommendations.',
   },
   [`${TOTTENHAM}:${MCKENNA}`]: {
     executiveSummary: 'McKenna is the first successor to research. He knows the club from his academy days, builds clear attacking teams and develops players. The questions are whether he wants the job now, and whether his Ipswich record carries into the top half of the Premier League.',

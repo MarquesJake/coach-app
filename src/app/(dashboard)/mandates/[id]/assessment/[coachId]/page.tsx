@@ -19,6 +19,7 @@ import {
 } from './_components/assessment-workspace-client'
 
 import { deepDiveFor, finalEvaluationFor } from '@/lib/assessment/deep-dive'
+import { VerifiedMatchEvidence } from '@/components/assessment/verified-match-evidence'
 
 export const metadata = { title: 'Assessment' }
 
@@ -198,6 +199,8 @@ export default async function CandidateAssessmentPage(
         </Link>
       </div>
 
+      <VerifiedMatchEvidence coachName={coach.name} />
+      {deepDiveFor(coachId, mandateId) && <section role="note" className="my-5 rounded-lg border border-amber-500/60 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950/30 dark:text-amber-100"><strong>DEMO ASSESSMENT WORKFLOW</strong><p className="mt-1">The example dossier and its recorded assessment scores, review states and recommendation below demonstrate the workflow. They are not validated by the match-data import. Separately sourced facts retain their own provenance; review each claim before relying on it.</p></section>}
       <AssessmentWorkspaceClient
         mandateId={mandateId}
         coachId={coachId}

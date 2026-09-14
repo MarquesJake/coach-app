@@ -1695,7 +1695,7 @@ function CandidatePipeline({
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-foreground truncate">{c.coaches?.name ?? 'Unknown'}</p>
-                    {c.is_illustrative && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">Illustrative profile, not reviewed evidence</p>}
+                    {c.is_illustrative && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">Demo assessment — verify before relying on it</p>}
                     <CandidateTypeBadge label={label} />
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -1724,12 +1724,12 @@ function CandidatePipeline({
                           : 'border-amber-500/30 bg-amber-500/10 text-amber-400'
                     )}>
                       {c.recommendation_verdict}
-                      {c.recommendation_confidence !== null ? ` ${c.recommendation_confidence}%` : ''}
+                      {!c.is_illustrative && c.recommendation_confidence !== null ? ` ${c.recommendation_confidence}% analyst confidence` : ''}
                     </span>
                   )}
                   {c.evidence_coverage_count > 0 && (
                     <span className="rounded border border-border bg-card px-1.5 py-0.5 text-[9px] text-muted-foreground">
-                      {c.evidence_coverage_count}/9 evidenced
+                      {c.evidence_coverage_count}/9 {c.is_illustrative ? 'demo criteria' : 'evidenced'}
                     </span>
                   )}
                 </div>
@@ -1901,7 +1901,7 @@ export function MandateWorkspaceClient({
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Candidates</p>
             <h1 className="mt-1 text-lg font-semibold text-foreground">{clubName}</h1>
             <p className="mt-1 text-xs text-muted-foreground">
-              Pick a candidate, record the shortlist decision, then move on to their evidence and assessment.
+              Saved candidate workflow. Calculated football matches are research suggestions; saving and assessing a candidate is a separate decision.
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               Being listed isn’t an endorsement. Check the sources and our notes before drawing conclusions.
@@ -1909,7 +1909,7 @@ export function MandateWorkspaceClient({
           </div>
           <div className="flex flex-wrap gap-2">
             <div className="rounded border border-border bg-surface/50 px-3 py-2">
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Candidates</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Saved candidates</p>
               <p className="mt-0.5 text-sm font-semibold text-foreground">{shortlist.length}</p>
             </div>
             <div className="rounded border border-border bg-surface/50 px-3 py-2">

@@ -21,6 +21,7 @@ import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { declarationReviewLabel } from '@/lib/assessment/material-status'
 import { canPrintCircumstances, referencesForPack } from '@/lib/assessment/pack-release'
 import { deepDiveFor, finalEvaluationFor } from '@/lib/assessment/deep-dive'
+import { VerifiedMatchEvidence } from '@/components/assessment/verified-match-evidence'
 import { AreaDeepDive, FinalEvaluationSection } from '@/components/assessment/deep-dive-sections'
 
 // The tab title doubles as the default filename when the pack is saved as a
@@ -280,12 +281,12 @@ export default async function BoardPackPage(
           CONFIDENTIAL
         </span>
         <h1 className="text-3xl font-serif font-bold leading-tight">Head Coach Assessment<span className="sr-only">: {coach.name}</span></h1>
-        <p className="mt-3 text-sm font-bold text-amber-200">{status.coverLabel}</p>
+        <p className="mt-3 text-sm font-bold text-amber-200">{deepDive ? 'Demo assessment — internal demonstration only' : status.coverLabel}</p>
         <p className="text-3xl font-serif font-bold text-slate-400 leading-tight">{coach.name}</p>
         <div className="w-16 h-0.5 bg-emerald-500 my-6" />
         <p className="text-sm text-slate-300">Prepared for {clubName}. Not yet cleared to share outside the club’s board.</p>
-        <p className="mt-3 text-xs text-slate-300">{status.recordedLabel} · {status.reviewedLabel}</p>
-        <p className="mt-2 text-xs text-slate-300">{status.nextAction}</p>
+        <p className="mt-3 text-xs text-slate-300">{deepDive ? 'Illustrative assessment and review states — not verified appointment advice' : `${status.recordedLabel} · ${status.reviewedLabel}`} </p>
+        <p className="mt-2 text-xs text-slate-300">{deepDive ? 'Review every claim and confirm club-specific terms before using this example as an appointment recommendation.' : status.nextAction}</p>
         <p className="text-xs text-slate-400 mt-1">
           Generated {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
@@ -296,6 +297,8 @@ export default async function BoardPackPage(
           <strong>Evidence limitations.</strong> Some assessments, interviews or references are not included in this report yet. Gaps need more research before this becomes a recommendation.
         </section>
       )}
+      <VerifiedMatchEvidence coachName={coach.name} />
+      {deepDive && <section role="note" className="my-5 rounded-lg border border-amber-500/60 p-4 text-sm print:break-inside-avoid"><strong>DEMO ASSESSMENT WORKFLOW</strong><p className="mt-1">The example dossier, assessment scores, recorded review states and recommendation below are illustrative workflow records, not validation from the match-data import. Separately sourced facts retain their own provenance. This report needs claim-by-claim review before use as an appointment recommendation.</p></section>}
       {/* At a glance — Strengths / Risks / Recommendation, per the target deck format */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Decision in brief</h2>
@@ -320,12 +323,13 @@ export default async function BoardPackPage(
           <div className="border-t-2 border-emerald-500 pt-3">
             <p className="text-[10px] font-bold tracking-[0.15em] text-emerald-700 dark:text-emerald-400 uppercase">Recommendation</p>
             <p className="text-lg font-semibold text-foreground mt-1">
-              {status.recommendationLabel}
-              {recommendation?.confidence !== null && recommendation?.confidence !== undefined && (
+              {finalEvaluation?.currentManagerBenchmark ? 'Current-manager benchmark' : deepDive ? 'Demo recommendation — review required' : status.recommendationLabel}
+              {!deepDive && !finalEvaluation?.currentManagerBenchmark && recommendation?.confidence !== null && recommendation?.confidence !== undefined && (
                 <span className="text-sm text-muted-foreground ml-2">{recommendation.confidence}% confidence</span>
               )}
             </p>
-            {recommendation?.summary && (
+            {finalEvaluation?.currentManagerBenchmark && <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Included to compare the existing football model. This is not a successor recommendation or advice to retain the manager.</p>}
+            {!finalEvaluation?.currentManagerBenchmark && recommendation?.summary && (
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{recommendation.summary}</p>
             )}
           </div>
@@ -341,7 +345,7 @@ export default async function BoardPackPage(
 
       <section className="mt-6 rounded border border-border p-4 print:break-inside-avoid">
         <h2 className="font-semibold text-sm">What we still need to check</h2>
-        <p className="mt-2 text-xs text-muted-foreground">{status.nextAction}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{deepDive ? 'Review every claim and confirm club-specific terms before using this example as an appointment recommendation.' : status.nextAction}</p>
         <p className="mt-2 text-xs text-muted-foreground">An area counts as covered once it has at least one checked piece of evidence. That doesn’t mean the evidence is complete, or that it can be shared.</p>
         <p className="mt-2 text-xs text-muted-foreground">{recommendation?.mitigation ? `Conditions before appointment: ${recommendation.mitigation}` : 'Conditions before appointment have not been recorded.'}</p>
         <Link className="mt-3 inline-block text-xs text-primary underline print:hidden" href={`/mandates/${mandateId}/decision`}>See the research questions and who owns them</Link>
@@ -598,7 +602,7 @@ export default async function BoardPackPage(
                         {methodLabel(item.method)}
                         {item.source ? `, ${item.source}` : ''}
                         {item.confidence !== null ? `, confidence ${item.confidence}` : ''}
-                        {evidenceReviewLabel(item)}
+                        {deepDive ? ' · Demo review record' : evidenceReviewLabel(item)}
                       </li>
                     ))}
                     {criterionDerived.map((item, i) => (
