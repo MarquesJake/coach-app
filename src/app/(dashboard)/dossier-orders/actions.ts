@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
+import { deepDiveFor, isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
 import { canPublishRecommendation } from '@/lib/assessment/evidence-integrity'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
@@ -19,6 +20,9 @@ export async function publishDossierOfferAction(formData: FormData): Promise<Act
   const mandateId = String(formData.get('mandate_id') ?? '')
   const coachId = String(formData.get('coach_id') ?? '')
   const buyerOrganizationId = String(formData.get('buyer_organization_id') ?? '')
+  if (deepDiveFor(coachId, mandateId) || isCurrentManagerBenchmark(mandateId, coachId)) {
+    return { ok: false, error: 'Demo dossiers and current-manager benchmarks cannot be published as appointment recommendations.' }
+  }
   const feeInput = String(formData.get('price_pounds') ?? '').trim()
   const pricePounds = Number(feeInput)
   if (!mandateId || !coachId || !buyerOrganizationId) return { ok: false, error: 'Missing offer context' }

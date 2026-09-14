@@ -1,3 +1,5 @@
+import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
+import { contextFromResearchNote, researchHref } from '@/lib/research-context'
 import { assertRouteQueries } from '@/lib/coaches/route-audit'
 import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { notFound, redirect } from 'next/navigation'
@@ -45,7 +47,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
   const organizationId = await getInternalOrganizationId(user.id)
   const empty = Promise.resolve({ data: [], error: null })
   const emptyOne = Promise.resolve({ data: null, error: null })
-  const [signalsRes, claimsRes, sourceRelationshipsRes, claimRelationshipsRes, referenceRoundsRes, benchRes] = await Promise.all([
+  const [signalsRes, claimsRes, sourceRelationshipsRes, claimRelationshipsRes, referenceRoundsRes, benchRes, sessionsRes] = await Promise.all([
     supabase
       .from('intelligence_items')
       .select('id, title, detail, source_type, source_name, occurred_at, created_at, verified, direction, sensitivity')
@@ -69,9 +71,12 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
     organizationId
       ? supabase.from('trusted_bench_entries').select('stage').eq('org_id', organizationId).eq('coach_id', params.id).maybeSingle()
       : emptyOne,
+    organizationId
+      ? supabase.from('intelligence_sessions').select('id, title, analyst_notes, occurred_at, processing_status').eq('org_id', organizationId).eq('coach_id', params.id).order('occurred_at', { ascending: false }).limit(50)
+      : empty,
   ])
 
-  assertRouteQueries('Coach intelligence', signalsRes, claimsRes, sourceRelationshipsRes, claimRelationshipsRes, referenceRoundsRes, benchRes)
+  assertRouteQueries('Coach intelligence', signalsRes, claimsRes, sourceRelationshipsRes, claimRelationshipsRes, referenceRoundsRes, benchRes, sessionsRes)
   const findings = claimsRes.data ?? []
   const sourceRelationships = sourceRelationshipsRes.data ?? []
   const stakeholderGroups = new Set(sourceRelationships.map((row) => row.stakeholder_group))
@@ -85,6 +90,15 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
 
   return (
     <div className="space-y-5">
+      <section className="rounded-lg border border-border bg-card p-4">
+        <h2 className="font-semibold">Saved conversations</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Notes and transcripts stay attached to this coach. A conversation is not a verified finding; demo examples do not contribute to evidence coverage or football fit.</p>
+        <div className="mt-3 divide-y divide-border">{(sessionsRes.data ?? []).map(session => <div key={session.id} className="py-3">
+          <Link className="text-sm font-medium text-primary hover:underline" href={researchHref(`/intelligence/review?session=${session.id}`, { ...contextFromResearchNote(session.analyst_notes), coach: params.id })}>{session.title}</Link>
+          <p className="mt-1 text-xs text-muted-foreground">{isIllustrativeEvidence(session) ? 'DEMO DATA · fictional conversation' : formatEnumLabel(session.processing_status)} · {formatDate(session.occurred_at)}</p>
+        </div>)}</div>
+        {!sessionsRes.data?.length && <p className="mt-3 text-sm text-muted-foreground">No conversations saved for this coach yet.</p>}
+      </section>
       <section className="border border-border bg-card">
         <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>

@@ -20,12 +20,14 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
   const organizationId = await getInternalOrganizationId(user.id)
   if (!organizationId) return <p className="text-sm text-destructive">Internal analyst access is required.</p>
   const db = supabase as any
-  const [{ data: sessions }, { data: contacts }, { data: coaches }, { data: claims }] = await Promise.all([
+  const results = await Promise.all([
     db.from('intelligence_sessions').select('*').eq('org_id', organizationId).order('occurred_at', { ascending: false }).limit(200),
     db.from('football_contacts').select('id, full_name').eq('org_id', organizationId).order('full_name'),
     supabase.from('coaches').select('id, name').order('name'),
     db.from('profile_claims').select('session_id, review_status').eq('org_id', organizationId).not('session_id', 'is', null),
   ])
+  if (results.some(result => result.error)) throw new Error('Could not load conversations and source details. Please retry.')
+  const [{ data: sessions }, { data: contacts }, { data: coaches }, { data: claims }] = results
   const contactMap = new Map((contacts ?? []).map((row: { id: string; full_name: string }) => [row.id, row.full_name]))
   const coachMap = new Map((coaches ?? []).map((row) => [row.id, row.name]))
   const claimCounts = new Map<string, { total: number; accepted: number }>()

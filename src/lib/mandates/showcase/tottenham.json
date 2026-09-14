@@ -1,8 +1,8 @@
 {
   "mandate_id": "09420a64-b4d2-4245-8088-af0dc88266eb",
   "owner_id": "fe956aea-661a-4eb6-8d86-0480a64f82e0",
-  "edition": "Board discussion edition · sources checked 10 September 2026",
-  "label": "Tottenham Hotspur — succession mandate",
+  "edition": "Board discussion edition · Tottenham match context checked 14 September 2026; other source dates shown individually",
+  "label": "Tottenham Hotspur — research-only succession study",
   "sources": [
     {
       "id": "spurs-appointment",
@@ -122,6 +122,13 @@
       "url": "https://www.liverpoolfc.com/team/mens/staff/andoni-iraola",
       "date": "Checked 10 September 2026",
       "note": "Official club announcement."
+    },
+    {
+      "id": "spurs-everton",
+      "title": "Tottenham: Everton goalless draw",
+      "url": "https://www.tottenhamhotspur.com/news/1089767/toffees-clash-ends-goalless",
+      "date": "12 September 2026",
+      "note": "Official match report, checked 14 September 2026. Fourth league game without a goal; separate from cup results."
     }
   ],
   "coaches": [
@@ -134,13 +141,14 @@
       "route": "Current-manager benchmark · not a successor candidate",
       "angle": "Baseline for successor research",
       "obstacle": "Needs to show the attack is improving",
-      "facts": "Appointed 31 March 2026 on a long-term deal. One point, no goals and five conceded from the first three league games. There was also a 5–1 cup win over Charlton and a 0–0 at Forest, after which he said the shape and spirit were better — so this is not three bad performances in a row.",
+      "facts": "Appointed 31 March 2026 on a long-term deal. The first four league games produced two points, no goals and five conceded: defeats to Brentford and Newcastle, then 0–0 draws with Forest and Everton. Everton was played on 12 September. The 5–1 Charlton cup win is separate. Match context checked 14 September 2026; these results do not establish a dismissal decision or a club instruction.",
       "sources": [
         "spurs-appointment",
         "spurs-bees",
         "spurs-newcastle",
         "spurs-forest",
-        "spurs-cup"
+        "spurs-cup",
+        "spurs-everton"
       ],
       "case": "He is the current-manager benchmark, not a successor candidate. Compare potential successors against the current football model, including transition cost and time to implement.",
       "against": "A new name can look better simply because we have not seen his problems yet. But the cost of change cannot become an excuse to ignore the same issues week after week.",
@@ -151,16 +159,16 @@
           "title": "Career & appointment",
           "domain": "Career context",
           "hypothesis": "Document De Zerbi’s current model and support structure as the benchmark for potential successors. His inclusion is context for the commissioned research, not a recommendation to retain or dismiss him.",
-          "test": "Confirm with the club what support he has, who does what on the staff and what his contract says. Ask him what would make a real difference in the next two weeks.",
+          "test": "Research the current model, support structure and published contract information. Direct questions to the incumbent or club require separate authorisation; research-only permission does not cover interviews or approaches.",
           "counter": "The succession commission does not establish that the incumbent is under formal review, and we have not heard his side."
         },
         {
           "key": "performance_impact",
           "title": "Performance & impact",
           "domain": "Career context",
-          "hypothesis": "Judge the next few games on chances created, how exposed we are at the back and whether it is repeatable — not just points. One good finishing day should not hide the open-play picture. Nine points from the next six league games is a marker for discussion, not a sacking line.",
+          "hypothesis": "Demo analyst proposal: judge a successor’s first six post-appointment league matches on verified chance creation, exposure after turnovers and repeatability, allowing for opposition and player availability. Nine points is a planning marker, not a forecast, dismissal trigger or recommendation about retaining De Zerbi.",
           "test": "Compare like-for-like spells before and after any change, allowing for opponent, venue, score and who was available. Keep the Charlton cup game out of the league picture.",
-          "counter": "Three league games is a small sample. Neither the bad start nor the cup win tells the real story on its own."
+          "counter": "Four league games remain a small sample. Neither the scoreless start nor the separate cup win establishes the cause or the outcome of changing coach."
         },
         {
           "key": "tactical_proposal",
@@ -775,36 +783,36 @@
     {
       "title": "Fix the squad problem before picking a coach",
       "owner": "Jake",
-      "due": "12 September",
-      "body": "Start with three things to test: the striker is not getting enough support; attacks leave too little cover in the middle; instructions take too long to show up on the pitch. These are questions, not verdicts on named players. Code full matches, match every available player to the roles we need and log anything that contradicts each point.",
+      "due": "12 September 2026 · completion unverified",
+      "body": "Proposed internal work; assignment and completion are not independently verified. Start with three things to test: the striker is not getting enough support; attacks leave too little cover in the middle; instructions take too long to show up on the pitch. These are questions, not verdicts on named players. Code full matches, match every available player to the roles we need and log anything that contradicts each point.",
       "output": "A role map showing first choice, cover and what each player would need to adapt. Every judgement on a named player backed by a dated source or match clip."
     },
     {
-      "title": "A fair comparison of all seven options",
+      "title": "A fair comparison of reviewed successor options",
       "owner": "Ben",
-      "due": "14 September",
-      "body": "Give every coach the same squad, the same budget and the same first-month constraints. Compare how much would need to change, the first improvement we would see and how it could go wrong. De Zerbi provides the current-manager baseline only; he is not a successor candidate, and nobody gets credit for claims we have not tested.",
-      "output": "A one-page comparison: reasons to keep researching, reasons to stop and the next piece of evidence needed. No fit percentages."
+      "due": "14 September 2026 · completion unverified",
+      "body": "Proposed internal work; assignment and completion are not independently verified. Give every coach the same squad, the same budget and the same first-month constraints. Compare how much would need to change, the first improvement we would see and how it could go wrong. De Zerbi provides the current-manager baseline only; he is not a successor candidate, and nobody gets credit for claims we have not tested.",
+      "output": "A comparison against the same saved requirements: football-fit scores with sources and calculation, appointment feasibility assessed separately, reasons to stop and next evidence needed. No success probabilities; the incumbent is not ranked as a successor."
     },
     {
       "title": "Career background and working relationships",
       "owner": "Rasmus",
-      "due": "16 September",
-      "body": "Map each coach’s career moves, responsibilities, staff partnerships, involvement in recruitment and how they handled setbacks. Separate first-hand knowledge from reputation. Later, once cleared, ask the coach directly about practical needs such as relocation and travel. Nothing on family, health or private allegations.",
+      "due": "16 September 2026 · proposed",
+      "body": "Proposed internal work; assignment and completion are not independently verified. Map each coach’s career moves, responsibilities, staff partnerships, involvement in recruitment and how they handled setbacks. Separate first-hand knowledge from reputation. Later, once cleared, ask the coach directly about practical needs such as relocation and travel. Nothing on family, health or private allegations.",
       "output": "A dated career timeline, a map of professional relationships and any contradictions still to resolve, with sources kept confidential."
     },
     {
       "title": "Cost and staffing",
       "owner": "Ben",
-      "due": "17 September",
-      "body": "Cost the head coach’s pay, extra staff, compensation and transition separately. Agree which current staff must stay and how many incoming staff we can take. Confirm each coach’s current contract first — a published end date is not a release fee.",
+      "due": "17 September 2026 · proposed",
+      "body": "Proposed internal work; assignment and completion are not independently verified. Cost the head coach’s pay, extra staff, compensation and transition separately. Agree which current staff must stay and how many incoming staff we can take. Confirm each coach’s current contract first — a published end date is not a release fee.",
       "output": "A cost breakdown, a staff responsibility map and a clear list of conditions. Coach-specific figures stay open until confirmed."
     },
     {
       "title": "Challenge session and board paper",
       "owner": "Jake, Ben and Rasmus",
-      "due": "20 September",
-      "body": "Start with the strongest case against our preferred option. What would change our view, what do we still not know, and how does each potential successor compare with the current-manager baseline?",
+      "due": "20 September 2026 · proposed",
+      "body": "Proposed internal review on 20 September 2026, not a club-authorised appointment decision. Challenge the strongest case for and against the researched successors. Record what remains unknown and compare with the incumbent benchmark; no preferred name is assumed.",
       "output": "A short board paper, an evidence appendix and a record of the next decision."
     }
   ],
@@ -850,38 +858,38 @@
     [
       "Days 1–30",
       "Steady things and get to know the squad",
-      "Agree who decides what, keep the key support staff and speak to every player one to one. Put in only the first attacking and defensive priorities. Set a baseline for chance quality, dangerous turnovers and availability using agreed data.",
+      "Demo post-appointment proposal, conditional on a future authorised appointment; not an instruction to the incumbent. Agree who decides what, keep the key support staff and speak to every player one to one. Put in only the first attacking and defensive priorities. Set a baseline for chance quality, dangerous turnovers and availability using agreed data.",
       "Two-week check: can the players explain their roles, and do the games show the change we wanted? No automatic points target for dismissal."
     ],
     [
       "Days 31–60",
       "Make it repeatable",
-      "Extend the plan against different kinds of opponent, sharpen set pieces and start individual development work. Check actual staffing needs against what we assumed before asking for more people.",
+      "Demo post-appointment proposal, conditional on a future authorised appointment; not an instruction to the incumbent. Extend the plan against different kinds of opponent, sharpen set pieces and start individual development work. Check actual staffing needs against what we assumed before asking for more people.",
       "Does the improvement hold after a setback, a different opponent and a key player missing? Write down what has not improved."
     ],
     [
       "Days 61–90",
       "Decide what to build",
-      "Agree the long-term game model and recruitment priorities based on evidence. Confirm the academy pathway, who owns what on the staff and the questions for the next three months.",
+      "Demo post-appointment proposal, conditional on a future authorised appointment; not an instruction to the incumbent. Agree the long-term game model and recruitment priorities based on evidence. Confirm the academy pathway, who owns what on the staff and the questions for the next three months.",
       "Decide what is working, what should stop and what extra support is justified. Do not treat a short run of results as proof of long-term success."
     ]
   ],
   "budgets": [
     [
       "Head coach, annual gross salary",
-      "£5m–£7m"
+      "£5m–£7m · demo planning envelope; club funding unverified"
     ],
     [
       "Head coach bonus, separate cap",
-      "Up to £1m"
+      "Up to £1m · demo planning envelope; club funding unverified"
     ],
     [
       "Additional coaching staff, annual",
-      "£2m–£3m"
+      "£2m–£3m · demo planning envelope; club funding unverified"
     ],
     [
       "Compensation to release the new coach, one-off",
-      "Up to £8m"
+      "Up to £8m · demo planning envelope; club funding unverified"
     ],
     [
       "Employer costs, retained staff, relocation",

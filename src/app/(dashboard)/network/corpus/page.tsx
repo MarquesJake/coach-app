@@ -38,7 +38,7 @@ export default async function CorpusOperationsPage() {
   const results = await Promise.all([
     db.from('trusted_bench_entries').select('*').eq('org_id', organizationId).order('updated_at', { ascending: false }),
     supabase.from('coaches').select('id, name, club_current, nationality, availability_status'),
-    db.from('intelligence_sessions').select('id, coach_id, contact_id, title, analyst_notes, occurred_at, processing_status').eq('org_id', organizationId).not('coach_id', 'is', null),
+    db.from('intelligence_sessions').select('id, coach_id, contact_id, title, analyst_notes, transcript_text, occurred_at, processing_status').eq('org_id', organizationId).not('coach_id', 'is', null),
     db.from('contact_coach_relationships').select('coach_id, contact_id, stakeholder_group, first_hand, independence_confirmed').eq('org_id', organizationId),
     db.from('profile_claims').select('coach_id, session_id, claimed_value, evidence_summary, methodology_criteria, evidence_strength, fact_check_status, reviewed_at, review_status').eq('org_id', organizationId).is('deleted_at', null),
     db.from('reference_campaigns').select('id, coach_id, status, next_action, next_review_at').eq('org_id', organizationId).in('status', ['draft', 'active', 'paused']),

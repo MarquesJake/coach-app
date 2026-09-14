@@ -3,6 +3,7 @@ import { readResearchContext, researchContextNote, contextFromResearchNote, type
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import { revalidatePath } from 'next/cache'
 import { readContactDetails, emailLookupPattern } from '@/lib/network/contact-details'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
@@ -76,6 +77,18 @@ async function ownsCoach(db: any, userId: string, coachId: string) {
   return Boolean(data)
 }
 
+/** Follow provenance as well as claim text: editing a finding must not erase its demo origin. */
+async function hasIllustrativeSource(db: any, organizationId: string, record: any): Promise<boolean> {
+  if (isIllustrativeEvidence(record)) return true
+  for (const [table, id] of [['intelligence_sessions', record.session_id], ['football_contacts', record.contact_id]]) {
+    if (!id) continue
+    const { data, error } = await db.from(table).select('*').eq('id', id).eq('org_id', organizationId).maybeSingle()
+    if (error || !data) throw new Error('Could not verify source provenance. No changes were saved.')
+    if (isIllustrativeEvidence(data)) return true
+  }
+  return false
+}
+
 function revalidateCoach(coachId?: string | null) {
   if (!coachId) return
   revalidatePath(`/coaches/${coachId}`)
@@ -145,8 +158,9 @@ export async function createContactCoachRelationshipAction(formData: FormData): 
     const relationshipType = text(formData.get('relationship_type'))
     if (!contactId || !coachId || !relationshipType) return { ok: false, error: 'Contact, coach and relationship are required.' }
     if (!(await ownsCoach(db, user.id, coachId))) return { ok: false, error: 'Coach not found.' }
-    const { data: contact } = await db.from('football_contacts').select('id').eq('id', contactId).eq('org_id', organizationId).maybeSingle()
+    const { data: contact } = await db.from('football_contacts').select('id, full_name').eq('id', contactId).eq('org_id', organizationId).maybeSingle()
     if (!contact) return { ok: false, error: 'Contact not found.' }
+    if (isIllustrativeEvidence(contact)) return { ok: false, error: 'Fictional DEMO contacts cannot establish real coach relationships.' }
     const stakeholderGroup = text(formData.get('stakeholder_group')) || 'other'
     if (!isAllowedValue(STAKEHOLDER_GROUPS, stakeholderGroup)) return { ok: false, error: 'Unknown stakeholder group.' }
     const { data, error } = await db.from('contact_coach_relationships').insert({
@@ -228,6 +242,7 @@ export async function createIntelligenceSessionAction(input: {
       if (!contact) return { ok: false, error: 'Contact not found.' }
     }
     const validClaims = input.claims.filter((claim) => claim.claimedValue.trim() && claim.evidenceSummary.trim())
+    if (validClaims.length && await hasIllustrativeSource(db, organizationId, { title: input.title, analyst_notes: input.analystNotes, transcript_text: input.transcriptText, contact_id: input.contactId })) return { ok: false, error: 'DEMO conversations must be saved without findings.' }
     if (validClaims.length && !input.coachId) return { ok: false, error: 'Link a coach before creating draft findings.' }
     const { data: session, error: sessionError } = await db.from('intelligence_sessions').insert({
       org_id: organizationId,
@@ -312,11 +327,12 @@ export async function createSessionFindingAction(formData: FormData): Promise<Ac
     }
     const { data: session } = await db
       .from('intelligence_sessions')
-      .select('id, coach_id, contact_id, career_context, sensitivity, occurred_at')
+      .select('*')
       .eq('id', sessionId)
       .eq('org_id', organizationId)
       .maybeSingle()
     if (!session) return { ok: false, error: 'Conversation not found.' }
+    if (await hasIllustrativeSource(db, organizationId, session)) return { ok: false, error: 'DEMO conversations are fictional and cannot create findings.' }
     if (!session.coach_id || !(await ownsCoach(db, user.id, session.coach_id))) {
       return { ok: false, error: 'Link an owned coach to the conversation before drafting findings.' }
     }
@@ -378,6 +394,7 @@ export async function reviewTrustedClaimAction(input: {
     if (!isAllowedValue(CLAIM_REVIEW_STATUSES, input.reviewStatus)) return { ok: false, error: 'Unknown review status.' }
     const { data: claim } = await db.from('profile_claims').select('*').eq('id', input.claimId).eq('org_id', organizationId).maybeSingle()
     if (!claim) return { ok: false, error: 'Claim not found.' }
+    if (await hasIllustrativeSource(db, organizationId, claim)) return { ok: false, error: 'DEMO findings cannot be reviewed, verified or applied as real evidence.' }
     const statementType = isAllowedValue(STATEMENT_TYPES, input.statementType) ? input.statementType : claim.statement_type
     const evidenceStrength = isAllowedValue(EVIDENCE_STRENGTHS, input.evidenceStrength) ? input.evidenceStrength : claim.evidence_strength
     const factCheckStatus = isAllowedValue(FACT_CHECK_STATUSES, input.factCheckStatus) ? input.factCheckStatus : claim.fact_check_status
@@ -424,6 +441,7 @@ export async function splitTrustedClaimAction(input: {
     if (parts.length < 2) return { ok: false, error: 'A split needs at least two complete claims.' }
     const { data: claim } = await db.from('profile_claims').select('*').eq('id', input.claimId).eq('org_id', organizationId).maybeSingle()
     if (!claim) return { ok: false, error: 'Claim not found.' }
+    if (await hasIllustrativeSource(db, organizationId, claim)) return { ok: false, error: 'DEMO findings cannot be reviewed, verified or applied as real evidence.' }
     const rows = parts.map((part) => ({
       ...claim,
       id: undefined,
@@ -434,13 +452,23 @@ export async function splitTrustedClaimAction(input: {
       reviewed_at: null,
       reviewed_by: null,
       applied_at: null,
+      used_in_recommendation: false,
       created_by: user.id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }))
     const { error } = await db.from('profile_claims').insert(rows)
     if (error) return { ok: false, error: error.message }
-    await db.from('profile_claims').update({ review_status: 'rejected', source_notes: [claim.source_notes, 'Split into narrower finding drafts.'].filter(Boolean).join('\n'), updated_at: new Date().toISOString() }).eq('id', claim.id)
+    let cleanupFailed = false
+    try {
+      const cleanup = await db.from('profile_claims').update({ review_status: 'rejected', source_notes: [claim.source_notes, 'Split into narrower finding drafts.'].filter(Boolean).join('\n'), updated_at: new Date().toISOString() }).eq('id', claim.id).eq('org_id', organizationId).select('id').single()
+      cleanupFailed = Boolean(cleanup.error || !cleanup.data)
+    } catch { cleanupFailed = true }
+    if (cleanupFailed) {
+      revalidatePath('/intelligence/review')
+      revalidateCoach(claim.coach_id)
+      return { ok: false, error: 'Partial save: split drafts were created, but the original finding could not be retired. Refresh and review the saved drafts before retrying; retrying the split may create duplicates.' }
+    }
     revalidatePath('/intelligence/review')
     revalidateCoach(claim.coach_id)
     return { ok: true }
@@ -464,6 +492,7 @@ export async function mergeTrustedClaimsAction(input: {
     const source = claims.find((claim: any) => claim.id === input.sourceClaimId)
     const target = claims.find((claim: any) => claim.id === input.targetClaimId)
     if (source.coach_id !== target.coach_id) return { ok: false, error: 'Only claims about the same coach can be merged.' }
+    if (await hasIllustrativeSource(db, organizationId, source) || await hasIllustrativeSource(db, organizationId, target)) return { ok: false, error: 'DEMO findings cannot be merged into real evidence.' }
     const now = new Date().toISOString()
     const { data: merged, error } = await db.from('profile_claims').insert({
       user_id: user.id,
@@ -479,12 +508,12 @@ export async function mergeTrustedClaimsAction(input: {
       evidence_summary: input.evidenceSummary.trim(),
       source_type: 'analyst_merged_claim',
       source_notes: `Merged from claims ${source.id} and ${target.id}`,
-      confidence: Math.min(source.confidence ?? 100, target.confidence ?? 100),
+      confidence: source.confidence == null || target.confidence == null ? null : Math.min(source.confidence, target.confidence),
       sensitivity: source.sensitivity === 'confidential' || target.sensitivity === 'confidential' ? 'confidential' : source.sensitivity,
       verification_status: 'unverified',
       review_status: 'pending',
       statement_type: source.statement_type,
-      evidence_strength: source.evidence_strength === 'disputed' || target.evidence_strength === 'disputed' ? 'disputed' : 'corroborated',
+      evidence_strength: source.evidence_strength === 'disputed' || target.evidence_strength === 'disputed' ? 'disputed' : 'single_source',
       fact_check_status: source.fact_check_status === 'requires_legal' || target.fact_check_status === 'requires_legal' ? 'requires_legal' : source.fact_check_status,
       external_visibility: source.external_visibility === 'internal_only' || target.external_visibility === 'internal_only' ? 'internal_only' : 'anonymised_external',
       methodology_criteria: Array.from(new Set([...(source.methodology_criteria ?? []), ...(target.methodology_criteria ?? [])])),
@@ -492,8 +521,8 @@ export async function mergeTrustedClaimsAction(input: {
       occurred_at: source.occurred_at,
     }).select('id').single()
     if (error) return { ok: false, error: error.message }
-    await Promise.all([
-      db.from('profile_claims').update({ review_status: 'rejected', updated_at: now }).in('id', [source.id, target.id]).eq('org_id', organizationId),
+    const followUps = await Promise.allSettled([
+      db.from('profile_claims').update({ review_status: 'rejected', updated_at: now }).in('id', [source.id, target.id]).eq('org_id', organizationId).select('id'),
       db.from('claim_relationships').insert([
         { org_id: organizationId, created_by: user.id, source_claim_id: merged.id, target_claim_id: source.id, relationship_type: 'supersedes', rationale: 'Analyst merged overlapping claims', reviewed_by: user.id, reviewed_at: now },
         { org_id: organizationId, created_by: user.id, source_claim_id: merged.id, target_claim_id: target.id, relationship_type: 'supersedes', rationale: 'Analyst merged overlapping claims', reviewed_by: user.id, reviewed_at: now },
@@ -501,6 +530,11 @@ export async function mergeTrustedClaimsAction(input: {
     ])
     revalidatePath('/intelligence/review')
     revalidateCoach(source.coach_id)
+    const cleanup = followUps[0]
+    const links = followUps[1]
+    const cleanupFailed = cleanup.status === 'rejected' || cleanup.value.error || cleanup.value.data?.length !== 2
+    const linksFailed = links.status === 'rejected' || links.value.error
+    if (cleanupFailed || linksFailed) return { ok: false, error: `Partial save: merged draft ${merged.id} was created, but ${[cleanupFailed ? 'original findings could not both be retired' : null, linksFailed ? 'provenance links could not be saved' : null].filter(Boolean).join(' and ')}. Refresh and review this saved draft before retrying; retrying the merge may create duplicates.` }
     return { ok: true, id: merged.id }
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unable to merge claims.' }
@@ -674,6 +708,7 @@ export async function promoteClaimToAssessmentAction(input: {
     if (!canAssess) return { ok: false, error: 'Candidate is not on this mandate shortlist.' }
     const { data: claim } = await db.from('profile_claims').select('*').eq('id', input.claimId).eq('org_id', organizationId).eq('coach_id', input.coachId).maybeSingle()
     if (!claim) return { ok: false, error: 'Claim not found.' }
+    if (await hasIllustrativeSource(db, organizationId, claim)) return { ok: false, error: 'DEMO findings cannot be reviewed, verified or applied as real evidence.' }
     if (!isClaimPromotable({
       reviewStatus: claim.review_status,
       statementType: claim.statement_type,

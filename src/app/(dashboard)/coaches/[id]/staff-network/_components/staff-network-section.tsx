@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { Button } from '@/components/ui/button'
@@ -73,6 +73,11 @@ export function StaffNetworkSection({
   allStaff: StaffRow[]
 }) {
   const router = useRouter()
+  const busy = useRef(false)
+  const autofillRequest = useRef(0)
+  const autofillPending = useRef(false)
+  const [saving, setSaving] = useState(false)
+  const [loadingDefaults, setLoadingDefaults] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<HistoryRow | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -80,6 +85,10 @@ export function StaffNetworkSection({
   const [linkDefaults, setLinkDefaults] = useState<StaffLinkDefaults | null>(null)
 
   const openAdd = () => {
+    if (busy.current) return
+    autofillRequest.current++
+    autofillPending.current = false
+    setLoadingDefaults(false)
     setEditing(null)
     setError(null)
     setSelectedStaffId('')
@@ -87,6 +96,10 @@ export function StaffNetworkSection({
     setDrawerOpen(true)
   }
   const openEdit = (row: HistoryRow) => {
+    if (busy.current) return
+    autofillRequest.current++
+    autofillPending.current = false
+    setLoadingDefaults(false)
     setEditing(row)
     setError(null)
     setSelectedStaffId('')
@@ -94,6 +107,10 @@ export function StaffNetworkSection({
     setDrawerOpen(true)
   }
   const closeDrawer = () => {
+    if (busy.current) return
+    autofillRequest.current++
+    autofillPending.current = false
+    setLoadingDefaults(false)
     setDrawerOpen(false)
     setEditing(null)
     setSelectedStaffId('')
@@ -102,40 +119,54 @@ export function StaffNetworkSection({
   }
 
   const onStaffSelect = useCallback(async (staffId: string) => {
+    const request = ++autofillRequest.current
     setSelectedStaffId(staffId)
-    if (!staffId) {
-      setLinkDefaults(null)
-      return
+    setLinkDefaults(null)
+    setError(null)
+    autofillPending.current = !!staffId
+    setLoadingDefaults(!!staffId)
+    if (!staffId) return
+    try {
+      const defaults = await getStaffLinkAutofillAction(coachId, staffId)
+      if (request === autofillRequest.current) setLinkDefaults(defaults ?? null)
+    } catch {
+      if (request === autofillRequest.current) setError('Could not load staff details. Enter and verify the details manually before saving.')
+    } finally {
+      if (request === autofillRequest.current) {
+        autofillPending.current = false
+        setLoadingDefaults(false)
+      }
     }
-    const defaults = await getStaffLinkAutofillAction(coachId, staffId)
-    setLinkDefaults(defaults ?? null)
   }, [coachId])
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const runMutation = async (operation: () => Promise<{ error: string | null }>, message: string) => {
+    if (busy.current || autofillPending.current) return
+    busy.current = true
+    setSaving(true)
     setError(null)
-    const form = e.currentTarget
-    const formData = new FormData(form)
-    formData.set('id', editing?.id ?? '')
-    const result = await upsertStaffHistoryAction(coachId, formData)
-    if (result.error) {
-      setError(result.error)
-      toastError(result.error)
-      return
-    }
-    toastSuccess(editing ? 'Updated' : 'Added')
-    closeDrawer()
-    router.refresh()
-  }
-  const onDelete = async (id: string) => {
-    if (!confirm('Remove this link?')) return
-    const result = await deleteStaffHistoryAction(coachId, id)
-    if (result.error) toastError(result.error)
-    else {
-      toastSuccess('Removed')
+    try {
+      const result = await operation()
+      if (result.error) { setError(result.error); toastError(result.error); return }
+      toastSuccess(message)
+      busy.current = false
       closeDrawer()
       router.refresh()
+    } catch {
+      setError('Save could not be confirmed. Your entries are kept. Check the record before retrying.')
+    } finally {
+      busy.current = false
+      setSaving(false)
     }
+  }
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    formData.set('id', editing?.id ?? '')
+    await runMutation(() => upsertStaffHistoryAction(coachId, formData), editing ? 'Updated' : 'Added')
+  }
+  const onDelete = async (id: string) => {
+    if (busy.current || !confirm('Remove this link?')) return
+    await runMutation(() => deleteStaffHistoryAction(coachId, id), 'Removed')
   }
 
   const networkMetrics = useMemo(() => {
@@ -248,19 +279,20 @@ export function StaffNetworkSection({
         title={editing ? 'Edit staff link' : 'Add staff link'}
         footer={
           <>
-            {editing && <Button variant="destructive" className="mr-auto" onClick={() => onDelete(editing.id)}>Delete</Button>}
-            <Button variant="outline" onClick={closeDrawer}>Cancel</Button>
-            <Button type="submit" form="staff-history-form">{editing ? 'Save' : 'Add'}</Button>
+            {editing && <Button variant="destructive" className="mr-auto" disabled={saving} onClick={() => onDelete(editing.id)}>Delete</Button>}
+            <Button variant="outline" disabled={saving} onClick={closeDrawer}>Cancel</Button>
+            <Button disabled={saving || loadingDefaults} type="submit" form="staff-history-form">{editing ? 'Save' : 'Add'}</Button>
           </>
         }
       >
-        <form id="staff-history-form" key={editing ? editing.id : `add-${selectedStaffId}-${linkDefaults ? '1' : '0'}`} onSubmit={onSubmit} className="space-y-4">
-          {error && <p className="text-sm text-destructive">{error}</p>}
+        {drawerOpen && <form id="staff-history-form" key={editing ? editing.id : `add-${selectedStaffId}-${loadingDefaults ? 'loading' : 'ready'}`} onSubmit={onSubmit} className="space-y-4">
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <input type="hidden" name="id" value={editing?.id ?? ''} />
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Staff</label>
             <select
               name="staff_id"
+              disabled={saving}
               required
               defaultValue={editing?.staff_id ?? selectedStaffId}
               onChange={(e) => { if (!editing) onStaffSelect(e.target.value) }}
@@ -272,6 +304,7 @@ export function StaffNetworkSection({
               ))}
             </select>
           </div>
+          <fieldset disabled={saving || loadingDefaults} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Club name</label>
             <input name="club_name" defaultValue={editing?.club_name ?? linkDefaults?.club_name ?? ''} className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
@@ -327,7 +360,8 @@ export function StaffNetworkSection({
               verified_at: null,
             }}
           />
-        </form>
+          </fieldset>
+        </form>}
       </Drawer>
     </div>
   )

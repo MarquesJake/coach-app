@@ -5,6 +5,8 @@ import { createRequire } from 'node:module'
 import { test } from 'node:test'
 import { isValidElement } from 'react'
 import ts from 'typescript'
+import * as integrity from '../assessment/evidence-integrity.ts'
+import * as trustedNetwork from '../intelligence/trusted-network.ts'
 import * as contactDetails from '../network/contact-details.ts'
 const require = createRequire(import.meta.url)
 function load(file: string, modules: Record<string, any>, form = false) {
@@ -153,4 +155,88 @@ test('data profile save blocks double-submit, retains failed edits, and unmounts
   assert.ok(elements(page.render()).some(e => e.props.role === 'alert'))
   await submit(elements(page.render()).find(e => e.props.id === 'profile-form'))
   assert.ok(!elements(page.render()).some(e => e.props.id === 'profile-form')); assert.equal(page.refreshes(), 1)
+})
+
+
+test('demo provenance blocks finding creation, acceptance, promotion and relationship writes', async () => {
+  let writes = 0
+  const filters: any[] = []
+  const records: Record<string, any> = {
+    organization_memberships: { role: 'analyst' }, coaches: { id: 'coach' },
+    intelligence_sessions: { id: 'session', coach_id: 'coach', contact_id: 'contact', title: 'DEMO — session' },
+    football_contacts: { id: 'contact', full_name: 'DEMO — invented scout (fictional)' },
+    profile_claims: { id: 'claim', coach_id: 'coach', session_id: 'session', claimed_value: 'Unmarked claim', review_status: 'accepted' },
+  }
+  const db = { auth: { getUser: async () => ({ data: { user: { id: 'user' } } }) }, from(table: string) {
+    const q: any = { select: () => q, eq(key: string, value: string) { filters.push([table, key, value]); return q }, in: () => q, maybeSingle: async () => ({ data: records[table], error: null }), insert: () => { writes++; return q }, update: () => { writes++; return q } }; return q
+  } }
+  const actions = load('intelligence/trusted-actions.ts', {
+    '@/lib/supabase/server': { createServerSupabaseClient: async () => db },
+    '@/lib/organizations/context': { getInternalOrganizationId: async () => 'org' },
+    '@/lib/assessment/evidence-integrity': integrity,
+    '@/lib/intelligence/trusted-network': trustedNetwork,
+    '@/lib/assessment/access': { canAssessCandidate: async () => true },
+  })
+  const form = new FormData(); for (const [key, value] of Object.entries({ session_id: 'session', claimed_value: 'Finding', evidence_summary: 'Summary', contact_id: 'contact', coach_id: 'coach', relationship_type: 'reference' })) form.set(key, value)
+  for (const result of [
+    await actions.createSessionFindingAction(form),
+    await actions.reviewTrustedClaimAction({ claimId: 'claim', reviewStatus: 'accepted' }),
+    await actions.promoteClaimToAssessmentAction({ claimId: 'claim', coachId: 'coach', mandateId: 'mandate', criterion: 'coach_profile' }),
+    await actions.createContactCoachRelationshipAction(form),
+  ]) { assert.equal(result.ok, false); assert.match(result.error, /DEMO/) }
+  assert.equal(writes, 0)
+  assert.ok(filters.some(([table, key, value]) => table === 'intelligence_sessions' && key === 'org_id' && value === 'org'))
+})
+
+function claimMutationHarness(failure = '', disputed = false) {
+  const inserts: any[] = []
+  const claims = ['a', 'b'].map(id => ({ id, coach_id: 'coach', claimed_value: 'Recorded observation', confidence: null, evidence_strength: disputed && id === 'b' ? 'disputed' : 'single_source', used_in_recommendation: true }))
+  const db = { auth: { getUser: async () => ({ data: { user: { id: 'user' } } }) }, from(table: string) {
+    let operation = 'read'; let single = false
+    const q: any = new Proxy({}, { get(_t, method) {
+      if (method === 'then') return (resolve: any, reject: any) => {
+        if (operation === 'update' && failure === 'throw') return Promise.reject(Error('Transport failure')).then(resolve, reject)
+        const error = operation === 'update' && failure === 'cleanup' || table === 'claim_relationships' && failure === 'links' ? { message: 'Write denied' } : null
+        const data = table === 'organization_memberships' ? { role: 'analyst' } : operation === 'insert' ? { id: 'merged' } : operation === 'update' ? failure === 'zero' ? [] : single ? { id: 'a' } : [{ id: 'a' }, { id: 'b' }] : single ? claims[0] : claims
+        return Promise.resolve({ data, error }).then(resolve, reject)
+      }
+      if (method === 'insert' || method === 'update') return (payload: any) => { operation = method; if (method === 'insert') inserts.push({ table, payload }); return q }
+      if (method === 'single' || method === 'maybeSingle') return () => { single = true; return q }
+      return () => q
+    } }); return q
+  } }
+  const actions = load('intelligence/trusted-actions.ts', {
+    '@/lib/supabase/server': { createServerSupabaseClient: async () => db }, '@/lib/organizations/context': { getInternalOrganizationId: async () => 'org' },
+    '@/lib/assessment/evidence-integrity': integrity, '@/lib/intelligence/trusted-network': trustedNetwork, 'next/cache': { revalidatePath: () => {} },
+  })
+  return { actions, inserts }
+}
+const mergeInput = { sourceClaimId: 'a', targetClaimId: 'b', claimedValue: 'Combined observation', evidenceSummary: 'Summary' }
+test('merging observations does not establish corroboration or fill unknown confidence', async () => {
+  for (const disputed of [false, true]) {
+    const h = claimMutationHarness('', disputed)
+    assert.equal((await h.actions.mergeTrustedClaimsAction(mergeInput)).ok, true)
+    assert.equal(h.inserts[0].payload.evidence_strength, disputed ? 'disputed' : 'single_source')
+    assert.equal(h.inserts[0].payload.confidence, null)
+    assert.equal(h.inserts[0].payload.verification_status, 'unverified')
+  }
+})
+test('merge reports persisted draft and retry risk on cleanup, zero-row, link and transport failures', async () => {
+  for (const failure of ['cleanup', 'zero', 'links', 'throw']) {
+    const h = claimMutationHarness(failure)
+    const result = await h.actions.mergeTrustedClaimsAction(mergeInput)
+    assert.equal(result.ok, false, failure)
+    assert.match(result.error, /Partial save: merged draft merged was created/)
+    assert.match(result.error, /may create duplicates/)
+    assert.equal(h.inserts.filter(row => row.table === 'profile_claims').length, 1)
+  }
+})
+test('split resets recommendation use and reports saved drafts when original retirement fails', async () => {
+  for (const failure of ['', 'cleanup', 'throw']) {
+    const h = claimMutationHarness(failure)
+    const result = await h.actions.splitTrustedClaimAction({ claimId: 'a', parts: [{ claimedValue: 'First', evidenceSummary: 'One' }, { claimedValue: 'Second', evidenceSummary: 'Two' }] })
+    assert.equal(result.ok, !failure)
+    if (failure) assert.match(result.error, /Partial save: split drafts were created/)
+    for (const row of h.inserts[0].payload) { assert.equal(row.used_in_recommendation, false); assert.equal(row.review_status, 'pending'); assert.equal(row.verification_status, 'unverified') }
+  }
 })

@@ -1,4 +1,5 @@
 import type { Database } from '../types/db.ts'
+import { deepDiveFor, isCurrentManagerBenchmark } from '../assessment/deep-dive.ts'
 import { deriveAssessmentStatus } from '../assessment/status.ts'
 import { isIllustrativeEvidence, isVerifiedEvidence } from '../assessment/evidence-integrity.ts'
 import { resolveControlledRelease } from '../dossiers/release-state.ts'
@@ -39,7 +40,7 @@ export function appointmentBriefCompleteness(mandate: Pick<AppointmentMandate, t
 
 /** Resolve one already-authorized mandate from bulk-loaded rows; never infer publication from a preview. */
 export function deriveAppointmentNextAction(mandate: AppointmentMandate, data: AppointmentActionData, now = new Date()) {
-  const candidates = new Map(data.shortlist.filter(row => row.mandate_id === mandate.id && row.coaches && !isIllustrativeEvidence(row.coaches)).map(row => [row.coach_id, row.coaches!]))
+  const candidates = new Map(data.shortlist.filter(row => row.mandate_id === mandate.id && row.coaches && !isIllustrativeEvidence(row.coaches) && !deepDiveFor(row.coach_id, mandate.id) && !isCurrentManagerBenchmark(mandate.id, row.coach_id)).map(row => [row.coach_id, row.coaches!]))
   const recommendations = data.recommendations.filter(row => row.mandate_id === mandate.id && candidates.has(row.coach_id))
   const assessments = data.assessments.filter(row => row.mandate_id === mandate.id)
   const evidence = data.evidence.filter(row => row.mandate_id === mandate.id)

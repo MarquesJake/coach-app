@@ -209,23 +209,41 @@ export async function addInterviewAnswerAction(formData: FormData): Promise<Acti
 
   if (evidenceError || !evidence) return { ok: false, error: 'Failed to save interview evidence' }
 
-  const { error } = await supabase.from('candidate_interview_answers').insert({
-    user_id: user.id,
-    mandate_id: mandateId,
-    coach_id: coachId,
-    evidence_id: evidence.id,
-    question_key: question.key,
-    question: capturedQuestion,
-    answer,
-    criterion: question.criterion,
-    interviewer,
-    interview_focus: question.focus,
-    confidence,
-    verification_status: verificationStatus,
-    used_in_recommendation: usedInRecommendation,
-  })
-
-  if (error) return { ok: false, error: 'Failed to save interview answer' }
+  let answerError: boolean
+  try {
+    const result = await supabase.from('candidate_interview_answers').insert({
+      user_id: user.id,
+      mandate_id: mandateId,
+      coach_id: coachId,
+      evidence_id: evidence.id,
+      question_key: question.key,
+      question: capturedQuestion,
+      answer,
+      criterion: question.criterion,
+      interviewer,
+      interview_focus: question.focus,
+      confidence,
+      verification_status: verificationStatus,
+      used_in_recommendation: usedInRecommendation,
+    })
+    answerError = Boolean(result.error)
+  } catch {
+    // A transport failure does not prove the answer insert was rolled back.
+    return { ok: false, error: 'Interview save could not be confirmed. Evidence was created and the answer may also have saved. Reload and check both records before retrying.' }
+  }
+  if (answerError) {
+    try {
+      const cleanup = await supabase.from('assessment_evidence').delete()
+        .eq('id', evidence.id).eq('user_id', user.id)
+        .eq('mandate_id', mandateId).eq('coach_id', coachId).select('id')
+      if (!cleanup.error && cleanup.data?.some(row => row.id === evidence.id)) {
+        return { ok: false, error: 'Interview answer was not saved. Its temporary evidence was removed; you can retry.' }
+      }
+    } catch {
+      // Keep the partial-save warning below when cleanup cannot be confirmed.
+    }
+    return { ok: false, error: 'Interview answer was not saved, but its evidence may remain. Reload and check the evidence before retrying; do not use it as a completed interview.' }
+  }
 
   revalidatePath(`/mandates/${mandateId}/assessment`)
   revalidatePath(`/mandates/${mandateId}/assessment/${coachId}`)
