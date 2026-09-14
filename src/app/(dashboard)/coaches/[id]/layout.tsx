@@ -8,6 +8,8 @@ import { ResearchContextBanner } from '../_components/research-context-link'
 import type { Metadata } from 'next'
 import { CurrentEmploymentNotice } from '@/components/assessment/current-employment'
 import { researchProfileForName } from '@/lib/scoring/research/catalogue'
+import { resolveDeepCoachIdentity } from '@/lib/coaches/deep-provider-history'
+import { findDeepResearchProfile } from '@/lib/coaches/deep-research-profiles'
 
 // Names the entity in the tab so several open records can be told apart; child
 // tabs supply their own label through the template ("Career · Kieran McKenna").
@@ -29,6 +31,8 @@ export default async function CoachDetailLayout({children,params}:{children:Reac
  ])
  if(!coach)notFound()
  const summary=summariseEvidence(claims.data??[])
- const evidenceLabel = claims.error ? 'Evidence unavailable' : researchProfileForName(coach.name) && summary.label === 'Needs research' ? 'Football research sourced · diligence pending' : summary.label
+ const identity = resolveDeepCoachIdentity(id)
+ const hasDeepResearch = identity ? identity.apiIds.some(apiId => Boolean(findDeepResearchProfile(apiId))) : Boolean(findDeepResearchProfile(coach.name))
+ const evidenceLabel = claims.error ? 'Evidence unavailable' : (hasDeepResearch || (!identity && researchProfileForName(coach.name))) && summary.label === 'Needs research' ? 'Football research sourced · diligence pending' : summary.label
  return <div className="min-w-0 max-w-full space-y-4"><ResearchContextBanner/><CoachCommandBar coachId={id} coach={coach as Record<string,unknown>} evidenceLabel={evidenceLabel} onWatchlist={!!watchlist.data}/><CurrentEmploymentNotice name={coach.name}/><CoachTabNav coachId={id}/><div className="min-w-0 max-w-full break-words">{children}</div></div>
 }

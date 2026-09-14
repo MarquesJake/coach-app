@@ -1,3 +1,4 @@
+import { CoachResearchContext } from '@/components/assessment/coach-research-context'
 import { savedProfileLabel } from '@/lib/coaches/saved-profile-label'
 import { legacyCoachSeedIndex } from '@/lib/coaches/legacy-seed-provenance'
 import { CoachDeepDivePanel } from '@/components/assessment/coach-deep-dive-panel'
@@ -20,5 +21,5 @@ export default async function CoachTacticalPage(props: { params: Promise<{ id: s
   if (error) throw new Error('Coach profile could not be loaded. Reload before making changes.')
   if (!coach) notFound()
 
-  return <div className="space-y-5"><CoachAssessment coachId={params.id} areas={['tactical_proposal', 'match_management']}/><CoachDeepDivePanel coachId={params.id} areas={['tactical_proposal', 'match_management', 'training_management', 'players_development']} /><TacticalSection provenanceLabel={savedProfileLabel(coach, legacyCoachSeedIndex(coach.user_id, params.id) >= 0)} coachId={params.id} coach={coach as Record<string, unknown>} /></div>
+  return <div className="space-y-5"><CoachResearchContext coachId={params.id} coachName={coach.name} sections={['in-possession', 'out-of-possession', 'adaptability']} /><CoachAssessment coachId={params.id} areas={['tactical_proposal', 'match_management']}/><CoachDeepDivePanel coachId={params.id} areas={['tactical_proposal', 'match_management', 'training_management', 'players_development']} /><TacticalSection provenanceLabel={savedProfileLabel(coach, legacyCoachSeedIndex(coach.user_id, params.id) >= 0)} coachId={params.id} coach={coach as Record<string, unknown>} /></div>
 }

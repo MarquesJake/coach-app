@@ -35,13 +35,14 @@ export function CoachCommandBar({coachId, coach, onWatchlist=false, evidenceLabe
  const name=String(coach.name ?? 'Coach')
  const research=researchProfileForName(name)
  const employment=research && currentEmploymentForApiId(research.apiId)
+ const recordedRole=[coach.role_current,coach.club_current].filter(Boolean).map(String).join(' · ')
  return <header className="mb-6 min-w-0 pt-2">
   <div className="flex flex-wrap items-start justify-between gap-4">
-    <div className="min-w-0"><p className="gaffa-eyebrow mb-2">Coach profile</p><h1 className="break-words text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1><p className="mt-2 text-sm text-muted-foreground">{employment ? employmentLabel(employment) : [coach.role_current,coach.club_current].filter(Boolean).map(String).join(' · ') || 'Current role requires confirmation'}</p></div>
+    <div className="min-w-0"><p className="gaffa-eyebrow mb-2">Coach profile</p><h1 className="break-words text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1><p className="mt-2 text-sm text-muted-foreground">{employment ? employmentLabel(employment) : recordedRole ? `${recordedRole} · recorded role, current status unconfirmed` : 'Current role requires confirmation'}</p></div>
     <button aria-label={watchlist?'Remove from watchlist':'Add to watchlist'} aria-pressed={watchlist} disabled={pending} className="gaffa-action gaffa-action-secondary !p-2.5" onClick={async()=>{setPending(true);try{const r=await(watchlist?removeFromWatchlistAction(coachId):addToWatchlistAction(coachId));if(r.error)toastError(r.error);else{setWatchlist(!watchlist);router.refresh()}}finally{setPending(false)}}}><Star className={`h-4 w-4 ${watchlist?'fill-current text-primary':''}`}/></button>
   </div>
   <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-    <div className="flex max-w-xl flex-wrap items-center gap-2 text-xs text-muted-foreground"><span className="gaffa-badge">{evidenceLabel}</span><span>Availability: {String(coach.availability_status || coach.available_status || 'Not confirmed')}</span></div>
+    <div className="flex max-w-xl flex-wrap items-center gap-2 text-xs text-muted-foreground"><span className="gaffa-badge">{evidenceLabel}</span><span>Recorded availability: {String(coach.availability_status || coach.available_status || 'Not confirmed')}</span></div>
     <div className="flex flex-wrap items-center gap-2">
       <Link className="gaffa-action gaffa-action-primary" href={`/coaches/${coachId}/research`}><Search className="h-4 w-4"/>Research</Link>
       <Link aria-label="Assess against a brief" className="gaffa-action gaffa-action-secondary" href={`/coaches/${coachId}/fit`}><span className="sm:hidden">Assess brief</span><span className="hidden sm:inline">Assess against a brief</span><ArrowUpRight className="h-3.5 w-3.5"/></Link>

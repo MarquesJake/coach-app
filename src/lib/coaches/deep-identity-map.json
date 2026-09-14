@@ -1,0 +1,3188 @@
+[
+  {
+    "coachId": "93772a67-2dd0-4431-ba19-c3aa32cf670a",
+    "name": "A. Crosby",
+    "apiId": 12497,
+    "apiIds": [
+      12497
+    ],
+    "canonicalName": "Andrew Crosby",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=12497"
+    ]
+  },
+  {
+    "coachId": "0236ce2b-41e7-47dc-a58e-f1367ccc1af9",
+    "name": "A. Neil",
+    "apiId": 93,
+    "apiIds": [
+      93
+    ],
+    "canonicalName": "Alexander Francis Neil",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=93"
+    ]
+  },
+  {
+    "coachId": "01d125c8-d5eb-4b10-bb94-69311a345786",
+    "name": "A. Postecoglou",
+    "apiId": 548,
+    "apiIds": [
+      548
+    ],
+    "canonicalName": "Angelos Postecoglou",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=548"
+    ]
+  },
+  {
+    "coachId": "0338f43e-9813-4862-8bb1-2f3696603e8a",
+    "name": "A. Ramsey",
+    "apiId": 24995,
+    "apiIds": [
+      24995
+    ],
+    "canonicalName": "Aaron James Ramsey",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24995"
+    ]
+  },
+  {
+    "coachId": "ec22b917-8edc-4400-84ce-f64e5f67cff7",
+    "name": "A. Sheehan",
+    "apiId": 21599,
+    "apiIds": [
+      21599
+    ],
+    "canonicalName": "Alan Michael Anthony Sheehan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=21599"
+    ]
+  },
+  {
+    "coachId": "08270bd9-701b-4957-9e0e-71b4b65d08a7",
+    "name": "A. Slot",
+    "apiId": 2006,
+    "apiIds": [
+      2006
+    ],
+    "canonicalName": "Arne Slot",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2006"
+    ]
+  },
+  {
+    "coachId": "e7cc4f0e-0ea2-4335-935c-3fb4db19f55b",
+    "name": "A. Taylor",
+    "apiId": 18594,
+    "apiIds": [
+      18594
+    ],
+    "canonicalName": "Andy Taylor",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=18594"
+    ]
+  },
+  {
+    "coachId": "6da0d7ad-74e8-4c62-b87a-cbedb264b985",
+    "name": "A. Whing",
+    "apiId": 13139,
+    "apiIds": [
+      13139
+    ],
+    "canonicalName": "Andrew Whing",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=13139"
+    ]
+  },
+  {
+    "coachId": "01848ad2-fe55-4681-8e75-6e77d21bc0ee",
+    "name": "A. Woodman",
+    "apiId": 14319,
+    "apiIds": [
+      14319
+    ],
+    "canonicalName": "Andrew John Woodman",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=14319"
+    ]
+  },
+  {
+    "coachId": "fe4ed5ca-2b59-4213-9475-dfa60ee439d7",
+    "name": "Andoni Iraola",
+    "apiId": 2108,
+    "apiIds": [
+      2108
+    ],
+    "canonicalName": "Andoni Iraola Sagarna",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2108"
+    ]
+  },
+  {
+    "coachId": "59173259-d4e0-4eaf-8cf7-a1ccf3b1890c",
+    "name": "Andrew Crosby",
+    "apiId": 26596,
+    "apiIds": [
+      26596
+    ],
+    "canonicalName": "Andrew Crosby",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26596"
+    ]
+  },
+  {
+    "coachId": "a2876420-b8a0-4544-9efd-e6483769e8cb",
+    "name": "Andy Woodman",
+    "apiId": 26591,
+    "apiIds": [
+      26591
+    ],
+    "canonicalName": "Andy Woodman",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26591"
+    ]
+  },
+  {
+    "coachId": "ef8948cc-bb52-4fe3-8360-f24d96bdb603",
+    "name": "B. Barry-Murphy",
+    "apiId": 632,
+    "apiIds": [
+      632
+    ],
+    "canonicalName": "Brian Barry-Murphy",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=632"
+    ]
+  },
+  {
+    "coachId": "e6419b1a-b2f5-454f-bdf9-1de2e6654a71",
+    "name": "B. Dawson",
+    "apiId": 9443,
+    "apiIds": [
+      9443
+    ],
+    "canonicalName": "Ben Dawson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=9443"
+    ]
+  },
+  {
+    "coachId": "e4d53518-408b-4dd3-ad28-709747d0d348",
+    "name": "B. Gladwin",
+    "apiId": 23621,
+    "apiIds": [
+      23621
+    ],
+    "canonicalName": "Benjamin Thomas Gladwin",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=23621"
+    ]
+  },
+  {
+    "coachId": "0cfa5947-d601-4960-8703-9fcf70108bc8",
+    "name": "Brian Barry-Murphy",
+    "apiId": 632,
+    "apiIds": [
+      632
+    ],
+    "canonicalName": "Brian Barry-Murphy",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=632"
+    ]
+  },
+  {
+    "coachId": "f26147e1-05fb-411b-883d-6132578c7bad",
+    "name": "Bruno Saltor",
+    "apiId": 28389,
+    "apiIds": [
+      28389
+    ],
+    "canonicalName": "Bruno Saltor",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=28389"
+    ]
+  },
+  {
+    "coachId": "5b5df743-df6c-4cb4-8943-88809e37914d",
+    "name": "C. Adam",
+    "apiId": 21652,
+    "apiIds": [
+      21652
+    ],
+    "canonicalName": "Charles Graham Adam",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=21652"
+    ]
+  },
+  {
+    "coachId": "e5d7651b-ce67-4234-bfa5-5b006ebac3d2",
+    "name": "C. Brunt",
+    "apiId": 24211,
+    "apiIds": [
+      24211
+    ],
+    "canonicalName": "Chris Brunt",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24211"
+    ]
+  },
+  {
+    "coachId": "87fb3157-2174-4af2-91c5-65acd11fc625",
+    "name": "C. Davies",
+    "apiId": 22922,
+    "apiIds": [
+      22922
+    ],
+    "canonicalName": "Chris Davies",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=22922"
+    ]
+  },
+  {
+    "coachId": "46cb049d-2eba-42de-a327-936629493797",
+    "name": "C. Hourihane",
+    "apiId": 24677,
+    "apiIds": [
+      24677
+    ],
+    "canonicalName": "Conor Geraroid Hourihane",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24677"
+    ]
+  },
+  {
+    "coachId": "f08a8689-d121-4175-bf99-a68a36826494",
+    "name": "Carlos Corberan",
+    "apiId": 12474,
+    "apiIds": [
+      12474
+    ],
+    "canonicalName": "Carlos Corberan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=12474"
+    ]
+  },
+  {
+    "coachId": "50966dae-a24d-4a1e-a157-f327e0c7f799",
+    "name": "Charlie Daniels",
+    "apiId": 26889,
+    "apiIds": [
+      26889
+    ],
+    "canonicalName": "Charlie Daniels",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26889"
+    ]
+  },
+  {
+    "coachId": "aa9c5ccb-eab7-497d-88ee-23fcc913215b",
+    "name": "Chicho Pèlach",
+    "apiId": 18432,
+    "apiIds": [
+      18432
+    ],
+    "canonicalName": "Narcís Pèlach Nadal",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=18432"
+    ]
+  },
+  {
+    "coachId": "f6bfebc1-6609-4c83-bcd0-e3a1060f5080",
+    "name": "Christian Fuchs",
+    "apiId": 26584,
+    "apiIds": [
+      26584
+    ],
+    "canonicalName": "Christian Fuchs",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26584"
+    ]
+  },
+  {
+    "coachId": "678f0670-08d3-4bc4-b17e-b3630a2740c9",
+    "name": "Colin Calderwood",
+    "apiId": 28080,
+    "apiIds": [
+      28080
+    ],
+    "canonicalName": "Colin Calderwood",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=28080"
+    ]
+  },
+  {
+    "coachId": "b34274df-7787-4e08-a159-0670741d716a",
+    "name": "Colin Kazim-Richards",
+    "apiId": 28337,
+    "apiIds": [
+      28337
+    ],
+    "canonicalName": "Colin Kazim-Richards",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=28337"
+    ]
+  },
+  {
+    "coachId": "c77bb5c0-807f-419b-9aef-152fb2ab1742",
+    "name": "Conor Hourihane",
+    "apiId": 25933,
+    "apiIds": [
+      25933
+    ],
+    "canonicalName": "Conor Hourihane",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25933"
+    ]
+  },
+  {
+    "coachId": "fd5e7ec3-4c04-49b5-a710-4f7c03c51776",
+    "name": "D. Clarke",
+    "apiId": 606,
+    "apiIds": [
+      606
+    ],
+    "canonicalName": "Darrell James Clarke",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=606"
+    ]
+  },
+  {
+    "coachId": "ef60f014-58fd-48ce-8842-eadb8fc4cd93",
+    "name": "D. Horseman",
+    "apiId": 12718,
+    "apiIds": [
+      12718
+    ],
+    "canonicalName": "David Horseman",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=12718"
+    ]
+  },
+  {
+    "coachId": "51dafff9-fb9b-49dc-8c0d-f2bdcda7e084",
+    "name": "D. Hughes",
+    "apiId": 12930,
+    "apiIds": [
+      12930
+    ],
+    "canonicalName": "David Robert Hughes",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=12930"
+    ]
+  },
+  {
+    "coachId": "d62053a0-4761-4d8a-8ccb-a3bb6453b7dc",
+    "name": "D. Livermore",
+    "apiId": 24196,
+    "apiIds": [
+      24196
+    ],
+    "canonicalName": "David Livermore",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24196"
+    ]
+  },
+  {
+    "coachId": "44cd6ca9-36e0-40ee-8a4a-8d5e56166134",
+    "name": "D. Lowe",
+    "apiId": 24511,
+    "apiIds": [
+      24511
+    ],
+    "canonicalName": "David Anthony Lowe",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24511"
+    ]
+  },
+  {
+    "coachId": "f7a7c3d6-ca67-4da8-b5ef-a46a49bd9861",
+    "name": "D. Moyes",
+    "apiId": 5662,
+    "apiIds": [
+      5662
+    ],
+    "canonicalName": "David William Moyes",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=5662"
+    ]
+  },
+  {
+    "coachId": "1a6b751e-ffa7-4cb4-841c-e8ef3900e902",
+    "name": "D. Wagner",
+    "apiId": 1541,
+    "apiIds": [
+      1541
+    ],
+    "canonicalName": "David Wagner",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1541"
+    ]
+  },
+  {
+    "coachId": "db9d09ae-a35f-40ea-8007-7036e67dcae1",
+    "name": "Damien Johnson",
+    "apiId": 27482,
+    "apiIds": [
+      27482
+    ],
+    "canonicalName": "Damien Johnson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=27482"
+    ]
+  },
+  {
+    "coachId": "a2022bec-162b-4052-ae46-b36eaeba6dd1",
+    "name": "Dan Green",
+    "apiId": 27836,
+    "apiIds": [
+      27836
+    ],
+    "canonicalName": "Dan Green",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=27836"
+    ]
+  },
+  {
+    "coachId": "58a484f8-5cd3-404e-b9b7-d6ba50583a05",
+    "name": "Danny Cowley",
+    "apiId": 26589,
+    "apiIds": [
+      26589
+    ],
+    "canonicalName": "Danny Cowley",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26589"
+    ]
+  },
+  {
+    "coachId": "ccb8f4b3-ea4e-4e05-b0f9-ddfc846a3214",
+    "name": "Danny Rohl",
+    "apiId": 22937,
+    "apiIds": [
+      22937
+    ],
+    "canonicalName": "Danny Röhl",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=22937"
+    ]
+  },
+  {
+    "coachId": "fd9eae06-adef-44b9-9061-c3fc93480a2e",
+    "name": "Darren Byfield",
+    "apiId": 28336,
+    "apiIds": [
+      28336
+    ],
+    "canonicalName": "Darren Byfield",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=28336"
+    ]
+  },
+  {
+    "coachId": "c2f42413-1cbc-4009-a95e-c0ba8406043b",
+    "name": "Dave Challinor",
+    "apiId": 26576,
+    "apiIds": [
+      26576
+    ],
+    "canonicalName": "Dave Challinor",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26576"
+    ]
+  },
+  {
+    "coachId": "487a4417-4c26-41cc-8f86-403bac2797e3",
+    "name": "David Artell",
+    "apiId": 26582,
+    "apiIds": [
+      26582
+    ],
+    "canonicalName": "David Artell",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26582"
+    ]
+  },
+  {
+    "coachId": "e75c98a2-c5c2-49be-af53-ec1295b0f75b",
+    "name": "Dean Brennan",
+    "apiId": 25926,
+    "apiIds": [
+      25926
+    ],
+    "canonicalName": "Dean Brennan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25926"
+    ]
+  },
+  {
+    "coachId": "39ca3588-e3b6-4150-898c-c25a266fb1a0",
+    "name": "Domenico Tedesco",
+    "apiId": 3081,
+    "apiIds": [
+      3081
+    ],
+    "canonicalName": "Domenico Tedesco",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=3081"
+    ]
+  },
+  {
+    "coachId": "2954cb22-8101-4f59-9128-b048a1c789bc",
+    "name": "E. Maresca",
+    "apiId": 12629,
+    "apiIds": [
+      12629
+    ],
+    "canonicalName": "E. Maresca",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=12629"
+    ]
+  },
+  {
+    "coachId": "12609106-aef5-46ac-a544-c10bc7cc6f75",
+    "name": "E. ten Hag",
+    "apiId": 1993,
+    "apiIds": [
+      1993
+    ],
+    "canonicalName": "Erik ten Hag",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1993"
+    ]
+  },
+  {
+    "coachId": "7a47c629-c96f-50c2-ba0c-23e56fe5f2de",
+    "name": "Edin Terzić",
+    "apiId": 13491,
+    "apiIds": [
+      13491
+    ],
+    "canonicalName": "Edin Terzić",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://www.athletic-club.eus/en/news/2026/05/05/edin-terzic-to-be-new-athletic-club-head-coach/"
+    ]
+  },
+  {
+    "coachId": "7f72319f-3252-4dab-a8ed-194ced07915c",
+    "name": "Edward Still",
+    "apiId": 26677,
+    "apiIds": [
+      14971,
+      26677
+    ],
+    "canonicalName": "Edward Still",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26677"
+    ]
+  },
+  {
+    "coachId": "3e453fb0-1765-4bca-ad07-45889beac604",
+    "name": "Ernesto Valverde",
+    "apiId": 1582,
+    "apiIds": [
+      1582
+    ],
+    "canonicalName": "Ernesto Valverde Tejedor",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1582"
+    ]
+  },
+  {
+    "coachId": "7faadd02-e8cc-478e-ab05-225085c1dd1f",
+    "name": "F. Hürzeler",
+    "apiId": 19253,
+    "apiIds": [
+      19253
+    ],
+    "canonicalName": "F. Hürzeler",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=19253"
+    ]
+  },
+  {
+    "coachId": "0a2e7b31-9761-43c2-8e3b-10027065faab",
+    "name": "F. Lampard",
+    "apiId": 20,
+    "apiIds": [
+      20
+    ],
+    "canonicalName": "Frank James Lampard",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=20"
+    ]
+  },
+  {
+    "coachId": "da98872c-a8a3-4a7e-b1d1-ebf8cf3d9d0a",
+    "name": "Fabian Hürzeler",
+    "apiId": 19253,
+    "apiIds": [
+      19253
+    ],
+    "canonicalName": "Fabian Hürzeler",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=19253"
+    ]
+  },
+  {
+    "coachId": "3104f191-492d-40b9-a560-28f71d2b0af5",
+    "name": "Francesco Farioli",
+    "apiId": 17873,
+    "apiIds": [
+      17873
+    ],
+    "canonicalName": "Francesco Farioli",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=17873"
+    ]
+  },
+  {
+    "coachId": "5c119f32-1abd-4452-960f-3c154e5c7ffa",
+    "name": "G. Ainsworth",
+    "apiId": 641,
+    "apiIds": [
+      641
+    ],
+    "canonicalName": "Gareth Ainsworth",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=641"
+    ]
+  },
+  {
+    "coachId": "3e3f50f9-ebf1-4336-a82d-cd560b6352f3",
+    "name": "G. Bowyer",
+    "apiId": 591,
+    "apiIds": [
+      591
+    ],
+    "canonicalName": "Gary David Bowyer",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=591"
+    ]
+  },
+  {
+    "coachId": "fa365b19-b044-433d-bb5d-2effaedb2750",
+    "name": "G. Monk",
+    "apiId": 110,
+    "apiIds": [
+      110
+    ],
+    "canonicalName": "Garry Alan Monk",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=110"
+    ]
+  },
+  {
+    "coachId": "dfedf9ef-d9e2-4276-994c-26c27ec5077d",
+    "name": "G. Potter",
+    "apiId": 12,
+    "apiIds": [
+      12
+    ],
+    "canonicalName": "Graham Stephen Potter",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=12"
+    ]
+  },
+  {
+    "coachId": "9a5031f7-c0b2-4b4e-83f0-6ee5080ef96c",
+    "name": "G. Rowett",
+    "apiId": 2816,
+    "apiIds": [
+      2816
+    ],
+    "canonicalName": "Gary Rowett",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2816"
+    ]
+  },
+  {
+    "coachId": "7e261b5a-6959-4785-b1bf-48bb0d240d27",
+    "name": "G. Struber",
+    "apiId": 1916,
+    "apiIds": [
+      1916
+    ],
+    "canonicalName": "Gerhard Struber",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1916"
+    ]
+  },
+  {
+    "coachId": "6e9c001b-9923-42eb-9aca-d60ee7cbd2c8",
+    "name": "G. Whelan",
+    "apiId": 24638,
+    "apiIds": [
+      24638
+    ],
+    "canonicalName": "Glenn David Whelan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24638"
+    ]
+  },
+  {
+    "coachId": "0fb3c92b-2aa2-446b-baf9-4784f1cdbc40",
+    "name": "Gareth Ainsworth",
+    "apiId": 25930,
+    "apiIds": [
+      25930
+    ],
+    "canonicalName": "Gareth Ainsworth",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25930"
+    ]
+  },
+  {
+    "coachId": "15e85d60-b7ec-4102-baa5-527be2508d40",
+    "name": "Gary Bowyer",
+    "apiId": 25935,
+    "apiIds": [
+      25935
+    ],
+    "canonicalName": "Gary Bowyer",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25935"
+    ]
+  },
+  {
+    "coachId": "0aa51a5f-95e3-4e14-9322-1749aa60f087",
+    "name": "Gary Caldwell",
+    "apiId": 26567,
+    "apiIds": [
+      26567
+    ],
+    "canonicalName": "Gary Caldwell",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26567"
+    ]
+  },
+  {
+    "coachId": "6245d482-7e9a-4307-b01d-334686a83356",
+    "name": "Gary O'Neil",
+    "apiId": 18151,
+    "apiIds": [
+      18151
+    ],
+    "canonicalName": "Gary Paul O'Neil",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=18151"
+    ]
+  },
+  {
+    "coachId": "845b9087-2dac-49fd-8ec5-6b20079e620e",
+    "name": "Gian Piero Gasperini",
+    "apiId": 2393,
+    "apiIds": [
+      2393
+    ],
+    "canonicalName": "Gian Piero Gasperini",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2393"
+    ]
+  },
+  {
+    "coachId": "0235898f-13b3-44dd-bfa7-658bcc099703",
+    "name": "Graham Alexander",
+    "apiId": 26565,
+    "apiIds": [
+      26565
+    ],
+    "canonicalName": "Graham Alexander",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26565"
+    ]
+  },
+  {
+    "coachId": "6ea228a6-8068-421b-b6aa-79b4fca375fa",
+    "name": "Grant McCann",
+    "apiId": 25936,
+    "apiIds": [
+      25936
+    ],
+    "canonicalName": "Grant McCann",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25936"
+    ]
+  },
+  {
+    "coachId": "d8c2e565-e1e4-4174-b987-9c3b13a6712e",
+    "name": "H. Pedersen",
+    "apiId": 1956,
+    "apiIds": [
+      1956
+    ],
+    "canonicalName": "Henrik Pedersen",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1956"
+    ]
+  },
+  {
+    "coachId": "42daa9b8-5139-4fc8-985b-b7a37f386817",
+    "name": "I. Evatt",
+    "apiId": 685,
+    "apiIds": [
+      685
+    ],
+    "canonicalName": "Ian Ross Evatt",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=685"
+    ]
+  },
+  {
+    "coachId": "704120bc-a112-47b2-a991-1913b4800a83",
+    "name": "I. Holloway",
+    "apiId": 7465,
+    "apiIds": [
+      7465
+    ],
+    "canonicalName": "Ian Scott Holloway",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=7465"
+    ]
+  },
+  {
+    "coachId": "de8d838b-bda9-41ea-8289-c1d813b1d5ac",
+    "name": "I. Sampson",
+    "apiId": 24142,
+    "apiIds": [
+      24142
+    ],
+    "canonicalName": "Ian Sampson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24142"
+    ]
+  },
+  {
+    "coachId": "c6135dd4-026e-4e9f-87fd-e93b47ad3bce",
+    "name": "Ian Evatt",
+    "apiId": 26571,
+    "apiIds": [
+      26571
+    ],
+    "canonicalName": "Ian Evatt",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26571"
+    ]
+  },
+  {
+    "coachId": "4456645f-76b6-4878-a690-9f7ec947ef0b",
+    "name": "Igor Tudor",
+    "apiId": 27686,
+    "apiIds": [
+      27686
+    ],
+    "canonicalName": "Igor Tudor",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=27686"
+    ]
+  },
+  {
+    "coachId": "ce466169-8f95-4069-882b-f56b13192ce8",
+    "name": "Iñigo Calderón",
+    "apiId": 13868,
+    "apiIds": [
+      13868
+    ],
+    "canonicalName": "Iñigo Calderón Zapatería",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=13868"
+    ]
+  },
+  {
+    "coachId": "89516501-ecc9-44ca-8955-a7f5f7fcc5c9",
+    "name": "J. Brady",
+    "apiId": 13920,
+    "apiIds": [
+      13920
+    ],
+    "canonicalName": "Jonathan Edmund Alexander Brady",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=13920"
+    ]
+  },
+  {
+    "coachId": "0aaf89d6-27e2-4fef-8fdd-cba6334792e9",
+    "name": "J. Darby",
+    "apiId": 24326,
+    "apiIds": [
+      24326
+    ],
+    "canonicalName": "Julian Darby",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24326"
+    ]
+  },
+  {
+    "coachId": "e6c165c6-8cd2-4050-b3fd-18714fd51eca",
+    "name": "J. Eustace",
+    "apiId": 2956,
+    "apiIds": [
+      2956
+    ],
+    "canonicalName": "John Mark Eustace",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2956"
+    ]
+  },
+  {
+    "coachId": "c4d6ef7d-f036-4c4a-8863-c6292ee4dee3",
+    "name": "J. Klopp",
+    "apiId": 1,
+    "apiIds": [
+      1
+    ],
+    "canonicalName": "Jürgen Norbert Klopp",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1"
+    ]
+  },
+  {
+    "coachId": "a597836a-0ef4-4319-ae02-14da71c0c983",
+    "name": "J. Morrison",
+    "apiId": 25015,
+    "apiIds": [
+      25015
+    ],
+    "canonicalName": "James Morrison",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25015"
+    ]
+  },
+  {
+    "coachId": "36f5b39f-5c5e-4425-948d-9539b4cd3fe4",
+    "name": "J. Phillips",
+    "apiId": 969,
+    "apiIds": [
+      969
+    ],
+    "canonicalName": "Jimmy Phillips",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=969"
+    ]
+  },
+  {
+    "coachId": "fcc7e7d7-4a7e-4cf7-a38f-9df4f4cf0106",
+    "name": "J. Stéphan",
+    "apiId": 31,
+    "apiIds": [
+      31
+    ],
+    "canonicalName": "Julien Stéphan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=31"
+    ]
+  },
+  {
+    "coachId": "8abaa4a1-1ca7-4055-acc8-58f7ff96a55a",
+    "name": "J. Thorup",
+    "apiId": 19380,
+    "apiIds": [
+      19380
+    ],
+    "canonicalName": "Johannes Hoff Thorup",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=19380"
+    ]
+  },
+  {
+    "coachId": "43048e51-8deb-4ed9-8951-971fe072f616",
+    "name": "J. Wilshere",
+    "apiId": 17954,
+    "apiIds": [
+      17954
+    ],
+    "canonicalName": "Jack Andrew Garry Wilshere",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=17954"
+    ]
+  },
+  {
+    "coachId": "9bc48ac5-dfe0-4db4-994c-9bf1959465eb",
+    "name": "J. Worthington",
+    "apiId": 18172,
+    "apiIds": [
+      18172
+    ],
+    "canonicalName": "Jonathan Worthington",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=18172"
+    ]
+  },
+  {
+    "coachId": "bad20bd6-521b-4049-aea2-58842dce2077",
+    "name": "Jack Wilshere",
+    "apiId": 26570,
+    "apiIds": [
+      26570
+    ],
+    "canonicalName": "Jack Wilshere",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26570"
+    ]
+  },
+  {
+    "coachId": "98ef43f7-3e7f-44f1-9752-8ba8378f4779",
+    "name": "James Morrison",
+    "apiId": 25745,
+    "apiIds": [
+      25745
+    ],
+    "canonicalName": "James Morrison",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25745"
+    ]
+  },
+  {
+    "coachId": "1c821054-9d98-47e8-b49c-ea64c48dd069",
+    "name": "Javier Gracia Carlos",
+    "apiId": 25654,
+    "apiIds": [
+      25654
+    ],
+    "canonicalName": "Javier Gracia Carlos",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25654"
+    ]
+  },
+  {
+    "coachId": "904f2f81-7004-405b-aaab-b0f7a92e8432",
+    "name": "John Doolan",
+    "apiId": 26585,
+    "apiIds": [
+      26585
+    ],
+    "canonicalName": "John Doolan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26585"
+    ]
+  },
+  {
+    "coachId": "1193abf9-d048-4612-bd0a-1054c0444167",
+    "name": "John Mousinho",
+    "apiId": 19196,
+    "apiIds": [
+      19196
+    ],
+    "canonicalName": "John Michael Lewis Mousinho",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=19196"
+    ]
+  },
+  {
+    "coachId": "7f57926c-a04a-45dc-97ae-a9f04506089f",
+    "name": "John Sadler Mathew",
+    "apiId": 25932,
+    "apiIds": [
+      25932
+    ],
+    "canonicalName": "John Sadler Mathew",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25932"
+    ]
+  },
+  {
+    "coachId": "0daa173c-c7b7-4ef2-a90c-bdcaf088f2e4",
+    "name": "Johnnie Jackson",
+    "apiId": 25925,
+    "apiIds": [
+      25925
+    ],
+    "canonicalName": "Johnnie Jackson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25925"
+    ]
+  },
+  {
+    "coachId": "e86d81da-a289-4d41-8d44-8c4c1bec0b2e",
+    "name": "Jon Brady",
+    "apiId": 25924,
+    "apiIds": [
+      25924
+    ],
+    "canonicalName": "Jon Brady",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25924"
+    ]
+  },
+  {
+    "coachId": "5c4df78c-e3ba-4c05-a02d-99a5a6709866",
+    "name": "Jorge Sampaoli",
+    "apiId": 127,
+    "apiIds": [
+      127
+    ],
+    "canonicalName": "Jorge Luis Sampaoli Moya",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=127"
+    ]
+  },
+  {
+    "coachId": "16327b52-d5b2-4620-a4d4-6a7ea3cce803",
+    "name": "Julian Nagelsmann",
+    "apiId": 1545,
+    "apiIds": [
+      1545
+    ],
+    "canonicalName": "Julian Nagelsmann",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1545"
+    ]
+  },
+  {
+    "coachId": "71ee0cfe-105c-4f97-abef-29893e19b7ce",
+    "name": "Julien Stéphan",
+    "apiId": 31,
+    "apiIds": [
+      31
+    ],
+    "canonicalName": "Julien Stéphan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=31"
+    ]
+  },
+  {
+    "coachId": "51c48fae-4128-42e7-9a18-8da9fb6b7b38",
+    "name": "K. Hellberg",
+    "apiId": 9355,
+    "apiIds": [
+      9355
+    ],
+    "canonicalName": "Kim Alexander Hellberg",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=9355"
+    ]
+  },
+  {
+    "coachId": "156369e0-f85c-4c32-9003-70a72cd3b0e3",
+    "name": "K. Nolan",
+    "apiId": 10649,
+    "apiIds": [
+      10649
+    ],
+    "canonicalName": "Kevin Anthony Jance Nolan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=10649"
+    ]
+  },
+  {
+    "coachId": "6a076972-220a-4bf5-94b6-7a0623f91844",
+    "name": "Karl Robinson",
+    "apiId": 26597,
+    "apiIds": [
+      26597
+    ],
+    "canonicalName": "Karl Robinson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26597"
+    ]
+  },
+  {
+    "coachId": "f4b87787-83dc-4d82-8723-33c925866d43",
+    "name": "Keith Andrews",
+    "apiId": 25364,
+    "apiIds": [
+      25364
+    ],
+    "canonicalName": "Keith Andrews",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25364"
+    ]
+  },
+  {
+    "coachId": "c55c6c02-2f9f-4f0b-8912-cd60d7e6d219",
+    "name": "Kevin Nolan",
+    "apiId": 25934,
+    "apiIds": [
+      25934
+    ],
+    "canonicalName": "Kevin Nolan",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25934"
+    ]
+  },
+  {
+    "coachId": "c04c8747-bda1-4c95-a1ad-ed82af70c31d",
+    "name": "Kieran McKenna",
+    "apiId": 16556,
+    "apiIds": [
+      16556
+    ],
+    "canonicalName": "Kieran McKenna",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=16556"
+    ]
+  },
+  {
+    "coachId": "1c853d61-5d83-4b3f-b8b5-e9bde2988f5e",
+    "name": "Kjetil Knutsen",
+    "apiId": 1952,
+    "apiIds": [
+      1952
+    ],
+    "canonicalName": "Kjetil Knutsen",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1952"
+    ]
+  },
+  {
+    "coachId": "83c24ad4-ba00-44c2-af0a-64285842dd81",
+    "name": "L. Baines",
+    "apiId": 17953,
+    "apiIds": [
+      17953
+    ],
+    "canonicalName": "Leighton Baines",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=17953"
+    ]
+  },
+  {
+    "coachId": "7a6de0d4-e05c-4b56-b987-ffbb2d38bf8d",
+    "name": "L. Manning",
+    "apiId": 12320,
+    "apiIds": [
+      12320
+    ],
+    "canonicalName": "Liam Manning",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=12320"
+    ]
+  },
+  {
+    "coachId": "6b8dac78-0d84-44ff-bc7c-c47014647e45",
+    "name": "L. Williams",
+    "apiId": 9465,
+    "apiIds": [
+      9465
+    ],
+    "canonicalName": "Luke Williams",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=9465"
+    ]
+  },
+  {
+    "coachId": "7cd7c98c-2588-43d7-80c7-1e8d059888e9",
+    "name": "Leam Richardson",
+    "apiId": 26566,
+    "apiIds": [
+      26566
+    ],
+    "canonicalName": "Leam Richardson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26566"
+    ]
+  },
+  {
+    "coachId": "314e5d5c-6ede-41ee-be63-cf1a9959b7a6",
+    "name": "Lee Bell",
+    "apiId": 25927,
+    "apiIds": [
+      25927
+    ],
+    "canonicalName": "Lee Bell",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25927"
+    ]
+  },
+  {
+    "coachId": "46e3fc88-5213-42dd-bf8e-2482fd545181",
+    "name": "Lee Grant",
+    "apiId": 26575,
+    "apiIds": [
+      26575
+    ],
+    "canonicalName": "Lee Grant",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26575"
+    ]
+  },
+  {
+    "coachId": "ea3c33b3-fc53-415b-a3ef-0ba77ec80dde",
+    "name": "Lee Grant",
+    "apiId": 26575,
+    "apiIds": [
+      26575
+    ],
+    "canonicalName": "Lee Grant",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26575"
+    ]
+  },
+  {
+    "coachId": "03f93d31-4c1f-48ec-931c-554d15bfe1f4",
+    "name": "Liam Rosenior",
+    "apiId": 13350,
+    "apiIds": [
+      13350
+    ],
+    "canonicalName": "Liam Rosenior",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=13350"
+    ]
+  },
+  {
+    "coachId": "0258da54-8583-46e1-be0e-2d2bd5e5fe1c",
+    "name": "Lucien Favre",
+    "apiId": 1530,
+    "apiIds": [
+      1530
+    ],
+    "canonicalName": "Lucien Favre",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1530"
+    ]
+  },
+  {
+    "coachId": "7c9e9f5f-01d4-415f-a279-7e015e9737a2",
+    "name": "Luis Enrique",
+    "apiId": 193,
+    "apiIds": [
+      193
+    ],
+    "canonicalName": "Luis Enrique Martínez García",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=193"
+    ]
+  },
+  {
+    "coachId": "04574f87-34f9-4ddb-b145-8b3cc86897d8",
+    "name": "Luke Williams",
+    "apiId": 26574,
+    "apiIds": [
+      26574
+    ],
+    "canonicalName": "Luke Williams",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26574"
+    ]
+  },
+  {
+    "coachId": "81750284-c70b-4edc-b263-d567c03f542a",
+    "name": "M. Appleton",
+    "apiId": 645,
+    "apiIds": [
+      645
+    ],
+    "canonicalName": "Michael Antony Appleton",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=645"
+    ]
+  },
+  {
+    "coachId": "bb1d4c44-83c2-41b4-a7cf-e540564e5f14",
+    "name": "M. Bloomfield",
+    "apiId": 18552,
+    "apiIds": [
+      18552
+    ],
+    "canonicalName": "Matthew James Bloomfield",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=18552"
+    ]
+  },
+  {
+    "coachId": "5706ee1d-5a10-4410-803a-1521df0b2147",
+    "name": "M. Bonner",
+    "apiId": 2976,
+    "apiIds": [
+      2976
+    ],
+    "canonicalName": "Mark Bonner",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2976"
+    ]
+  },
+  {
+    "coachId": "40279339-ed2a-455a-9397-642ad3f779b1",
+    "name": "M. Devaney",
+    "apiId": 17230,
+    "apiIds": [
+      17230
+    ],
+    "canonicalName": "Martin Devaney",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=17230"
+    ]
+  },
+  {
+    "coachId": "6c7437ee-b754-45c8-a545-f4aa755187aa",
+    "name": "M. Dodds",
+    "apiId": 16093,
+    "apiIds": [
+      16093
+    ],
+    "canonicalName": "Mike Dodds",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=16093"
+    ]
+  },
+  {
+    "coachId": "cb2aa188-bfcd-4ea3-9dde-5be801ad56a0",
+    "name": "M. Duff",
+    "apiId": 627,
+    "apiIds": [
+      627,
+      26573
+    ],
+    "canonicalName": "Michael James Duff",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=627"
+    ]
+  },
+  {
+    "coachId": "5b1a3502-7e88-4612-bbc1-95ff32f83dbd",
+    "name": "M. Flynn",
+    "apiId": 630,
+    "apiIds": [
+      630
+    ],
+    "canonicalName": "Michael John Flynn",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=630"
+    ]
+  },
+  {
+    "coachId": "f0a8a1b0-27ac-440d-a4e7-19193409e5d6",
+    "name": "M. Hamshaw",
+    "apiId": 24458,
+    "apiIds": [
+      24458
+    ],
+    "canonicalName": "Matthew Hamshaw",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24458"
+    ]
+  },
+  {
+    "coachId": "908c6173-3a28-4781-8574-aa31df1e90cd",
+    "name": "M. Marsh",
+    "apiId": 22943,
+    "apiIds": [
+      22943
+    ],
+    "canonicalName": "Michael Andrew Marsh",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=22943"
+    ]
+  },
+  {
+    "coachId": "9ebac70d-6e5e-415c-970b-8fdb09b3fffc",
+    "name": "M. Muslić",
+    "apiId": 3609,
+    "apiIds": [
+      3609
+    ],
+    "canonicalName": "Miron Muslić",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=3609"
+    ]
+  },
+  {
+    "coachId": "5805fc09-576d-44ea-9c26-34e795d8b72c",
+    "name": "M. Paterson",
+    "apiId": 21702,
+    "apiIds": [
+      21702
+    ],
+    "canonicalName": "Martin Andrew Paterson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=21702"
+    ]
+  },
+  {
+    "coachId": "f3aaf8be-169a-4339-a11b-f822c7e8900d",
+    "name": "M. Robins",
+    "apiId": 605,
+    "apiIds": [
+      605
+    ],
+    "canonicalName": "Mark Gordon Robins",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=605"
+    ]
+  },
+  {
+    "coachId": "e53da8b7-2b40-4a2a-8768-1c6404dca183",
+    "name": "M. Robinson",
+    "apiId": 13835,
+    "apiIds": [
+      13835
+    ],
+    "canonicalName": "Mark Robinson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=13835"
+    ]
+  },
+  {
+    "coachId": "4c987cbc-509f-43b4-b706-ba7c68746c17",
+    "name": "M. Taylor",
+    "apiId": 626,
+    "apiIds": [
+      626
+    ],
+    "canonicalName": "Matthew James Taylor",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=626"
+    ]
+  },
+  {
+    "coachId": "428a4fe3-ce94-4551-935c-d1f265039bb5",
+    "name": "M. Warburton",
+    "apiId": 97,
+    "apiIds": [
+      97
+    ],
+    "canonicalName": "Mark Warburton",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=97"
+    ]
+  },
+  {
+    "coachId": "816395d4-43b7-4738-8a8e-e0f1aff00958",
+    "name": "M. Warburton",
+    "apiId": 97,
+    "apiIds": [
+      97
+    ],
+    "canonicalName": "Mark Warburton",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=97"
+    ]
+  },
+  {
+    "coachId": "e84e0eb6-c9b3-4faa-b5a3-92e7fafd812d",
+    "name": "Marcelino Garcia Toral",
+    "apiId": 1585,
+    "apiIds": [
+      1585
+    ],
+    "canonicalName": "Marcelino García Toral",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1585"
+    ]
+  },
+  {
+    "coachId": "02ba84e1-5297-4bca-b8c0-8dadfc06fc31",
+    "name": "Marcelo Gallardo",
+    "apiId": 859,
+    "apiIds": [
+      859
+    ],
+    "canonicalName": "Marcelo Daniel Gallardo",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=859"
+    ]
+  },
+  {
+    "coachId": "283d879f-b76b-4238-9a20-30c9d2115fb2",
+    "name": "Marco Rose",
+    "apiId": 1540,
+    "apiIds": [
+      1540
+    ],
+    "canonicalName": "Marco Rose",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1540"
+    ]
+  },
+  {
+    "coachId": "f727a6d0-926e-5cdf-8be7-e06eb0652607",
+    "name": "Marco Silva",
+    "apiId": 10,
+    "apiIds": [
+      10
+    ],
+    "canonicalName": "Marco Silva",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://www.slbenfica.pt/pt-pt/agora/noticias/2026/06/12/futebol-benfica-treinador-marco-silva-contratacao-oficial-percurso"
+    ]
+  },
+  {
+    "coachId": "274b7de5-0d3c-47ec-abc7-d1a33df0d9e0",
+    "name": "Martí Cifuentes",
+    "apiId": 1878,
+    "apiIds": [
+      1878
+    ],
+    "canonicalName": "Martí Cifuentes Corvillo Bajare",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1878"
+    ]
+  },
+  {
+    "coachId": "00904540-57c5-42b0-81b3-0a6f54a932c7",
+    "name": "Matt Bloomfield",
+    "apiId": 25753,
+    "apiIds": [
+      25753
+    ],
+    "canonicalName": "Matt Bloomfield",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25753"
+    ]
+  },
+  {
+    "coachId": "87c10808-4d99-4b09-ae64-e29d011fd311",
+    "name": "Matthew Hamshaw",
+    "apiId": 26568,
+    "apiIds": [
+      26568
+    ],
+    "canonicalName": "Matthew Hamshaw",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26568"
+    ]
+  },
+  {
+    "coachId": "32bdda4d-ff75-42e8-85ab-b6d9c69096cc",
+    "name": "Matthew Lawlor",
+    "apiId": 26590,
+    "apiIds": [
+      26590
+    ],
+    "canonicalName": "Matthew Lawlor",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26590"
+    ]
+  },
+  {
+    "coachId": "0542de5b-49c0-4c36-bd5d-5fcf0f779190",
+    "name": "Mauricio Pochettino",
+    "apiId": 13,
+    "apiIds": [
+      13
+    ],
+    "canonicalName": "Mauricio Roberto Pochettino Trossero",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=13"
+    ]
+  },
+  {
+    "coachId": "0c39a76f-ca3d-43d1-9b7e-3a1b72386b17",
+    "name": "Maurizio Sarri",
+    "apiId": 2412,
+    "apiIds": [
+      2412
+    ],
+    "canonicalName": "Maurizio Sarri",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2412"
+    ]
+  },
+  {
+    "coachId": "a2996958-cdc3-4f78-8c43-e41e1e37afdd",
+    "name": "Michael Appleton",
+    "apiId": 26594,
+    "apiIds": [
+      26594
+    ],
+    "canonicalName": "Michael Appleton",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26594"
+    ]
+  },
+  {
+    "coachId": "26de8946-e9c0-42e6-babb-e02e8d55ba2d",
+    "name": "Michael Carrick",
+    "apiId": 25762,
+    "apiIds": [
+      16246,
+      25762
+    ],
+    "canonicalName": "Michael Carrick",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25762"
+    ]
+  },
+  {
+    "coachId": "8c525651-53a3-4180-9bbf-6f2e91890bbc",
+    "name": "Michael Duff",
+    "apiId": 26573,
+    "apiIds": [
+      627,
+      26573
+    ],
+    "canonicalName": "Michael Duff",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26573"
+    ]
+  },
+  {
+    "coachId": "077bc1db-4404-4585-8fe2-f3f7ec691240",
+    "name": "Michael Skubala",
+    "apiId": 26579,
+    "apiIds": [
+      26579
+    ],
+    "canonicalName": "Michael Skubala",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26579"
+    ]
+  },
+  {
+    "coachId": "0085ec37-fcab-4942-9f5c-0c92b8876df8",
+    "name": "Micky Mellon",
+    "apiId": 26592,
+    "apiIds": [
+      26592
+    ],
+    "canonicalName": "Micky Mellon",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26592"
+    ]
+  },
+  {
+    "coachId": "7db1b1c0-dbcb-49b0-aae1-ed72be81e7fa",
+    "name": "Mikel Arteta",
+    "apiId": 7248,
+    "apiIds": [
+      7248
+    ],
+    "canonicalName": "Mikel Arteta Amatriain",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=7248"
+    ]
+  },
+  {
+    "coachId": "d8cb71d8-358f-4695-b385-de27974c5129",
+    "name": "N. Dewsnip",
+    "apiId": 22222,
+    "apiIds": [
+      22222
+    ],
+    "canonicalName": "Neil Dewsnip",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=22222"
+    ]
+  },
+  {
+    "coachId": "94b22394-6092-4856-b042-3f536908bd47",
+    "name": "N. Harris",
+    "apiId": 92,
+    "apiIds": [
+      92
+    ],
+    "canonicalName": "Neil Harris",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=92"
+    ]
+  },
+  {
+    "coachId": "10b44ad9-b3b3-45a8-a3ed-dcb844fed0bd",
+    "name": "N. Hunt",
+    "apiId": 13276,
+    "apiIds": [
+      13276
+    ],
+    "canonicalName": "Noel Hunt",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=13276"
+    ]
+  },
+  {
+    "coachId": "7f2216b1-f195-4647-a41a-1ad182895e18",
+    "name": "Neil Harris",
+    "apiId": 26593,
+    "apiIds": [
+      26593
+    ],
+    "canonicalName": "Neil Harris",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26593"
+    ]
+  },
+  {
+    "coachId": "625ef827-2f7c-4194-a517-7a05515742f0",
+    "name": "Nélson Jardim",
+    "apiId": 18469,
+    "apiIds": [
+      18469
+    ],
+    "canonicalName": "Nélson Marques Jardim",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=18469"
+    ]
+  },
+  {
+    "coachId": "38b3afcb-8e6c-4e29-87af-23315e17f3c7",
+    "name": "Nigel Clough",
+    "apiId": 26572,
+    "apiIds": [
+      26572
+    ],
+    "canonicalName": "Nigel Clough",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26572"
+    ]
+  },
+  {
+    "coachId": "0125bfe3-5e32-4a70-941a-db569c16d2fe",
+    "name": "Niko Kovač",
+    "apiId": 1528,
+    "apiIds": [
+      1528
+    ],
+    "canonicalName": "Niko Kovač",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1528"
+    ]
+  },
+  {
+    "coachId": "472a3a11-04be-44e0-9cfa-8c5fa2f5fee4",
+    "name": "Nuno Espírito Santo",
+    "apiId": 16,
+    "apiIds": [
+      16
+    ],
+    "canonicalName": "Nuno Herlander Simões Espírito Santo",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=16"
+    ]
+  },
+  {
+    "coachId": "28f3336b-4b63-4f4c-a80e-9995d59264b0",
+    "name": "O. Riza",
+    "apiId": 10647,
+    "apiIds": [
+      10647
+    ],
+    "canonicalName": "Ömer Kerim Ali Riza",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=10647"
+    ]
+  },
+  {
+    "coachId": "016260b9-989c-4db2-bd54-ccafc8bd95f7",
+    "name": "Oliver Glasner",
+    "apiId": 1534,
+    "apiIds": [
+      1534
+    ],
+    "canonicalName": "Oliver Glasner",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1534"
+    ]
+  },
+  {
+    "coachId": "3c3a4d9e-0442-438d-9a08-ba19c85a09cc",
+    "name": "P. Clement",
+    "apiId": 1518,
+    "apiIds": [
+      1518
+    ],
+    "canonicalName": "Philippe Clement",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1518"
+    ]
+  },
+  {
+    "coachId": "d128a58b-04df-4fa2-89af-d222f3218cde",
+    "name": "P. Heckingbottom",
+    "apiId": 2397,
+    "apiIds": [
+      2397
+    ],
+    "canonicalName": "Paul Heckingbottom",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2397"
+    ]
+  },
+  {
+    "coachId": "7a771ea9-dc2a-4c21-8caf-9ed003617839",
+    "name": "P. Hurst",
+    "apiId": 602,
+    "apiIds": [
+      602
+    ],
+    "canonicalName": "Paul Hurst",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=602"
+    ]
+  },
+  {
+    "coachId": "052ab488-6651-4068-b797-994f894a6aa6",
+    "name": "P. Pezzolano",
+    "apiId": 783,
+    "apiIds": [
+      783
+    ],
+    "canonicalName": "Paulo César Pezzolano Suárez",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=783"
+    ]
+  },
+  {
+    "coachId": "94ee0556-3c1c-4ad5-9fcc-f4c42cdfe991",
+    "name": "P. Trollope",
+    "apiId": 9538,
+    "apiIds": [
+      9538
+    ],
+    "canonicalName": "Paul Trollope",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=9538"
+    ]
+  },
+  {
+    "coachId": "ef8c5a8a-cab1-47c2-a455-9f5dfc460faa",
+    "name": "P. Warne",
+    "apiId": 580,
+    "apiIds": [
+      580
+    ],
+    "canonicalName": "Paul Warne",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=580"
+    ]
+  },
+  {
+    "coachId": "6ef8d518-713b-4f61-a09f-f87cf958d23e",
+    "name": "P. Wild",
+    "apiId": 687,
+    "apiIds": [
+      687
+    ],
+    "canonicalName": "Peter Wild",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=687"
+    ]
+  },
+  {
+    "coachId": "1cc838bd-bac8-4e9b-a692-b803f8e29d48",
+    "name": "Paul Cook",
+    "apiId": 26587,
+    "apiIds": [
+      26587
+    ],
+    "canonicalName": "Paul Cook",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26587"
+    ]
+  },
+  {
+    "coachId": "8fda2d7b-62b2-4ece-bb47-0e585459dbab",
+    "name": "Paul Gallagher",
+    "apiId": 26595,
+    "apiIds": [
+      26595
+    ],
+    "canonicalName": "Paul Gallagher",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26595"
+    ]
+  },
+  {
+    "coachId": "277a99ac-985e-4497-afd1-fabc767498ed",
+    "name": "Paul Warne",
+    "apiId": 26583,
+    "apiIds": [
+      26583
+    ],
+    "canonicalName": "Paul Warne",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26583"
+    ]
+  },
+  {
+    "coachId": "948160c2-21c7-49f2-9209-3e6407e1cf95",
+    "name": "Pete Wild",
+    "apiId": 28079,
+    "apiIds": [
+      28079
+    ],
+    "canonicalName": "Pete Wild",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=28079"
+    ]
+  },
+  {
+    "coachId": "d793ba45-e04a-4653-9f1e-81d99284aa5c",
+    "name": "R. Carr",
+    "apiId": 23922,
+    "apiIds": [
+      23922
+    ],
+    "canonicalName": "Rhys Carr",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=23922"
+    ]
+  },
+  {
+    "coachId": "214cd1d5-f3d8-4f6f-85b8-c01ffdb40fa7",
+    "name": "R. Di Matteo",
+    "apiId": 9537,
+    "apiIds": [
+      9537
+    ],
+    "canonicalName": "Roberto Di Matteo",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=9537"
+    ]
+  },
+  {
+    "coachId": "7d129613-d69d-4108-af2a-83da4e8c3988",
+    "name": "R. Edwards",
+    "apiId": 636,
+    "apiIds": [
+      636
+    ],
+    "canonicalName": "R. Edwards",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=636"
+    ]
+  },
+  {
+    "coachId": "40085068-9bbe-4d87-9710-d26703ba38e3",
+    "name": "R. Elliot",
+    "apiId": 21308,
+    "apiIds": [
+      21308
+    ],
+    "canonicalName": "Robert Elliot",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=21308"
+    ]
+  },
+  {
+    "coachId": "2a01849b-cc6a-4970-9bbf-699b8f1fd06e",
+    "name": "R. Keogh",
+    "apiId": 23089,
+    "apiIds": [
+      23089
+    ],
+    "canonicalName": "Richard John Keogh",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=23089"
+    ]
+  },
+  {
+    "coachId": "a77daf3b-00aa-4335-b8f3-7ba4612224cd",
+    "name": "R. Le Bris",
+    "apiId": 6279,
+    "apiIds": [
+      6279
+    ],
+    "canonicalName": "Régis Le Bris",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=6279"
+    ]
+  },
+  {
+    "coachId": "98ff066e-09c8-40d9-828a-75c058be0fc7",
+    "name": "R. Lowe",
+    "apiId": 618,
+    "apiIds": [
+      618,
+      26578
+    ],
+    "canonicalName": "Ryan Thomas Lowe",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=618"
+    ]
+  },
+  {
+    "coachId": "6e1c9729-3930-4400-82ca-cea13b516a38",
+    "name": "R. Mason",
+    "apiId": 14480,
+    "apiIds": [
+      14480
+    ],
+    "canonicalName": "Ryan Glen Mason",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=14480"
+    ]
+  },
+  {
+    "coachId": "fca07763-85b4-496b-a498-31516c00117d",
+    "name": "R. Shawcross",
+    "apiId": 22249,
+    "apiIds": [
+      22249
+    ],
+    "canonicalName": "Ryan Shawcross",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=22249"
+    ]
+  },
+  {
+    "coachId": "af6a39dc-ad01-4af7-af67-c3bbb0b82114",
+    "name": "R. van Nistelrooy",
+    "apiId": 5380,
+    "apiIds": [
+      5380
+    ],
+    "canonicalName": "Ruud van Nistelrooij",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=5380"
+    ]
+  },
+  {
+    "coachId": "f2d132d8-b47d-453f-a047-2b36097e2c5e",
+    "name": "Régis Le Bris",
+    "apiId": 6279,
+    "apiIds": [
+      6279
+    ],
+    "canonicalName": "Régis Le Bris",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=6279"
+    ]
+  },
+  {
+    "coachId": "dbf07b3d-8860-4078-95b8-022461c8da07",
+    "name": "Richie Wellens",
+    "apiId": 26569,
+    "apiIds": [
+      26569
+    ],
+    "canonicalName": "Richie Wellens",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26569"
+    ]
+  },
+  {
+    "coachId": "e11bf7d0-7f8c-46d2-8e59-0b4ae63b8b7d",
+    "name": "Rob Edwards",
+    "apiId": 25765,
+    "apiIds": [
+      25765
+    ],
+    "canonicalName": "Rob Edwards",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25765"
+    ]
+  },
+  {
+    "coachId": "78552079-813c-4239-8654-e05769d221d8",
+    "name": "Roberto De Zerbi",
+    "apiId": 2424,
+    "apiIds": [
+      2424
+    ],
+    "canonicalName": "Roberto De Zerbi",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2424"
+    ]
+  },
+  {
+    "coachId": "6ca460a2-1f27-436f-b47f-c616da6c7bdd",
+    "name": "Roger Schmidt",
+    "apiId": 57,
+    "apiIds": [
+      57
+    ],
+    "canonicalName": "Roger Schmidt",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=57"
+    ]
+  },
+  {
+    "coachId": "90e57e08-aa75-4b94-82c2-0e16dbf10bd2",
+    "name": "Roy Hodgson",
+    "apiId": 28341,
+    "apiIds": [
+      28341
+    ],
+    "canonicalName": "Roy Hodgson",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=28341"
+    ]
+  },
+  {
+    "coachId": "2ffebcb0-dd85-4105-8e16-43cc42f41fb8",
+    "name": "Ruben Amorim",
+    "apiId": 4720,
+    "apiIds": [
+      4720
+    ],
+    "canonicalName": "Ruben Filipe Marques Diogo Amorim",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=4720"
+    ]
+  },
+  {
+    "coachId": "3835f5ac-aeca-4d95-8e05-a0866e15da4c",
+    "name": "Rubén Sellés",
+    "apiId": 18918,
+    "apiIds": [
+      18918
+    ],
+    "canonicalName": "Rubén Sellés Salvador",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=18918"
+    ]
+  },
+  {
+    "coachId": "78956d37-14c9-4ce6-b73e-aeb3a4f7b692",
+    "name": "Russell Martin",
+    "apiId": 6025,
+    "apiIds": [
+      6025
+    ],
+    "canonicalName": "Russell Martin",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=6025"
+    ]
+  },
+  {
+    "coachId": "813b99fe-3859-45ef-8094-272a79ec893b",
+    "name": "Ryan Lowe",
+    "apiId": 26578,
+    "apiIds": [
+      618,
+      26578
+    ],
+    "canonicalName": "Ryan Lowe",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26578"
+    ]
+  },
+  {
+    "coachId": "8048789c-9270-4292-b05c-b84b72b1365c",
+    "name": "S. Bruce",
+    "apiId": 17,
+    "apiIds": [
+      17
+    ],
+    "canonicalName": "Steve Bruce",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=17"
+    ]
+  },
+  {
+    "coachId": "cf25bc16-c800-41e5-b91a-23268541352b",
+    "name": "S. Clemence",
+    "apiId": 21382,
+    "apiIds": [
+      21382
+    ],
+    "canonicalName": "Stephen Neal Clemence",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=21382"
+    ]
+  },
+  {
+    "coachId": "dd2c3824-a078-4303-a78b-74f07696efd9",
+    "name": "S. Dyche",
+    "apiId": 7,
+    "apiIds": [
+      7
+    ],
+    "canonicalName": "S. Dyche",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=7"
+    ]
+  },
+  {
+    "coachId": "d832a717-4610-4d5f-be53-d9e89288a00d",
+    "name": "S. Evans",
+    "apiId": 608,
+    "apiIds": [
+      608
+    ],
+    "canonicalName": "Stephen Evans",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=608"
+    ]
+  },
+  {
+    "coachId": "1cbca46b-deff-4b68-8be9-32220db68457",
+    "name": "S. Grace",
+    "apiId": 24301,
+    "apiIds": [
+      24301
+    ],
+    "canonicalName": "Sam Grace",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=24301"
+    ]
+  },
+  {
+    "coachId": "39933165-fdfa-4e3b-9e07-b0cd122a5f1b",
+    "name": "S. Jakirović",
+    "apiId": 2721,
+    "apiIds": [
+      2721
+    ],
+    "canonicalName": "Sergej Jakirović",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2721"
+    ]
+  },
+  {
+    "coachId": "e605b9fa-e415-47cd-8e69-f330c15c2df2",
+    "name": "S. Lindsey",
+    "apiId": 17757,
+    "apiIds": [
+      17757
+    ],
+    "canonicalName": "Scott Lindsey",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=17757"
+    ]
+  },
+  {
+    "coachId": "e34a9ac1-d500-4c8e-85e2-c2559bf6ee24",
+    "name": "S. Maloney",
+    "apiId": 16417,
+    "apiIds": [
+      16417
+    ],
+    "canonicalName": "Shaun Richard Maloney",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=16417"
+    ]
+  },
+  {
+    "coachId": "b7b46f9e-eb22-4593-8e3b-60e8c48e76a1",
+    "name": "S. Rusk",
+    "apiId": 600,
+    "apiIds": [
+      600
+    ],
+    "canonicalName": "Simon Edward Rusk",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=600"
+    ]
+  },
+  {
+    "coachId": "0185a506-5222-4741-b5db-1acc51278a73",
+    "name": "S. Schumacher",
+    "apiId": 16373,
+    "apiIds": [
+      16373,
+      26564
+    ],
+    "canonicalName": "Steven Schumacher",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=16373"
+    ]
+  },
+  {
+    "coachId": "291df549-ab1e-4403-a0bb-a45970bfdcc3",
+    "name": "Sam Foley",
+    "apiId": 28078,
+    "apiIds": [
+      28078
+    ],
+    "canonicalName": "Sam Foley",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=28078"
+    ]
+  },
+  {
+    "coachId": "c72db0a8-22e6-4e71-88aa-e280eb91eb1d",
+    "name": "Scott Holloway Ian",
+    "apiId": 25929,
+    "apiIds": [
+      25929
+    ],
+    "canonicalName": "Scott Holloway Ian",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25929"
+    ]
+  },
+  {
+    "coachId": "29bb2083-397e-4c7e-9da8-649081062022",
+    "name": "Scott Lindsey",
+    "apiId": 26588,
+    "apiIds": [
+      26588
+    ],
+    "canonicalName": "Scott Lindsey",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26588"
+    ]
+  },
+  {
+    "coachId": "5822462f-f83f-481f-824c-e015e45578eb",
+    "name": "Scott Parker",
+    "apiId": 87,
+    "apiIds": [
+      87
+    ],
+    "canonicalName": "Scott Matthew Parker",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=87"
+    ]
+  },
+  {
+    "coachId": "eac4b0c8-2825-55d3-b37c-1635da0b94af",
+    "name": "Sebastian Hoeneß",
+    "apiId": 1399,
+    "apiIds": [
+      1399
+    ],
+    "canonicalName": "Sebastian Hoeneß",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://www.vfb.de/en/vfb/latest/news/professionals/2223/sebastian-hoeness-uebernimmt-als-cheftrainer/"
+    ]
+  },
+  {
+    "coachId": "6960284e-41ac-40d6-b585-e57a10b694eb",
+    "name": "Sérgio Conceição",
+    "apiId": 2204,
+    "apiIds": [
+      2204
+    ],
+    "canonicalName": "Sérgio Paulo Marceneiro da Conceição",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=2204"
+    ]
+  },
+  {
+    "coachId": "18c896d8-9550-4119-b718-938c064d9986",
+    "name": "Simon Weaver",
+    "apiId": 25928,
+    "apiIds": [
+      25928
+    ],
+    "canonicalName": "Simon Weaver",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25928"
+    ]
+  },
+  {
+    "coachId": "2f9ba939-0e99-424f-ac85-ab58e16e071d",
+    "name": "Stefano Pioli",
+    "apiId": 3733,
+    "apiIds": [
+      3733
+    ],
+    "canonicalName": "Stefano Pioli",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=3733"
+    ]
+  },
+  {
+    "coachId": "0f1b1e73-9c83-4d3f-af9c-ae51c665895c",
+    "name": "Steve Cooper",
+    "apiId": 98,
+    "apiIds": [
+      98
+    ],
+    "canonicalName": "Steven David Cooper",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=98"
+    ]
+  },
+  {
+    "coachId": "e88fbee8-370e-4ded-b5ae-e7b3d92cbd6e",
+    "name": "Steve Cotterill",
+    "apiId": 26586,
+    "apiIds": [
+      26586
+    ],
+    "canonicalName": "Steve Cotterill",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26586"
+    ]
+  },
+  {
+    "coachId": "40a45b75-74de-4da3-8e7e-0e9e5ac74a76",
+    "name": "Steve Evans",
+    "apiId": 25931,
+    "apiIds": [
+      25931
+    ],
+    "canonicalName": "Steve Evans",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25931"
+    ]
+  },
+  {
+    "coachId": "e59e9bcb-e51a-4a71-862b-dfd7909fcd6e",
+    "name": "Steven Schumacher",
+    "apiId": 26564,
+    "apiIds": [
+      16373,
+      26564
+    ],
+    "canonicalName": "Steven Schumacher",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26564"
+    ]
+  },
+  {
+    "coachId": "395e972b-c518-45cd-907a-364687070ffd",
+    "name": "T. Cleverley",
+    "apiId": 21932,
+    "apiIds": [
+      21932
+    ],
+    "canonicalName": "Thomas William Cleverley",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=21932"
+    ]
+  },
+  {
+    "coachId": "cbb4141b-abb1-41cb-ab33-93f5f43e580b",
+    "name": "T. Frank",
+    "apiId": 90,
+    "apiIds": [
+      90
+    ],
+    "canonicalName": "Thomas Frank",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=90"
+    ]
+  },
+  {
+    "coachId": "50f0b02b-80ba-4f05-ae14-290ee4f71272",
+    "name": "T. Hounsell",
+    "apiId": 23794,
+    "apiIds": [
+      23794
+    ],
+    "canonicalName": "Tom Hounsell",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=23794"
+    ]
+  },
+  {
+    "coachId": "3c5d3bbc-7f19-4e3a-af92-9b9a5013a9a0",
+    "name": "T. Mowbray",
+    "apiId": 88,
+    "apiIds": [
+      88
+    ],
+    "canonicalName": "Anthony Mark Mowbray",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=88"
+    ]
+  },
+  {
+    "coachId": "1035e8b6-fb49-48f1-8ea5-063bddbc4084",
+    "name": "T. Walter",
+    "apiId": 1328,
+    "apiIds": [
+      1328
+    ],
+    "canonicalName": "Tim Laszlo Walter",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1328"
+    ]
+  },
+  {
+    "coachId": "d3544284-f0f4-4e41-826e-fd896aff0f8b",
+    "name": "Thiago Motta",
+    "apiId": 4842,
+    "apiIds": [
+      4842
+    ],
+    "canonicalName": "Thiago Motta Santon Olivares",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=4842"
+    ]
+  },
+  {
+    "coachId": "2dc56711-2ed2-4a61-a4f8-ef554702a16b",
+    "name": "Thomas Tuchel",
+    "apiId": 40,
+    "apiIds": [
+      40
+    ],
+    "canonicalName": "Thomas Tuchel",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=40"
+    ]
+  },
+  {
+    "coachId": "b8014f1e-87d4-4168-94e4-c5d310b70bb6",
+    "name": "Tom Cleverley",
+    "apiId": 26577,
+    "apiIds": [
+      26577
+    ],
+    "canonicalName": "Tom Cleverley",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=26577"
+    ]
+  },
+  {
+    "coachId": "60d2fd7f-641e-4df6-85df-a66d24cfaa44",
+    "name": "Unai Emery",
+    "apiId": 18,
+    "apiIds": [
+      18
+    ],
+    "canonicalName": "Unai Emery",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=18"
+    ]
+  },
+  {
+    "coachId": "3261bd9f-f049-4f06-9226-9e99a0585111",
+    "name": "V. Ismaël",
+    "apiId": 1923,
+    "apiIds": [
+      1923
+    ],
+    "canonicalName": "Valérien Alexandre Ismaël",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1923"
+    ]
+  },
+  {
+    "coachId": "575e1be5-d8bd-49fb-b19d-893c7507c08f",
+    "name": "Valerien Ismael",
+    "apiId": 25651,
+    "apiIds": [
+      25651
+    ],
+    "canonicalName": "Valerien Ismael",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25651"
+    ]
+  },
+  {
+    "coachId": "0b310927-11bf-42a9-b2b4-a344c8b4b246",
+    "name": "Vitor Emanuel Soares Matos",
+    "apiId": 25652,
+    "apiIds": [
+      25652
+    ],
+    "canonicalName": "Vitor Emanuel Soares Matos",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=25652"
+    ]
+  },
+  {
+    "coachId": "aebbe3c1-ef45-464a-bea8-7be64e01c6c5",
+    "name": "Vitor Pereira",
+    "apiId": 27667,
+    "apiIds": [
+      27667
+    ],
+    "canonicalName": "Vitor Pereira",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=27667"
+    ]
+  },
+  {
+    "coachId": "fce309fd-94ef-4113-a389-e64a821f6eff",
+    "name": "Vítor Pereira",
+    "apiId": 55,
+    "apiIds": [
+      55
+    ],
+    "canonicalName": "Vítor Manuel de Oliveira Lopes Pereira",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=55"
+    ]
+  },
+  {
+    "coachId": "be90c682-e30c-49a5-822e-3895d3edaac0",
+    "name": "W. Rooney",
+    "apiId": 13523,
+    "apiIds": [
+      13523
+    ],
+    "canonicalName": "Wayne Mark Rooney",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=13523"
+    ]
+  },
+  {
+    "coachId": "8eb94298-ed30-412c-823a-80f61c9add5a",
+    "name": "W. Still",
+    "apiId": 10665,
+    "apiIds": [
+      10665
+    ],
+    "canonicalName": "W. Still",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=10665"
+    ]
+  },
+  {
+    "coachId": "1f441362-daf1-4372-ac3b-deb28004e2d9",
+    "name": "Will Still",
+    "apiId": 10665,
+    "apiIds": [
+      10665
+    ],
+    "canonicalName": "Will Still",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=10665"
+    ]
+  },
+  {
+    "coachId": "d063f47b-5e08-450d-ba27-7eded3117a5b",
+    "name": "Xabi Alonso",
+    "apiId": 6801,
+    "apiIds": [
+      6801
+    ],
+    "canonicalName": "Xabier Alonso Olano",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=6801"
+    ]
+  },
+  {
+    "coachId": "8d0bb05a-97c0-430f-a406-bbde1453ed13",
+    "name": "Xavi Hernández",
+    "apiId": 1888,
+    "apiIds": [
+      1888
+    ],
+    "canonicalName": "Xavier Hernández Creus",
+    "status": "verified",
+    "checkedAt": "2026-09-14",
+    "sourceUrls": [
+      "https://v3.football.api-sports.io/coachs?id=1888"
+    ]
+  }
+]

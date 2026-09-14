@@ -1,3 +1,4 @@
+import { CoachResearchContext } from '@/components/assessment/coach-research-context'
 import { savedProfileLabel } from '@/lib/coaches/saved-profile-label'
 import { legacyCoachSeedIndex } from '@/lib/coaches/legacy-seed-provenance'
 import { CoachDeepDivePanel } from '@/components/assessment/coach-deep-dive-panel'
@@ -20,5 +21,5 @@ export default async function CoachLeadershipPage(props: { params: Promise<{ id:
   if (error) throw new Error('Coach profile could not be loaded. Reload before making changes.')
   if (!coach) notFound()
 
-  return <div className="space-y-5"><CoachAssessment coachId={params.id} areas={['personality_profile', 'media_comms', 'cultural_org_fit']}/><CoachDeepDivePanel coachId={params.id} areas={['personality_profile', 'media_comms', 'cultural_org_fit']} /><LeadershipSection provenanceLabel={savedProfileLabel(coach, legacyCoachSeedIndex(coach.user_id, params.id) >= 0)} coachId={params.id} coach={coach as Record<string, unknown>} /></div>
+  return <div className="space-y-5"><CoachResearchContext coachId={params.id} coachName={coach.name} sections={['management']} /><CoachAssessment coachId={params.id} areas={['personality_profile', 'media_comms', 'cultural_org_fit']}/><CoachDeepDivePanel coachId={params.id} areas={['personality_profile', 'media_comms', 'cultural_org_fit']} /><LeadershipSection provenanceLabel={savedProfileLabel(coach, legacyCoachSeedIndex(coach.user_id, params.id) >= 0)} coachId={params.id} coach={coach as Record<string, unknown>} /></div>
 }

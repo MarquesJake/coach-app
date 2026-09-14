@@ -65,6 +65,21 @@ test('coach identity belongs to the selected team and cannot be borrowed from an
   assert.equal(derive([m]).selection.excluded[0].reason, 'different-team')
 })
 
+test('one coach cannot be attributed to both sides, including through tenure fallback', () => {
+  const m = match()
+  m.lineups = feed(1, [lineup(), { ...lineup(), team: { id: opponent } }])
+  const ambiguous = derive([m])
+  assert.equal(ambiguous.selection.includedMatches, 0)
+  assert.equal(ambiguous.selection.verifiedLineupMatches, 0)
+  assert.equal(ambiguous.selection.excluded[0].reason, 'ambiguous-coach-on-both-teams')
+  assert.equal(ambiguous.results.value, null)
+  m.lineups = feed(1, [{ ...lineup(), coach: null }, { ...lineup(), team: { id: opponent } }])
+  const result = deriveCoachMatchMetrics({ teamId, coachId, matches: [m], tenureFallback: { teamId, coachId, start: '2024-01-01', end: '2024-01-03', label: 'Explicit test tenure' } })
+  assert.equal(result.selection.includedMatches, 0)
+  assert.equal(result.selection.tenureFallbackMatches, 0)
+  assert.equal(result.selection.excluded[0].reason, 'coach-recorded-for-opponent')
+})
+
 test('explicit tenure is bounded and labelled, never overriding contradictory or unusable lineup evidence', () => {
   const missing = match(1), conflict = match(2), wrongFeed = match(3), outside = match(4), lastDay = match(5)
   delete missing.lineups; delete outside.lineups; delete lastDay.lineups
