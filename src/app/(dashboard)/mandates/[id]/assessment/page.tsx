@@ -7,6 +7,8 @@ import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { ASSESSMENT_CRITERIA } from '@/lib/assessment/criteria'
 import { cn } from '@/lib/utils'
 import { displayClubName } from '@/lib/display-names'
+import { loadMandateRanking, standingLabel, isAnalystOverride } from '@/lib/mandates/mandate-ranking.server'
+import { positionLabel } from '@/lib/scoring/research/ranking'
 
 export const metadata = { title: 'Assessment' }
 
@@ -25,7 +27,7 @@ export default async function MandateAssessmentIndexPage(
 
   const { data: mandate } = await supabase
     .from('mandates')
-    .select('id, custom_club_name, clubs(name)')
+    .select('id, custom_club_name, engagement_owner, clubs(name)')
     .eq('id', mandateId)
     .single()
   if (!mandate) notFound()
@@ -56,10 +58,11 @@ export default async function MandateAssessmentIndexPage(
     coachIds.length
       ? supabase
           .from('candidate_recommendations')
-          .select('coach_id, verdict, confidence, summary, key_strengths, key_risks, mitigation')
+          .select('coach_id, verdict, confidence, summary, key_strengths, key_risks, mitigation, updated_at')
           .eq('mandate_id', mandateId)
-      : Promise.resolve({ data: [] as { coach_id: string; verdict: string | null; confidence: number | null; summary: string | null }[] }),
+      : Promise.resolve({ data: [] as { coach_id: string; verdict: string | null; confidence: number | null; summary: string | null; updated_at: string }[] }),
   ])
+  const ranking = await loadMandateRanking(mandateId)
 
   if ([assessments, evidence, recommendations].some(result => 'error' in result && result.error)) {
     throw new Error('Assessment progress could not be loaded. Refresh to retry.')
@@ -83,38 +86,20 @@ export default async function MandateAssessmentIndexPage(
 
   const totalCriteria = ASSESSMENT_CRITERIA.length
 
-  // Board decision set: surface the decided candidates so the trade-off reads at
-  // a glance — lead recommendation, watching brief, and the rejected option.
-  const coachName = (row: { coaches: unknown }) =>
-    (row.coaches as { name?: string } | null)?.name ?? 'Unknown coach'
-  const decided = (shortlist ?? [])
-    .map((row) => ({ row, rec: verdicts.get(row.coach_id) }))
-    .filter((c) => c.rec?.verdict && !isCurrentManagerBenchmark(mandateId, c.row.coach_id))
-  const backed = decided
-    .filter((c) => c.rec!.verdict === 'Proceed' || c.rec!.verdict === 'Target')
-    .sort((a, b) => (b.rec!.confidence ?? 0) - (a.rec!.confidence ?? 0))
-  // Lead first, then the next name in line — the board's real question is
-  // "who instead?", so the alternative sits ahead of the watching brief.
-  const lead = backed[0]
-  const alternative = backed[1]
-  const monitor = decided.find((c) => c.rec!.verdict === 'Monitor')
-  const rejected = decided.find((c) => c.rec!.verdict === 'Dismiss')
-  const decisionSet = [
-    lead && { tag: 'Lead recommendation', tone: 'text-emerald-400 border-emerald-500/40', c: lead },
-    alternative && { tag: 'Next in line', tone: 'text-emerald-400/80 border-emerald-500/30', c: alternative },
-    monitor && { tag: 'Monitor', tone: 'text-amber-400 border-amber-500/40', c: monitor },
-    rejected && { tag: 'Do not proceed', tone: 'text-red-400 border-red-500/40', c: rejected },
-  ].filter(Boolean) as Array<{ tag: string; tone: string; c: (typeof decided)[number] }>
+  const top = ranking?.shortlist.slice(0, 3) ?? []
+  const author = (mandate as { engagement_owner?: string | null }).engagement_owner?.trim() || 'Gaffa analyst'
+  const overrides = (recommendations.data ?? [])
+    .filter(r => statuses.get(r.coach_id)?.recommendationRecorded && !isCurrentManagerBenchmark(mandateId, r.coach_id))
+    .map(r => ({ rec: r, row: ranking?.byCoachId.get(r.coach_id), name: (shortlist ?? []).find(s => s.coach_id === r.coach_id)?.coaches as { name?: string } | null }))
+    .filter(item => isAnalystOverride(item.row, item.rec.verdict))
 
-  // Decided candidates first (in decision order), then the rest of the shortlist.
-  const verdictRank = new Map([['Proceed', 0], ['Target', 1], ['Shortlist', 2], ['Monitor', 3], ['Dismiss', 4]])
-  const orderedShortlist = [...(shortlist ?? [])].sort((a, b) => {
-    const benchmarkOrder = Number(isCurrentManagerBenchmark(mandateId, a.coach_id)) - Number(isCurrentManagerBenchmark(mandateId, b.coach_id))
-    if (benchmarkOrder) return benchmarkOrder
-    const ra = verdictRank.get(verdicts.get(a.coach_id)?.verdict ?? '') ?? 9
-    const rb = verdictRank.get(verdicts.get(b.coach_id)?.verdict ?? '') ?? 9
-    return ra - rb
-  })
+  // Calculated order first; assessed coaches outside the list follow, the benchmark last.
+  const calcOrder = (coachId: string) => {
+    if (isCurrentManagerBenchmark(mandateId, coachId)) return 10_000
+    const row = ranking?.byCoachId.get(coachId)
+    return row?.eligibility.recommendable ? row.position ?? 999 : 5_000
+  }
+  const orderedShortlist = [...(shortlist ?? [])].sort((a, b) => calcOrder(a.coach_id) - calcOrder(b.coach_id))
 
   return (
     <div className="max-w-[1200px] mx-auto">
@@ -124,39 +109,39 @@ export default async function MandateAssessmentIndexPage(
         Assessments and checked evidence are counted separately. A recommendation still needs approval before it is shared.
       </p>
 
-      {mandateId === '09420a64-b4d2-4245-8088-af0dc88266eb' && <p className="mt-2 text-xs text-muted-foreground">Successor research commissioned for a possible change. De Zerbi is the current-manager benchmark only; this study does not advise retaining or dismissing him.</p>}
-      <Link className="mt-3 inline-block text-xs text-primary underline" href={`/mandates/${mandateId}/candidates#brief-matches`}>View computed football fit, source evidence and rule breakdown</Link>
+      <Link className="mt-3 inline-block text-xs text-primary underline" href={`/mandates/${mandateId}/candidates#brief-matches`}>Full ranking and the working behind every score</Link>
 
-      {decisionSet.length > 0 && (
+      {top.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-            {mandateId === '09420a64-b4d2-4245-8088-af0dc88266eb' ? 'Successor research · internal' : 'Our recommendations · internal'}
-          </h2>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Recorded confidence reflects the assessment workflow; demonstration assessments remain illustrative. Computed football fit is explained in Candidates and is not a probability of success. Appointment feasibility depends on this club’s budget, verified terms, timing and the coach’s interest.
-          </p>
+          <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Top three from the brief</h2>
+          <p className="mt-2 text-xs text-muted-foreground">Worked out from the saved brief and each coach’s evidence — the same list as Candidates, Succession and the board output. Fit with the brief is not a probability of success.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
-            {decisionSet.map(({ tag, tone, c }) => (
-              <Link
-                key={c.row.coach_id}
-                href={`/mandates/${mandateId}/assessment/${c.row.coach_id}`}
-                className={cn('card-surface rounded-lg px-4 py-3 border-t-2 transition-colors hover:bg-surface/60', tone.split(' ')[1])}
-              >
-                <p className={cn('text-[10px] font-semibold uppercase tracking-widest', tone.split(' ')[0])}>{tag}</p>
-                <p className="text-sm font-semibold text-foreground mt-1">
-                  {coachName(c.row)}
-                  {c.rec!.confidence !== null && (
-                    <span className="text-xs font-normal text-muted-foreground ml-2 tabular-nums">
-                      {c.rec!.verdict} · {c.rec!.confidence}% confidence
-                    </span>
-                  )}
-                </p>
-                {c.rec!.summary && (
-                  <p className="text-2xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{c.rec!.summary}</p>
-                )}
-                <p className="mt-2 text-2xs text-muted-foreground">{statuses.get(c.row.coach_id)?.nextAction}</p>
-              </Link>
-            ))}
+            {top.map(coach => {
+              const assessed = coach.record && (shortlist ?? []).some(s => s.coach_id === coach.record!.id)
+              const rec = coach.record ? (recommendations.data ?? []).find(r => r.coach_id === coach.record!.id) : undefined
+              return <div key={coach.profile.apiId} className="card-surface rounded-lg border-t-2 border-emerald-500/40 px-4 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">{positionLabel(coach)} · fit {coach.fit.score}</p>
+                <p className="mt-1 text-sm font-semibold text-foreground">{coach.record ? <Link className="hover:underline" href={`/coaches/${coach.record.id}`}>{coach.profile.name}</Link> : coach.profile.name}</p>
+                {coach.aheadOfNext && <p className="mt-1 text-2xs leading-relaxed text-muted-foreground">{coach.aheadOfNext}</p>}
+                <p className="mt-2 text-2xs text-muted-foreground">{coach.eligibility.headline}</p>
+                <p className="mt-1 text-2xs text-muted-foreground">{assessed ? `Full assessment on file${rec?.verdict ? ` · analyst verdict: ${rec.verdict}` : ''}` : 'Not yet taken into the full nine-area assessment'}</p>
+              </div>
+            })}
+          </div>
+        </div>
+      )}
+
+      {overrides.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Where the analyst differs from the ranking</h2>
+          <p className="mt-2 text-xs text-muted-foreground">These are human calls, shown next to the calculation — never passed off as the ranking’s choice.</p>
+          <div className="mt-2 space-y-2">
+            {overrides.map(({ rec, row, name }) => <div key={rec.coach_id} className="card-surface rounded-lg border-l-2 border-amber-500/50 px-4 py-3 text-xs">
+              <p className="font-semibold text-foreground">{name?.name ?? 'Coach'} · analyst verdict: {rec.verdict}</p>
+              <p className="mt-1 text-muted-foreground">Ranking: {standingLabel(row)}</p>
+              <p className="mt-1 text-muted-foreground">Analyst’s reason: {rec.summary || 'No reason recorded — needs one before this goes anywhere.'}</p>
+              <p className="mt-1 text-muted-foreground">Recorded by {author} · {new Date(rec.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            </div>)}
           </div>
         </div>
       )}
@@ -190,7 +175,8 @@ export default async function MandateAssessmentIndexPage(
                   <div className="min-w-0 sm:col-span-2 lg:col-span-1">
                     <p className="text-sm font-medium text-foreground truncate">{coach?.name ?? 'Unknown coach'}</p>
                     <p className="text-2xs text-muted-foreground truncate">{coach?.club_current?.trim() || 'Current club not recorded'}</p>
-                    <p className="mt-1 text-2xs text-muted-foreground">{benchmark ? 'Current-manager benchmark · not a successor candidate' : status.nextAction}</p>
+                    <p className="mt-1 text-2xs font-medium text-foreground/80">{benchmark ? 'Current manager — benchmark only, not a successor' : `Ranking: ${standingLabel(ranking?.byCoachId.get(row.coach_id))}`}</p>
+                    {!benchmark && <p className="mt-0.5 text-2xs text-muted-foreground">{status.nextAction}</p>}
                   </div>
                   <div><span className="mb-1 block text-xs text-muted-foreground lg:hidden">Reviewed evidence</span><div className="flex items-center gap-2">
                     <div className="w-16 h-1.5 rounded-full bg-surface border border-border/50 overflow-hidden">
@@ -215,7 +201,7 @@ export default async function MandateAssessmentIndexPage(
                     <span className="mb-1 block text-xs text-muted-foreground lg:hidden">Recommendation</span>
                     {benchmark ? 'Benchmark only' : status.recommendationLabel}
                     {!benchmark && rec?.confidence !== null && rec?.confidence !== undefined && (
-                      <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}% recorded confidence</span>
+                      <span className="text-muted-foreground ml-1 tabular-nums">{rec.confidence}% analyst confidence</span>
                     )}
                     {benchmark && rec?.verdict && <span className="mt-1 block font-normal text-muted-foreground">Stored benchmark verdict: {rec.verdict}{rec.confidence != null ? ` · ${rec.confidence}% recorded confidence` : ''}. Not a successor choice.</span>}
                   </span>

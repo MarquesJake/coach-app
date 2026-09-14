@@ -18,6 +18,7 @@ import {
 import { canStaffMemberAppearInPack } from '@/lib/coach-appointment'
 import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
+import { loadMandateRanking, standingLabel, isAnalystOverride } from '@/lib/mandates/mandate-ranking.server'
 import { declarationReviewLabel } from '@/lib/assessment/material-status'
 import { canPrintCircumstances, referencesForPack } from '@/lib/assessment/pack-release'
 import { deepDiveFor, finalEvaluationFor } from '@/lib/assessment/deep-dive'
@@ -140,7 +141,7 @@ export default async function BoardPackPage(
         .order('created_at', { ascending: true }),
       supabase
         .from('candidate_recommendations')
-        .select('verdict, confidence, summary, key_strengths, key_risks, mitigation')
+        .select('verdict, confidence, summary, key_strengths, key_risks, mitigation, updated_at')
         .eq('mandate_id', mandateId)
         .eq('coach_id', coachId)
         .maybeSingle(),
@@ -197,6 +198,8 @@ export default async function BoardPackPage(
   }
 
   const illustrativeProfile = isIllustrativeEvidence(coach)
+  const ranking = await loadMandateRanking(mandateId)
+  const rankedRow = ranking?.byCoachId.get(coachId)
   const status = deriveAssessmentStatus({ coach, assessments: assessments.data ?? [], evidence: evidence.data ?? [], recommendation: recommendationRes.data })
   const recommendation = status.recommendationRecorded ? recommendationRes.data : null
   const deepDive = deepDiveFor(coachId, mandateId)
@@ -281,12 +284,12 @@ export default async function BoardPackPage(
           CONFIDENTIAL
         </span>
         <h1 className="text-3xl font-serif font-bold leading-tight">Head Coach Assessment<span className="sr-only">: {coach.name}</span></h1>
-        <p className="mt-3 text-sm font-bold text-amber-200">{deepDive ? 'Demo assessment — internal demonstration only' : status.coverLabel}</p>
+        <p className="mt-3 text-sm font-bold text-amber-200">{deepDive ? 'Worked example — illustrative assessment' : status.coverLabel}</p>
         <p className="text-3xl font-serif font-bold text-slate-400 leading-tight">{coach.name}</p>
         <div className="w-16 h-0.5 bg-emerald-500 my-6" />
         <p className="text-sm text-slate-300">Prepared for {clubName}. Not yet cleared to share outside the club’s board.</p>
-        <p className="mt-3 text-xs text-slate-300">{deepDive ? 'Illustrative assessment and review states — not verified appointment advice' : `${status.recordedLabel} · ${status.reviewedLabel}`} </p>
-        <p className="mt-2 text-xs text-slate-300">{deepDive ? 'Review every claim and confirm club-specific terms before using this example as an appointment recommendation.' : status.nextAction}</p>
+        <p className="mt-3 text-xs text-slate-300">{deepDive ? 'Assessment content is illustrative; match data and dated sources are real and marked as such' : `${status.recordedLabel} · ${status.reviewedLabel}`} </p>
+        <p className="mt-2 text-xs text-slate-300">{deepDive ? 'Every claim needs checking, and terms confirming with the club, before this is used as a recommendation.' : status.nextAction}</p>
         <p className="text-xs text-slate-400 mt-1">
           Generated {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
@@ -297,8 +300,19 @@ export default async function BoardPackPage(
           <strong>Evidence limitations.</strong> Some assessments, interviews or references are not included in this report yet. Gaps need more research before this becomes a recommendation.
         </section>
       )}
+      {ranking && <section className="mt-5 rounded-lg border border-border p-4 text-sm print:break-inside-avoid">
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Where he sits in the ranking</p>
+        <p className="mt-2 font-semibold">{standingLabel(rankedRow)}</p>
+        {rankedRow?.aheadOfNext && rankedRow.eligibility.recommendable && <p className="mt-1 text-xs text-muted-foreground">{rankedRow.aheadOfNext}</p>}
+        <p className="mt-1 text-xs text-muted-foreground">Top three from the brief: {ranking.shortlist.slice(0, 3).map(row => `${row.profile.name} (${row.fit.score})`).join(', ') || 'none yet'}. Same calculation as Candidates and Succession.</p>
+        {recommendation?.verdict && isAnalystOverride(rankedRow, recommendation.verdict) && <div className="mt-3 border-l-2 border-amber-500 pl-3 text-xs">
+          <p className="font-semibold">Analyst override · verdict: {recommendation.verdict}</p>
+          <p className="mt-1 text-muted-foreground">Reason: {recommendation.summary || 'No reason recorded.'}</p>
+          <p className="mt-1 text-muted-foreground">Recorded by {ranking.mandate.engagement_owner?.trim() || 'Gaffa analyst'}{(recommendation as { updated_at?: string }).updated_at ? ` · ${new Date((recommendation as { updated_at: string }).updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}</p>
+        </div>}
+      </section>}
       <VerifiedMatchEvidence coachName={coach.name} />
-      {deepDive && <section role="note" className="my-5 rounded-lg border border-amber-500/60 p-4 text-sm print:break-inside-avoid"><strong>DEMO ASSESSMENT WORKFLOW</strong><p className="mt-1">The example dossier, assessment scores, recorded review states and recommendation below are illustrative workflow records, not validation from the match-data import. Separately sourced facts retain their own provenance. This report needs claim-by-claim review before use as an appointment recommendation.</p></section>}
+      {deepDive && <section role="note" className="my-5 rounded-lg border border-amber-500/60 p-4 text-sm print:break-inside-avoid"><strong>Worked example</strong><p className="mt-1">The nine-area scores, SWOT, budget and analyst verdict below show what a finished report looks like; they are illustrative. The ranking above, the verified match data and anything with a dated source are real.</p></section>}
       {/* At a glance — Strengths / Risks / Recommendation, per the target deck format */}
       <section className="mt-8 print:break-inside-avoid">
         <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Decision in brief</h2>
@@ -345,7 +359,7 @@ export default async function BoardPackPage(
 
       <section className="mt-6 rounded border border-border p-4 print:break-inside-avoid">
         <h2 className="font-semibold text-sm">What we still need to check</h2>
-        <p className="mt-2 text-xs text-muted-foreground">{deepDive ? 'Review every claim and confirm club-specific terms before using this example as an appointment recommendation.' : status.nextAction}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{deepDive ? 'Every claim needs checking, and terms confirming with the club, before this is used as a recommendation.' : status.nextAction}</p>
         <p className="mt-2 text-xs text-muted-foreground">An area counts as covered once it has at least one checked piece of evidence. That doesn’t mean the evidence is complete, or that it can be shared.</p>
         <p className="mt-2 text-xs text-muted-foreground">{recommendation?.mitigation ? `Conditions before appointment: ${recommendation.mitigation}` : 'Conditions before appointment have not been recorded.'}</p>
         <Link className="mt-3 inline-block text-xs text-primary underline print:hidden" href={`/mandates/${mandateId}/decision`}>See the research questions and who owns them</Link>

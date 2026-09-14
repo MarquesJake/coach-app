@@ -1,6 +1,8 @@
-import { appointmentFeasibility, type AppointmentFeasibility, type AppointmentDecision, APPOINTMENT_DECISIONS } from '../appointments/feasibility.ts'
+import { type AppointmentFeasibility, type AppointmentDecision, APPOINTMENT_DECISIONS } from '../appointments/feasibility.ts'
 import { calculateResearchFit, normalizeCoachName, type RankingBrief, type ResearchFit, type ResearchProfile } from '../scoring/research/brief-fit.ts'
 import { RESEARCH_PROFILES } from '../scoring/research/profiles.ts'
+import { rankResearchProfiles, type RankedCoach } from '../scoring/research/ranking.ts'
+import type { Eligibility } from '../appointments/eligibility.ts'
 import { isActiveAppointment } from '../coaches/route-audit.ts'
 import { safeDecisionBrief, BRIEF_FIELDS } from '../mandates/decision-brief.ts'
 import type { SuccessionClub, SuccessionCoach, SuccessionMandateSignal } from './radar.ts'
@@ -18,6 +20,10 @@ export type ReviewedSuccessionCoach = SuccessionCoach & {
   research: ResearchProfile
   fit: ResearchFit
   feasibility: AppointmentFeasibility
+  eligibility: Eligibility
+  position: number | null
+  joint: boolean
+  aheadOfNext: string | null
 }
 
 const mappings: Record<ClubField, Record<string, string>> = {
@@ -84,7 +90,7 @@ export function successionResearchRequirements(club: SuccessionClub, mandates: S
     decision_brief: selected.decision_brief,
   }
   // Dimension presence depends on the brief, not on the coach's score. Use the shared rule to avoid drift.
-  const dimensions = calculateResearchFit(brief, RESEARCH_PROFILES[0]).dimensions
+  const dimensions = calculateResearchFit(brief, RESEARCH_PROFILES[0], null).dimensions.filter(row => !['front-foot', 'recent'].includes(row.key))
   const rows: ClubResearchRequirements['rows'] = fields.map(([, label, target]) => ({
     field: target, label: `${label} (broad brief field)`, savedValue: brief[target]?.trim() || null,
     mappedValue: null, status: brief[target]?.trim() ? 'saved-mandate' : 'missing',
@@ -118,33 +124,37 @@ export function scoreCoachForClub(coach: SuccessionCoach, club: SuccessionClub) 
 }
 
 export function rankReviewedCoaches(coaches: SuccessionCoach[], club: SuccessionClub, requirements = clubResearchRequirements(club), decisions: readonly AppointmentDecision[] = APPOINTMENT_DECISIONS) {
-  const groups = new Map<number, { research: ResearchProfile; records: SuccessionCoach[] }>()
-  let unreviewed = 0, ambiguous = 0
-  for (const coach of coaches) {
-    const research = matchingResearch(coach)
-    if (!research) { unreviewed++; continue }
-    const group = groups.get(research.apiId) ?? { research, records: [] }
-    group.records.push(coach)
-    groups.set(research.apiId, group)
+  let unreviewed = 0
+  for (const coach of coaches) if (!matchingResearch(coach)) unreviewed++
+  if (!requirements.ready) return { matches: [] as ReviewedSuccessionCoach[], excluded: [] as ReviewedSuccessionCoach[], incumbent: null as ReviewedSuccessionCoach | null, coverage: { reviewed: 0, unreviewed, ambiguous: 0 } }
+  // Same calculation as the mandate Candidates tab, so the two views can never disagree.
+  const ranking = rankResearchProfiles({
+    brief: requirements.brief,
+    context: { clubId: club.id, mandateId: requirements.source.mandateId, incumbentName: club.current_manager },
+    records: coaches.map(row => ({ id: row.id, name: row.name })),
+    decisions,
+  })
+  const byId = new Map(coaches.map(row => [row.id, row]))
+  const toRow = (coach: RankedCoach): ReviewedSuccessionCoach => ({
+    ...byId.get(coach.record!.id)!,
+    fitScore: coach.fit.score,
+    research: coach.profile,
+    fit: coach.fit,
+    eligibility: coach.eligibility,
+    position: coach.position,
+    joint: coach.joint,
+    aheadOfNext: coach.aheadOfNext,
+    feasibility: {
+      status: coach.eligibility.status === 'incumbent' ? 'incumbent' : coach.eligibility.status === 'not-pursuing' ? 'not-pursuing' : 'unknown',
+      excluded: !coach.eligibility.recommendable,
+      reason: coach.eligibility.reason,
+    },
+  })
+  const withRecords = (rows: RankedCoach[]) => rows.filter(row => row.record && byId.has(row.record.id)).map(toRow)
+  return {
+    matches: withRecords(ranking.shortlist),
+    excluded: withRecords([...ranking.notPursuing, ...ranking.researchGaps]),
+    incumbent: ranking.incumbent?.record && byId.has(ranking.incumbent.record.id) ? toRow(ranking.incumbent) : null,
+    coverage: { reviewed: ranking.coverage.scored, unreviewed, ambiguous: 0 },
   }
-  const matches: ReviewedSuccessionCoach[] = []
-  const excluded: ReviewedSuccessionCoach[] = []
-  let incumbent: ReviewedSuccessionCoach | null = null, reviewed = 0
-  for (const { research, records } of groups.values()) {
-    // Prefer the sole canonical-name row; otherwise do not choose an arbitrary duplicate record.
-    const canonical = records.filter(row => normalizeCoachName(row.name) === normalizeCoachName(research.name))
-    const record = canonical.length === 1 ? canonical[0] : records.length === 1 ? records[0] : null
-    if (!record) { ambiguous += records.length; continue }
-    reviewed++
-    if (!requirements.ready) continue
-    const fit = calculateResearchFit(requirements.brief, research)
-    if (fit.score === null) continue
-    const feasibility = appointmentFeasibility(research, { clubId: club.id, mandateId: requirements.source.mandateId, incumbentName: club.current_manager }, decisions)
-    const result = { ...record, fitScore: fit.score, research, fit, feasibility }
-    if (feasibility.status === 'incumbent') incumbent = result
-    else if (feasibility.excluded) excluded.push(result)
-    else matches.push(result)
-  }
-  matches.sort((a, b) => b.fitScore - a.fitScore || a.research.name.localeCompare(b.research.name))
-  return { matches, excluded, incumbent, coverage: { reviewed, unreviewed, ambiguous } }
 }

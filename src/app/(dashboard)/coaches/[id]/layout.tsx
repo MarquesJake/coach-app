@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
+import { canonicalCoachName } from '@/lib/coaches/canonical-name'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getCoachById } from '@/lib/db/coaches'
 import { CoachTabNav } from './_components/coach-tab-nav'
@@ -19,7 +20,7 @@ export async function generateMetadata(
   const { id } = await params
   const supabase = await createServerSupabaseClient()
   const { data } = await supabase.from('coaches').select('name').eq('id', id).maybeSingle()
-  const name = data?.name?.trim() || 'Coach'
+  const name = canonicalCoachName(id, data?.name?.trim() || null)
   return { title: { default: name, template: `%s · ${name} · Gaffa` } }
 }
 

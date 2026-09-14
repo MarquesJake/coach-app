@@ -4,6 +4,7 @@ import { getCoachById } from '@/lib/db/coaches'
 import { getMandatesForTeam } from '@/lib/db/mandate'
 import { FitClient } from './_components/fit-client'
 import { displayClubName } from '@/lib/display-names'
+import { loadMandateRanking, standingLabel } from '@/lib/mandates/mandate-ranking.server'
 
 export const metadata = { title: 'Fit' }
 
@@ -24,5 +25,9 @@ export default async function CoachFitPage(props: { params: Promise<{ id: string
     label: displayClubName(m.custom_club_name, (m.clubs as { name?: string } | null)?.name, 'Mandate'),
   }))
 
-  return <FitClient coachId={params.id} mandates={mandates} />
+  const standings = Object.fromEntries(await Promise.all(mandates.map(async mandate => {
+    const ranking = await loadMandateRanking(mandate.id)
+    return [mandate.id, ranking ? standingLabel(ranking.byCoachId.get(params.id)) : 'Ranking unavailable'] as const
+  })))
+  return <FitClient coachId={params.id} mandates={mandates} standings={standings} />
 }
