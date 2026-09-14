@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
+import { reviewRequirement, reviewLanguages } from '@/lib/mandates/fit-review'
 import { getMandateFitAction } from '@/app/(dashboard)/coaches/[id]/actions'
 
 type CoachFit = {
@@ -27,50 +29,6 @@ type MandateFit = {
   relocation_required?: boolean | null
 }
 
-function matchScore(required: string | null | undefined, coach: string | null | undefined): number {
-  if (!required?.trim()) return 100
-  if (!coach?.trim()) return 0
-  const r = required.trim().toLowerCase()
-  const c = coach.trim().toLowerCase()
-  if (r === c) return 100
-  if (r.includes(c) || c.includes(r)) return 70
-  return 30
-}
-
-function languageMatch(required: string[] | null | undefined, coachLangs: string[] | null | undefined): number {
-  if (!required?.length) return 100
-  if (!coachLangs?.length) return 0
-  const coachSet = new Set(coachLangs.map((l) => l.trim().toLowerCase()))
-  let matched = 0
-  for (const r of required) {
-    if (coachSet.has(r.trim().toLowerCase())) matched++
-  }
-  if (matched === required.length) return 100
-  if (matched > 0) return 50
-  return 0
-}
-
-function relocationMatch(required: boolean | null | undefined, coachFlex: string | null | undefined): number {
-  if (required != true) return 100
-  if (!coachFlex?.trim()) return 30
-  const c = coachFlex.trim().toLowerCase()
-  if (c.includes('yes') || c.includes('flexible') || c.includes('open')) return 100
-  if (c.includes('no') || c.includes('no relocation')) return 0
-  return 50
-}
-
-function riskMatch(
-  mandateRisk: string | null | undefined,
-  coachFlags: { legal?: boolean; integrity?: boolean; safeguarding?: boolean }
-): number {
-  const hasRisk = coachFlags.legal || coachFlags.integrity || coachFlags.safeguarding
-  if (!mandateRisk?.trim()) return 100
-  const r = mandateRisk.trim().toLowerCase()
-  if (r.includes('low') || r === 'conservative') return hasRisk ? 20 : 100
-  if (r.includes('high') || r === 'aggressive') return 80
-  return hasRisk ? 50 : 90
-}
-
 export function MandateFitClient({
   coach,
   mandates,
@@ -84,6 +42,7 @@ export function MandateFitClient({
 
   const onSelect = (mandateId: string) => {
     setSelectedId(mandateId)
+    setMandateFit(null)
     if (!mandateId) {
       setMandateFit(null)
       return
@@ -101,35 +60,14 @@ export function MandateFitClient({
   const coachLangs = Array.isArray(coach.languages) ? coach.languages : []
   const mandateLangs = mandateFit?.language_requirements ?? []
 
-  const tacticalScore = matchScore(mandateFit?.tactical_model_required, coach.tactical_identity)
-  const pressingScore = matchScore(mandateFit?.pressing_intensity_required, coach.pressing_intensity)
-  const buildScore = matchScore(mandateFit?.build_preference_required, coach.build_preference)
-  const riskScore = riskMatch(mandateFit?.risk_tolerance, {
-    legal: coach.legal_risk_flag ?? false,
-    integrity: coach.integrity_risk_flag ?? false,
-    safeguarding: coach.safeguarding_risk_flag ?? false,
-  })
-  const langScore = languageMatch(mandateLangs, coachLangs)
-  const relocScore = relocationMatch(mandateFit?.relocation_required, coach.relocation_flexibility)
-
-  const weights = [0.25, 0.2, 0.15, 0.15, 0.15, 0.1]
-  const scores = [tacticalScore, pressingScore, buildScore, riskScore, langScore, relocScore]
-  const provisionalScore = mandateFit
-    ? Math.round(
-        scores.reduce((acc, s, i) => acc + s * weights[i], 0)
-      )
-    : null
-
-  const rows = mandateFit
-    ? [
-        { label: 'Tactical model', required: mandateFit.tactical_model_required ?? '—', coach: coach.tactical_identity ?? '—', score: tacticalScore },
-        { label: 'Pressing intensity', required: mandateFit.pressing_intensity_required ?? '—', coach: coach.pressing_intensity ?? '—', score: pressingScore },
-        { label: 'Build preference', required: mandateFit.build_preference_required ?? '—', coach: coach.build_preference ?? '—', score: buildScore },
-        { label: 'Risk tolerance', required: mandateFit.risk_tolerance ?? '—', coach: [coach.legal_risk_flag, coach.integrity_risk_flag, coach.safeguarding_risk_flag].some(Boolean) ? 'Risk flags' : 'None', score: riskScore },
-        { label: 'Languages', required: mandateLangs.length ? mandateLangs.join(', ') : '—', coach: coachLangs.length ? coachLangs.join(', ') : '—', score: langScore },
-        { label: 'Relocation', required: mandateFit.relocation_required ? 'Required' : 'Not required', coach: coach.relocation_flexibility ?? '—', score: relocScore },
-      ]
-    : []
+  const rows = mandateFit ? [
+    reviewRequirement('Tactical model', mandateFit.tactical_model_required, coach.tactical_identity),
+    reviewRequirement('Pressing intensity', mandateFit.pressing_intensity_required, coach.pressing_intensity),
+    reviewRequirement('Build preference', mandateFit.build_preference_required, coach.build_preference),
+    { ...reviewRequirement('Risk tolerance', mandateFit.risk_tolerance, [coach.legal_risk_flag, coach.integrity_risk_flag, coach.safeguarding_risk_flag].some(Boolean) ? 'Recorded risk flags need review' : 'Diligence not established'), state: 'Needs assessment' },
+    reviewLanguages(mandateLangs, coachLangs),
+    reviewRequirement('Relocation', mandateFit.relocation_required == null ? null : mandateFit.relocation_required ? 'Required' : 'Not required', coach.relocation_flexibility),
+  ] : []
 
   return (
     <div className="space-y-6">
@@ -158,10 +96,10 @@ export function MandateFitClient({
               {rows.map((r) => (
                 <div key={r.label} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
                   <span className="w-36 shrink-0 text-muted-foreground">{r.label}</span>
-                  <span className="text-foreground">Mandate: {r.required}</span>
-                  <span className="text-muted-foreground">Coach: {r.coach}</span>
+                  <span className="text-foreground">Mandate: {r.requirement}</span>
+                  <span className="text-muted-foreground">Coach: {r.recorded}</span>
                   <span className="ml-auto rounded border border-border bg-surface px-2 py-0.5 text-xs tabular-nums">
-                    {r.score}%
+                    {r.state}
                   </span>
                 </div>
               ))}
@@ -170,23 +108,8 @@ export function MandateFitClient({
 
           <section className="rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-medium text-foreground mb-2">Fit summary</h2>
-            <p className="text-xs text-muted-foreground mb-2">
-              Early score based on manual weightings for now.
-            </p>
-            <div className="flex items-center gap-3">
-              <span
-                className={
-                  provisionalScore != null && provisionalScore >= 70
-                    ? 'text-green-400'
-                    : provisionalScore != null && provisionalScore >= 40
-                      ? 'text-amber-400'
-                      : 'text-muted-foreground'
-                }
-              >
-                {provisionalScore != null ? `${provisionalScore}%` : '—'}
-              </span>
-              <span className="text-xs text-muted-foreground">Provisional fit</span>
-            </div>
+            <p className="text-xs text-muted-foreground mb-2">Saved field comparison only. Missing requirements or matching text do not establish appointment suitability.</p>
+            <Link className="text-sm text-primary underline" href={`/mandates/${selectedId}/candidates#brief-matches`}>View sourced football fit and scoring rules in Candidates</Link>
           </section>
         </>
       )}

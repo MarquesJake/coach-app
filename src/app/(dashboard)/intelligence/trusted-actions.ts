@@ -4,6 +4,7 @@ import { readResearchContext, researchContextNote, contextFromResearchNote, type
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { revalidatePath } from 'next/cache'
+import { readContactDetails, emailLookupPattern } from '@/lib/network/contact-details'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { canAssessCandidate, type AssessmentAccessClient } from '@/lib/assessment/access'
@@ -85,34 +86,22 @@ function revalidateCoach(coachId?: string | null) {
 export async function createFootballContactAction(formData: FormData): Promise<ActionResult> {
   try {
     const { db, user, organizationId } = await requireInternalContext()
-    const fullName = text(formData.get('full_name'))
-    if (!fullName) return { ok: false, error: 'Contact name is required.' }
-    const email = optionalText(formData.get('email'))
-    if (email) {
-      const { data: duplicate } = await db.from('football_contacts').select('id').eq('org_id', organizationId).ilike('email', email).maybeSingle()
+    const details = readContactDetails(formData)
+    if (details.email) {
+      const { data: duplicate, error: duplicateError } = await db.from('football_contacts').select('id').eq('org_id', organizationId).ilike('email', emailLookupPattern(details.email)).maybeSingle()
+      if (duplicateError) return { ok: false, error: 'Could not check existing contacts. Your contact was not created; please retry.' }
       if (duplicate) return { ok: false, error: 'A network contact already uses that email address.' }
     }
-    const stakeholderGroup = text(formData.get('stakeholder_group')) || 'other'
-    if (!isAllowedValue(STAKEHOLDER_GROUPS, stakeholderGroup)) return { ok: false, error: 'Unknown stakeholder group.' }
     const visibility = text(formData.get('default_attribution_permission')) || 'anonymised_external'
     if (!isAllowedValue(EXTERNAL_VISIBILITIES, visibility)) return { ok: false, error: 'Unknown attribution permission.' }
     const { data, error } = await db.from('football_contacts').insert({
       org_id: organizationId,
       created_by: user.id,
       relationship_owner_id: user.id,
-      full_name: fullName,
-      current_role_title: optionalText(formData.get('current_role')),
-      current_organization: optionalText(formData.get('current_organization')),
-      email,
-      phone: optionalText(formData.get('phone')),
+      ...details,
       preferred_channel: optionalText(formData.get('preferred_channel')),
-      stakeholder_group: stakeholderGroup,
-      expertise: stringArray(formData.get('expertise')),
-      reliability_score: optionalNumber(formData.get('reliability_score')),
       conflicts: optionalText(formData.get('conflicts')),
       default_attribution_permission: visibility,
-      next_follow_up_at: optionalText(formData.get('next_follow_up_at')),
-      follow_up_note: optionalText(formData.get('follow_up_note')),
       retention_review_at: optionalText(formData.get('retention_review_at')),
     }).select('id').single()
     if (error) return { ok: false, error: error.message }
@@ -120,6 +109,31 @@ export async function createFootballContactAction(formData: FormData): Promise<A
     return { ok: true, id: data.id }
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Unable to create contact.' }
+  }
+}
+
+/** Edit details with the same internal-role gate as creation; never change source permissions here. */
+export async function updateFootballContactAction(formData: FormData): Promise<ActionResult> {
+  try {
+    const { db, organizationId } = await requireInternalContext()
+    const contactId = text(formData.get('contact_id'))
+    if (!contactId) return { ok: false, error: 'Contact is required.' }
+    const details = readContactDetails(formData)
+    const { data: contact, error: contactError } = await db.from('football_contacts').select('id').eq('id', contactId).eq('org_id', organizationId).maybeSingle()
+    if (contactError) return { ok: false, error: 'Could not load the contact. Your edits were not saved.' }
+    if (!contact) return { ok: false, error: 'Contact not found or no longer accessible.' }
+    if (details.email) {
+      const { data: duplicate, error: duplicateError } = await db.from('football_contacts').select('id').eq('org_id', organizationId).ilike('email', emailLookupPattern(details.email)).neq('id', contactId).maybeSingle()
+      if (duplicateError) return { ok: false, error: 'Could not check existing contacts. Your edits were not saved.' }
+      if (duplicate) return { ok: false, error: 'A network contact already uses that email address.' }
+    }
+    const { data, error } = await db.from('football_contacts').update({ ...details, updated_at: new Date().toISOString() }).eq('id', contactId).eq('org_id', organizationId).select('id').single()
+    if (error) return { ok: false, error: error.message }
+    revalidatePath('/network')
+    revalidatePath(`/network/${contactId}`)
+    return { ok: true, id: data.id }
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unable to update contact.' }
   }
 }
 

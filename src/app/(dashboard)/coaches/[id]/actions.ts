@@ -312,7 +312,7 @@ export async function upsertStintAction(coachId: string, formData: FormData) {
       notable_outcomes: notableOutcomes,
       ...sourceConfidence,
     }
-    const { error } = await supabase.from('coach_stints').update(update).eq('id', id).eq('coach_id', coachId)
+    const { error } = await supabase.from('coach_stints').update(update).eq('id', id).eq('coach_id', coachId).select('id').single()
     if (error) return { error: error.message }
   } else {
     const insert: CoachStintInsert = {
@@ -341,7 +341,7 @@ export async function upsertStintAction(coachId: string, formData: FormData) {
 export async function deleteStintAction(coachId: string, stintId: string) {
   await assertCoachOwnership(coachId)
   const supabase = await createServerSupabaseClient()
-  const { error } = await supabase.from('coach_stints').delete().eq('id', stintId).eq('coach_id', coachId)
+  const { error } = await supabase.from('coach_stints').delete().eq('id', stintId).eq('coach_id', coachId).select('id').single()
   if (error) return { error: error.message }
   revalidatePath(`/coaches/${coachId}`)
   revalidatePath(`/coaches/${coachId}/career`)
@@ -390,7 +390,7 @@ export async function upsertDataProfileAction(coachId: string, formData: FormDat
       narrative_risk_summary: narrativeRiskSummary,
       confidence_score: confidenceScore,
     }
-    const { error } = await supabase.from('coach_data_profiles').update(update).eq('id', profileId).eq('coach_id', coachId)
+    const { error } = await supabase.from('coach_data_profiles').update(update).eq('id', profileId).eq('coach_id', coachId).select('id').single()
     if (error) return { error: error.message }
   } else {
     const insert: CoachDataProfileInsert = {

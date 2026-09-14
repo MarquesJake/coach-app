@@ -1,3 +1,5 @@
+import { researchProfileForName } from '../scoring/research/catalogue.ts'
+
 export type DuplicateReviewCoach = {
   id: string
   name: string
@@ -30,6 +32,9 @@ function nameParts(name: string) {
 }
 
 function duplicateReason(a: DuplicateReviewCoach, b: DuplicateReviewCoach) {
+  const aResearch = researchProfileForName(a.name)
+  const bResearch = researchProfileForName(b.name)
+  if (aResearch && bResearch && aResearch.apiId === bResearch.apiId) return 'Names match the same reviewed research identity'
   const aName = nameParts(a.name)
   const bName = nameParts(b.name)
   if (aName.full && aName.full === bName.full) return 'Same normalised name'

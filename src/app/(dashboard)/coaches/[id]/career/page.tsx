@@ -9,6 +9,7 @@ import { ManagerContextTrendsCard } from './_components/manager-context-trends-c
 import { computeManagerContextTrends } from '@/lib/analysis/manager-context-trends'
 import { getStageLabel } from '@/lib/constants/mandateStages'
 import { displayClubName } from '@/lib/display-names'
+import { researchProfileForName } from '@/lib/scoring/research/catalogue'
 
 export const metadata = { title: 'Career' }
 
@@ -111,11 +112,18 @@ export default async function CoachCareerPage(props: { params: Promise<{ id: str
   if (seasonResults.error) throw new Error(`Failed to load manager context: ${seasonResults.error.message}`)
   const managerContext = computeManagerContextTrends(stints, seasonResults.data ?? [])
   const mandatePresence = (mandateRes.data ?? []) as unknown as MandateEntry[]
+  const providerCareer = researchProfileForName(coach.name)?.apiRecord
 
   return (
     <div className="space-y-6">
       <CoachAssessment coachId={params.id} areas={['performance_impact']}/>
       <CoachDeepDivePanel coachId={params.id} areas={['performance_impact']} />
+      {providerCareer && <section className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-base font-medium">Provider career record</h2>
+        <p className="mt-2 text-sm text-muted-foreground">API-Football snapshot retrieved {providerCareer.retrievedAt.slice(0, 10)}. These are provider records, not independently verified appointments. Dates may overlap or be incomplete; a missing end date does not confirm a current job.</p>
+        <div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-border"><th className="py-2">Team</th><th>Start supplied</th><th>End supplied</th></tr></thead><tbody>{providerCareer.career.map((job, index) => <tr key={index} className="border-b border-border/50"><td className="py-2 pr-4">{job.club}</td><td className="pr-4">{job.start || 'Not supplied'}</td><td>{job.end || 'Not supplied'}</td></tr>)}</tbody></table></div>
+        <p className="mt-3 text-xs text-muted-foreground">Use the editable career timeline below to record reviewed dates, context and supporting sources. Provider history does not replace those analyst records.</p>
+      </section>}
       <CareerTab coachId={params.id} stints={stints} clubs={clubsRes.data ?? []} />
 
       <ManagerContextTrendsCard summary={managerContext} />

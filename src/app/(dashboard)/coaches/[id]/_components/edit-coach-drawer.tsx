@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Drawer } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
@@ -43,6 +43,7 @@ function getDefaultValue(field: EditCoachField, initial: unknown): string | numb
 
 export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, onSave, onSuccess, open: controlledOpen, onOpenChange, renderTrigger = true }: Props) {
   const router = useRouter()
+  const busy = useRef(false)
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen ?? internalOpen
   const setOpen = onOpenChange ?? setInternalOpen
@@ -52,6 +53,8 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
   const formId = useId()
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (busy.current) return
+    busy.current = true
     setError(null)
     setSubmitting(true)
     const form = e.currentTarget
@@ -90,11 +93,12 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
     }
     let result
     try { result = await onSave(payload) } catch {
-      setSubmitting(false); setError('Save could not be confirmed. Your edits are kept; please retry.'); return
+      busy.current = false; setSubmitting(false); setError('Save could not be confirmed. Your edits are kept; please retry.'); return
     }
+    busy.current = false
     setSubmitting(false)
-    if (result.error) {
-      setError(result.error)
+    if (result.ok === false || result.error) {
+      setError(result.error || 'Save was not confirmed. Your edits are kept.')
       return
     }
     setOpen(false)
@@ -111,7 +115,7 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
       )}
       <Drawer
         open={open}
-        onClose={() => { setOpen(false); setError(null) }}
+        onClose={() => { if (!busy.current) { setOpen(false); setError(null) } }}
         title={title}
         footer={
           <>
@@ -124,8 +128,8 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
           </>
         }
       >
-        <form id={formId} onSubmit={handleSubmit} className="space-y-4">
-          {error && <p className="text-sm text-destructive">{error}</p>}
+        {open && <form id={formId} onSubmit={handleSubmit} className="space-y-4">
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           {fields.map((field) => (
             <div key={field.key}>
               {field.type === 'checkbox' ? (
@@ -176,7 +180,7 @@ export function EditCoachDrawer({ title, triggerLabel, fields, initialValues, on
               )}
             </div>
           ))}
-        </form>
+        </form>}
       </Drawer>
     </>
   )

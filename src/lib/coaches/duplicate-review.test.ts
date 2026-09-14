@@ -16,14 +16,23 @@ test('groups exact names after punctuation and accent normalisation', () => {
 
 test('groups abbreviated names only when the current club also matches', () => {
   const groups = findCoachDuplicateGroups([
-    { id: '1', name: 'K. McKenna', club_current: 'Ipswich Town' },
-    { id: '2', name: 'Kieran McKenna', club_current: 'Ipswich Town' },
-    { id: '3', name: 'Kevin McKenna', club_current: 'FC Koln' },
+    { id: '1', name: 'A. Example', club_current: 'Club A' },
+    { id: '2', name: 'Alex Example', club_current: 'Club A' },
+    { id: '3', name: 'Andrew Example', club_current: 'Club B' },
   ])
 
   assert.equal(groups.length, 1)
   assert.deepEqual(groups[0].coaches.map((coach) => coach.id), ['1', '2'])
   assert.equal(groups[0].reason, 'Matching initial, surname and current club')
+})
+
+test('reviewed research aliases flag duplicate candidates despite conflicting employer fields', () => {
+  const groups = findCoachDuplicateGroups([
+    { id: '1', name: 'W. Still', club_current: 'Southampton' },
+    { id: '2', name: 'Will Still', club_current: 'Recently Southampton' },
+  ])
+  assert.equal(groups.length, 1)
+  assert.equal(groups[0].reason, 'Names match the same reviewed research identity')
 })
 
 test('does not flag common surnames without a strong matching signal', () => {

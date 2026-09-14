@@ -14,6 +14,7 @@ import { MandateTabNav } from '../_components/mandate-tab-nav'
 import { computeCoachingStability } from '@/lib/analysis/coaching-stability'
 import { getMandateSuggestionsForUser } from '../../actions-suggestions'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
+import { candidateProgressLabels } from '@/lib/assessment/candidate-progress'
 import { deepDiveFor, isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
 
 export const metadata = { title: 'Candidates' }
@@ -103,9 +104,10 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
       recommendation: recordedRecommendation,
     })
     const recommendation = progress.recommendationRecorded ? recordedRecommendation : null
+    const isIllustrative = progress.illustrativeProfile || !!deepDiveFor(row.coach_id, params.id)
     return {
       ...row,
-      is_illustrative: progress.illustrativeProfile || !!deepDiveFor(row.coach_id, params.id),
+      is_illustrative: isIllustrative,
       recommendation_verdict: recommendation?.verdict ?? null,
       recommendation_confidence: progress.confidence,
       recommendation_summary: recommendation?.summary ?? null,
@@ -114,8 +116,7 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
       recommendation_mitigation: recommendation?.mitigation ?? null,
       assessment_complete_count: progress.recordedCount,
       evidence_coverage_count: progress.reviewedCount,
-      progress_label: `${progress.recordedLabel} · ${progress.reviewedLabel}`,
-      next_action: progress.nextAction,
+      ...candidateProgressLabels(progress, isIllustrative),
     }
   })
 

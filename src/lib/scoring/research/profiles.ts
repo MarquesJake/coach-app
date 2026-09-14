@@ -1,9 +1,15 @@
 import type { ResearchProfile } from './brief-fit.ts'
+import { EUROPE_RESEARCH_PROFILES } from './expansion-europe.ts'
+import { GLOBAL_RESEARCH_PROFILES } from './expansion-global.ts'
+import { BRITAIN_RESEARCH_PROFILES } from './expansion-britain.ts'
 
 // Research classifications are authored interpretations of the cited periods.
 // They are not fields supplied by API-Football or validated outcome predictions.
 // Career snapshots preserve provider values, not verified present employers.
 export const RESEARCH_PROFILES: ResearchProfile[] = [
+  ...BRITAIN_RESEARCH_PROFILES,
+  ...EUROPE_RESEARCH_PROFILES,
+  ...GLOBAL_RESEARCH_PROFILES,
   {
     "name": "Kieran McKenna",
     "apiId": 16556,

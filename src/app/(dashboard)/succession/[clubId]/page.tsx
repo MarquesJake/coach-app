@@ -16,6 +16,7 @@ import {
 } from '@/lib/succession/radar'
 import { cn } from '@/lib/utils'
 import { SuccessionSaveForm } from '../_components/succession-save-form'
+import { ResearchComparison, ResearchRequirements } from '../_components/research-comparison'
 
 export const metadata = { title: 'Succession' }
 
@@ -37,24 +38,10 @@ function bandLabel(plan: RadarClub) {
   return 'Nurture'
 }
 
-function FitBar({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <div className="mb-1 flex items-center justify-between gap-3">
-        <span className="text-[10px] text-muted-foreground">{label}</span>
-        <span className="text-[10px] tabular-nums text-muted-foreground">{value}</span>
-      </div>
-      <div className="h-1.5 rounded-full bg-muted">
-        <div className="h-1.5 rounded-full bg-primary" style={{ width: `${value}%` }} />
-      </div>
-    </div>
-  )
-}
-
 export default async function SuccessionPlanPage(
   props: {
     params: Promise<{ clubId: string }>
-    searchParams: Promise<{ error?: string; success?: string }>
+    searchParams: Promise<{ error?: string; success?: string; briefId?: string }>
   }
 ) {
   const params = await props.params;
@@ -73,10 +60,12 @@ export default async function SuccessionPlanPage(
       .single(),
     supabase
       .from('mandates')
-      .select('id, club_id, pipeline_stage, status, strategic_objective, succession_timeline, created_at')
+      .select('id, club_id, pipeline_stage, status, strategic_objective, succession_timeline, created_at, tactical_model_required, pressing_intensity_required, build_preference_required, decision_brief', { count: 'exact' })
+      .in('status', ['Active', 'In Progress', 'On Hold'])
+      .or('pipeline_stage.is.null,pipeline_stage.neq.closed')
       .eq('club_id', clubId)
-      .order('created_at', { ascending: false })
-      .limit(10),
+      .order('id')
+      .limit(1000),
     supabase
       .from('intelligence_items')
       .select('id, entity_id, title, detail, category, direction, confidence, occurred_at, verified, source_type, source_name, sensitivity, source_expires_at, source_proximity, board_visibility, contradiction_status')
@@ -105,6 +94,8 @@ export default async function SuccessionPlanPage(
   assertRouteQueries('Succession plan', clubRes, mandatesRes, intelRes, inboxRes, coachesRes, plansRes)
   if (!clubRes.data) redirect('/succession?error=Club+not+found')
 
+  if ((mandatesRes.count ?? 0) > (mandatesRes.data?.length ?? 0)) throw new Error('Active mandate briefs were truncated. Load all linked briefs before comparing coaches.')
+
   const [plan] = buildSuccessionRadar({
     clubs: [clubRes.data as SuccessionClub],
     mandates: (mandatesRes.data ?? []).filter(isActiveAppointment) as SuccessionMandateSignal[],
@@ -112,12 +103,12 @@ export default async function SuccessionPlanPage(
     inbox: (inboxRes.data ?? []) as SuccessionInboxSignal[],
     coaches: (coachesRes.data ?? []) as SuccessionCoach[],
     plans: (plansRes.data ?? []) as SuccessionPlan[],
+    selectedMandateIds: { [clubId]: feedback.briefId },
   })
 
   const clubName = displayClubName(plan.club.name, null)
-  const defaults = plan.mandateDefaults
   const savedPlan = plan.plan
-  const activeMandate = (mandatesRes.data ?? []).find(isActiveAppointment)
+  const activeMandate = (mandatesRes.data ?? []).find(m => m.id === plan.requirements.source.mandateId)
   const intelligence = intelRes.data ?? []
   const inbox = inboxRes.data ?? []
   const openInbox = inbox.filter((item) => !['promoted', 'archived'].includes(item.review_status))
@@ -135,7 +126,7 @@ export default async function SuccessionPlanPage(
     <div className="space-y-5">
       {feedback.error && <p role="alert" className="rounded border p-3 text-sm text-destructive">{feedback.error}</p>}
       {feedback.success && <p role="status" className="rounded border p-3 text-sm">{feedback.success}</p>}
-      <p className="text-sm text-muted-foreground">Early signals worked out from what we have on file — not a full assessment. Check the evidence and confirm the brief before adding candidates.</p>
+      <p className="text-sm text-muted-foreground">Planning urgency and researched football fit answer different questions. The selected saved brief and dated coach sources are shown below.</p>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href="/succession" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -151,6 +142,8 @@ export default async function SuccessionPlanPage(
               Open active mandate
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
+          ) : plan.requirements.source.kind === 'needs-choice' ? (
+            <a href="#succession-brief-source" className="text-xs font-medium text-primary underline">Choose source brief</a>
           ) : (
             <Link href={`/mandates/new?club_id=${plan.club.id}`} className="inline-flex items-center gap-2 rounded bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90">
               Start appointment brief
@@ -180,7 +173,7 @@ export default async function SuccessionPlanPage(
             </div>
           </div>
           <div className="rounded-md border border-border bg-background/40 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Succession heat</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Planning urgency</p>
             <p className={cn('mt-2 text-4xl font-semibold tabular-nums', scoreClass(plan.score))}>{plan.score}</p>
             <div className="mt-3 h-1.5 rounded-full bg-muted">
               <div className="h-1.5 rounded-full bg-primary" style={{ width: `${plan.score}%` }} />
@@ -194,7 +187,7 @@ export default async function SuccessionPlanPage(
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club situation</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Club situation · saved fields</p>
               <div className="mt-3 grid gap-3">
                 {[
                   ['Strategic priority', plan.club.strategic_priority],
@@ -212,58 +205,10 @@ export default async function SuccessionPlanPage(
               </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Mandate shape if activated</p>
-              <div className="mt-3 grid gap-3">
-                {[
-                  ['Objective', defaults.strategic_objective],
-                  ['Coach archetype', plan.archetype],
-                  ['Tactical model', defaults.tactical_model_required],
-                  ['Pressing', defaults.pressing_intensity_required],
-                  ['Build preference', defaults.build_preference_required],
-                  ['Leadership', defaults.leadership_profile_required],
-                  ['Timeline', defaults.succession_timeline],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex items-start justify-between gap-3 border-b border-border/70 pb-2 last:border-b-0 last:pb-0">
-                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</span>
-                    <span className="max-w-[210px] text-right text-xs leading-5 text-foreground">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ResearchRequirements plan={plan} />
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Shadow shortlist</p>
-              <span className="text-[10px] text-muted-foreground">{plan.suggestedCoaches.length} current fits</span>
-            </div>
-            <div className="mt-3 grid gap-3">
-              {plan.suggestedCoaches.length === 0 ? (
-                <p className="text-sm leading-6 text-muted-foreground">Add more on the club before suggesting names.</p>
-              ) : plan.suggestedCoaches.map((coach) => (
-                <Link key={coach.id} href={`/coaches/${coach.id}?returnTo=${encodeURIComponent(`/succession/${clubId}`)}`} className="rounded-md border border-border bg-background/40 p-3 transition-colors hover:border-primary/35">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{coach.name}</p>
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">{[coach.club_current, coach.nationality].filter(Boolean).join(' · ') || 'Profile context pending'}</p>
-                    </div>
-                    <span className={cn('text-lg font-semibold tabular-nums', scoreClass(coach.fitScore))}>{coach.fitScore}</span>
-                  </div>
-                  {coach.fitReasons.length > 0 && (
-                    <p className="mt-2 text-xs leading-5 text-muted-foreground">{coach.fitReasons.join(' · ')}</p>
-                  )}
-                  <div className="mt-3 grid gap-2 md:grid-cols-5">
-                    <FitBar label="Tactical" value={coach.fitBreakdown.tactical} />
-                    <FitBar label="Development" value={coach.fitBreakdown.development} />
-                    <FitBar label="Environment" value={coach.fitBreakdown.environment} />
-                    <FitBar label="Availability" value={coach.fitBreakdown.availability} />
-                    <FitBar label="Evidence" value={coach.fitBreakdown.evidence} />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+          <ResearchComparison plan={plan} returnTo={`/succession/${clubId}`} />
 
           <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recent intelligence</p>
@@ -295,7 +240,7 @@ export default async function SuccessionPlanPage(
         <aside className="space-y-4">
           <SuccessionSaveForm key={plan.club.id}>
             <input type="hidden" name="club_id" value={plan.club.id} />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Saved succession plan</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Saved succession plan</p><p className="mt-2 text-xs leading-5 text-muted-foreground">Saved values are shown where present. New plans start as Watching / Medium with manager security Unknown; these are editable workflow defaults, not evidence about the club. Archetype and timeline do not affect football fit.</p>
             <div className="mt-3 grid gap-3">
               <label className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Status</span>
@@ -311,7 +256,7 @@ export default async function SuccessionPlanPage(
               <div className="grid grid-cols-2 gap-2">
                 <label className="space-y-1">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Priority</span>
-                  <select name="priority" defaultValue={savedPlan?.priority ?? (plan.band === 'urgent' ? 'urgent' : plan.band === 'watch' ? 'high' : 'medium')} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground">
+                  <select name="priority" defaultValue={savedPlan?.priority ?? 'medium'} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground">
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
@@ -339,11 +284,11 @@ export default async function SuccessionPlanPage(
               </label>
               <label className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Desired archetype</span>
-                <input name="desired_archetype" defaultValue={savedPlan?.desired_archetype ?? plan.archetype} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground" />
+                <input name="desired_archetype" defaultValue={savedPlan?.desired_archetype ?? ''} placeholder="Agree a planning archetype" className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground" />
               </label>
               <label className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Timeline</span>
-                <input name="succession_timeline" defaultValue={savedPlan?.succession_timeline ?? defaults.succession_timeline} className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground" />
+                <input name="succession_timeline" defaultValue={savedPlan?.succession_timeline ?? ''} placeholder="Confirm timing with the club" className="w-full rounded border border-border bg-surface px-3 py-2 text-xs text-foreground" />
               </label>
               <label className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Board signal</span>
@@ -351,7 +296,7 @@ export default async function SuccessionPlanPage(
               </label>
               <label className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Risk triggers</span>
-                <textarea name="risk_triggers" defaultValue={(savedPlan?.risk_triggers ?? plan.rationale).join('\n')} rows={4} placeholder="One trigger per line" className="w-full rounded border border-border bg-surface px-3 py-2 text-xs leading-5 text-foreground" />
+                <textarea name="risk_triggers" defaultValue={(savedPlan?.risk_triggers ?? []).join('\n')} rows={4} placeholder="One trigger per line" className="w-full rounded border border-border bg-surface px-3 py-2 text-xs leading-5 text-foreground" />
               </label>
               <label className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Notes</span>
@@ -370,7 +315,7 @@ export default async function SuccessionPlanPage(
           </div>
 
           <div className="rounded-lg border border-border bg-card p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Triggers and rationale</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Urgency triggers and rationale</p><p className="mt-2 text-xs leading-5 text-muted-foreground">Rule-based planning attention from saved signals and information gaps; not dismissal probability or coach fit.</p>
             <div className="mt-3 space-y-2">
               {plan.rationale.length === 0 ? (
                 <p className="text-xs leading-5 text-muted-foreground">No big pressure point yet. Keep an eye on this club.</p>

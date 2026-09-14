@@ -274,7 +274,8 @@ export function ConversationCaptureClient({
         contactId: draft.contactId || null,
         coachId: draft.coachId || null,
         intakeMethod: draft.intakeMethod,
-        occurredAt: draft.occurredAt || null,
+        // datetime-local has no offset: resolve it in the browser, not the database timezone.
+        occurredAt: draft.occurredAt ? new Date(draft.occurredAt).toISOString() : null,
         channel: draft.channel || null,
         careerContext: draft.careerContext || null,
         consentStatus: draft.consentStatus,
@@ -737,14 +738,15 @@ export function ConversationCaptureClient({
               )}
               {draft.step < 3 ? (
                 <Button
+                  key="continue-capture"
                   type="button"
-                  onClick={() => goToStep((draft.step + 1) as CaptureStep)}
+                  onClick={(event) => { event.preventDefault(); goToStep((draft.step + 1) as CaptureStep) }}
                 >
                   Continue
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={pending || uploading}>
+                <Button key="save-conversation" type="submit" disabled={pending || uploading}>
                   {uploading
                     ? 'Uploading…'
                     : pending

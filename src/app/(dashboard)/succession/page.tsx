@@ -14,6 +14,7 @@ import {
   type SuccessionPlan,
 } from '@/lib/succession/radar'
 import { cn } from '@/lib/utils'
+import { ResearchComparison } from './_components/research-comparison'
 
 export const metadata = { title: 'Succession' }
 
@@ -40,22 +41,36 @@ function captureHref(club: SuccessionClub) {
   return successionCaptureHref({ id: club.id, name: displayClubName(club.name, null) })
 }
 
-export default async function SuccessionRadarPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string }> }) {
+export default async function SuccessionRadarPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string; show?: string }> }) {
   const feedback = await searchParams
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const [clubsRes, mandatesRes, intelRes, inboxRes, coachesRes, plansRes] = await Promise.all([
-    supabase
-      .from('clubs')
-      .select('id, name, league, country, tier, current_manager, board_risk_tolerance, strategic_priority, media_pressure, development_vs_win_now, environment_assessment, instability_risk, tactical_model, pressing_model, build_model, market_reputation')
-      .limit(300),
+    (async () => {
+      const fetchPage = (offset: number) => supabase
+        .from('clubs')
+        .select('id, name, league, country, tier, current_manager, board_risk_tolerance, strategic_priority, media_pressure, development_vs_win_now, environment_assessment, instability_risk, tactical_model, pressing_model, build_model, market_reputation', { count: 'exact' })
+        .order('id')
+        .range(offset, offset + 299)
+      const first = await fetchPage(0)
+      assertRouteQueries('Succession clubs', first)
+      const data = [...(first.data ?? [])]
+      while (data.length < (first.count ?? 0)) {
+        const next = await fetchPage(data.length)
+        assertRouteQueries('Succession clubs', next)
+        if (!next.data?.length) throw new Error('Club records changed while loading. Refresh succession planning.')
+        data.push(...next.data)
+      }
+      return { ...first, data }
+    })(),
     supabase
       .from('mandates')
-      .select('id, club_id, pipeline_stage, status, strategic_objective, succession_timeline, created_at')
-      .in('pipeline_stage', ['identified', 'board_approved', 'shortlisting'])
-      .limit(150),
+      .select('id, club_id, pipeline_stage, status, strategic_objective, succession_timeline, created_at, tactical_model_required, pressing_intensity_required, build_preference_required, decision_brief', { count: 'exact' })
+      .in('status', ['Active', 'In Progress', 'On Hold'])
+      .or('pipeline_stage.is.null,pipeline_stage.neq.closed')
+      .limit(1000),
     supabase
       .from('intelligence_items')
       .select('id, entity_id, title, category, direction, confidence, occurred_at, verified')
@@ -79,15 +94,29 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
   ])
 
   assertRouteQueries('Succession radar', clubsRes, mandatesRes, intelRes, inboxRes, coachesRes, plansRes)
+  if ((mandatesRes.count ?? 0) > (mandatesRes.data?.length ?? 0)) throw new Error('Active mandate briefs were truncated. Load all linked briefs before comparing coaches.')
+
+  const activeMandates = (mandatesRes.data ?? []).filter(isActiveAppointment) as SuccessionMandateSignal[]
+  const linkedClubIds = new Set(activeMandates.map((mandate) => mandate.club_id))
   const radar = buildSuccessionRadar({
     clubs: (clubsRes.data ?? []) as SuccessionClub[],
-    mandates: (mandatesRes.data ?? []).filter(isActiveAppointment) as SuccessionMandateSignal[],
+    mandates: activeMandates,
     intelligence: (intelRes.data ?? []) as SuccessionIntelSignal[],
     inbox: (inboxRes.data ?? []) as SuccessionInboxSignal[],
     coaches: (coachesRes.data ?? []) as SuccessionCoach[],
     plans: (plansRes.data ?? []) as SuccessionPlan[],
   })
 
+  // Keep the urgency order within each group; only explicit club_id relations qualify.
+  const linkedClubs = radar.filter((item) => linkedClubIds.has(item.club.id))
+  const otherClubs = radar.filter((item) => !linkedClubIds.has(item.club.id))
+  const showAll = feedback.show === 'all'
+  const groups = [
+    { id: 'linked-briefs', title: 'Clubs with active linked briefs', items: linkedClubs, total: linkedClubs.length,
+      description: 'All clubs with an explicitly linked active brief appear here, regardless of planning urgency. Multiple briefs require a selection in the plan.' },
+    { id: 'other-clubs', title: 'Other clubs by planning urgency', items: showAll ? otherClubs : otherClubs.slice(0, 18), total: otherClubs.length,
+      description: 'No active brief is linked to these club records. Fit uses supported saved club fields only; similarly named records do not share requirements.' },
+  ]
   const buildNow = radar.filter((item) => item.band === 'urgent')
   const watch = radar.filter((item) => item.band === 'watch')
   const openIntel = radar.reduce((total, item) => total + item.openInboxCount, 0)
@@ -97,7 +126,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
     <div className="space-y-5">
       {feedback.error && <p role="alert" className="rounded border p-3 text-sm text-destructive">{feedback.error}</p>}
       {feedback.success && <p role="status" className="rounded border p-3 text-sm">{feedback.success}</p>}
-      <p className="text-sm text-muted-foreground">Early signals worked out from what we have on file — not a full assessment. Check the evidence and confirm the brief before adding candidates.</p>
+      <p className="text-sm text-muted-foreground">Urgency prioritises planning work from saved signals and evidence gaps. Football fit uses reviewed research and supported saved requirements separately.</p>
       <section className="rounded-lg border border-border bg-card p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -107,7 +136,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Succession planning</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Track clubs before they sack a manager, before a search opens and before the market knows. This is where club intelligence becomes a quiet shortlist.
+              Track succession signals, agree the club’s requirements and compare researched coaches before a formal search opens.
             </p>
           </div>
           <Link
@@ -138,14 +167,27 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
 
       <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-3">
-          {radar.slice(0, 18).map((item) => {
+          <p className="text-sm text-muted-foreground">{radar.length} club records · {linkedClubs.length} with active linked briefs · {otherClubs.length} without. Each record appears once; urgency scores are unchanged by grouping.</p>
+          {groups.map((group) => (
+            <section key={group.id} id={group.id} aria-labelledby={`${group.id}-heading`} className="space-y-3">
+              <div className="pt-3">
+                <h2 id={`${group.id}-heading`} className="text-lg font-semibold">{group.title} <span className="text-sm font-normal text-muted-foreground">({group.items.length} of {group.total})</span></h2>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{group.description}</p>
+                {group.id === 'other-clubs' && otherClubs.length > 18 && (
+                  <Link href={showAll ? '/succession#other-clubs' : '/succession?show=all#other-clubs'} className="mt-2 inline-block text-sm text-primary underline">
+                    {showAll ? 'Show first 18 other clubs' : `Show all ${otherClubs.length} other clubs`}
+                  </Link>
+                )}
+                {group.total === 0 && <p className="mt-2 text-sm text-muted-foreground">No club records in this group.</p>}
+              </div>
+          {group.items.map((item) => {
             const clubName = displayClubName(item.club.name, null)
             return (
               <article key={item.club.id} className="rounded-lg border border-border bg-card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-base font-semibold text-foreground">{clubName}</h2>
+                      <h3 className="text-base font-semibold text-foreground">{clubName}</h3>
                       <span className={cn('rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider', bandClass(item.band))}>
                         {prettyBand(item.band)}
                       </span>
@@ -153,9 +195,13 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
                     <p className="mt-1 text-xs text-muted-foreground">
                       {[item.club.league, item.club.country, item.club.current_manager ? `Manager: ${item.club.current_manager}` : 'Manager not confirmed'].filter(Boolean).join(' · ')}
                     </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {linkedClubIds.has(item.club.id) ? 'Source: active brief linked to this club record' : 'Source: saved club fields · no active brief linked to this record'}
+                    </p>
+                    <p className="mt-1 break-all text-[10px] text-muted-foreground">Club record: {item.club.id}</p>
                   </div>
                   <div className="min-w-[160px] text-right">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Succession heat</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Planning urgency</p>
                     <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">{item.score}</p>
                     <div className="mt-2 h-1.5 rounded-full bg-muted">
                       <div className={cn('h-1.5 rounded-full', scoreBar(item.score))} style={{ width: `${item.score}%` }} />
@@ -165,8 +211,8 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
 
                 <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)]">
                   <div className="rounded-md border border-border bg-background/40 p-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Likely coach type</p>
-                    <p className="mt-2 text-sm font-semibold text-foreground">{item.archetype}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Planning archetype</p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">{item.archetype}</p><p className="mt-1 text-xs text-muted-foreground">{item.plan?.desired_archetype ? 'Saved plan value · not scored' : 'Inferred planning prompt · not a saved requirement or scored criterion'}</p>
                     <div className="mt-3 space-y-1.5">
                       {item.rationale.length > 0 ? item.rationale.map((reason) => (
                         <p key={reason} className="text-xs leading-5 text-muted-foreground">- {reason}</p>
@@ -179,36 +225,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
                     </p>
                   </div>
 
-                  <div className="rounded-md border border-border bg-background/40 p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Shadow shortlist prompts</p>
-                      <span className="text-[10px] text-muted-foreground">{item.suggestedCoaches.length} coach fits</span>
-                    </div>
-                    {item.suggestedCoaches.length === 0 ? (
-                      <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                        Add the club’s situation first, then run a scan once it’s clearer what kind of coach they need.
-                      </p>
-                    ) : (
-                      <div className="mt-3 grid gap-2">
-                        {item.suggestedCoaches.map((coach) => (
-                          <Link key={coach.id} href={`/coaches/${coach.id}?returnTo=%2Fsuccession`} className="rounded border border-border bg-card/60 px-3 py-2 transition-colors hover:border-primary/35">
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <p className="text-xs font-semibold text-foreground">{coach.name}</p>
-                                <p className="mt-0.5 text-[10px] text-muted-foreground">
-                                  {[coach.club_current, coach.nationality].filter(Boolean).join(' · ') || 'Profile context pending'}
-                                </p>
-                              </div>
-                              <span className="text-xs font-semibold tabular-nums text-primary">{coach.fitScore}</span>
-                            </div>
-                            {coach.fitReasons.length > 0 && (
-                              <p className="mt-2 text-[10px] leading-4 text-muted-foreground">{coach.fitReasons.join(' · ')}</p>
-                            )}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <ResearchComparison plan={item} returnTo="/succession" compact />
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
@@ -238,6 +255,8 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
               </article>
             )
           })}
+            </section>
+          ))}
         </div>
 
         <aside className="space-y-3">
