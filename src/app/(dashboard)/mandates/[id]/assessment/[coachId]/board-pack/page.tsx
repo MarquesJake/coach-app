@@ -274,7 +274,8 @@ export default async function BoardPackPage(
   #board-pack-root h2, #board-pack-root h3 { break-after: avoid; }
   #board-pack-root p, #board-pack-root li { orphans: 3; widows: 3; }
   #board-pack-root aside { display: block !important; }
-  #board-pack-root .match-period { font-size: 12px; line-height: 1.4; }
+  #board-pack-root .match-period { font-size: 12px; line-height: 1.4; break-inside: auto !important; }
+  #board-pack-root summary { break-after: avoid; }
   #board-pack-root .match-period .text-sm { font-size: 12px; line-height: 1.4; }
   #board-pack-root .match-period .text-xs { font-size: 11px; line-height: 1.4; }
   #board-pack-root .match-period td, #board-pack-root .match-period th { padding-top: 4px; padding-bottom: 4px; }
