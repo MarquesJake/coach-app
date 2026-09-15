@@ -78,11 +78,17 @@ function phrase(key: string, upper: string, lower: string): string {
   }
 }
 
+/** Contribution from the brief's football lines only — identity, build-up, block, transitions, pragmatism. */
+const FOOTBALL_LINES = ['style', 'build', 'pressing', 'transitions', 'pragmatism']
+const footballMatch = (coach: RankedCoach) => Math.round(coach.fit.dimensions.filter(row => FOOTBALL_LINES.includes(row.key)).reduce((sum, row) => sum + row.contribution, 0) * 10)
+
 function explainGap(upper: RankedCoach, lower: RankedCoach): string {
   if (upper.fit.score === lower.fit.score) {
+    const fa = footballMatch(upper), fb = footballMatch(lower)
+    if (fa !== fb) return `Level with ${lower.profile.name} on ${upper.fit.score}. Listed first because his football is the closer match to the brief — ${(fa / 10).toFixed(1)} points from the identity, build-up, block and transition lines against ${(fb / 10).toFixed(1)}.`
     const a = upper.evidence?.recentMatches ?? 0, b = lower.evidence?.recentMatches ?? 0
     return a !== b
-      ? `Level with ${lower.profile.name} on ${upper.fit.score}. Listed first because there is more evidence behind him: ${a} verified league matches in his last three seasons against ${b}.`
+      ? `Level with ${lower.profile.name} on ${upper.fit.score} and level on the football lines. Listed first because there is more evidence behind him: ${a} verified league matches in his last three seasons against ${b}.`
       : `Level with ${lower.profile.name} on ${upper.fit.score}, with as much evidence behind each. The data does not separate them yet.`
   }
   const lowerRows = new Map(lower.fit.dimensions.map(row => [row.key, row]))
@@ -123,7 +129,9 @@ export function rankResearchProfiles(input: {
     const eligibility = eligibilityFor(profile, input.context, { decisions: input.decisions, evidence, timeline: input.brief.succession_timeline })
     scored.push({ profile, record: record ?? null, fit: fit as RankedCoach['fit'], eligibility, evidence, position: null, joint: false, aheadOfNext: null })
   }
+  // Level on score: the closer football match to the brief goes first, then evidence depth, then recency. Names never decide.
   const order = (a: RankedCoach, b: RankedCoach) => b.fit.score - a.fit.score
+    || footballMatch(b) - footballMatch(a)
     || (b.evidence?.recentMatches ?? 0) - (a.evidence?.recentMatches ?? 0)
     || (b.evidence?.latestSeason?.season ?? 0) - (a.evidence?.latestSeason?.season ?? 0)
     || a.profile.name.localeCompare(b.profile.name)
