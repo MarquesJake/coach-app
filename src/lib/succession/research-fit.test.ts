@@ -34,7 +34,7 @@ test('a club-linked saved mandate overrides legacy prose and retains structured 
   assert.ok(result.suggestedCoaches.length > 0)
   for (const candidate of result.suggestedCoaches) assert.deepEqual(candidate.fit, calculateResearchFit(m, candidate.research))
   const fit = result.suggestedCoaches.find(row => row.name === 'Kieran McKenna')!.fit
-  assert.equal(fit.dimensions.find(row => row.key === 'build')!.required, 'Short')
+  assert.equal(fit.dimensions.find(row => row.key === 'build')!.required, 'Short build from the back')
   assert.equal(fit.dimensions.find(row => row.key === 'pressing')!.required, 'High press')
   assert.equal(fit.dimensions.find(row => row.key === 'build')!.weight, fit.dimensions.find(row => row.key === 'pressing')!.weight * 3)
   assert.equal(result.requirements.brief.decision_brief, m.decision_brief)

@@ -1,4 +1,4 @@
-import { calculateResearchFit, matchEvidenceFor, normalizeCoachName, type MatchEvidence, type RankingBrief, type ResearchFit, type ResearchProfile } from './brief-fit.ts'
+import { calculateResearchFit, matchEvidenceFor, normalizeCoachName, type CodedEvidence, type MatchEvidence, type RankingBrief, type ResearchFit, type ResearchProfile } from './brief-fit.ts'
 import { RESEARCH_PROFILES } from './profiles.ts'
 import { eligibilityFor, type Eligibility } from '../../appointments/eligibility.ts'
 import type { AppointmentContext, AppointmentDecision } from '../../appointments/feasibility.ts'
@@ -70,7 +70,10 @@ function phrase(key: string, upper: string, lower: string): string {
     case 'attack': { const a = perMatch(upper), b = perMatch(lower); return a && b ? `more chances created — ${a} xG for per match, against ${b}` : 'more evidence of chance creation in the match data' }
     case 'pragmatism': return `a more pragmatic identity — ${identityWithPress(upper)} against ${identityWithPress(lower)}`
     case 'english': return /English clubs/.test(upper) && !/English clubs/.test(lower) ? 'English football on his record, which the other man lacks' : 'more English football on his record'
-    case 'identity': return `an identity closer to the club’s longer-term model — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
+    case 'transitions': return `transitions closer to the brief — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
+    case 'sample': return `more verified matches behind him — ${upper.split(' ')[0]} against ${lower.split(' ')[0]}`
+    case 'leadership': return 'checked references on leadership that the other man does not have yet'
+    case 'development': return 'checked evidence on player development that the other man does not have yet'
     default: return 'a closer match to the brief'
   }
 }
@@ -105,6 +108,8 @@ export function rankResearchProfiles(input: {
   records?: readonly CoachRecord[] | null
   decisions?: readonly AppointmentDecision[]
   profiles?: readonly ResearchProfile[]
+  /** Checked reference and interview evidence per coach record id; only this can score the people lines. */
+  codedEvidence?: ReadonlyMap<string, CodedEvidence>
 }): Ranking {
   const profiles = input.profiles ?? RESEARCH_PROFILES
   let unmatched = 0
@@ -113,9 +118,9 @@ export function rankResearchProfiles(input: {
     const record = recordFor(profile, input.records ?? null)
     if (record === null) { unmatched++; continue }
     const evidence = matchEvidenceFor(profile.apiId)
-    const fit = calculateResearchFit(input.brief, profile, evidence)
+    const fit = calculateResearchFit(input.brief, profile, evidence, record ? input.codedEvidence?.get(record.id) ?? null : null)
     if (fit.score === null) continue
-    const eligibility = eligibilityFor(profile, input.context, { decisions: input.decisions, evidence })
+    const eligibility = eligibilityFor(profile, input.context, { decisions: input.decisions, evidence, timeline: input.brief.succession_timeline })
     scored.push({ profile, record: record ?? null, fit: fit as RankedCoach['fit'], eligibility, evidence, position: null, joint: false, aheadOfNext: null })
   }
   const order = (a: RankedCoach, b: RankedCoach) => b.fit.score - a.fit.score

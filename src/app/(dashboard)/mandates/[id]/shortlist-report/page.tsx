@@ -6,6 +6,7 @@ import { loadMandateRanking, isAnalystOverride, standingLabel } from '@/lib/mand
 import { positionLabel } from '@/lib/scoring/research/ranking'
 import { RANKING_EVIDENCE_RETRIEVED_AT, modelFor, EVIDENCE_KIND_LABELS } from '@/lib/scoring/research/brief-fit'
 import { demonstrationLabel } from '@/lib/mandates/demonstration'
+import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
 import { PrintButton } from '../assessment/[coachId]/board-pack/print-button'
 
 export const metadata = { title: 'Shortlist report' }
@@ -17,7 +18,7 @@ export default async function ShortlistReportPage(props: { params: Promise<{ id:
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const [{ data: mandate }, ranking, recs, findingsRes] = await Promise.all([
-    supabase.from('mandates').select('id, custom_club_name, strategic_objective, tactical_model_required, pressing_intensity_required, build_preference_required, engagement_owner, clubs(name, current_manager)').eq('id', id).maybeSingle(),
+    supabase.from('mandates').select('id, custom_club_name, strategic_objective, tactical_model_required, pressing_intensity_required, build_preference_required, board_risk_appetite, succession_timeline, decision_brief, engagement_owner, clubs(name, current_manager)').eq('id', id).maybeSingle(),
     loadMandateRanking(id),
     supabase.from('candidate_recommendations').select('coach_id, verdict, summary, updated_at').eq('mandate_id', id),
     supabase.from('profile_claims').select('coach_id, claimed_value, source_type, source_name, reviewed_at').in('review_status', ['accepted', 'applied']).is('deleted_at', null).in('claim_type', ['approach_route', 'availability', 'current_status', 'contract', 'staff']),
@@ -50,6 +51,7 @@ export default async function ShortlistReportPage(props: { params: Promise<{ id:
       <p className="mt-2 text-xs text-muted-foreground">Weighting model: {modelFor(mandate).label}. {modelFor(mandate).summary}</p>
       {top[0]?.fit.modifiers.length ? <p className="mt-2 text-xs text-muted-foreground">{top[0].fit.modifiers.join(' ')}</p> : null}
       <p className="mt-2 text-xs text-muted-foreground">Fit with the brief measures football match, not the chance of success and not whether a coach can be signed.</p>
+      {(() => { const detail = safeDecisionBrief(mandate.decision_brief); const items = [['Success measures', detail.success_measures?.value], ['What the next coach must solve', detail.squad_problem?.value]].filter((item): item is [string, string] => Boolean(item[1])); return items.length ? <dl className="mt-3 space-y-2">{items.map(([label, value]) => <div key={label}><dt className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{label} · analyst brief, not scored</dt><dd className="mt-1 text-xs text-muted-foreground">{value}</dd></div>)}</dl> : null })()}
     </section>
 
     <section className="mt-8">
@@ -63,8 +65,9 @@ export default async function ShortlistReportPage(props: { params: Promise<{ id:
           {coach.aheadOfNext && <p className="mt-1 text-xs text-muted-foreground">{coach.aheadOfNext}</p>}
           <p className="mt-2 text-sm">{coach.profile.summary}</p>
           <p className="mt-2 text-xs"><span className="font-semibold">Situation:</span> {coach.eligibility.headline}. {coach.eligibility.reason}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Evidence: {coach.fit.dimensions.map(row => `${row.label} ${row.score}`).join(' · ')}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Evidence behind {coach.fit.coverage.evidencedWeight}% of the weight{coach.fit.coverage.unavailable.length ? ` · not yet covered: ${coach.fit.coverage.unavailable.join(', ')}` : ''}. {EVIDENCE_KIND_LABELS.unavailable}.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Lines: {coach.fit.dimensions.map(row => `${row.label} ${row.score === null ? 'not scored' : row.score}`).join(' · ')}</p>
+          <p className="mt-1 text-xs"><span className="font-semibold">Evidence: {coach.fit.coverage.reliability}</span> — {coach.fit.coverage.evidencedWeight}% of the intended weight is backed by evidence{coach.fit.coverage.unscored.length ? `; not scored: ${coach.fit.coverage.unscored.join(', ')}` : ''}. {EVIDENCE_KIND_LABELS.unavailable}.</p>
+          {coach.eligibility.timelineNote && <p className="mt-1 text-xs text-muted-foreground">{coach.eligibility.timelineNote}</p>}
           {coach.record && (findingsByCoach.get(coach.record.id) ?? []).map((finding, index) => <p key={index} className="mt-1 text-xs"><span className="font-semibold">{/demo/i.test(`${finding.source_type} ${finding.source_name}`) ? 'Approved finding (DEMO · fictional):' : 'Approved finding:'}</span> {finding.claimed_value}</p>)}
         </div>)}
       </div>

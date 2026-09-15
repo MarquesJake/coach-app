@@ -21,6 +21,7 @@ import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { boardCall, dimensionFor } from '@/lib/assessment/methodology'
 import { demonstrationLabel } from '@/lib/mandates/demonstration'
 import { canonicalCoachName } from '@/lib/coaches/canonical-name'
+import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
 import { loadMandateRanking, standingLabel, isAnalystOverride } from '@/lib/mandates/mandate-ranking.server'
 import { declarationReviewLabel } from '@/lib/assessment/material-status'
 import { canPrintCircumstances, referencesForPack } from '@/lib/assessment/pack-release'
@@ -97,7 +98,7 @@ export default async function BoardPackPage(
 
   const { data: mandate } = await supabase
     .from('mandates')
-    .select('id, custom_club_name, strategic_objective, budget_band, succession_timeline, clubs(name, league)')
+    .select('id, custom_club_name, strategic_objective, budget_band, succession_timeline, ownership_structure, decision_brief, clubs(name, league)')
     .eq('id', mandateId)
     .single()
   if (!mandate) notFound()
@@ -786,6 +787,17 @@ export default async function BoardPackPage(
             .filter(Boolean)
             .join(' · ')}
         </p>
+        {(() => {
+          const detail = safeDecisionBrief((mandate as { decision_brief?: unknown }).decision_brief)
+          const situation = (mandate as { ownership_structure?: string | null }).ownership_structure?.trim()
+          const items = [
+            ['Situation and trigger (analyst brief)', situation ? (situation.length > 700 ? `${situation.slice(0, 699)}…` : situation) : null],
+            ['What the next coach must solve (analyst hypotheses)', detail.squad_problem?.value ?? null],
+            ['Success measures (analyst brief)', detail.success_measures?.value ?? null],
+            ['Unresolved trade-offs', detail.contradictions?.value ?? null],
+          ].filter((item): item is [string, string] => Boolean(item[1]))
+          return items.length ? <dl className="mt-3 grid gap-2 sm:grid-cols-2 print:grid-cols-2">{items.map(([label, value]) => <div key={label}><dt className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-line text-2xs leading-relaxed text-muted-foreground">{value}</dd></div>)}</dl> : null
+        })()}
         <p className="text-[9px] text-muted-foreground/50 mt-4 tracking-widest uppercase">
           Confidential — prepared for the club’s board by Gaffa
         </p>

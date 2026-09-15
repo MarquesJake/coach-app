@@ -12,6 +12,17 @@ export type Eligibility = {
   employment: CurrentEmployment | null
   source: { title: string; url: string; checkedAt: string } | null
   decidedBy: 'rule' | 'analyst' | 'user'
+  /** The brief's appointment timeline set against his known situation. Never invents contract terms. */
+  timelineNote: string | null
+}
+
+/** A short timeline plus a coach in a job means a release would be needed inside the window; nothing more is inferred. */
+export function timelineNoteFor(timeline: string | null | undefined, employment: CurrentEmployment | null): string | null {
+  const window = /immediate|30 days/i.test(timeline ?? '') ? 'within 30 days' : /60 days/i.test(timeline ?? '') ? 'within 60 days' : /90 days/i.test(timeline ?? '') ? 'within 90 days' : null
+  if (!window) return null
+  if (employment?.status === 'employed') return `The brief wants an appointment ${window}: he is in a job, so a release would be needed inside that window — route, cost and his own view unknown. Diligence action, not a mark against his football.`
+  if (employment?.status === 'unattached') return `The brief wants an appointment ${window}: no club to release him from on the cited source. Interest and terms still unknown.`
+  return `The brief wants an appointment ${window}: his current situation is unconfirmed, so the timetable cannot be judged yet.`
 }
 
 /**
@@ -29,18 +40,20 @@ export const APPOINTMENT_POLICY = {
   latestUsableSeason: 2023,
 } as const
 
+/** A sourced non-coaching post (advisor, head of, director, executive) without a coaching title. */
+export const isExecutiveRole = (role: string | null | undefined) => !!role && /non-coaching|advis|head of|director|executive|chief/i.test(role) && !/head coach|first.?team coach|manager\b/i.test(role)
 const clean = (value: string | null | undefined) => (value ?? '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
 const matchesClub = (club: string, list: readonly string[]) => list.some(name => clean(club).includes(clean(name)))
 
 export function eligibilityFor(
   coach: Pick<ResearchProfile, 'apiId' | 'name' | 'aliases'>,
   context: AppointmentContext,
-  options: { decisions?: readonly AppointmentDecision[]; employment?: CurrentEmployment | null; evidence?: MatchEvidence | null; identityResolved?: boolean } = {},
+  options: { decisions?: readonly AppointmentDecision[]; employment?: CurrentEmployment | null; evidence?: MatchEvidence | null; identityResolved?: boolean; timeline?: string | null } = {},
 ): Eligibility {
   const employment = options.employment === undefined ? currentEmploymentForApiId(coach.apiId) ?? null : options.employment
   const evidence = options.evidence === undefined ? matchEvidenceFor(coach.apiId) : options.evidence
   const employmentSource = employment?.sourceUrl ? { title: employment.sourceTitle || 'Employment source', url: employment.sourceUrl, checkedAt: employment.checkedAt } : null
-  const base = { employment, source: employmentSource }
+  const base = { employment, source: employmentSource, timelineNote: timelineNoteFor(options.timeline, employment) }
 
   const explicit = appointmentFeasibility(coach, context, options.decisions ?? APPOINTMENT_DECISIONS)
   if (explicit.status === 'incumbent') return { ...base, status: 'incumbent', recommendable: false, decidedBy: 'rule', headline: 'Current manager — the benchmark', reason: 'He is the man in the job, so he is the yardstick for the others, not a successor.' }
@@ -52,6 +65,7 @@ export function eligibilityFor(
 
   if (employment?.status === 'employed') {
     const where = [employment.role, employment.club].filter(Boolean).join(', ')
+    if (isExecutiveRole(employment.role)) return { ...base, status: 'not-pursuing', recommendable: false, decidedBy: 'rule', headline: 'Not pursuing — executive role', reason: `${where}. He has moved into a non-coaching post; not a head-coach candidate while that stands.` }
     if (/national/i.test(`${employment.club} ${employment.role}`)) return { ...base, status: 'not-pursuing', recommendable: false, decidedBy: 'rule', headline: 'Not pursuing — international job', reason: `${where}. A national-team contract rules out a club move for this search.` }
     if (employment.club && matchesClub(employment.club, APPOINTMENT_POLICY.premierLeagueClubs)) return { ...base, status: 'not-pursuing', recommendable: false, decidedBy: 'rule', headline: 'Not pursuing — Premier League rival', reason: `${where}. We do not target a coach currently managing a Premier League club.` }
     if (employment.club && matchesClub(employment.club, APPOINTMENT_POLICY.europeanEliteClubs)) return { ...base, status: 'not-pursuing', recommendable: false, decidedBy: 'rule', headline: 'Not pursuing — elite club', reason: `${where}. Clubs at that level do not release their head coach mid-season.` }

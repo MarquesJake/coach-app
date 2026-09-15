@@ -91,7 +91,8 @@ export function successionResearchRequirements(club: SuccessionClub, mandates: S
     decision_brief: selected.decision_brief,
   }
   // Dimension presence depends on the brief, not on the coach's score. Use the shared rule to avoid drift.
-  const dimensions = calculateResearchFit(brief, RESEARCH_PROFILES[0], null).dimensions.filter(row => !['front-foot', 'recent'].includes(row.key))
+  // Only the brief-driven lines count towards readiness; evidence lines exist for every coach.
+  const dimensions = calculateResearchFit(brief, RESEARCH_PROFILES[0], null).dimensions.filter(row => ['style', 'build', 'pressing', 'record', 'transitions'].includes(row.key))
   const rows: ClubResearchRequirements['rows'] = fields.map(([, label, target]) => ({
     field: target, label: `${label} (broad brief field)`, savedValue: brief[target]?.trim() || null,
     mappedValue: null, status: brief[target]?.trim() ? 'saved-mandate' : 'missing',

@@ -6,6 +6,7 @@ import * as ranking from '../../lib/scoring/research/ranking.ts'
 import * as briefFit from '../../lib/scoring/research/brief-fit.ts'
 import { createElement } from 'react'
 import { demonstrationLabel } from '../../lib/mandates/demonstration.ts'
+import * as briefUsage from '../../lib/mandates/brief-usage.ts'
 import * as decisionBrief from '../../lib/mandates/decision-brief.ts'
 import { RESEARCH_PROFILES } from '../../lib/scoring/research/profiles.ts'
 
@@ -13,6 +14,7 @@ function harness() {
   return uiHarness(new URL('./brief-matches.tsx', import.meta.url), {
     '@/lib/appointments/feasibility': feasibility,
     '@/lib/scoring/research/brief-fit': briefFit,
+    '@/lib/mandates/brief-usage': briefUsage,
     '@/components/mandates/demonstration-badge': { DemonstrationBadge: (props: { mandateId?: string | null; clubId?: string | null }) => { const text = demonstrationLabel(props); return text ? createElement('p', null, text) : null } },
     '@/lib/scoring/research/ranking': ranking,
     '@/lib/mandates/decision-brief': decisionBrief,
@@ -52,7 +54,7 @@ test('a survival brief produces a different list under a different named model, 
   assert.match(text, /"mandateId":"c07e4a2e-0915-4bd1-9f3a-2026091500c1"/)
   assert.match(text, /Keeping a side in the top flight/)
   assert.match(text, /"evidenceKind":"unavailable"/)
-  assert.match(text, /"requirementSource":"Analyst demonstration brief — survival objective/)
+  assert.match(text, /"requirementSource":"Saved brief — survival brief/)
   const trophies = ranking.rankResearchProfiles({ brief, context: { mandateId: brief.id }, records: RESEARCH_PROFILES.map(row => ({ id: String(row.apiId), name: row.name })) }).shortlist.slice(0, 3).map(row => row.profile.name)
   const survivalTop = ranking.rankResearchProfiles({ brief: survival, context: { mandateId: survival.id }, records: RESEARCH_PROFILES.map(row => ({ id: String(row.apiId), name: row.name })) }).shortlist.slice(0, 3).map(row => row.profile.name)
   assert.notDeepEqual(trophies, survivalTop)
