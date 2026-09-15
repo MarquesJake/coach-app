@@ -1,10 +1,14 @@
 export const PORTAL_ENTRIES = [
-  { id: 'club', label: 'Club decision room', login: '/club/login', home: '/club' },
-  { id: 'coach', label: 'Coach or representative', login: '/coach/login', home: '/coach/profile' },
-  { id: 'internal', label: 'Internal team', login: '/login', home: '/dashboard' },
-  { id: 'investor', label: 'Investor evaluation', login: '/investor/login', home: '/investor' },
+  { id: 'club', label: 'Club decision room', login: '/club/login', home: '/club', listed: true },
+  { id: 'coach', label: 'Coach or representative', login: '/coach/login', home: '/coach/profile', listed: true },
+  { id: 'internal', label: 'Internal team', login: '/login', home: '/dashboard', listed: true },
+  // The investor door is reached only through its own link; it is never shown on public sign-in pages.
+  { id: 'investor', label: 'Investor evaluation', login: '/investor/login', home: '/investor', listed: false },
 ] as const
 export type PortalRole = typeof PORTAL_ENTRIES[number]['id']
+
+/** Doors offered on the homepage, the internal sign-in page and account recovery. */
+export const LISTED_PORTAL_ENTRIES = PORTAL_ENTRIES.filter(entry => entry.listed)
 
 export function parsePortalRole(value: string | null | undefined): PortalRole | null {
   return PORTAL_ENTRIES.find(entry => entry.id === value)?.id ?? null

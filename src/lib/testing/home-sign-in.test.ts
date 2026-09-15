@@ -18,9 +18,16 @@ test('homepage Sign in opens login rather than a same-page workspace anchor', as
   const chooser = nodes.find(node => Array.isArray(node.props.children) && node.props.children.includes('Pick your door'))!
   assert.equal(chooser.type, 'a')
   assert.equal(chooser.props.href, '#workspaces')
-  for (const entry of portals.PORTAL_ENTRIES) {
+  for (const entry of portals.LISTED_PORTAL_ENTRIES) {
     assert.ok(nodes.some(node => node.props.href === entry.login), entry.id)
   }
+})
+
+test('homepage never offers the investor evaluation door', async () => {
+  const nodes = await home()
+  assert.ok(!nodes.some(node => node.props.href === '/investor/login'))
+  assert.ok(!nodes.some(node => Array.isArray(node.props.children) && node.props.children.includes('Investor evaluation')))
+  assert.deepEqual(portals.LISTED_PORTAL_ENTRIES.map(entry => entry.id), ['club', 'coach', 'internal'])
 })
 
 test('homepage sign-in retains safe appointment return paths and rejects external destinations', async () => {
