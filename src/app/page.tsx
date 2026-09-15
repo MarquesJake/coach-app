@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowUpRight, ArrowRight, Zap } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { PORTAL_ENTRIES, portalLoginHref } from '@/lib/organizations/portal-entry'
+import { LISTED_PORTAL_ENTRIES, portalLoginHref } from '@/lib/organizations/portal-entry'
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams
@@ -12,7 +12,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ n
       <section id="workspaces" className="scroll-mt-6 border-b border-border py-10">
         <h2 className="font-serif text-2xl">Sign in</h2>
         <p className="mt-2 text-sm text-muted-foreground">Use the door on your invitation.</p>
-        <nav aria-label="Workspace sign in" className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{PORTAL_ENTRIES.map(entry => <Link key={entry.id} href={portalLoginHref(entry.id, next)} className="flex items-center justify-between rounded-md border border-border bg-card p-5 text-sm font-semibold hover:bg-secondary/30">{entry.label}<ArrowRight className="h-4 w-4" /></Link>)}</nav>
+        <nav aria-label="Workspace sign in" className="mt-6 grid gap-3 sm:grid-cols-3">{LISTED_PORTAL_ENTRIES.map(entry => <Link key={entry.id} href={portalLoginHref(entry.id, next)} className="flex items-center justify-between rounded-md border border-border bg-card p-5 text-sm font-semibold hover:bg-secondary/30">{entry.label}<ArrowRight className="h-4 w-4" /></Link>)}</nav>
       </section>
       <section aria-label="What Gaffa brings together" className="grid gap-10 py-12 md:grid-cols-3 md:gap-16">{[
         ['01','The brief','How you want to play, what the job needs and what you can spend — agreed before a single name comes up.'],

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { KeyRound, LoaderCircle, MailCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { parsePortalRole, passwordUpdateHref, PORTAL_ENTRIES, portalLoginHref, portalRecoveryHref } from '@/lib/organizations/portal-entry'
+import { LISTED_PORTAL_ENTRIES, parsePortalRole, passwordUpdateHref, PORTAL_ENTRIES, portalLoginHref, portalRecoveryHref } from '@/lib/organizations/portal-entry'
 
 export default function RecoverPasswordPage() {
   return <Suspense fallback={<p className="p-8">Loading account recovery...</p>}><RecoveryForm /></Suspense>
@@ -45,7 +45,7 @@ function RecoveryForm() {
           {!portal ? <>
             <h1 className="font-serif text-3xl font-semibold">Choose your workspace</h1>
             <p className="mt-3 text-sm leading-6 text-slate-600">Select the workspace named in your invitation to recover access.</p>
-            <nav aria-label="Account recovery workspace" className="mt-6 grid gap-3">{PORTAL_ENTRIES.map(entry => <Link key={entry.id} href={portalRecoveryHref(entry.id, destination)} className="rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-semibold">{entry.label}</Link>)}</nav>
+            <nav aria-label="Account recovery workspace" className="mt-6 grid gap-3">{LISTED_PORTAL_ENTRIES.map(entry => <Link key={entry.id} href={portalRecoveryHref(entry.id, destination)} className="rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-semibold">{entry.label}</Link>)}</nav>
           </> : sent ? (
             <>
               <MailCheck className="h-6 w-6 text-emerald-800" />

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { LoaderCircle, Zap } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { PORTAL_ENTRIES, portalDestination, portalLoginHref, portalRecoveryHref } from '@/lib/organizations/portal-entry'
+import { LISTED_PORTAL_ENTRIES, portalDestination, portalLoginHref, portalRecoveryHref } from '@/lib/organizations/portal-entry'
 
 export default function LoginPage() {
   return <Suspense fallback={<p className="p-8">Loading sign in...</p>}><InternalLogin /></Suspense>
@@ -116,7 +116,7 @@ function InternalLogin() {
               Clubs and coaches sign in through their own invitation link.
             </p>
             <nav aria-label="Choose your workspace" className="mt-3 flex flex-wrap justify-center gap-3 text-xs text-primary">
-              {PORTAL_ENTRIES.filter(entry => entry.id !== 'internal').map(entry => <Link key={entry.id} href={portalLoginHref(entry.id, searchParams.get('next'))} className="underline">{entry.label}</Link>)}
+              {LISTED_PORTAL_ENTRIES.filter(entry => entry.id !== 'internal').map(entry => <Link key={entry.id} href={portalLoginHref(entry.id, searchParams.get('next'))} className="underline">{entry.label}</Link>)}
             </nav>
           </div>
         </div>
