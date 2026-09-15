@@ -2,6 +2,7 @@ import { ResearchQueue } from '@/components/research-queue'
 import Link from 'next/link'
 import { loadAppointmentNextActions } from '@/lib/mandates/appointment-next-action.server'
 import { demonstrationLabel } from '@/lib/mandates/demonstration'
+import { canonicalCoachName } from '@/lib/coaches/canonical-name'
 import { redirect } from 'next/navigation'
 import {
   ArrowUpRight,
@@ -173,6 +174,7 @@ function sourceName(
   agentMap: Map<string, string>,
   contactMap: Map<string, string>
 ): string {
+  if (/^demo/i.test(String(claim.source_type ?? '')) || /^DEMO/i.test(String(claim.source_name ?? ''))) return 'Fictional demo conversation — not real intelligence'
   if (provenance === 'agent_supplied') return agentMap.get(claim.agent_id) ?? 'Agent source'
   if (provenance === 'independent_source') return contactMap.get(claim.contact_id) ?? 'Trusted football source'
   return claim.source_name || 'Public source'
@@ -285,7 +287,7 @@ export default async function DashboardPage(
     agent.id,
     agent.agency_name ? `${agent.full_name} · ${agent.agency_name}` : agent.full_name,
   ]))
-  const coachMap = new Map((coachesResult.data ?? []).map((coach) => [coach.id, coach.name]))
+  const coachMap = new Map((coachesResult.data ?? []).map((coach) => [coach.id, canonicalCoachName(coach.id, coach.name)]))
   const clubMap = new Map((clubsResult.data ?? []).map((club) => [club.id, club.name]))
 
   const [
@@ -483,9 +485,10 @@ export default async function DashboardPage(
   for (const target of campaignContactsResult.data ?? []) {
     const campaign = campaignMap.get(target.campaign_id)
     if (!campaign) continue
-    const source = target.contact_id
-      ? contactMap.get(target.contact_id) ?? 'Trusted source'
-      : target.prospect_name ?? target.prospect_role ?? 'Reference prospect'
+    const source = /^DEMO/i.test(String(campaign.title ?? '')) ? 'Fictional demo reference round'
+      : target.contact_id
+        ? contactMap.get(target.contact_id) ?? 'Trusted source'
+        : target.prospect_name ?? target.prospect_role ?? 'Reference prospect'
     items.push(createOperationsItem({
       id: `reference-${target.id}`,
       recordId: target.id,
