@@ -6,6 +6,7 @@
 import { DEEP_DIVES, FINAL_EVALUATIONS } from './deep-dive-data'
 import { DEEP_DIVE_EXTRAS } from './deep-dive-extras'
 import { TOTTENHAM_DEEP_DIVES, TOTTENHAM_FINAL_EVALUATIONS, MANDATE_FIT_OVERRIDES } from './deep-dive-tottenham'
+import { MEETING_FINAL_EVALUATIONS } from './deep-dive-meeting'
 
 export type SeasonRow = { season: string; club: string; league: string; played: number; w: number; d: number; l: number; gf: number; ga: number; xgf: number; xga: number; finish: string }
 export type XgSplit = { transition: number; buildUp: number; restart: number; corners: number; directFk: number; indirectFk: number; throwIns: number }
@@ -88,7 +89,7 @@ export function deepDiveFor(coachId: string, mandateId?: string): DeepDive | nul
 
 export function finalEvaluationFor(mandateId: string, coachId: string): FinalEvaluation | null {
   const key = `${mandateId}:${coachId}`
-  const evaluation = FINAL_EVALUATIONS[key] ?? TOTTENHAM_FINAL_EVALUATIONS[key]
+  const evaluation = FINAL_EVALUATIONS[key] ?? TOTTENHAM_FINAL_EVALUATIONS[key] ?? MEETING_FINAL_EVALUATIONS[key]
   return evaluation ? { ...evaluation, mandateId, currentManagerBenchmark: isCurrentManagerBenchmark(mandateId, coachId) } : null
 }
 

@@ -1,6 +1,7 @@
 import { ResearchQueue } from '@/components/research-queue'
 import Link from 'next/link'
 import { loadAppointmentNextActions } from '@/lib/mandates/appointment-next-action.server'
+import { demonstrationLabel } from '@/lib/mandates/demonstration'
 import { redirect } from 'next/navigation'
 import {
   ArrowUpRight,
@@ -783,6 +784,7 @@ export default async function DashboardPage(
                       {nextAction ? `Next: ${nextAction.label}` : 'Next step not loaded — refresh to check'}
                     </p>
                     {nextAction && <p className="mt-1 text-xs text-muted-foreground">{nextAction.detail}</p>}
+                    {demonstrationLabel({ mandateId: mandate.id }) && <p role="note" className="mt-1 text-[11px] font-medium text-amber-800 dark:text-amber-300">{demonstrationLabel({ mandateId: mandate.id })}</p>}
                   </div>
                   <div>
                     <p className="text-xs text-foreground">{serviceLabel}</p>

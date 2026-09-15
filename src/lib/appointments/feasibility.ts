@@ -23,9 +23,18 @@ const marescaDecision = {
   reason: 'Not pursuing for Tottenham: user-directed appointment decision following Manchester City’s confirmation of Maresca’s 29 June appointment on a three-year contract. This is not a claim that a transfer is impossible; a verified route would require a new review.',
   source: { title: 'Manchester City: Maresca coaching team confirmed', url: 'https://www.mancity.com/news/mens/coaching-team-enzo-maresca-confirmed-63919119/' },
 } as const
+export const COVENTRY_CLUB_ID = 'ebd45bd1-bb8b-4ec8-8213-3d33121ae15e'
+export const COVENTRY_MANDATE_ID = 'c07e4a2e-0915-4bd1-9f3a-2026091500c1'
+const silvaCoventryDecision = {
+  coachApiId: 10, status: 'not-pursuing', decidedBy: 'analyst', checkedAt: '2026-09-15',
+  reason: 'Not pursuing for Coventry: analyst call. Appointed Benfica head coach on 9 June 2026 on a three-year deal, three months before this review, with Champions League football. A move into a Premier League relegation fight in his first season there is not a realistic route. Not a claim about his interest; a new review would be needed if his situation changed.',
+  source: { title: 'Marco Silva to leave Fulham amid Benfica links (Sky Sports)', url: 'https://www.skysports.com/football/news/11681/13546506/marco-silva-to-leave-fulham-portuguese-head-coach-to-depart-after-five-seasons-in-charge-amid-benfica-links' },
+} as const
 export const APPOINTMENT_DECISIONS: readonly AppointmentDecision[] = [
   { ...marescaDecision, scope: { clubId: TOTTENHAM_CLUB_ID } },
   { ...marescaDecision, scope: { mandateId: TOTTENHAM_MANDATE_ID } },
+  { ...silvaCoventryDecision, scope: { clubId: COVENTRY_CLUB_ID } },
+  { ...silvaCoventryDecision, scope: { mandateId: COVENTRY_MANDATE_ID } },
 ]
 
 /** No employment, budget or availability inference. Explicit mandate reviews override club policy.

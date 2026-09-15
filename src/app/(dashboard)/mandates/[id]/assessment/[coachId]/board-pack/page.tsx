@@ -19,6 +19,7 @@ import { canStaffMemberAppearInPack } from '@/lib/coach-appointment'
 import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { boardCall, dimensionFor } from '@/lib/assessment/methodology'
+import { demonstrationLabel } from '@/lib/mandates/demonstration'
 import { loadMandateRanking, standingLabel, isAnalystOverride } from '@/lib/mandates/mandate-ranking.server'
 import { declarationReviewLabel } from '@/lib/assessment/material-status'
 import { canPrintCircumstances, referencesForPack } from '@/lib/assessment/pack-release'
@@ -294,6 +295,7 @@ export default async function BoardPackPage(
         <p className="text-sm text-slate-300">Prepared for {clubName}. Not yet cleared to share outside the club’s board.</p>
         <p className="mt-3 text-xs text-slate-300">{deepDive ? 'Assessment content is illustrative; match data and dated sources are real and marked as such' : `${status.recordedLabel} · ${status.reviewedLabel}`} </p>
         <p className="mt-2 text-xs text-slate-300">{deepDive ? 'Every claim needs checking, and terms confirming with the club, before this is used as a recommendation.' : status.nextAction}</p>
+        {demonstrationLabel({ mandateId }) && <p role="note" className="mt-3 rounded border border-amber-300/50 bg-amber-300/10 px-2.5 py-1.5 text-xs font-medium text-amber-100">{demonstrationLabel({ mandateId })}</p>}
         <p className="text-xs text-slate-400 mt-1">
           Generated {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
         </p>

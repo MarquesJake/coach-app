@@ -15,6 +15,7 @@ import {
 } from '@/lib/succession/radar'
 import { cn } from '@/lib/utils'
 import { ResearchComparison } from './_components/research-comparison'
+import { demonstrationLabel } from '@/lib/mandates/demonstration'
 
 export const metadata = { title: 'Succession' }
 
@@ -198,6 +199,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
                     <p className="mt-2 text-xs text-muted-foreground">
                       {linkedClubIds.has(item.club.id) ? 'Source: active brief linked to this club record' : 'Source: saved club fields · no active brief linked to this record'}
                     </p>
+                    {demonstrationLabel({ clubId: item.club.id }) && <p role="note" className="mt-2 max-w-2xl rounded border border-amber-600/30 bg-amber-50 px-2 py-1 text-[11px] font-medium leading-4 text-amber-950 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-100">{demonstrationLabel({ clubId: item.club.id })}</p>}
                     <p className="mt-1 break-all text-[10px] text-muted-foreground">Club record: {item.club.id}</p>
                   </div>
                   <div className="min-w-[160px] text-right">

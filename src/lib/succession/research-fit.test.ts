@@ -25,7 +25,8 @@ function mandate(fields: Partial<SuccessionMandateSignal> = {}): SuccessionManda
 
 test('a club-linked saved mandate overrides legacy prose and retains structured answer weights exactly', () => {
   const c = club({ tactical_model: 'high press, possession, aggressive rotations', pressing_model: 'situational pressing and recovery', build_model: 'technical progression' })
-  const m = mandate()
+  // A promotion objective keeps the standard model; a survival objective would switch to the survival weights.
+  const m = mandate({ strategic_objective: 'Achieve promotion' })
   const result = buildSuccessionRadar({ clubs: [c], mandates: [m], coaches, intelligence: [], inbox: [] })[0]
   assert.equal(result.requirements.source.kind, 'mandate')
   assert.equal(result.requirements.source.mandateId, m.id)
@@ -38,7 +39,7 @@ test('a club-linked saved mandate overrides legacy prose and retains structured 
   assert.equal(fit.dimensions.find(row => row.key === 'build')!.weight, fit.dimensions.find(row => row.key === 'pressing')!.weight * 3)
   assert.equal(result.requirements.brief.decision_brief, m.decision_brief)
   assert.equal(result.requirements.rows.find(row => row.field === 'decision_brief.in_possession')!.priority, 'Essential')
-  const preferred = mandate({ decision_brief: { in_possession: { value: 'Build through pressure', priority: 'Preferred' }, out_of_possession: { value: 'High press', priority: 'Essential' } } })
+  const preferred = mandate({ strategic_objective: 'Achieve promotion', decision_brief: { in_possession: { value: 'Build through pressure', priority: 'Preferred' }, out_of_possession: { value: 'High press', priority: 'Essential' } } })
   const changed = successionResearchRequirements(c, [preferred])
   const weighted = rankReviewedCoaches(coaches, c, changed).matches.find(row => row.name === 'Kieran McKenna')!.fit
   assert.notEqual(weighted.dimensions.find(row => row.key === 'build')!.weight, fit.dimensions.find(row => row.key === 'build')!.weight)

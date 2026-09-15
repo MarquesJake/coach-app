@@ -23,7 +23,8 @@ test('candidate load failures cannot be presented as an empty shortlist', () => 
   const page = read('mandates/[id]/candidates/page.tsx')
   assert.match(page, /if \(shortlistError\) throw/)
   assert.match(page, /recommendationsRes.error \|\| assessmentsRes.error \|\| evidenceRes.error/)
-  assert.match(page, /if \(longlistError\) throw/)
+  assert.match(page, /if \(!ranking\) throw/)
+  assert.doesNotMatch(page, /mandate_longlist/)
 })
 
 test('source-linked creation remains a deliberate two-step agreement', () => {
