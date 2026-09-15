@@ -47,9 +47,10 @@ function frontFoot(recorded: string) {
 const season = (recorded: string) => recorded.match(/\d{4}\/\d{2}/)?.[0] ?? 'no recent season'
 const perMatch = (recorded: string) => recorded.match(/(\d+\.\d+) xG/)?.[1] ?? null
 const careerShape = (recorded: string) => {
-  const promotion = /Promotion/.test(recorded), topFlight = /Top-flight/.test(recorded)
-  return promotion && topFlight ? 'a promotion and top-flight football' : topFlight ? 'top-flight football, no promotion' : promotion ? 'a promotion, no top-flight season' : 'neither a promotion nor a top-flight season'
+  const promotion = /Promotion/.test(recorded), topFlight = /Top-flight/.test(recorded), elite = /European trophy|Domestic title|Top-four finish/.test(recorded)
+  return promotion && topFlight ? 'a promotion and top-flight football' : promotion ? 'a promotion, no top-flight season' : topFlight && !elite ? 'top-flight work without elite honours' : elite ? 'a career built on elite honours' : 'neither a promotion nor a top-flight season'
 }
+const identityWithPress = (recorded: string) => recorded.split(' · ').slice(0, 2).join(', ').toLowerCase()
 
 /** One plain reason per dimension, phrased the way an analyst would say it. */
 function phrase(key: string, upper: string, lower: string): string {
@@ -67,7 +68,7 @@ function phrase(key: string, upper: string, lower: string): string {
     case 'underdog': return `a career shaped by lifting smaller sides — ${careerShape(upper)} against ${careerShape(lower)}`
     case 'defence': { const a = perMatch(upper), b = perMatch(lower); return a && b ? `a tighter defence in the match data — ${a} xG against per match, against ${b}` : 'more evidence of defensive organisation in the match data' }
     case 'attack': { const a = perMatch(upper), b = perMatch(lower); return a && b ? `more chances created — ${a} xG for per match, against ${b}` : 'more evidence of chance creation in the match data' }
-    case 'pragmatism': return `a more pragmatic identity — ${upper.split(' · ')[0].toLowerCase()} against ${lower.split(' · ')[0].toLowerCase()}`
+    case 'pragmatism': return `a more pragmatic identity — ${identityWithPress(upper)} against ${identityWithPress(lower)}`
     case 'english': return /English clubs/.test(upper) && !/English clubs/.test(lower) ? 'English football on his record, which the other man lacks' : 'more English football on his record'
     case 'identity': return `an identity closer to the club’s longer-term model — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
     default: return 'a closer match to the brief'
@@ -90,7 +91,7 @@ function explainGap(upper: RankedCoach, lower: RankedCoach): string {
   const loss = diffs.filter(item => item.delta < 0).at(-1)
   const gap = (upper.fit.score - lower.fit.score).toFixed(1)
   const lead = `${gap} ahead of ${lower.profile.name}: ${gains.join('; and ') || 'a closer match to the brief overall'}.`
-  return loss ? `${lead} ${lower.profile.name.split(' ').at(-1)} has ${phrase(loss.row.key, loss.other?.recorded ?? '', loss.row.recorded).replace(/^a stronger record/, 'the better record').replace(/^a /, 'the ')}.` : lead
+  return loss ? `${lead} ${lower.profile.name} has ${phrase(loss.row.key, loss.other?.recorded ?? '', loss.row.recorded).replace(/^a stronger record/, 'the better record').replace(/^a /, 'the ')}.` : lead
 }
 
 /**

@@ -20,6 +20,7 @@ import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { boardCall, dimensionFor } from '@/lib/assessment/methodology'
 import { demonstrationLabel } from '@/lib/mandates/demonstration'
+import { canonicalCoachName } from '@/lib/coaches/canonical-name'
 import { loadMandateRanking, standingLabel, isAnalystOverride } from '@/lib/mandates/mandate-ranking.server'
 import { declarationReviewLabel } from '@/lib/assessment/material-status'
 import { canPrintCircumstances, referencesForPack } from '@/lib/assessment/pack-release'
@@ -46,7 +47,8 @@ export async function generateMetadata(
   )
   // Absolute: skip the appointment layout's template so the saved PDF is named
   // for the candidate and club alone.
-  return { title: { absolute: club ? `${coach.name} – ${club} board report` : `${coach.name} board report` } }
+  const coachName = canonicalCoachName(coachId, coach.name)
+  return { title: { absolute: club ? `${coachName} – ${club} board report` : `${coachName} board report` } }
 }
 
 
@@ -287,10 +289,10 @@ export default async function BoardPackPage(
         <span className="absolute top-6 right-6 bg-emerald-700 text-white text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 rounded-sm">
           CONFIDENTIAL
         </span>
-        <h1 className="text-3xl font-serif font-bold leading-tight">Coach ID report<span className="sr-only">: {coach.name}</span></h1>
+        <h1 className="text-3xl font-serif font-bold leading-tight">Coach ID report<span className="sr-only">: {canonicalCoachName(coachId, coach.name)}</span></h1>
         <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">Head coach assessment · {clubName}</p>
         <p className="mt-3 text-sm font-bold text-amber-200">{deepDive ? 'Worked example — illustrative assessment' : status.coverLabel}</p>
-        <p className="text-3xl font-serif font-bold text-slate-400 leading-tight">{coach.name}</p>
+        <p className="text-3xl font-serif font-bold text-slate-400 leading-tight">{canonicalCoachName(coachId, coach.name)}</p>
         <div className="w-16 h-0.5 bg-emerald-500 my-6" />
         <p className="text-sm text-slate-300">Prepared for {clubName}. Not yet cleared to share outside the club’s board.</p>
         <p className="mt-3 text-xs text-slate-300">{deepDive ? 'Assessment content is illustrative; match data and dated sources are real and marked as such' : `${status.recordedLabel} · ${status.reviewedLabel}`} </p>
@@ -317,7 +319,7 @@ export default async function BoardPackPage(
           <p className="mt-1 text-muted-foreground">Recorded by {ranking.mandate.engagement_owner?.trim() || 'Gaffa analyst'}{(recommendation as { updated_at?: string }).updated_at ? ` · ${new Date((recommendation as { updated_at: string }).updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}</p>
         </div>}
       </section>}
-      <VerifiedMatchEvidence coachName={coach.name} />
+      <VerifiedMatchEvidence coachName={canonicalCoachName(coachId, coach.name)} />
       {deepDive && <section role="note" className="my-5 rounded-lg border border-amber-500/60 p-4 text-sm print:break-inside-avoid"><strong>Worked example</strong><p className="mt-1">The nine-area scores, SWOT, budget and analyst verdict below show what a finished report looks like; they are illustrative. The ranking above, the verified match data and anything with a dated source are real.</p></section>}
       {/* At a glance — Strengths / Risks / Recommendation, per the target deck format */}
       <section className="mt-8 print:break-inside-avoid">

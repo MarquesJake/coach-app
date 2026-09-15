@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { readResearchContext, contextFromResearchNote, researchHref, type ResearchParams } from '@/lib/research-context'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { canonicalCoachName } from '@/lib/coaches/canonical-name'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { formatEnumLabel } from '@/lib/intelligence/display'
 import { ConversationCaptureClient } from '../_components/conversation-capture-client'
@@ -29,7 +30,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
   if (results.some(result => result.error)) throw new Error('Could not load conversations and source details. Please retry.')
   const [{ data: sessions }, { data: contacts }, { data: coaches }, { data: claims }] = results
   const contactMap = new Map((contacts ?? []).map((row: { id: string; full_name: string }) => [row.id, row.full_name]))
-  const coachMap = new Map((coaches ?? []).map((row) => [row.id, row.name]))
+  const coachMap = new Map((coaches ?? []).map((row) => [row.id, canonicalCoachName(row.id, row.name)]))
   const claimCounts = new Map<string, { total: number; accepted: number }>()
   for (const claim of claims ?? []) {
     const current = claimCounts.get(claim.session_id) ?? { total: 0, accepted: 0 }
