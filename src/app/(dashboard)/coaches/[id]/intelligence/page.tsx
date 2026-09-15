@@ -1,6 +1,7 @@
 import { isIllustrativeEvidence } from '@/lib/assessment/evidence-integrity'
 import { contextFromResearchNote, researchHref } from '@/lib/research-context'
 import { assertRouteQueries } from '@/lib/coaches/route-audit'
+import { CoachReferences } from '../_components/coach-references'
 import Link from '@/app/(dashboard)/coaches/_components/research-context-link'
 import { notFound, redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
@@ -90,6 +91,7 @@ export default async function CoachIntelligencePage(props: { params: Promise<{ i
 
   return (
     <div className="space-y-5">
+      <CoachReferences coachId={params.id} />
       <section className="rounded-lg border border-border bg-card p-4">
         <h2 className="font-semibold">Saved conversations</h2>
         <p className="mt-1 text-sm text-muted-foreground">Notes and transcripts stay attached to this coach. A conversation is not a verified finding; demo examples do not contribute to evidence coverage or football fit.</p>
