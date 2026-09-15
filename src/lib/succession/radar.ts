@@ -27,6 +27,7 @@ export type SuccessionMandateSignal = {
   pipeline_stage: string | null
   status: string | null
   strategic_objective: string | null
+  board_risk_appetite?: string | null
   succession_timeline: string | null
   created_at: string
   tactical_model_required?: string | null

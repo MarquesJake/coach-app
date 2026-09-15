@@ -18,6 +18,7 @@ export type RankingBrief = {
   pressing_intensity_required?: string | null
   build_preference_required?: string | null
   strategic_objective?: string | null
+  board_risk_appetite?: string | null
   decision_brief?: unknown
 }
 /** What kind of evidence sits behind a dimension, so the board can read each line for what it is. */
@@ -43,6 +44,38 @@ export type ResearchFit = {
   model: 'trophies' | 'survival'
   /** Share of the weight backed by evidence, and the dimensions still waiting for some. */
   coverage: { evidencedWeight: number; unavailable: string[] }
+  /** Brief answers that changed the weights (change to the model, board risk appetite), in plain words. */
+  modifiers: string[]
+}
+
+/**
+ * Two brief answers change how much the football-match lines and the proven-record lines weigh.
+ * "Preserve current model" makes the football lines count 1.5×; "Substantial rebuild" makes them
+ * 0.75× and proven lines 1.25×. A conservative board makes proven lines 1.5×; an aggressive one 0.75×.
+ * Published rules, shown on every card; a Gradual evolution / Moderate brief changes nothing.
+ */
+export function briefModifiers(brief: RankingBrief): { football: number; proven: number; notes: string[] } {
+  const detail = safeDecisionBrief(brief.decision_brief)
+  let football = 1, proven = 1
+  const notes: string[] = []
+  const adaptation = detail.adaptation?.value
+  if (adaptation === 'Preserve current model') { football *= 1.5; notes.push('Brief says preserve the current model — the football-match lines (identity, build-up, block) count 1.5×.') }
+  if (adaptation === 'Substantial rebuild') { football *= 0.75; proven *= 1.25; notes.push('Brief says substantial rebuild — football-match lines count 0.75×, proven-record lines 1.25×.') }
+  const appetite = (brief.board_risk_appetite ?? '').toLowerCase()
+  if (appetite === 'conservative') { proven *= 1.5; notes.push('Conservative board — proven-record lines (achievement, top-flight record, recent seasons) count 1.5×.') }
+  if (appetite === 'aggressive') { proven *= 0.75; notes.push('Aggressive board — proven-record lines count 0.75×; an unproven coach is not held back as much.') }
+  return { football, proven, notes }
+}
+export const FOOTBALL_KEYS = ['style', 'build', 'pressing', 'identity', 'block', 'pragmatism']
+export const PROVEN_KEYS = ['record', 'recent', 'survival', 'underdog']
+/** Apply the brief modifiers to raw weights before they are scaled to 100. */
+export function applyModifiers(rows: FitDimension[], brief: RankingBrief): string[] {
+  const modifiers = briefModifiers(brief)
+  for (const row of rows) {
+    if (FOOTBALL_KEYS.includes(row.key)) row.weight *= modifiers.football
+    if (PROVEN_KEYS.includes(row.key)) row.weight *= modifiers.proven
+  }
+  return modifiers.notes
 }
 export const TROPHIES_MODEL = {
   key: 'trophies',
@@ -135,7 +168,7 @@ export function calculateResearchFit(brief: RankingBrief, coach: ResearchProfile
   }
 
   for (const [key, value] of Object.entries(detail)) {
-    if (value.value && !['in_possession', 'out_of_possession'].includes(key)) manualChecks.push(`${key.replaceAll('_', ' ')} (${value.priority.toLowerCase()}): ${value.value}`)
+    if (value.value && !['in_possession', 'out_of_possession', 'adaptation'].includes(key)) manualChecks.push(`${key.replaceAll('_', ' ')} (${value.priority.toLowerCase()}): ${value.value}`)
   }
   // Verified match data backs up (or undercuts) the research label for front-foot briefs.
   if (style === 'Possession' || style === 'Pressing') {
@@ -162,6 +195,7 @@ export function calculateResearchFit(brief: RankingBrief, coach: ResearchProfile
     10, recentScore, 'Latest club season with 10+ verified league matches: 2025/26 or later = 100, 2024/25 = 80, 2023/24 = 60, older or none = 30.',
     latest ? 'calculated' : 'unavailable', latest ? `${latest.club} ${seasonLabel(latest.season)} · ${latest.matches} verified league matches` : 'No verified club season')
 
+  const modifiers = applyModifiers(rows, brief)
   const total = rows.reduce((sum, row) => sum + row.weight, 0)
   for (const row of rows) {
     row.weight = row.weight / total * 100
@@ -173,5 +207,6 @@ export function calculateResearchFit(brief: RankingBrief, coach: ResearchProfile
   return {
     score: briefDimensions < 2 ? null : Math.round(raw * 10) / 10, dimensions: rows, manualChecks, model: TROPHIES_MODEL.key,
     coverage: { evidencedWeight: Math.round(evidenced), unavailable: rows.filter(row => row.evidenceKind === 'unavailable').map(row => row.label) },
+    modifiers,
   }
 }

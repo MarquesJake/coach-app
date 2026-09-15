@@ -68,3 +68,18 @@ test('build-up and the defensive block are scored from the brief, so a long-ball
   assert.equal(b.dimensions.find(row => row.key === 'block')!.score, 30)
   assert.ok(a.score! > b.score!)
 })
+
+test('preserve-the-model and a conservative board change the weights openly; gradual evolution and a moderate board change nothing', () => {
+  const plain = calculateResearchFit(survival, pragmatic, evidence(1.3, 1.3))
+  assert.deepEqual(plain.modifiers, [])
+  const preserve = calculateResearchFit({ ...survival, decision_brief: { ...survival.decision_brief, adaptation: { value: 'Preserve current model', priority: 'Preferred' } } }, pragmatic, evidence(1.3, 1.3))
+  assert.equal(preserve.modifiers.length, 1)
+  assert.ok(preserve.dimensions.find(row => row.key === 'block')!.weight > plain.dimensions.find(row => row.key === 'block')!.weight)
+  assert.ok(Math.abs(preserve.dimensions.reduce((sum, row) => sum + row.weight, 0) - 100) < 0.00001)
+  const conservative = calculateResearchFit({ ...survival, board_risk_appetite: 'Conservative' }, pragmatic, evidence(1.3, 1.3))
+  assert.ok(conservative.dimensions.find(row => row.key === 'survival')!.weight > plain.dimensions.find(row => row.key === 'survival')!.weight)
+  assert.match(conservative.modifiers[0], /Conservative board/)
+  const trophies = calculateResearchFit({ ...survival, strategic_objective: 'Win trophies / Champions League', tactical_model_required: 'Possession / build-out', board_risk_appetite: 'Aggressive' }, base, evidence(1.0, 1.8))
+  assert.ok(trophies.dimensions.find(row => row.key === 'record')!.weight < 25)
+  assert.match(trophies.modifiers[0], /Aggressive board/)
+})

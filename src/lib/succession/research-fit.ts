@@ -87,6 +87,7 @@ export function successionResearchRequirements(club: SuccessionClub, mandates: S
     pressing_intensity_required: selected.pressing_intensity_required,
     build_preference_required: selected.build_preference_required,
     strategic_objective: selected.strategic_objective,
+    board_risk_appetite: selected.board_risk_appetite ?? null,
     decision_brief: selected.decision_brief,
   }
   // Dimension presence depends on the brief, not on the coach's score. Use the shared rule to avoid drift.

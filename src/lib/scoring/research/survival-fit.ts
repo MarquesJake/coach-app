@@ -1,5 +1,5 @@
 import { safeDecisionBrief } from '../../mandates/decision-brief.ts'
-import type { FitDimension, MatchEvidence, RankingBrief, ResearchFit, ResearchProfile } from './brief-fit.ts'
+import { applyModifiers, type FitDimension, type MatchEvidence, type RankingBrief, type ResearchFit, type ResearchProfile } from './brief-fit.ts'
 
 /**
  * The survival weighting model. Chosen when a brief's objective is staying in the division, so a
@@ -133,8 +133,9 @@ export function calculateSurvivalFit(brief: RankingBrief, coach: ResearchProfile
     explanation: 'Latest club season with 10+ verified league matches: 2025/26 or later = 100, 2024/25 = 80, 2023/24 = 60, older or none = 30.' })
 
   for (const [key, value] of Object.entries(detail)) {
-    if (value.value && !['in_possession', 'out_of_possession', 'development', 'leadership_behaviours'].includes(key)) manualChecks.push(`${key.replaceAll('_', ' ')} (${value.priority.toLowerCase()}): ${value.value}`)
+    if (value.value && !['in_possession', 'out_of_possession', 'development', 'leadership_behaviours', 'adaptation'].includes(key)) manualChecks.push(`${key.replaceAll('_', ' ')} (${value.priority.toLowerCase()}): ${value.value}`)
   }
+  const modifiers = applyModifiers(rows, brief)
   const total = rows.reduce((sum, row) => sum + row.weight, 0)
   for (const row of rows) {
     row.weight = row.weight / total * 100
@@ -145,5 +146,6 @@ export function calculateSurvivalFit(brief: RankingBrief, coach: ResearchProfile
   return {
     score: Math.round(raw * 10) / 10, dimensions: rows, manualChecks, model: SURVIVAL_MODEL.key,
     coverage: { evidencedWeight: Math.round(evidenced), unavailable: rows.filter(row => row.evidenceKind === 'unavailable').map(row => row.label) },
+    modifiers,
   }
 }
