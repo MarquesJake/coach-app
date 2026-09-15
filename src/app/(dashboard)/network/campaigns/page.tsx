@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { canonicalCoachName } from '@/lib/coaches/canonical-name'
 import { getInternalOrganizationId } from '@/lib/organizations/context'
 import { ReferenceCampaignClient } from '../_components/reference-campaign-client'
 
@@ -25,7 +26,7 @@ export default async function ReferenceCampaignsPage() {
   ])
   if (results.some((result) => result.error)) throw new Error('Could not load reference rounds')
   const [{ data: campaigns }, { data: targets }, { data: coaches }, { data: contacts }, { data: mandates }] = results
-  const coachMap = new Map((coaches ?? []).map((coach) => [coach.id, coach.name]))
+  const coachMap = new Map((coaches ?? []).map((coach) => [coach.id, canonicalCoachName(coach.id, coach.name)]))
   const contactMap = new Map((contacts ?? []).map((contact: { id: string; full_name: string }) => [contact.id, contact.full_name]))
   const mandateMap = new Map((mandates ?? []).map((mandate) => [mandate.id, mandate.custom_club_name || 'Mandate']))
   const statusLabel: Record<string, string> = { planned: 'Planned — not yet contacted', contacted: 'Awaiting response', scheduled: 'Scheduled', completed: 'Completed', declined: 'Declined' }

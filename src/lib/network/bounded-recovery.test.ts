@@ -373,6 +373,7 @@ test('conversation and review pages fail visibly for every dependent read failur
         '@/lib/supabase/server': { createServerSupabaseClient: async () => db }, '@/lib/organizations/context': { getInternalOrganizationId: async () => 'org' },
         '@/lib/research-context': { readResearchContext: () => ({ coach: 'coach' }) },
         '@/lib/assessment/evidence-integrity': integrity, '@/lib/intelligence/display': {},
+        '@/lib/coaches/canonical-name': { canonicalCoachName: (_id: string, name: string | null) => name ?? 'Coach' },
         '../_components/claim-review-queue-client': {}, '../_components/conversation-capture-client': {},
       }).default
       await assert.rejects(page({ searchParams: Promise.resolve({}) }), /Could not load/)

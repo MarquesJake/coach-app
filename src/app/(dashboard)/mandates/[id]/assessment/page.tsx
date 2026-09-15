@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { displayClubName } from '@/lib/display-names'
 import { loadMandateRanking, standingLabel, isAnalystOverride } from '@/lib/mandates/mandate-ranking.server'
 import { positionLabel } from '@/lib/scoring/research/ranking'
+import { canonicalCoachName } from '@/lib/coaches/canonical-name'
 
 export const metadata = { title: 'Assessment' }
 
@@ -137,7 +138,7 @@ export default async function MandateAssessmentIndexPage(
           <p className="mt-2 text-xs text-muted-foreground">These are human calls, shown next to the calculation — never passed off as the ranking’s choice.</p>
           <div className="mt-2 space-y-2">
             {overrides.map(({ rec, row, name }) => <div key={rec.coach_id} className="card-surface rounded-lg border-l-2 border-amber-500/50 px-4 py-3 text-xs">
-              <p className="font-semibold text-foreground">{name?.name ?? 'Coach'} · analyst verdict: {rec.verdict}</p>
+              <p className="font-semibold text-foreground">{canonicalCoachName(rec.coach_id, name?.name) } · analyst verdict: {rec.verdict}</p>
               <p className="mt-1 text-muted-foreground">Ranking: {standingLabel(row)}</p>
               <p className="mt-1 text-muted-foreground">Analyst’s reason: {rec.summary || 'No reason recorded — needs one before this goes anywhere.'}</p>
               <p className="mt-1 text-muted-foreground">Recorded by {author} · {new Date(rec.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
@@ -173,7 +174,7 @@ export default async function MandateAssessmentIndexPage(
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(170px,1fr)_130px_110px_120px_160px] px-5 py-4 items-start gap-3"
                 >
                   <div className="min-w-0 sm:col-span-2 lg:col-span-1">
-                    <p className="text-sm font-medium text-foreground truncate">{coach?.name ?? 'Unknown coach'}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{canonicalCoachName(row.coach_id, coach?.name)}</p>
                     <p className="text-2xs text-muted-foreground truncate">{coach?.club_current?.trim() || 'Current club not recorded'}</p>
                     <p className="mt-1 text-2xs font-medium text-foreground/80">{benchmark ? 'Current manager — benchmark only, not a successor' : `Ranking: ${standingLabel(ranking?.byCoachId.get(row.coach_id))}`}</p>
                     {!benchmark && <p className="mt-0.5 text-2xs text-muted-foreground">{status.nextAction}</p>}
