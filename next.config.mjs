@@ -30,6 +30,8 @@ const securityHeaders = [
 const nextConfig = {
   distDir: process.env.DEMO_MODE === 'true' ? '.next-demo' : '.next',
   poweredByHeader: false,
+  serverExternalPackages: ['@sparticuz/chromium', 'puppeteer-core'],
+  outputFileTracingIncludes: { '/api/board-report/**/*': ['./node_modules/@sparticuz/chromium/bin/**/*'] },
   outputFileTracingRoot: process.cwd(),
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }]
