@@ -68,7 +68,7 @@ export default async function SuccessionRadarPage({ searchParams }: { searchPara
     })(),
     supabase
       .from('mandates')
-      .select('id, club_id, pipeline_stage, status, strategic_objective, succession_timeline, created_at, tactical_model_required, pressing_intensity_required, build_preference_required, decision_brief', { count: 'exact' })
+      .select('id, club_id, pipeline_stage, status, strategic_objective, board_risk_appetite, succession_timeline, created_at, tactical_model_required, pressing_intensity_required, build_preference_required, decision_brief', { count: 'exact' })
       .in('status', ['Active', 'In Progress', 'On Hold'])
       .or('pipeline_stage.is.null,pipeline_stage.neq.closed')
       .limit(1000),

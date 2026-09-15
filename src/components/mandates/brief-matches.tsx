@@ -17,6 +17,7 @@ function Situation({ coach }: { coach: RankedCoach }) {
 
 function ScoreBreakdown({ coach }: { coach: RankedCoach }) {
   return <div className="mt-3 space-y-3">
+    {coach.fit.modifiers.map(note => <p key={note} className="text-xs font-medium text-foreground/80">{note}</p>)}
     <p className="text-xs text-muted-foreground">Evidence behind {coach.fit.coverage.evidencedWeight}% of the weight.{coach.fit.coverage.unavailable.length ? ` Not yet covered: ${coach.fit.coverage.unavailable.join(', ')} — half credit each, not zero.` : ''}</p>
     {coach.fit.dimensions.map(row => <div key={row.key} className="text-xs leading-relaxed">
       <p className="font-semibold">{row.label}: {row.score}/100 × {row.weight.toFixed(1)}% = {row.contribution.toFixed(1)}</p>
@@ -95,6 +96,7 @@ export async function BriefMatches({ mandate, appointmentDecisions }: { mandate:
     <details className="mt-4 border-t border-border pt-4"><summary className="cursor-pointer text-sm font-medium">How the score is built</summary>
       <p className="mt-3 text-sm text-muted-foreground">{model.label} — chosen by the objective in the saved brief. {model.summary}</p>
       <p className="mt-2 text-sm text-muted-foreground">{model.evidence} Level scores are ordered by weight of recent verified matches; names are never used to split them. Change the brief and the whole list recalculates on the next load.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Two brief answers change the weights, and say so on every card: <span className="text-foreground">Change to the current model</span> — preserve makes the football-match lines count 1.5×, substantial rebuild makes them 0.75× and the proven-record lines 1.25×; <span className="text-foreground">Board risk appetite</span> — conservative makes the proven-record lines count 1.5×, aggressive 0.75×. {ranking.shortlist[0]?.fit.modifiers.length ? `This brief: ${ranking.shortlist[0].fit.modifiers.join(' ')}` : 'This brief changes nothing — gradual evolution and a moderate board.'}</p>
       <p className="mt-2 text-sm text-muted-foreground">Still to check by hand for every name: {[appointmentBrief.salary?.value && 'salary', appointmentBrief.staff_budget?.value && 'staff costs', appointmentBrief.compensation?.value && 'compensation', 'interest in the job', 'references', 'work permit'].filter(Boolean).join(', ')}.</p>
     </details>
   </section>

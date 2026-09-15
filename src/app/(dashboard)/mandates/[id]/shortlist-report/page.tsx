@@ -48,6 +48,7 @@ export default async function ShortlistReportPage(props: { params: Promise<{ id:
       <h2 className="text-[11px] font-bold uppercase tracking-[0.25em] text-muted-foreground">The brief</h2>
       <p className="mt-2 text-sm">{[mandate.tactical_model_required, mandate.build_preference_required, `${mandate.pressing_intensity_required ?? ''} press`.trim(), mandate.strategic_objective].filter(Boolean).join(' · ')}</p>
       <p className="mt-2 text-xs text-muted-foreground">Weighting model: {modelFor(mandate).label}. {modelFor(mandate).summary}</p>
+      {top[0]?.fit.modifiers.length ? <p className="mt-2 text-xs text-muted-foreground">{top[0].fit.modifiers.join(' ')}</p> : null}
       <p className="mt-2 text-xs text-muted-foreground">Fit with the brief measures football match, not the chance of success and not whether a coach can be signed.</p>
     </section>
 

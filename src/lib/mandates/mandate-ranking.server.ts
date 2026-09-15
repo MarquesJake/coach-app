@@ -12,7 +12,7 @@ export async function loadMandateRanking(mandateId: string): Promise<MandateRank
   const supabase = await createServerSupabaseClient()
   const [mandateRes, coachesRes] = await Promise.all([
     supabase.from('mandates')
-      .select('id, club_id, strategic_objective, engagement_owner, tactical_model_required, pressing_intensity_required, build_preference_required, decision_brief, clubs(id, current_manager)')
+      .select('id, club_id, strategic_objective, board_risk_appetite, engagement_owner, tactical_model_required, pressing_intensity_required, build_preference_required, decision_brief, clubs(id, current_manager)')
       .eq('id', mandateId).maybeSingle(),
     supabase.from('coaches').select('id,name').order('name').limit(1000),
   ])
