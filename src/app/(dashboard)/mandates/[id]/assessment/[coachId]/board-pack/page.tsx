@@ -152,7 +152,7 @@ export default async function BoardPackPage(
         .maybeSingle(),
       supabase
         .from('coach_portal_profiles')
-        .select('portal_status, visibility_status, circumstances_visibility, feasibility_review_status, feasibility_reviewed_at, current_salary, salary_expectation, contract_expiry, release_compensation, staff_cost_expectation, availability_timeline, relocation_requirements, appointment_conditions, football_identity, training_week, session_design_principles, staff_network, key_staff_likely_to_follow, reference_permissions')
+        .select('portal_status, visibility_status, circumstances_visibility, feasibility_review_status, feasibility_reviewed_at, current_salary, salary_expectation, contract_expiry, release_compensation, staff_cost_expectation, availability_timeline, family_situation, relocation_requirements, appointment_conditions, football_identity, training_week, session_design_principles, staff_network, key_staff_likely_to_follow, reference_permissions')
         .eq('coach_id', coachId)
         .maybeSingle(),
       supabase
@@ -270,7 +270,23 @@ export default async function BoardPackPage(
   #board-pack-root, #board-pack-root * {
     -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
   }
-  @page { margin: 13mm; }
+  #board-pack-root { color: #0f172a; background: white; }
+  #board-pack-root h2, #board-pack-root h3 { break-after: avoid; }
+  #board-pack-root p, #board-pack-root li { orphans: 3; widows: 3; }
+  #board-pack-root aside { display: block !important; }
+  #board-pack-root .match-period { font-size: 12px; line-height: 1.4; }
+  #board-pack-root .match-period .text-sm { font-size: 12px; line-height: 1.4; }
+  #board-pack-root .match-period .text-xs { font-size: 11px; line-height: 1.4; }
+  #board-pack-root .match-period td, #board-pack-root .match-period th { padding-top: 4px; padding-bottom: 4px; }
+  #board-pack-root .match-period .mt-4, #board-pack-root .match-period .mt-5 { margin-top: 8px; }
+  #board-pack-root .match-period .p-3 { padding: 8px; }
+  #board-pack-root .match-period > .grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #board-pack-root .match-period > .grid.grid-cols-2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  #board-pack-root table { width: 100%; }
+  #board-pack-root .overflow-x-auto { overflow: visible; }
+  #board-pack-root tr { break-inside: avoid; }
+  #board-pack-root * { overflow-wrap: anywhere; }
+  @page { size: A4; margin: 13mm; }
 }`,
         }}
       />
@@ -282,7 +298,7 @@ export default async function BoardPackPage(
         >
           ← Back to assessment
         </Link>
-        <PrintButton />
+        <PrintButton mandateId={mandateId} coachId={coachId} />
       </div>
 
       {/* Cover */}
@@ -320,7 +336,6 @@ export default async function BoardPackPage(
           <p className="mt-1 text-muted-foreground">Recorded by {ranking.mandate.engagement_owner?.trim() || 'Gaffa analyst'}{(recommendation as { updated_at?: string }).updated_at ? ` · ${new Date((recommendation as { updated_at: string }).updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}</p>
         </div>}
       </section>}
-      <VerifiedMatchEvidence coachName={canonicalCoachName(coachId, coach.name)} />
       {deepDive && <section role="note" className="my-5 rounded-lg border border-amber-500/60 p-4 text-sm print:break-inside-avoid"><strong>Worked example</strong><p className="mt-1">The nine-area scores, SWOT, budget and analyst verdict below show what a finished report looks like; they are illustrative. The ranking above, the verified match data and anything with a dated source are real.</p></section>}
       {/* At a glance — Strengths / Risks / Recommendation, per the target deck format */}
       <section className="mt-8 print:break-inside-avoid">
@@ -416,11 +431,12 @@ export default async function BoardPackPage(
         <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
           Only up-to-date, checked details the coach has agreed can be shared appear here. Private terms need separate approval before they are released.
         </p>
-        {!releasedCircumstances && <p className="mt-3 text-sm">Details withheld until they are confirmed and cleared for sharing.</p>}
+        {!releasedCircumstances && <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-4 mt-3">{['Contract expiry', 'Current / last salary', 'Expected salary', 'Release clause / compensation', 'Staff cost estimate', 'Availability timeline'].map(label => <div key={label} className="border-t-2 border-emerald-500/60 pt-2"><h3 className="text-xs font-semibold">{label}</h3><p className="mt-1 text-xs text-muted-foreground">Not confirmed for sharing</p></div>)}</div>}
         {releasedCircumstances && <>
         <div className="grid grid-cols-1 sm:grid-cols-4 print:grid-cols-4 gap-4 mt-3">
           {[
             { label: 'Contract expiry', value: formatDate(releasedCircumstances.contract_expiry) },
+            { label: 'Current / last salary', value: display(releasedCircumstances.current_salary) },
             { label: 'Expected salary', value: display(releasedCircumstances.salary_expectation) },
             { label: 'Estimated club compensation', value: display(releasedCircumstances.release_compensation) },
             { label: 'Staff cost estimate', value: display(releasedCircumstances.staff_cost_expectation) },
@@ -475,6 +491,28 @@ export default async function BoardPackPage(
           {' '}Commercial terms remain indicative until confirmed with the coach, representative and current club.
         </p>
         </>}
+      </section>
+
+      <section className="mt-8 print:break-inside-avoid">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Family and relocation</h2>
+        <p className="mt-2 text-xs text-muted-foreground">Practical appointment requirements are included only when confirmed with the coach and approved for sharing. Personal family details are not inferred from public information.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4 mt-3">
+          <div className="border-t-2 border-emerald-500/60 pt-2">
+            <h3 className="text-sm font-semibold">Family circumstances and support</h3>
+            <p className="mt-1 text-xs text-muted-foreground">{releasedCircumstances?.family_situation?.trim() || 'Not confirmed for sharing. Discuss any family support, schooling or travel requirements directly with the coach, where relevant to the appointment.'}</p>
+          </div>
+          <div className="border-t-2 border-emerald-500/60 pt-2">
+            <h3 className="text-sm font-semibold">Relocation requirements</h3>
+            <p className="mt-1 text-xs text-muted-foreground">{releasedCircumstances?.relocation_requirements?.trim() || 'Not confirmed for sharing. Confirm location, start date, relocation support and any agreed travel arrangements.'}</p>
+          </div>
+        </div>
+      </section>
+      <section className="mt-8 print:break-inside-avoid">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Representation and accompanying staff</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4 mt-3">
+          <div><h3 className="text-sm font-semibold">Authorised representative</h3><p className="mt-1 text-xs text-muted-foreground">Confirm the authorised approach route and permission to contact. Private representative details are not included in this report.</p></div>
+          <div><h3 className="text-sm font-semibold">Key staff likely to follow</h3><p className="mt-1 text-xs text-muted-foreground">{shareableStaffRows.length ? 'See the confirmed staff package under Availability and terms.' : 'No staff package has been cleared for sharing. Confirm names, roles, willingness to follow, compensation and total staff costs.'}</p></div>
+        </div>
       </section>
 
       {/* Coach-submitted material */}
@@ -791,16 +829,20 @@ export default async function BoardPackPage(
           const detail = safeDecisionBrief((mandate as { decision_brief?: unknown }).decision_brief)
           const situation = (mandate as { ownership_structure?: string | null }).ownership_structure?.trim()
           const items = [
-            ['Situation and trigger (analyst brief)', situation ? (situation.length > 700 ? `${situation.slice(0, 699)}…` : situation) : null],
+            ['Situation and trigger (analyst brief)', situation || null],
             ['What the next coach must solve (analyst hypotheses)', detail.squad_problem?.value ?? null],
             ['Success measures (analyst brief)', detail.success_measures?.value ?? null],
             ['Unresolved trade-offs', detail.contradictions?.value ?? null],
           ].filter((item): item is [string, string] => Boolean(item[1]))
-          return items.length ? <dl className="mt-3 grid gap-2 sm:grid-cols-2 print:grid-cols-2">{items.map(([label, value]) => <div key={label}><dt className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-line text-2xs leading-relaxed text-muted-foreground">{value}</dd></div>)}</dl> : null
+          return items.length ? <dl className="mt-3 grid gap-2 sm:grid-cols-2 print:grid-cols-1">{items.map(([label, value]) => <div key={label}><dt className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">{label}</dt><dd className="mt-1 whitespace-pre-line text-2xs leading-relaxed text-muted-foreground">{value}</dd></div>)}</dl> : null
         })()}
         <p className="text-[9px] text-muted-foreground/50 mt-4 tracking-widest uppercase">
           Confidential — prepared for the club’s board by Gaffa
         </p>
+      </section>
+      <section className="mt-8 print:break-before-page">
+        <h2 className="text-[11px] font-bold tracking-[0.25em] text-muted-foreground uppercase">Appendix 2 · Verified performance data and coverage</h2>
+        <VerifiedMatchEvidence coachName={canonicalCoachName(coachId, coach.name)} />
       </section>
     </div>
   )

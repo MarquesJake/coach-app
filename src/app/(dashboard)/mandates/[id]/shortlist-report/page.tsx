@@ -33,10 +33,17 @@ export default async function ShortlistReportPage(props: { params: Promise<{ id:
     .filter(({ rec, row }) => row?.eligibility.status !== 'incumbent' && isAnalystOverride(row, rec.verdict))
   const date = (value: string) => new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  return <div className="mx-auto max-w-[900px] pb-16">
+  return <div id="board-pack-root" className="mx-auto max-w-[900px] pb-16 print:max-w-none print:pb-0">
+    <style>{`@media print {
+      #board-pack-root { --background: #fff; --card: #fff; --foreground: #0f172a; --muted-foreground: #475569; --border: #e2e8f0; color: #0f172a; background: white; }
+      #board-pack-root h2, #board-pack-root h3 { break-after: avoid; }
+      #board-pack-root p, #board-pack-root li { orphans: 3; widows: 3; }
+      #board-pack-root * { overflow-wrap: anywhere; print-color-adjust: exact; }
+      @page { size: A4; margin: 13mm; }
+    }`}</style>
     <div className="mb-4 flex items-center justify-between print:hidden">
       <Link href={`/mandates/${id}/pack`} className="text-xs text-muted-foreground hover:text-foreground">← Board report</Link>
-      <PrintButton />
+      <PrintButton mandateId={id} coachId="shortlist" />
     </div>
     <div className="print-keep-color always-dark rounded-lg bg-[#101623] px-10 py-12 text-white print:rounded-none">
       <p className="text-[10px] font-bold tracking-[0.25em] text-emerald-300">CONFIDENTIAL · SHORTLIST REPORT</p>
