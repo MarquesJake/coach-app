@@ -55,3 +55,16 @@ test('changing the objective back to trophies restores the standard model for th
   assert.equal(trophies.model, 'trophies')
   assert.ok(trophies.dimensions.some(row => row.key === 'record'))
 })
+
+test('build-up and the defensive block are scored from the brief, so a long-ball low-block brief prefers a direct, deeper-sitting coach', () => {
+  const direct: ResearchProfile = { ...pragmatic, name: 'Direct', apiId: 3, style: 'Direct', pressing: 'Low', build: 'Direct' }
+  const shortBuild: ResearchProfile = { ...pragmatic, name: 'Short', apiId: 4, style: 'Possession', pressing: 'High', build: 'Short' }
+  const longBall = { ...survival, build_preference_required: 'Long ball / direct', decision_brief: { in_possession: { value: 'Adaptable', priority: 'Preferred' }, out_of_possession: { value: 'Low block', priority: 'Preferred' } } }
+  const a = calculateResearchFit(longBall, direct, evidence(1.3, 1.3)), b = calculateResearchFit(longBall, shortBuild, evidence(1.3, 1.3))
+  assert.equal(a.dimensions.find(row => row.key === 'build')!.required, 'Direct — long ball or quick forward play')
+  assert.equal(a.dimensions.find(row => row.key === 'build')!.score, 100)
+  assert.equal(b.dimensions.find(row => row.key === 'build')!.score, 25)
+  assert.equal(a.dimensions.find(row => row.key === 'block')!.score, 100)
+  assert.equal(b.dimensions.find(row => row.key === 'block')!.score, 30)
+  assert.ok(a.score! > b.score!)
+})

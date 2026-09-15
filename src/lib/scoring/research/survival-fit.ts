@@ -9,8 +9,8 @@ import type { FitDimension, MatchEvidence, RankingBrief, ResearchFit, ResearchPr
 export const SURVIVAL_MODEL = {
   key: 'survival',
   label: 'Survival brief',
-  summary: 'Starting weights: keeping a side in the top flight 20, defensive organisation 15, lifting an underdog or promoted squad 15, chance creation 10, pragmatism without the ball 10, English or comparable league experience 10, player development 5, working to a controlled budget 5, leadership in a relegation fight 5, longer-term identity 5, recent head-coach evidence 5. Essential requirements count 1.5 times, Flexible half. Weights are then scaled to 100.',
-  evidence: 'Track record and playing identity come from dated tactical research. Defensive and attacking figures come from API-Football league matches where the coach is on the team sheet, in the latest club season with full coverage; league strength is not adjusted. English experience is read from the provider career record. Development, budget and leadership have no evidence in the current source and take half credit until references and interview fill them.',
+  summary: 'Starting weights: keeping a side in the top flight 20, defensive organisation 15, lifting an underdog or promoted squad 15, chance creation 10, build-up 10, defensive block 10, pragmatism without the ball 10, English or comparable league experience 10, player development 5, working to a controlled budget 5, leadership in a relegation fight 5, longer-term identity 5, recent head-coach evidence 5. Essential requirements count 1.5 times, Flexible half. Weights are then scaled to 100.',
+  evidence: 'Track record, playing identity, build-up and pressing band come from dated tactical research. Defensive and attacking figures come from API-Football league matches where the coach is on the team sheet, in the latest club season with full coverage; league strength is not adjusted. English experience is read from the provider career record. Development, budget and leadership have no evidence in the current source and take half credit until references and interview fill them.',
 } as const
 
 const ENGLISH_CLUBS = ['arsenal', 'aston villa', 'bournemouth', 'brentford', 'brighton', 'burnley', 'chelsea', 'crystal palace', 'everton', 'fulham', 'ipswich', 'leeds', 'leicester', 'liverpool', 'manchester city', 'manchester united', 'newcastle', 'nottingham forest', 'southampton', 'sunderland', 'tottenham', 'west ham', 'wolverhampton', 'wolves', 'coventry', 'hull', 'luton', 'watford', 'west brom', 'middlesbrough', 'sheffield', 'norwich', 'stoke', 'swansea', 'cardiff', 'derby', 'preston', 'blackburn', 'bristol city', 'millwall', 'queens park rangers', 'qpr', 'plymouth', 'portsmouth', 'oxford', 'huddersfield', 'reading', 'wigan', 'birmingham', 'bolton', 'barnsley', 'charlton', 'peterborough', 'milton keynes', 'mk dons', 'forest green', 'bury', 'telford', 'rotherham', 'blackpool', 'wrexham', 'lincoln', 'exeter', 'stockport', 'leyton orient', 'wycombe', 'cambridge', 'shrewsbury', 'burton', 'fleetwood', 'morecambe', 'walsall', 'crewe', 'doncaster', 'notts county', 'bradford', 'grimsby', 'chesterfield', 'salford', 'gillingham', 'colchester', 'tranmere', 'swindon', 'newport', 'crawley', 'mansfield', 'accrington', 'carlisle', 'cheltenham', 'port vale', 'stevenage', 'northampton', 'wimbledon', 'sutton', 'barrow', 'bromley']
@@ -75,7 +75,26 @@ export function calculateSurvivalFit(brief: RankingBrief, coach: ResearchProfile
     score: promotion ? 100 : topFlight && !eliteHonour ? 70 : eliteHonour ? 40 : 30, requirementSource: briefSource, evidenceKind: 'researched', period: research,
     explanation: 'A documented promotion: 100; top-flight work without elite honours: 70; a career built on elite honours: 40; nothing documented: 30. Resources are not measured — this is the shape of the career, not a wage-bill comparison.' })
 
+  // Build-up and the defensive block are brief requirements too; score them the same way the standard model does.
+  // "Adaptable" in possession says nothing about the build, so the broad build-up field decides.
+  const builds: Record<string, ResearchProfile['build']> = { 'Short build': 'Short', 'Build from back': 'Short', 'Short passing': 'Short', 'Long ball / direct': 'Direct', 'Long ball': 'Direct', 'Direct play': 'Direct', 'Mixed': 'Mixed', 'Build through pressure': 'Short', 'Progress quickly': 'Mixed' }
   const possession = detail.in_possession
+  const build = builds[possession?.value ?? ''] ?? builds[brief.build_preference_required ?? '']
+  if (build) {
+    add({ key: 'build', label: 'Build-up', required: build === 'Direct' ? 'Direct — long ball or quick forward play' : build === 'Short' ? 'Short build from the back' : 'Mixed — short or direct as the picture allows', recorded: `${coach.build} build`,
+      weight: 10 * (possession?.value && builds[possession.value] ? priorityMultiplier[possession.priority] : 1), score: build === coach.build ? 100 : build === 'Mixed' || coach.build === 'Mixed' ? 65 : 25,
+      requirementSource: briefSource, evidenceKind: 'researched', period: research,
+      explanation: 'Matching approach: 100; mixed approach on either side: 65; contrasting approach: 25.' })
+  } else manualChecks.push('Agree a recognised build-up approach')
+  const blockLevels: Record<string, number> = { 'High press': 2, 'Mid-block': 1, 'Low block': 0 }
+  const pressLevels: Record<string, number> = { High: 2, Medium: 1, Low: 0 }
+  const requestedBlock = defensive?.value === 'Opponent-dependent' ? undefined : blockLevels[defensive?.value ?? ''] ?? pressLevels[brief.pressing_intensity_required ?? '']
+  if (requestedBlock !== undefined) {
+    add({ key: 'block', label: 'Defensive block', required: ['Low block', 'Mid-block', 'High press'][requestedBlock], recorded: `${coach.pressing} press`,
+      weight: 10 * (defensive?.value ? priorityMultiplier[defensive.priority] : 1), score: 100 - Math.abs(requestedBlock - pressLevels[coach.pressing]) * 35,
+      requirementSource: briefSource, evidenceKind: 'researched', period: research,
+      explanation: 'Matching block: 100; one band apart: 65; two bands apart: 30. The coach’s band is his coded pressing intensity in the cited period.' })
+  }
   const pragmatism = coach.style === 'Counter-attacking' || coach.style === 'Direct' ? 100 : coach.style === 'Adaptable' ? 80 : coach.pressing !== 'High' ? 60 : 40
   add({ key: 'pragmatism', label: 'Pragmatism without the ball', required: `${possession?.value ?? 'Adaptable'} in possession; can set up to defend and counter`, recorded: `${coach.style} · ${coach.pressing.toLowerCase()} press · ${coach.build.toLowerCase()} build`,
     weight: 10 * (possession?.value ? priorityMultiplier[possession.priority] : 1), score: pragmatism, requirementSource: briefSource, evidenceKind: 'researched', period: research,
