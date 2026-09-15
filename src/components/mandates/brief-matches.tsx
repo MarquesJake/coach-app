@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import type { AppointmentDecision } from '@/lib/appointments/feasibility'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import type { RankingBrief } from '@/lib/scoring/research/brief-fit'
+import { modelFor, EVIDENCE_KIND_LABELS, type RankingBrief } from '@/lib/scoring/research/brief-fit'
+import { DemonstrationBadge } from '@/components/mandates/demonstration-badge'
 import { rankResearchProfiles, positionLabel, type RankedCoach } from '@/lib/scoring/research/ranking'
 import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
 
@@ -16,9 +17,12 @@ function Situation({ coach }: { coach: RankedCoach }) {
 
 function ScoreBreakdown({ coach }: { coach: RankedCoach }) {
   return <div className="mt-3 space-y-3">
+    <p className="text-xs text-muted-foreground">Evidence behind {coach.fit.coverage.evidencedWeight}% of the weight.{coach.fit.coverage.unavailable.length ? ` Not yet covered: ${coach.fit.coverage.unavailable.join(', ')} — half credit each, not zero.` : ''}</p>
     {coach.fit.dimensions.map(row => <div key={row.key} className="text-xs leading-relaxed">
       <p className="font-semibold">{row.label}: {row.score}/100 × {row.weight.toFixed(1)}% = {row.contribution.toFixed(1)}</p>
-      <p className="mt-1 text-muted-foreground">Brief asks for: {row.required}. He shows: {row.recorded}.</p>
+      <p className="mt-1 text-muted-foreground">Club requirement: {row.required}. <span className="text-foreground/80">From: {row.requirementSource}</span></p>
+      <p className="mt-1 text-muted-foreground">He shows: {row.recorded}.</p>
+      <p className="mt-1 text-muted-foreground">Evidence: {EVIDENCE_KIND_LABELS[row.evidenceKind]}. Period and sample: {row.period}.</p>
       <p className="mt-1 text-muted-foreground">{row.explanation}</p>
     </div>)}
     <p className="text-xs font-medium">Add the contributions: {coach.fit.score}/100.</p>
@@ -40,12 +44,15 @@ export async function BriefMatches({ mandate, appointmentDecisions }: { mandate:
   })
   const top = ranking.shortlist.slice(0, 3)
   const setAside = [...ranking.notPursuing, ...ranking.researchGaps]
+  const model = modelFor(mandate)
 
   return <section id="brief-matches" className="my-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ranked against the brief</p><h2 className="mt-1 text-xl font-semibold">Top three for this job</h2></div>
       <Link href={`/mandates/${mandate.id}/edit`} className="text-sm text-primary underline underline-offset-4">View the brief</Link>
     </div>
+    <DemonstrationBadge mandateId={mandate.id} clubId={mandate.club_id ?? mandate.clubs?.id} className="mt-3 max-w-3xl" />
+    <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Weighting model: {model.label}</p>
     <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Every researched coach is scored on how well his football matches this brief, backed by his match data. The score is fit with the brief — not a forecast of success, and not a sign he can be signed.</p>
     <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Before anyone makes the list we take out the current manager, coaches at Premier League rivals, elite clubs or national teams, and anyone without recent evidence. Those names stay visible below with the reason.</p>
 
@@ -86,8 +93,8 @@ export async function BriefMatches({ mandate, appointmentDecisions }: { mandate:
     </details>}
 
     <details className="mt-4 border-t border-border pt-4"><summary className="cursor-pointer text-sm font-medium">How the score is built</summary>
-      <p className="mt-3 text-sm text-muted-foreground">Starting weights: playing identity 25, build-up 15, defending 15, relevant achievement 25, front-foot football in the match data 10, recent head-coach evidence 10. Essential build-up or defending counts 1.5 times, Flexible half. Weights are then scaled to 100.</p>
-      <p className="mt-2 text-sm text-muted-foreground">Playing identity comes from dated tactical research on a named period. Match figures come from API-Football league matches where the coach is on the team sheet. Level scores are ordered by weight of recent verified matches; names are never used to split them.</p>
+      <p className="mt-3 text-sm text-muted-foreground">{model.label} — chosen by the objective in the saved brief. {model.summary}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{model.evidence} Level scores are ordered by weight of recent verified matches; names are never used to split them. Change the brief and the whole list recalculates on the next load.</p>
       <p className="mt-2 text-sm text-muted-foreground">Still to check by hand for every name: {[appointmentBrief.salary?.value && 'salary', appointmentBrief.staff_budget?.value && 'staff costs', appointmentBrief.compensation?.value && 'compensation', 'interest in the job', 'references', 'work permit'].filter(Boolean).join(', ')}.</p>
     </details>
   </section>

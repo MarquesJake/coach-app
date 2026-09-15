@@ -17,13 +17,14 @@ export type Eligibility = {
 /**
  * Appointment policy applied before any recommendation. These are Gaffa's working rules for
  * this demonstration, not facts about the coaches: they decide who we would realistically
- * pursue. Each rule reads the reviewed employment record (sourced, checked 14 September 2026),
- * never a name list, so a change of job changes the outcome.
+ * pursue. Each rule reads the reviewed employment record (sourced, checked 15 September 2026),
+ * never a name list, so a change of job changes the outcome. The Premier League list is the
+ * 2026/27 division: Coventry, Hull and Ipswich came up; West Ham, Burnley and Wolves went down.
  */
 export const APPOINTMENT_POLICY = {
   author: 'Gaffa analyst (demonstration policy)',
-  checkedAt: '2026-09-14',
-  premierLeagueClubs: ['arsenal', 'aston villa', 'bournemouth', 'brentford', 'brighton', 'burnley', 'chelsea', 'crystal palace', 'everton', 'fulham', 'leeds', 'liverpool', 'manchester city', 'manchester united', 'newcastle', 'nottingham forest', 'sunderland', 'tottenham', 'wolverhampton', 'wolves'],
+  checkedAt: '2026-09-15',
+  premierLeagueClubs: ['arsenal', 'aston villa', 'bournemouth', 'brentford', 'brighton', 'chelsea', 'coventry', 'crystal palace', 'everton', 'fulham', 'hull', 'ipswich', 'leeds', 'liverpool', 'manchester city', 'manchester united', 'newcastle', 'nottingham forest', 'sunderland', 'tottenham'],
   europeanEliteClubs: ['paris saint-germain', 'real madrid', 'barcelona', 'bayern', 'borussia dortmund', 'inter', 'ac milan', 'juventus', 'napoli', 'atletico madrid', 'atlético madrid'],
   latestUsableSeason: 2023,
 } as const

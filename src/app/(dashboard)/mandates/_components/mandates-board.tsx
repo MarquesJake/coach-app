@@ -12,6 +12,7 @@ import { updateMandateStageAction } from '../actions'
 import { toastSuccess, toastError } from '@/lib/ui/toast'
 import type { BoardSignal } from '@/lib/db/mandate'
 import { displayClubName } from '@/lib/display-names'
+import { demonstrationLabel } from '@/lib/mandates/demonstration'
 import { SERVICE_MODEL_LABELS, isServiceModel } from '@/lib/mandates/appointment-plan'
 import type { AppointmentNextAction } from '@/lib/mandates/appointment-next-action'
 
@@ -601,6 +602,7 @@ function MandateCard({
           <p className="mb-3 mt-2 text-xs text-muted-foreground">
             {roleLabel} · {serviceLabel}
           </p>
+          {demonstrationLabel({ mandateId: mandate.id }) && <p role="note" className="mb-3 rounded border border-amber-600/30 bg-amber-50 px-2 py-1 text-[11px] font-medium leading-4 text-amber-950 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-100">{demonstrationLabel({ mandateId: mandate.id })}</p>}
 
           <div className="mb-3 rounded-lg bg-muted/60 p-3">
             <p className="text-[11px] text-muted-foreground">Next action</p>

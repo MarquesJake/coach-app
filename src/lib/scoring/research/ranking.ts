@@ -45,6 +45,11 @@ function frontFoot(recorded: string) {
   return match ? { possession: match[1], xg: match[2] } : null
 }
 const season = (recorded: string) => recorded.match(/\d{4}\/\d{2}/)?.[0] ?? 'no recent season'
+const perMatch = (recorded: string) => recorded.match(/(\d+\.\d+) xG/)?.[1] ?? null
+const careerShape = (recorded: string) => {
+  const promotion = /Promotion/.test(recorded), topFlight = /Top-flight/.test(recorded)
+  return promotion && topFlight ? 'a promotion and top-flight football' : topFlight ? 'top-flight football, no promotion' : promotion ? 'a promotion, no top-flight season' : 'neither a promotion nor a top-flight season'
+}
 
 /** One plain reason per dimension, phrased the way an analyst would say it. */
 function phrase(key: string, upper: string, lower: string): string {
@@ -58,6 +63,13 @@ function phrase(key: string, upper: string, lower: string): string {
     case 'style': return `a playing identity closer to the brief — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
     case 'build': return `a build-up closer to the brief — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
     case 'pressing': return `pressing closer to the brief — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
+    case 'survival': return `more of the right experience — ${careerShape(upper)} against ${careerShape(lower)}`
+    case 'underdog': return `a career shaped by lifting smaller sides — ${careerShape(upper)} against ${careerShape(lower)}`
+    case 'defence': { const a = perMatch(upper), b = perMatch(lower); return a && b ? `a tighter defence in the match data — ${a} xG against per match, against ${b}` : 'more evidence of defensive organisation in the match data' }
+    case 'attack': { const a = perMatch(upper), b = perMatch(lower); return a && b ? `more chances created — ${a} xG for per match, against ${b}` : 'more evidence of chance creation in the match data' }
+    case 'pragmatism': return `a more pragmatic identity — ${upper.split(' · ')[0].toLowerCase()} against ${lower.split(' · ')[0].toLowerCase()}`
+    case 'english': return /English clubs/.test(upper) && !/English clubs/.test(lower) ? 'English football on his record, which the other man lacks' : 'more English football on his record'
+    case 'identity': return `an identity closer to the club’s longer-term model — ${upper.toLowerCase()} against ${lower.toLowerCase()}`
     default: return 'a closer match to the brief'
   }
 }

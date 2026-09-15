@@ -1917,7 +1917,6 @@ export function MandateWorkspaceClient({
               <p className="text-[9px] uppercase tracking-widest text-muted-foreground">Market scored</p>
               <p className="mt-0.5 text-sm font-semibold text-foreground">{longlistEntries.length}</p>
             </div>
-            <Link className="gaffa-action gaffa-action-secondary" href={`/mandates/${mandate.id}/longlist`}>Edit research pool</Link>
             <Link className="gaffa-action gaffa-action-primary" href={`/coaches?mandate=${mandate.id}`}>Find a coach to add</Link>
             <Link className="gaffa-action gaffa-action-secondary" href={`/coaches/compare?mandate=${mandate.id}&ids=${shortlist.slice(0, 4).map(c => c.coach_id).join(',')}`}>Compare candidates</Link>
           </div>

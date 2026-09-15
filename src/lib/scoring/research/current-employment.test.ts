@@ -6,8 +6,8 @@ test('current Maresca employment is City, independently of historical Chelsea ta
   const role = currentEmploymentForApiId(12629)
   assert.ok(role)
   assert.equal(role.club, 'Manchester City')
-  assert.equal(role.checkedAt, '2026-09-14')
-  assert.match(role.sourceUrl ?? '', /mancity\.com/)
+  assert.equal(role.checkedAt, '2026-09-15')
+  assert.match(role.sourceUrl ?? '', /aljazeera\.com|mancity\.com/)
 })
 
 test('unknown employment never promotes a last club to current employment', () => {

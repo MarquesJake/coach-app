@@ -16,6 +16,8 @@ import { getMandateSuggestionsForUser } from '../../actions-suggestions'
 import { deriveAssessmentStatus } from '@/lib/assessment/status'
 import { candidateProgressLabels } from '@/lib/assessment/candidate-progress'
 import { deepDiveFor, isCurrentManagerBenchmark } from '@/lib/assessment/deep-dive'
+import { loadMandateRanking } from '@/lib/mandates/mandate-ranking.server'
+import { positionLabel } from '@/lib/scoring/research/ranking'
 
 export const metadata = { title: 'Candidates' }
 
@@ -145,42 +147,21 @@ export default async function MandateCandidatesPage(props: { params: Promise<{ i
   // Compute stability metrics server-side from the already-fetched coaching history
   const stabilityMetrics = computeCoachingStability(coachingHistory ?? [])
 
-  // Fetch pre-computed longlist entries (scoring engine output)
-  const { data: longlistRaw, error: longlistError } = await supabase
-    .from('mandate_longlist')
-    .select('id, coach_id, ranking_score, fit_explanation')
-    .eq('mandate_id', params.id)
-    .gt('ranking_score', 0)
-    .order('ranking_score', { ascending: false })
-    .limit(30)
-
-  if (longlistError) throw new Error('The research pool could not be loaded. Refresh to retry.')
-
-  // Enrich with coach display fields (name, status, club)
-  const longlistEntries: import('@/app/(dashboard)/mandates/actions-longlist').LonglistEntryData[] = []
-  if (longlistRaw?.length) {
-    const coachIds = longlistRaw.map((e) => e.coach_id)
-    const { data: coachMeta, error: coachMetaError } = await supabase
-      .from('coaches')
-      .select('id, name, available_status, club_current')
-      .in('id', coachIds)
-
-    if (coachMetaError) throw new Error('Research pool identities could not be loaded. Please retry.')
-    const coachMap = new Map((coachMeta ?? []).map((c) => [c.id, c]))
-    for (const entry of longlistRaw) {
-      if (isCurrentManagerBenchmark(params.id, entry.coach_id)) continue
-      const c = coachMap.get(entry.coach_id)
-      longlistEntries.push({
-        id: entry.id,
-        coach_id: entry.coach_id,
-        ranking_score: entry.ranking_score ?? 0,
-        fit_explanation: entry.fit_explanation,
-        coach_name: c?.name ?? null,
-        coach_available_status: c?.available_status ?? null,
-        coach_club: c?.club_current ?? null,
-      })
-    }
-  }
+  // The market view is the same calculation as the ranking above — never a second scoring path.
+  const ranking = await loadMandateRanking(params.id)
+  if (!ranking) throw new Error('The ranking could not be loaded. Refresh to retry — nothing has been changed.')
+  const longlistEntries: import('@/app/(dashboard)/mandates/actions-longlist').LonglistEntryData[] = (ranking?.shortlist ?? [])
+    .filter(row => row.record && !isCurrentManagerBenchmark(params.id, row.record.id))
+    .slice(0, 30)
+    .map(row => ({
+      id: `ranking-${row.record!.id}`,
+      coach_id: row.record!.id,
+      ranking_score: row.fit.score,
+      fit_explanation: `${positionLabel(row)} on the brief · ${row.aheadOfNext ?? row.eligibility.headline}`,
+      coach_name: row.profile.name,
+      coach_available_status: row.eligibility.headline,
+      coach_club: row.eligibility.employment?.club ?? null,
+    }))
 
   const suggestionsRaw = await getMandateSuggestionsForUser(params.id)
   const suggestions: SuggestedLonglistCandidate[] = suggestionsRaw.filter(suggestion => !isCurrentManagerBenchmark(params.id, suggestion.coach_id)).map((suggestion) => ({

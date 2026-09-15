@@ -68,6 +68,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
                     {new Date(session.occurred_at).toLocaleString('en-GB')} ·{' '}
                     {formatEnumLabel(String(session.intake_method))}
                   </p>
+                  {/^DEMO/i.test(String(session.title)) && <p className="mt-1 text-[11px] font-semibold text-amber-800 dark:text-amber-300">Fictional demo conversation — not real intelligence.</p>}
                 </div>
                 <span className="shrink-0 text-xs text-muted-foreground">
                   {formatEnumLabel(String(session.processing_status))}
@@ -139,6 +140,7 @@ export default async function ConversationsPage(props: { searchParams?: Promise<
                       {new Date(session.occurred_at).toLocaleString('en-GB')} ·{' '}
                       {formatEnumLabel(String(session.intake_method))}
                     </p>
+                    {/^DEMO/i.test(String(session.title)) && <p className="mt-1 text-[11px] font-semibold text-amber-800 dark:text-amber-300">Fictional demo conversation — not real intelligence.</p>}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {String(contactMap.get(session.contact_id) || 'Analyst source not linked')}

@@ -4,11 +4,11 @@
     "name": "Kieran McKenna",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.itfc.co.uk/news/2026/june/10/kieran-mckenna-to-step-down-as-ipswich-town-manager/",
-    "sourceTitle": "KIERAN McKENNA TO STEP DOWN AS TOWN BOSS",
-    "note": "Official Ipswich departure announcement dated 2026-06-10. No subsequent official appointment or current unattached status verified by the cutoff. Do not retain Ipswich as current employer or infer availability."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.skysports.com/football/news/11707/13552342/kieran-mckenna-stepping-down-as-ipswich-boss-to-take-a-break-from-football-amid-fulham-interest",
+    "sourceTitle": "Kieran McKenna stepping down as Ipswich boss to take a break from football",
+    "note": "Stepped down at Ipswich on 10 June 2026 after winning promotion, saying he would take a break; declined Fulham interest. Appetite to return is unknown. Checked 15 September 2026."
   },
   {
     "apiId": 1399,
@@ -16,10 +16,10 @@
     "club": "VfB Stuttgart",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.vfb.de/de/vfb/aktuell/neues/profis/2425/vfb-und-sebastian-hoeness-verlaengern-vertrag/",
-    "sourceTitle": "VfB verlängert Vertrag mit Sebastian Hoeneß",
-    "note": "Official renewal dated 2025-03-22 runs through 2028-06-30. Current role corroborated by club press conference dated 2026-09-05: https://vfbtv.vfb.de/tv/saison/saisons/saison-2026-2027/bundesliga/2-spieltag/ ."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.bundesliga.com/en/bundesliga/news/stuttgart-2026-27-season-preview-undav-hoeness-champions-league-38831",
+    "sourceTitle": "VfB Stuttgart 2026/27 season preview",
+    "note": "Contract to 2028; fourth and DFB-Pokal winners in 2025/26. Checked 15 September 2026."
   },
   {
     "apiId": 17873,
@@ -27,10 +27,10 @@
     "club": "FC Porto",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://files.app.fcporto.pt/docs/c6208ed7051f46eed7e8d663014d117d.pdf",
-    "sourceTitle": "Comunicado — renovação de Francesco Farioli",
-    "note": "Official FC Porto SAD announcement dated 2026-01-11 extends the coaching contract through 2027/28. UEFA explicitly lists him as Porto coach on 2026-09-10: https://www.uefa.com/uefachampionsleague/news/02a8-2171a88881a0-c70193b972c6-1000--meet-the-2026-27-champions-league-league-phase-teams/ ."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.fcporto.pt/pt/noticias/20260111-pt-francesco-farioli-renova-contrato",
+    "sourceTitle": "Francesco Farioli renova contrato",
+    "note": "Contract renewed to June 2028 on 11 January 2026; 2025/26 champions. Checked 15 September 2026."
   },
   {
     "apiId": 1952,
@@ -38,10 +38,10 @@
     "club": "Bodø/Glimt",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
+    "checkedAt": "2026-09-15",
     "sourceUrl": "https://www.glimt.no/nyheter/kjetil-knutsen-forlenger-med-bodo-glimt--den-er-signert",
-    "sourceTitle": "Kjetil Knutsen forlenger med Bodø/Glimt: – Den er signert",
-    "note": "Club confirms signed renewal through the end of 2029. Search index dates this announcement approximately eight months before the cutoff; exact publication day was not exposed. Current official directory explicitly lists him as head coach, checked 2026-09-14: https://www.glimt.no/lag/kjetil-knutsen ."
+    "sourceTitle": "Kjetil Knutsen forlenger med Bodø/Glimt",
+    "note": "Contract extended to 2029 on 3 January 2026. Checked 15 September 2026."
   },
   {
     "apiId": 19253,
@@ -49,10 +49,10 @@
     "club": "Brighton & Hove Albion",
     "role": "Men’s first-team head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.brightonandhovealbion.com/media-article/hurzeler-signs-new-long-term-deal",
-    "sourceTitle": "Hurzeler signs new long-term deal",
-    "note": "Official renewal dated 2026-05-07 runs until June 2029. Corroborated by club pre-match press conference dated 2026-09-04: https://www.brightonandhovealbion.com/media-video/brighton-v-leeds-or-hurzeler-pre-match-press-conference ."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.skysports.com/football/news/11095/13583990/fabian-hurzeler-brighton-head-coach-on-europe-ambition-and-challenging-the-premier-league-establishment",
+    "sourceTitle": "Fabian Hürzeler: Brighton head coach on Europe, ambition and the Premier League establishment",
+    "note": "Contract extended May 2026. Checked 15 September 2026."
   },
   {
     "apiId": 2108,
@@ -60,10 +60,10 @@
     "club": "Liverpool",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.liverpoolfc.com/news/liverpool-fc-appoint-andoni-iraola-new-head-coach",
-    "sourceTitle": "Liverpool FC appoint Andoni Iraola as new head coach",
-    "note": "Official appointment dated 2026-06-04 for 2026/27. Current official staff directory corroborates the role: https://www.liverpoolfc.com/team/mens/staff/andoni-iraola . Bournemouth is a previous employer."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/48945214/liverpool-appoint-andoni-iraola-arne-slot-successor",
+    "sourceTitle": "Liverpool name Andoni Iraola head coach, replacing Arne Slot",
+    "note": "Appointed 4 June 2026 on a two-year deal. Checked 15 September 2026."
   },
   {
     "apiId": 1534,
@@ -71,10 +71,10 @@
     "club": "Nottingham Forest",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.nottinghamforest.co.uk/news/2026/august/12/glasner--a-really-good-test-for-us/",
-    "sourceTitle": "GLASNER: A REALLY GOOD TEST FOR US",
-    "note": "Official club article dated 2026-08-12 explicitly describes his summer appointment as head coach. Current club directory corroborates: https://www.nottinghamforest.co.uk/club-information/whos-who/ . Exact appointment announcement date was not verified; Crystal Palace is not retained as current employer."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.skysports.com/football/news/11095/13560923/oliver-glasner-to-nottingham-forest-former-crystal-palace-boss-succeeds-vitor-pereira-at-the-city-ground",
+    "sourceTitle": "Oliver Glasner to Nottingham Forest: former Crystal Palace boss succeeds Vitor Pereira",
+    "note": "Appointed 6 July 2026. Checked 15 September 2026."
   },
   {
     "apiId": 10,
@@ -82,10 +82,10 @@
     "club": "SL Benfica",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.slbenfica.pt/pt-pt/agora/noticias/2026/06/12/futebol-benfica-conferencia-de-imprensa-apresentacao-marco-silva-novo-treinador",
-    "sourceTitle": "É o maior desafio da minha carreira",
-    "note": "Official presentation dated 2026-06-12. Role corroborated by official post-match report dated 2026-09-05: https://media.slbenfica.pt/pt-pt/agora/noticias/2026/09/05/futebol-marco-silva-pos-jogo-maritimo-benfica-5-jornada-liga-betclic . Fulham is a previous employer."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.skysports.com/football/news/11681/13546506/marco-silva-to-leave-fulham-portuguese-head-coach-to-depart-after-five-seasons-in-charge-amid-benfica-links",
+    "sourceTitle": "Marco Silva to leave Fulham amid Benfica links",
+    "note": "Left Fulham in June 2026; Benfica confirmed his appointment on 9 June 2026 on a three-year deal. Checked 15 September 2026."
   },
   {
     "apiId": 2424,
@@ -93,21 +93,21 @@
     "club": "Tottenham Hotspur",
     "role": "Men’s head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
+    "checkedAt": "2026-09-15",
     "sourceUrl": "https://www.tottenhamhotspur.com/news/1018014/roberto-de-zerbi-joins-as-mens-head-coach",
     "sourceTitle": "Roberto De Zerbi joins as Men’s Head Coach",
-    "note": "Official appointment dated 2026-03-31. Active role corroborated by official player announcement dated 2026-09-01: https://www.tottenhamhotspur.com/news/1088045/mudryk-arrives-on-loan ."
+    "note": "Appointed 31 March 2026 on a long-term deal. Checked 15 September 2026."
   },
   {
     "apiId": 90,
     "name": "Thomas Frank",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.tottenhamhotspur.com/news/1009224/club-statement-thomas-frank",
-    "sourceTitle": "Club statement - Thomas Frank",
-    "note": "Official Tottenham departure dated 2026-02-11. No later official appointment or current unattached status verified by the cutoff. Departure does not establish present availability."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/48975273/ex-spurs-boss-thomas-frank-wont-rush-new-role-opportunities-roberto-de-zerbi",
+    "sourceTitle": "Ex-Spurs boss Thomas Frank has had opportunities but won’t rush into next role",
+    "note": "Left Tottenham on 11 February 2026 after an eight-game winless run. No club job since; working as a pundit for 2026/27 (ESPN, 5 June 2026). Checked 15 September 2026."
   },
   {
     "apiId": 12,
@@ -115,32 +115,32 @@
     "club": "Sweden men’s national team",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.svenskfotboll.se/nyheter/landslag/2026/03/graham-potter-forlanger/",
-    "sourceTitle": "Potter fortsätter som förbundskapten till 2030",
-    "note": "Official federation renewal dated 2026-03-12 through 2030, following appointment in October 2025. Corroborated by Tottenham's Sweden assistant-coach announcement dated 2026-08-11: https://www.tottenhamhotspur.com/news/1084993/georgson-named-sweden-national-team-assistant-head-coach . National-team employer is represented in club field; not West Ham."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/48185824/sweden-graham-potter-contract-winless-start-extension-contract",
+    "sourceTitle": "Sweden extend Graham Potter deal until 2030",
+    "note": "Contract extended to 2030 in March 2026. Checked 15 September 2026."
   },
   {
     "apiId": 7,
     "name": "Sean Dyche",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.nottinghamforest.co.uk/news/2026/february/12/club-statement/",
-    "sourceTitle": "CLUB STATEMENT",
-    "note": "Official Nottingham Forest departure dated 2026-02-12. No later official appointment or current unattached status verified by the cutoff. Departure does not establish present availability."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.skysports.com/football/news/11095/13506580/sean-dyche-sacked-nottingham-forest-sack-head-coach-after-just-114-days-in-charge-following-goalless-draw-with-wolves",
+    "sourceTitle": "Sean Dyche: Nottingham Forest sack head coach after just 114 days",
+    "note": "Dismissed by Nottingham Forest on 12 February 2026 after 114 days. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 6025,
     "name": "Russell Martin",
     "club": "Leicester City",
-    "role": "Manager",
+    "role": "First-team manager",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.lcfc.com/media-article/russell-martin-leicester-city-lcfc-manager-first-words-quotes-appointment",
-    "sourceTitle": "‘Approach It With Fresh Energy’ – Martin After City Appointment",
-    "note": "Official appointment coverage dated 2026-06-16 describes a three-year contract. Current role corroborated by club article dated 2026-08-21: https://www.lcfc.com/media-article/leicester-city-manager-russell-martin-burton-albion-squad-fitness-news-sky-bet-league-one . Rangers and Southampton are previous employers."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.lcfc.com/media-article/russell-martin-appointed-leicester-city-first-team-manager-lcfc-press-release",
+    "sourceTitle": "Russell Martin appointed Leicester City first-team manager",
+    "note": "Appointed 15 June 2026 on a deal to 2029 after Leicester’s relegation to League One. Checked 15 September 2026."
   },
   {
     "apiId": 13,
@@ -148,10 +148,10 @@
     "club": "United States men’s national team",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.ussoccer.com/stories/2026/08/usmnt/mauricio-pochettino-head-coach-new-contract-through-2030",
-    "sourceTitle": "U.S. Soccer Federation and Mauricio Pochettino Agree to New Contract Through 2030",
-    "note": "Official renewal dated 2026-08-03 through 2030. Current role corroborated by federation interview dated 2026-09-09: https://www.ussoccer.com/stories/2026/09/usmnt/mauricio-pochettino-fresh-start-september-camp-roster . National-team employer is represented in club field."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/49528558/first-usmnt-fixtures-new-mauricio-pochettino-deal-revealed",
+    "sourceTitle": "First USMNT fixtures after new Mauricio Pochettino deal revealed",
+    "note": "Extension through 2030 signed 4 August 2026. Checked 15 September 2026."
   },
   {
     "apiId": 18151,
@@ -159,32 +159,32 @@
     "club": "Ipswich Town",
     "role": "Manager",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.itfc.co.uk/news/2026/september/11/gary-on-palace-challenge/",
-    "sourceTitle": "Crystal Palace v Ipswich Town: Gary O'Neil on Selhurst Park clash",
-    "note": "Official club preview dated 11 September 2026 confirms O'Neil leading Ipswich. Appointment announcement dated 23 June 2026: https://www.itfc.co.uk/news/2026/june/23/gary-oneil-appointed-ipswich-town-manager/ . No later departure found in this check."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.skysports.com/football/news/11707/13556081/ipswich-town-gary-oneil-appointed-new-tractor-boys-manager-ahead-of-premier-league-return",
+    "sourceTitle": "Ipswich Town: Gary O’Neil appointed new manager ahead of Premier League return",
+    "note": "Appointed on a three-year deal on 23 June 2026; Ipswich are in the 2026/27 Premier League. Checked 15 September 2026."
   },
   {
     "apiId": 98,
     "name": "Steve Cooper",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
     "sourceUrl": "https://brondby.com/nyheder/klub/2026/maj/brondby-if-stopper-samarbejdet-med-steve-cooper-julius-ohnesorge-er-ny-fodbolddirektor",
-    "sourceTitle": "Brøndby IF stopper samarbejdet med Steve Cooper - Julius Ohnesorge er ny fodbolddirektør",
-    "note": "Official statement dated 22 May 2026 announces immediate departure of head coach Cooper. This supersedes his September 2025 appointment. No later primary appointment or current unattached confirmation found; present employment remains unknown, not Brøndby."
+    "sourceTitle": "Brøndby IF stopper samarbejdet med Steve Cooper",
+    "note": "Dismissed by Brøndby on 24 May 2026, the day after the Superliga season ended (4th), eight months into a three-year deal. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 87,
     "name": "Scott Parker",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.burnleyfootballclub.com/media-article/club-statement-scott-parker",
-    "sourceTitle": "CLUB STATEMENT: SCOTT PARKER",
-    "note": "Official statement published 30 April 2026 at 09:00 UTC confirms the head coach left Burnley by mutual consent. No later primary appointment or current unattached confirmation found. Departure alone is not proof of continued unemployment."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/48635868/burnley-scott-parker-part-ways-premier-league-relegation",
+    "sourceTitle": "Burnley, Scott Parker part ways after Premier League relegation",
+    "note": "Left Burnley by mutual consent on 30 April 2026 after relegation (four wins in 34 league games). No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 10665,
@@ -192,10 +192,10 @@
     "club": "AJ Auxerre",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.aja.fr/archer-nouvelle-fleche-de-laja/",
-    "sourceTitle": "Archer, nouvelle flèche de l’AJA",
-    "note": "Official announcement dated 1 September 2026 says Cameron Archer will reunite with coach Will Still at Auxerre. Still's appointment was announced 12 June 2026: https://www.aja.fr/will-still-nouvel-entraineur-de-laj-auxerre/ . No later departure found; Southampton is historical."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://sports.yahoo.com/articles/official-still-named-auxerre-manager-105500383.html",
+    "sourceTitle": "Official | Will Still named Auxerre manager",
+    "note": "Appointed 12 June 2026 on a two-year deal plus option. Checked 15 September 2026."
   },
   {
     "apiId": 13350,
@@ -203,21 +203,21 @@
     "club": "Paris FC",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://parisfc.fr/equipe-pro/om-2-3-paris-fc-sinayoko-soffre-un-triple-et-donne-la-victoire-aux-parisiens/",
-    "sourceTitle": "OM 2-3 Paris FC : Sinayoko s’offre un triplé et donne la victoire aux Parisiens",
-    "note": "Official men's-team report published 7 September 2026 identifies Rosenior as leading Paris FC. Appointment announced 7 July 2026, duties beginning 9 July, in https://parisfc.fr/equipe-pro/le-paris-fc-ouvre-un-nouveau-chapitre-de-son-projet-avec-la-nomination-de-liam-rosenior/ . No later departure found; Chelsea is historical."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.france24.com/en/live-news/20260707-paris-fc-confirm-rosenior-taking-over-as-coach",
+    "sourceTitle": "Paris FC confirm Rosenior taking over as coach",
+    "note": "Appointed 7 July 2026 on a contract to June 2028. Checked 15 September 2026."
   },
   {
     "apiId": 618,
     "name": "Ryan Lowe",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
     "sourceUrl": "https://wiganathletic.com/news/2026/february/07/club-statement-ryan-lowe/",
     "sourceTitle": "Club Statement | Ryan Lowe",
-    "note": "Primary statement URL located through its reference and the club's LinkedIn post, but the club page returned no readable article body. Departure on 7 February 2026 is corroborated by reporting, not independently readable primary text in this check. No later primary appointment or current unattached confirmation found. Do not retain Wigan as a verified current employer."
+    "note": "Left Wigan Athletic on 7 February 2026. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 16246,
@@ -225,21 +225,21 @@
     "club": "Manchester United",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.manutd.com/en/news/key-quotes-from-michaels-press-conference-city-13-sep-2026",
-    "sourceTitle": "Press conference: Carrick focused on winning again",
-    "note": "Official post-derby press conference for 13 September 2026 confirms Carrick leading United. The club's official news listing also identifies him at the 13 September Manchester City match. No later departure found."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/48789147/man-united-michael-carrick-appointed-permanent-head-coach",
+    "sourceTitle": "Man United appoint Michael Carrick as permanent head coach",
+    "note": "Permanent from 22 May 2026 to 2028. Checked 15 September 2026."
   },
   {
     "apiId": 12474,
     "name": "Carlos Corberan",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
     "sourceUrl": "https://www.valenciacf.com/official-statement-ron-gourlay-and-carlos-corberan",
-    "sourceTitle": "OFFICIAL STATEMENT | RON GOURLAY AND CARLOS CORBERÁN",
-    "note": "Official statement dated 13 September 2026 explicitly terminates Corberán's contract and names Óscar Sánchez interim first-team coach. This supersedes the July renewal and 10–11 September press conferences. No subsequent primary appointment found as of 14 September; current employment elsewhere is unverified. Known departed Valencia; do not treat as employed there or infer willingness/availability."
+    "sourceTitle": "Official statement | Ron Gourlay and Carlos Corberán",
+    "note": "Dismissed by Valencia on 13 September 2026 with the club bottom of LaLiga. Checked 15 September 2026."
   },
   {
     "apiId": 1878,
@@ -247,10 +247,10 @@
     "club": "Portland Timbers",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.timbers.com/club/technical-staff/marti-cifuentes",
-    "sourceTitle": "Martí Cifuentes | Head Coach",
-    "note": "Current official technical-staff page lists Cifuentes as head coach. Appointment announced 21 July 2026: https://www.timbers.com/news/portland-timbers-name-marti-cifuentes-head-coach . That announcement made arrival subject to visa approval; the club's photo listing subsequently records his first day on 11 August 2026, and its current news includes his Dallas preview. No later departure found; Leicester is historical."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.timbers.com/news/portland-timbers-name-marti-cifuentes-head-coach",
+    "sourceTitle": "Portland Timbers name Martí Cifuentes head coach",
+    "note": "Appointed 21 July 2026 on a three-year deal. Checked 15 September 2026."
   },
   {
     "apiId": 22937,
@@ -258,21 +258,21 @@
     "club": "FC Red Bull Salzburg",
     "role": "Head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.bundesliga.at/de/team/fc-red-bull-salzburg/6428/trainer",
-    "sourceTitle": "FC Red Bull Salzburg — Trainer",
-    "note": "Current official Austrian Bundesliga coach page lists Danny Röhl, DOB 28 April 1989, at the club since 17 June 2026. Club announcement dated 17 June 2026: https://www.redbullsalzburg.at/en/recent/news/danny-roehl-neuer-trainer . Contract described as until summer 2029; do not invent an exact expiry day. No later departure found; Rangers is historical."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.skysports.com/football/news/11095/13553276/danny-rohl-rangers-complete-rb-salzburg-deal-with-derek-mcinnes-set-for-ibrox",
+    "sourceTitle": "Danny Röhl: Rangers complete RB Salzburg deal",
+    "note": "Joined Salzburg from Rangers on 17 June 2026. Checked 15 September 2026."
   },
   {
     "apiId": 636,
     "name": "Rob Edwards",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
     "sourceUrl": "https://www.wolves.co.uk/news/club/20260611-wolves-part-ways-with-rob-edwards/",
     "sourceTitle": "Wolves part ways with Rob Edwards",
-    "note": "Official statement dated 11 June 2026 confirms departure of head coach Edwards and his staff, superseding the November 2025 appointment. No later primary appointment or current unattached confirmation found. apiId 636 preserves the reviewed research identity; cached duplicate API record 25765 does not establish employment and this file does not resolve or merge that identity conflict."
+    "note": "Dismissed by Wolves on 11 June 2026 after relegation from the Premier League. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 12629,
@@ -280,10 +280,10 @@
     "club": "Manchester City",
     "role": "Manager",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.mancity.com/news/mens/coaching-team-enzo-maresca-confirmed-63919119/",
-    "sourceTitle": "Coaching team to work with new City boss Maresca confirmed",
-    "note": "Official club source states Maresca was announced as City's new manager on 29 June 2026 on a three-year contract. City's official preview for the 13 September 2026 derby also identifies Maresca leading City: https://es.mancity.com/news/mens/previa-united-city-premier-league-1-63924590 . No later departure found. Jake explicitly excludes Maresca as a realistic Tottenham target; this is the user's recruitment constraint, not a claim of contractual impossibility. No salary or availability inferred."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.aljazeera.com/sports/2026/6/29/enzo-maresca-appointed-man-city-manager-to-succeed-pep-guardiola",
+    "sourceTitle": "Enzo Maresca appointed Manchester City manager to succeed Pep Guardiola",
+    "note": "Appointed 29 June 2026 on a three-year deal. Checked 15 September 2026."
   },
   {
     "apiId": 6801,
@@ -291,10 +291,10 @@
     "club": "Chelsea",
     "role": "Manager, men’s first team",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.premierleague.com/en/managers",
-    "sourceTitle": "Premier League Managers, Profiles & Stats 2026/27 & Archive",
-    "note": "Official current-manager directory lists Chelsea, start 2026-07-01. Appointment separately opened: https://www.chelseafc.com/en/news/article/xabi-alonso-appointed-chelsea-manager . Real Madrid departure by mutual agreement on 2026-01-12 independently verified: https://www.realmadrid.com/en-US/news/club/announcements/comunicado-oficial-xabi-alonso-12-01-2026 . Current role is not inferred from API career end=null."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.aljazeera.com/sports/2026/5/17/chelsea-appoint-xabi-alonso-as-new-manager-premier-league-club-says",
+    "sourceTitle": "Chelsea appoint Xabi Alonso as new manager on four-year deal",
+    "note": "Four-year deal announced 17 May 2026, from 1 July 2026. Checked 15 September 2026."
   },
   {
     "apiId": 1888,
@@ -302,10 +302,10 @@
     "club": "Netherlands men’s national team (KNVB)",
     "role": "Head coach, men’s national team",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.knvb.com/news/extra/oranje/1525/netherlands-mens-national-team-coaching-staff-complete",
-    "sourceTitle": "Netherlands men’s national team coaching staff complete",
-    "note": "KNVB announcement dated 2026-08-22 explicitly identifies Xavi as the new national head coach and confirms his staff. This is a national-team role, not a club role. Barcelona contract termination dated 2024-05-29 independently opened: https://www.fcbarcelona.com/en/news/4029578/fc-barcelona-statement/amp ."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.knvb.com/news/extra/oranje/1524/xavi-hern%C3%A1ndez-appointed-new-head-coach-netherlands-men%E2%80%99s-national-team",
+    "sourceTitle": "Xavi Hernández new head coach of the Netherlands men’s national team",
+    "note": "Appointed 12 August 2026 to the 2030 World Cup. Checked 15 September 2026."
   },
   {
     "apiId": 4720,
@@ -313,21 +313,21 @@
     "club": "AC Milan",
     "role": "Head coach, men’s first team",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.acmilan.com/en/news/articles/serie-a/2026-09-12/lazio-v-ac-milan-the-official-line-ups",
-    "sourceTitle": "LAZIO v AC MILAN: THE OFFICIAL LINE-UPS",
-    "note": "Club match announcement dated 2026-09-12 explicitly lists Amorim as Milan coach. Appointment on 2026-06-16 opened: https://www.acmilan.com/en/news/articles/media/2026-06-16/ac-milan-appoints-ruben-amorim-as-head-coach-of-the-men-s-first-team . Manchester United departure effective 2026-01-05 verified in club interim report section 33.3, PDF page 42: https://ir.manutd.com/~/media/Files/M/Manutd-IR/Governance%20Document/2q-2026-interim-report.pdf ."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/49070225/ruben-amorim-appointed-ac-milan-boss-leaving-man-united",
+    "sourceTitle": "Ruben Amorim appointed AC Milan boss after leaving Man United",
+    "note": "Appointed 16 June 2026. Checked 15 September 2026."
   },
   {
     "apiId": 2204,
     "name": "Sérgio Conceição",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.ittihadclub.sa/en/news/al-ittihad-ends-of-contract-with-conceicao",
-    "sourceTitle": "Al-Ittihad Ends of Contract with Conceição",
-    "note": "Club explicitly confirms immediate termination; the opened page does not expose a publication date. Saudi Pro League announcement dated 2026-08-03 separately confirms Jens Wissing succeeded Conceição: https://www.spl.com.sa/en/news/we-carry-a-tiger-why-new-al-ittihad-manager-jens-wissing-is-ready-to-hunt . Al Ittihad is therefore not a verified current role. No subsequent official appointment or contemporaneous official confirmation of unattached status established as of 2026-09-14; availability is not inferred."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://saudigazette.com.sa/article/661816",
+    "sourceTitle": "Al Ittihad part ways with head coach Sergio Conceicao",
+    "note": "Left Al-Ittihad by mutual consent on 2 June 2026. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 13491,
@@ -335,10 +335,10 @@
     "club": "Athletic Club",
     "role": "Head coach, men’s first team",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.athletic-club.eus/entrenadores/edin-terzic/",
-    "sourceTitle": "Edin Terzić | Entrenador | Athletic Club Website Oficial",
-    "note": "Official coach profile identifies DOB 1982-10-30 and shows the current Athletic tenure and matches through 2026-09-12. Dortmund departure independently verified: https://www.bvb.de/de/en/news/news-overview/news.html/2024/8/10/Official-farewell-for-Edin-Terzic-at-season-opening-event.html . Keep reviewed profile apiId 13491; this employment evidence does not merge the separate provider ID 28903 or authorize match-data reassignment."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/48683411/edin-terzi%C4%87-announced-new-coach-athletic-club",
+    "sourceTitle": "Edin Terzić announced as new coach of Athletic Club",
+    "note": "Two-year deal from 1 July 2026. Checked 15 September 2026."
   },
   {
     "apiId": 1540,
@@ -346,21 +346,21 @@
     "club": "AFC Bournemouth",
     "role": "Head coach, men’s first team",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.premierleague.com/en/managers",
-    "sourceTitle": "Premier League Managers, Profiles & Stats 2026/27 & Archive",
-    "note": "Official current-manager directory lists Marco Rose at Bournemouth with start date 2026-06-01. This supersedes stale Leipzig career interpretation. Keep reviewed apiId 1540; separate provider ID 29273 is not merged and historical match attribution is unchanged."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.afcb.co.uk/news/2026/april/20/marco-rose-to-become-head-coach-ahead-of-26-27-season",
+    "sourceTitle": "Marco Rose to become Head Coach ahead of 26/27 season",
+    "note": "Three-year deal from June 2026. Checked 15 September 2026."
   },
   {
     "apiId": 57,
     "name": "Roger Schmidt",
-    "club": "J.League",
-    "role": "Global Football Advisor",
+    "club": "Red Bull GmbH",
+    "role": "Head of Global Soccer (non-coaching role from 1 October 2026)",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://aboutj.jleague.jp/corporate/en/pressrelease/article/15998",
-    "sourceTitle": "Renewed Global Football Advisor Contract with Roger Schmidt",
-    "note": "Official release dated 2026-07-03 renews the advisory engagement for July 2026 through June 2027. This is a league advisory role, not a club head-coach appointment or a claim about legal employee classification. Red Bull’s own announcement was also opened and gives 2026-10-01 as the start of his future Head of Global Soccer role, so that role must not be represented as already active on 2026-09-14: https://www.linkedin.com/posts/redbullmediahouse_redbull-football-soccer-activity-7488914934232428544-nbjq . No official termination of the J.League engagement was located; future-role overlap should be rechecked when effective."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.bundesliga.com/en/bundesliga/news/roger-schmidt-takes-klopp-job-red-bull-head-of-global-soccer-38440",
+    "sourceTitle": "Roger Schmidt appointed Red Bull Head of Global Soccer",
+    "note": "Executive role from 1 October 2026; last coaching job Benfica, ended August 2024. Checked 15 September 2026."
   },
   {
     "apiId": 1528,
@@ -368,21 +368,21 @@
     "club": "Borussia Dortmund",
     "role": "Head coach, men’s first team",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.bundesliga.com/en/bundesliga/news/better-than-klopp-hitzeld-kovac-highest-point-per-game-ratio-39070",
-    "sourceTitle": "Better than Jürgen Klopp, Ottmar Hitzfeld and Co.: Niko Kovač tops the Borussia Dortmund pile",
-    "note": "Official Bundesliga article dated 2026-09-07 confirms Kovač remains Dortmund head coach, discussing his 50th Bundesliga game with the club. A later club press-conference page dated 2026-09-10 was also opened: https://tv.bvb.de/de/videos/2026-2027/bundesliga/3--spieltag/pressekonferenz-vor-sc-paderborn/?referrerlane=231858 . No departure from Dortmund established in the reviewed latest sources."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://sports.yahoo.com/articles/niko-kovac-admits-borussia-dortmund-163600883.html",
+    "sourceTitle": "Niko Kovac admits Borussia Dortmund struggled after Champions League night",
+    "note": "Contract to 2027; in charge for 2026/27. Checked 15 September 2026."
   },
   {
     "apiId": 1530,
     "name": "Lucien Favre",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.ogcnice.com/en/article/123472/lucien-favre-is-no-longer-ogc-nice-manager.html",
-    "sourceTitle": "Lucien Favre is no longer OGC Nice manager",
-    "note": "Official Nice departure announcement dated 2023-01-09 confirms the end of his first-team role and replacement by Didier Digard. No newer official appointment or current unattached-status confirmation located as of 2026-09-14. The old departure establishes only that role ended, not that Favre is currently available or retired."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://sports.yahoo.com/articles/official-former-borussia-m-nchengladbach-133800446.html",
+    "sourceTitle": "Lucien Favre announces his retirement from coaching after 33 years",
+    "note": "Announced his retirement from coaching in December 2025. Not a candidate. Checked 15 September 2026."
   },
   {
     "apiId": 2412,
@@ -390,43 +390,43 @@
     "club": "Atalanta",
     "role": "Head coach, men’s first team",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://en.atalanta.it/news/the-squad-list-for-atalanta-v-cagliari-serie-a-enilive-2026-27-md4?appview=true",
-    "sourceTitle": "The squad list for Atalanta v Cagliari, Serie A Enilive 2026/27 MD4",
-    "note": "Current-season club squad announcement explicitly identifies Maurizio Sarri as head coach. Appointment dated 2026-06-15 also opened: https://en.atalanta.it/news/atalanta-appoint-maurizio-sarri-as-head-coach-welcome-mister . Lazio is not his current role: the opened official Milan-Lazio line-ups dated 2026-09-12 identify Gattuso as Lazio coach: https://www.acmilan.com/en/news/articles/serie-a/2026-09-12/lazio-v-ac-milan-the-official-line-ups . Exact Lazio contract-termination date is not asserted from secondary reporting."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://sport.sky.it/calciomercato/2026/06/15/atalanta-sarri-allenatore-news",
+    "sourceTitle": "Atalanta, Sarri è il nuovo allenatore: ufficiale la firma per tre anni",
+    "note": "Appointed 15 June 2026 on a three-year deal to 2029. Checked 15 September 2026."
   },
   {
     "apiId": 3733,
     "name": "Stefano Pioli",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://en.legaseriea.it/serie-a/news/stefano-pioli-relieved-of-coaching-duties",
-    "sourceTitle": "Stefano Pioli relieved of coaching duties",
-    "note": "Official Lega Serie A publication reproduces Fiorentina’s confirmation that Pioli was relieved of first-team coaching duties and replaced temporarily by Daniele Galloppa. The opened text does not expose the announcement date. No newer official appointment or current unattached-status confirmation established as of 2026-09-14. Do not treat his former Fiorentina appointment or a contractual end date as proof of present employment; relief from duties alone does not prove contract termination."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.acffiorentina.com/news/stefano-pioli-non-e-piu-l-allenatore-della-fiorentina",
+    "sourceTitle": "Stefano Pioli non è più l’allenatore della Fiorentina",
+    "note": "Dismissed by Fiorentina on 4 November 2025; contract rescinded May 2026. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 4842,
     "name": "Thiago Motta",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.juventus.com/it/news/articoli/thiago-motta-non-e-piu-l-allenatore-della-juventus-la-prima-squadra-maschile-affidata-a-igor-tudor",
-    "sourceTitle": "Thiago Motta non è più l’allenatore della Juventus. La Prima Squadra Maschile affidata a Igor Tudor",
-    "note": "Juventus statement dated 2025-03-23 explicitly removes Motta from the first-team coaching role and appoints Igor Tudor. No subsequent official appointment or current unattached-status confirmation established as of 2026-09-14. The previously announced contract through 2027 cannot establish a current coaching role; dismissal alone does not establish legal contract termination or availability."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://football-italia.net/juventus-set-to-cut-motta-from-payroll/",
+    "sourceTitle": "Juventus set to cut former coach Thiago Motta from club payroll",
+    "note": "Out of work since Juventus dismissed him in March 2025; no appointment found (Football Italia, 1 June 2026). Checked 15 September 2026."
   },
   {
     "apiId": 1545,
     "name": "Julian Nagelsmann",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.dfb.de/news/julian-nagelsmann-verlaesst-den-dfb",
-    "sourceTitle": "Julian Nagelsmann verlässt den DFB",
-    "note": "DFB confirms immediate contract termination on 2026-07-03. Its 2026-07-24 successor announcement confirms Klopp took over on 2026-08-15: https://www.dfb.de/news/juergen-klopp-appointed-new-germany-head-coach . No subsequent appointment or current unattached status verified from primary sources; do not list Germany as his current employer or infer availability."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.aljazeera.com/sports/2026/7/3/nagelsmann-steps-down-germany-coach-klopp-paraguay-world-cup-round-of-32",
+    "sourceTitle": "Nagelsmann quits as Germany coach after early World Cup 2026 exit",
+    "note": "Resigned as Germany coach on 3 July 2026. No club job found. Checked 15 September 2026."
   },
   {
     "apiId": 40,
@@ -434,10 +434,10 @@
     "club": "England",
     "role": "Men’s senior national team head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.englandfootball.com/articles/2026/Jul/21/whats-next-for-england-after-fifa-world-cup-20262107",
-    "sourceTitle": "What’s coming up for England teams?",
-    "note": "Official post-World Cup update dated 2026-07-21 explicitly identifies Tuchel leading the squad into September. Earlier official extension to EURO 2028: https://www.englandfootball.com/articles/2026/Feb/12/thomas-tuchel-extends-england-mens-contract-to-euro-2028-20261202 . No later departure found in this check; September squad-announcement page did not independently name the coach in its main text. National-team employer, not a club; no availability inference."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.skysports.com/football/news/12098/13563857/thomas-tuchel-england-head-coach-vows-to-remain-until-euro-2028-despite-world-cup-semi-final-loss-to-argentina",
+    "sourceTitle": "Thomas Tuchel: England head coach vows to remain until Euro 2028",
+    "note": "Contract to Euro 2028. Checked 15 September 2026."
   },
   {
     "apiId": 193,
@@ -445,21 +445,21 @@
     "club": "Paris Saint-Germain",
     "role": "Men’s first team head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.psg.fr/content/cp-programme-media-de-l-equipe-premiere-du-7-au-13-septembre-2026",
-    "sourceTitle": "PROGRAMME MÉDIA DE L’ÉQUIPE PREMIÈRE DU 7 AU 13 SEPTEMBRE 2026",
-    "note": "Official September 7–13 schedule assigns Luis Enrique the September 12 and 13 press conferences; this is a schedule, not proof of attendance. Official 2026-09-08 press conference explicitly calls him PSG coach: https://www.psg.fr/content/luis-enrique-chercher-a-se-reinventer-paris-saint-germain-sk-slovan-bratislava-uefa-champions-league-20262027 . No subsequent departure found; no availability inference."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.aljazeera.com/sports/2026/9/5/coach-luis-enrique-unconcerned-by-psgs-poor-start-to-french-league-season",
+    "sourceTitle": "Coach Luis Enrique unconcerned by PSG’s poor start to French league season",
+    "note": "Contract extended to 2030 on 4 September 2026. Checked 15 September 2026."
   },
   {
     "apiId": 2006,
     "name": "Arne Slot",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.liverpoolfc.com/news/liverpool-fc-statement-13/?amp=1",
-    "sourceTitle": "Liverpool FC statement",
-    "note": "Official 2026-05-30 statement confirms immediate departure. Liverpool announced successor Iraola on 2026-06-04: https://www.liverpoolfc.com/news/liverpool-fc-appoint-andoni-iraola-new-head-coach . No later appointment or current unattached status verified from primary sources. Do not carry forward Liverpool from the provider snapshot; no availability inference."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/48918413/arne-slot-leaves-liverpool-immediate-effect",
+    "sourceTitle": "Liverpool sack Arne Slot one year after Premier League title",
+    "note": "Left Liverpool on 30 May 2026 after a fifth-place finish. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 7248,
@@ -467,10 +467,10 @@
     "club": "Arsenal",
     "role": "Men’s first team manager",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.premierleague.com/en/news/4713135/jakirovic-wins-barclays-manager-of-the-month-award",
-    "sourceTitle": "Jakirovic wins Barclays Manager of the Month award",
-    "note": "Official Premier League announcement dated 2026-09-11 identifies Arteta as Arsenal manager among the August award nominees. Corroborated by the league’s 2026-08-05 manager list: https://www.premierleague.com/en/news/4679012 . No subsequent departure found; employer verification does not establish availability."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/49610211/mikel-arteta-arsenal-worry-contract-fa-community-shield-cardiff",
+    "sourceTitle": "Mikel Arteta: Arsenal fans don’t have to worry about contract situation",
+    "note": "2025/26 champions; contract to 2027. Checked 15 September 2026."
   },
   {
     "apiId": 18,
@@ -478,54 +478,54 @@
     "club": "Aston Villa",
     "role": "Men’s first team manager",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.avfc.co.uk/news/2026/september/05/postmatch-interview-emery-comfortable-with-hull-stalemate",
-    "sourceTitle": "Emery comfortable with Hull stalemate",
-    "note": "Official Villa post-match interview for the 2026-09-05 Hull match identifies Emery as the Villa boss and discusses the next Champions League fixture. No subsequent departure found. No availability, wages or contractual release inference."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.avfc.co.uk/news/2026/september/12/postmatch-nottingham-forest-unai-emery/",
+    "sourceTitle": "Postmatch | Nottingham Forest | Unai Emery",
+    "note": "Contract to 2029; in charge for 2026/27. Checked 15 September 2026."
   },
   {
     "apiId": 1582,
     "name": "Ernesto Valverde",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.athletic-club.eus/en/news/2026/05/23/valverde-now-it-s-time-for-me-to-be-just-another-fan/",
-    "sourceTitle": "Valverde: “Now it’s time for me to be just another fan”",
-    "note": "Official final press conference dated 2026-05-23 confirms departure. His 2026-05-17 club interview says he intended to stop coaching for the time being: https://www.athletic-club.eus/en/news/2026/05/17/valverde-it-was-an-emotional-evening-for-me-and-lekue/ . That intention does not establish unattached status on September 14. No subsequent primary appointment verified; do not list Athletic as current employer or infer willingness to work."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.athletic-club.eus/en/news/2026/03/20/valverde-to-step-down-as-athletic-head-coach-at-the-end-of-the-season/",
+    "sourceTitle": "Valverde to step down as Athletic head coach at the end of the season",
+    "note": "Ended his Athletic Club spell on 30 June 2026 by agreement. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 1585,
     "name": "Marcelino Garcia Toral",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://villarrealcf.es/gracias-marce/",
-    "sourceTitle": "Gracias, Marce",
-    "note": "Official 2026-05-04 announcement confirms departure at season end. His own 2026-08-19 website update covers an award but does not establish current employment: https://marcelinogarciatoral.com/actualidad/marcelino-recibira-la-maxima-distincion-del-comite-asturiano-de-entrenadores/ . No subsequent primary appointment or current unattached confirmation found. Do not list Villarreal as current employer or infer availability."
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.espn.com/soccer/story/_/id/48674400/marcelino-leave-villarreal-end-season",
+    "sourceTitle": "Marcelino to leave Villarreal at end of season",
+    "note": "Left Villarreal when his contract expired on 30 June 2026 after back-to-back Champions League qualifications. No new club found. Checked 15 September 2026."
   },
   {
     "apiId": 859,
     "name": "Marcelo Gallardo",
-    "club": null,
-    "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://efe.com/deportes/2026-09-14/marcelo-gallardo-seleccion-ecuador/",
-    "sourceTitle": "Marcelo Gallardo llega al banquillo de la selección de Ecuador",
-    "note": "IMPORTANT: source is EFE, a secondary report dated 2026-09-14, reproducing an FEF announcement attributed to @FEFecuador (https://pic.twitter.com/MOSlYqAwQ4). It reports Ecuador appointment after River departure; earlier September 11 reporting described a withdrawn FIFA directory listing. Direct FEF website/post retrieval was unsuccessful, so strict primary-source current-role verification remains unresolved. Ecuador is a reported appointment, not verified in this row; do not infer unattached status or retain River as current employer. River departure also reported for 2026-02-26, but original club announcement was not directly verified in this check."
+    "club": "Ecuador men’s national team",
+    "role": "Head coach",
+    "status": "employed",
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.france24.com/en/live-news/20260914-marcelo-gallardo-appointed-as-new-ecuador-head-coach",
+    "sourceTitle": "Marcelo Gallardo appointed as new Ecuador head coach",
+    "note": "Appointed 13 September 2026 on a contract to the 2030 World Cup. Checked 15 September 2026."
   },
   {
     "apiId": 127,
     "name": "Jorge Sampaoli",
     "club": null,
     "role": null,
-    "status": "unknown",
-    "checkedAt": "2026-09-14",
+    "status": "unattached",
+    "checkedAt": "2026-09-15",
     "sourceUrl": "https://www.clubtalleres.com.ar/comunicado-oficial-3/",
-    "sourceTitle": "Comunicado Oficial",
-    "note": "Talleres confirms contract ended on 2026-08-30, a later departure than Atlético Mineiro’s 2026-02-12 announcement: https://atletico.com.br/jorge-sampaoli-nao-e-mais-o-treinador-do-galo/ . No later primary appointment or explicit current unattached status verified by September 14. Do not carry forward Rennes, Atlético Mineiro or Talleres as employer; departure does not establish availability."
+    "sourceTitle": "Comunicado Oficial — Club Atlético Talleres",
+    "note": "Left Talleres on 30 August 2026 after seven games. Checked 15 September 2026."
   },
   {
     "apiId": 3081,
@@ -533,10 +533,10 @@
     "club": "Bologna",
     "role": "Men’s first team head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.bolognafc.it/domani-vigilia-di-napoli-bologna-conferenza-di-tedesco-alle-12/",
-    "sourceTitle": "Oggi vigilia di Napoli-Bologna, conferenza di Tedesco alle 12",
-    "note": "Official September 11/12 pre-Napoli training and press-conference notice identifies Tedesco as coach; title changed from Domani in search to Oggi on opened page. Official appointment 2026-06-02 confirms contract through 2028 and name/DOB identity: https://www.bolognafc.it/en/domenico-tedesco-is-the-new-head-coach-of-bologna/ . Fenerbahçe departure is reported 2026-04-27 but its original termination statement was not retrieved; do not retain Fenerbahçe or Belgium as current employer. No subsequent Bologna departure found; no availability inference."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.corrieredellosport.it/news/calcio/serie-a/bologna/2026/06/02-148996178/ufficiale_tedesco_il_nuovo_allenatore_del_bologna_il_comunicato_con_i_dettagli",
+    "sourceTitle": "Ufficiale, Tedesco è il nuovo allenatore del Bologna",
+    "note": "Appointed 2 June 2026 to June 2028. Checked 15 September 2026."
   },
   {
     "apiId": 2393,
@@ -544,9 +544,9 @@
     "club": "AS Roma",
     "role": "Men’s first team head coach",
     "status": "employed",
-    "checkedAt": "2026-09-14",
-    "sourceUrl": "https://www.asroma.com/it/notizie/75912/la-conferenza-stampa-di-gasperini-alla-vigilia-di-fenerbahce-roma",
-    "sourceTitle": "La conferenza stampa di Gasperini alla vigilia di Fenerbahce-Roma",
-    "note": "Official Roma press conference dated 2026-09-09 identifies Gasperini as Roma coach. Atalanta’s official farewell on 2025-06-01 confirms its relationship ended: https://en.atalanta.it/news/thank-you-for-everything-mister . This supersedes the provider’s overlapping open-ended Roma/Atalanta career rows. No subsequent Roma departure found; no availability inference."
+    "checkedAt": "2026-09-15",
+    "sourceUrl": "https://www.asroma.com/en/news/73319/as-roma-appoint-gian-piero-gasperini-as-new-head-coach",
+    "sourceTitle": "AS Roma appoint Gian Piero Gasperini as new head coach",
+    "note": "Three-year contract from June 2025; third in 2025/26 and in the 2026/27 Champions League. Checked 15 September 2026."
   }
 ]

@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { RefreshCw, Plus, X, ChevronRight } from 'lucide-react'
-import { generateLonglistAction, addCandidateFromLonglistAction } from '../../../actions-longlist'
+import { addCandidateFromLonglistAction } from '../../../actions-longlist'
 import type { LonglistEntryData, ExcludedEntryData } from '../../../actions-longlist'
 
 // ── Parsed fit data (stored as JSON in mandate_longlist.fit_explanation) ─────
@@ -170,29 +170,15 @@ export function MandateSearchPanel({
   selectedCoachId: string | null
 }) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [sessionExcluded, setSessionExcluded] = useState<ExcludedEntryData[]>([])
-  const [generationError, setGenerationError] = useState<string | null>(null)
+  const [isPending] = useTransition()
+  const [sessionExcluded] = useState<ExcludedEntryData[]>([])
+  const [generationError] = useState<string | null>(null)
   const [showExcluded, setShowExcluded] = useState(false)
   const [addingId, setAddingId] = useState<string | null>(null)
   const [addedThisSession, setAddedThisSession] = useState<Set<string>>(new Set())
 
   // Sync excluded list when initialEntries change (after server refresh)
   const entries = initialEntries
-
-  function handleGenerate() {
-    startTransition(async () => {
-      setGenerationError(null)
-      try {
-        const result = await generateLonglistAction(mandateId)
-        setSessionExcluded(result.excluded)
-        if (result.error) setGenerationError(result.error)
-        router.refresh()
-      } catch {
-        setGenerationError('Generation was not confirmed. Reconnect and regenerate before relying on the displayed rankings.')
-      }
-    })
-  }
 
   async function handleAdd(coachId: string) {
     setAddingId(coachId)
@@ -240,9 +226,10 @@ export function MandateSearchPanel({
             </p>
           )}
         </div>
+        {/* The market list is the shared brief ranking, recalculated on every load; the old keyword generator is no longer offered. */}
         <button
           type="button"
-          onClick={handleGenerate}
+          onClick={() => router.refresh()}
           disabled={isPending}
           className={cn(
             'flex items-center gap-1 px-2 py-1 rounded border text-[10px] font-medium transition-colors',
@@ -250,10 +237,10 @@ export function MandateSearchPanel({
               ? 'border-border text-muted-foreground cursor-not-allowed'
               : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
           )}
-          title={hasData ? 'Refresh recommendations' : 'Generate recommendations'}
+          title="Reload the ranking from the saved brief"
         >
           <RefreshCw className={cn('w-3 h-3', isPending && 'animate-spin')} />
-          {isPending ? 'Scoring…' : hasData ? 'Refresh' : 'Generate'}
+          Reload
         </button>
       </div>
 
@@ -263,19 +250,10 @@ export function MandateSearchPanel({
           <div className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center text-lg">
             ◎
           </div>
-          <p className="text-xs font-medium text-foreground">No recommendations yet</p>
+          <p className="text-xs font-medium text-foreground">Nobody to rank yet</p>
           <p className="text-[10px] text-muted-foreground leading-relaxed">
-            Score and rank every coach against this brief.
+            The brief needs at least two of playing identity, build-up, defending and objective before the list can be worked out.
           </p>
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={isPending}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className="w-3 h-3" />
-            Generate recommendations
-          </button>
         </div>
       )}
 
