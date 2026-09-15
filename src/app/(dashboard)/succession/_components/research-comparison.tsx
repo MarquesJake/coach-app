@@ -17,11 +17,11 @@ function ScoreEvidence({ coach }: { coach: ReviewedSuccessionCoach }) {
     <summary className="cursor-pointer text-xs font-semibold">Why this score?</summary>
     <div className="mt-3 space-y-3 text-xs leading-5">
       {coach.fit.dimensions.map(row => <div key={row.key}>
-        <p className="font-semibold">{row.label}: {row.score}/100 × {row.weight.toFixed(1)}% = {row.contribution.toFixed(1)}</p>
+        <p className="font-semibold">{row.label}: {row.score === null ? 'not scored — evidence required' : `${row.score}/100 × ${row.weight.toFixed(1)}% = ${row.contribution.toFixed(1)}`}</p>
         <p className="text-muted-foreground">Brief asks for: {row.required}. He shows: {row.recorded}.</p>
         <p className="text-muted-foreground">{row.explanation}</p>
       </div>)}
-      <p>Add the contributions: {coach.fitScore}/100.</p>
+      <p>Add the contributions: {coach.fitScore}/100. Evidence: {coach.fit.coverage.reliability} — {coach.fit.coverage.evidencedWeight}% of the intended weight{coach.fit.coverage.unscored.length ? `; not scored: ${coach.fit.coverage.unscored.join(', ')}` : ''}.</p>
       {coach.research.sources.map(source => <p key={source.url}>
         <a href={source.url} target="_blank" rel="noreferrer" className="text-primary underline">{source.title}</a>
         <span className="block text-muted-foreground">Period covered: {source.period}</span>

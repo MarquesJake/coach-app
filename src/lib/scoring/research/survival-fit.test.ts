@@ -23,23 +23,26 @@ test('weights total 100, contributions reproduce the score, and every line carri
   assert.ok(Math.abs(result.dimensions.reduce((sum, row) => sum + row.weight, 0) - 100) < 0.00001)
   assert.equal(result.score, Math.round(result.dimensions.reduce((sum, row) => sum + row.contribution, 0) * 10) / 10)
   for (const row of result.dimensions) {
-    assert.match(row.requirementSource, /Analyst demonstration brief/)
+    assert.match(row.requirementSource, /Saved brief/)
     assert.ok(['verified', 'calculated', 'researched', 'unavailable'].includes(row.evidenceKind))
     assert.ok(row.period.length > 0)
   }
-  assert.deepEqual(result.coverage.unavailable, ['Player development', 'Working to a controlled budget', 'Leadership in a relegation fight'])
+  assert.deepEqual(result.coverage.unscored, ['Working to a controlled budget'])
   assert.ok(result.coverage.evidencedWeight > 80)
+  assert.equal(result.coverage.reliability, 'strong')
 })
 
-test('an Essential defending requirement weighs more than a Flexible one and missing match data is half credit, never zero', () => {
-  const essential = calculateResearchFit(survival, pragmatic, evidence(1.0, 1.0)).dimensions.find(row => row.key === 'defence')!
-  const flexible = calculateResearchFit({ ...survival, decision_brief: { out_of_possession: { value: 'Mid-block', priority: 'Flexible' } } }, pragmatic, evidence(1.0, 1.0)).dimensions.find(row => row.key === 'defence')!
+test('an Essential defending requirement weighs more than a Flexible one and missing match data is not scored, never zero', () => {
+  const essential = calculateResearchFit(survival, pragmatic, evidence(1.0, 1.0)).dimensions.find(row => row.key === 'pressing')!
+  const flexible = calculateResearchFit({ ...survival, decision_brief: { out_of_possession: { value: 'Mid-block', priority: 'Flexible' } } }, pragmatic, evidence(1.0, 1.0)).dimensions.find(row => row.key === 'pressing')!
   assert.ok(essential.weight > flexible.weight * 2)
   const missing = calculateResearchFit(survival, pragmatic, null)
   const defence = missing.dimensions.find(row => row.key === 'defence')!
-  assert.equal(defence.recorded, 'Not available from the current source')
-  assert.equal(defence.score, 50)
+  assert.equal(defence.recorded, 'Not scored — match data required')
+  assert.equal(defence.score, null)
   assert.equal(defence.evidenceKind, 'unavailable')
+  assert.notEqual(missing.coverage.reliability, 'strong')
+  assert.ok(missing.coverage.evidencedWeight < calculateResearchFit(survival, pragmatic, evidence(1.0, 1.0)).coverage.evidencedWeight)
 })
 
 test('English experience reads senior clubs from the provider career record and ignores youth spells', () => {
@@ -64,8 +67,8 @@ test('build-up and the defensive block are scored from the brief, so a long-ball
   assert.equal(a.dimensions.find(row => row.key === 'build')!.required, 'Direct — long ball or quick forward play')
   assert.equal(a.dimensions.find(row => row.key === 'build')!.score, 100)
   assert.equal(b.dimensions.find(row => row.key === 'build')!.score, 25)
-  assert.equal(a.dimensions.find(row => row.key === 'block')!.score, 100)
-  assert.equal(b.dimensions.find(row => row.key === 'block')!.score, 30)
+  assert.equal(a.dimensions.find(row => row.key === 'pressing')!.score, 100)
+  assert.equal(b.dimensions.find(row => row.key === 'pressing')!.score, 30)
   assert.ok(a.score! > b.score!)
 })
 
@@ -74,7 +77,7 @@ test('preserve-the-model and a conservative board change the weights openly; gra
   assert.deepEqual(plain.modifiers, [])
   const preserve = calculateResearchFit({ ...survival, decision_brief: { ...survival.decision_brief, adaptation: { value: 'Preserve current model', priority: 'Preferred' } } }, pragmatic, evidence(1.3, 1.3))
   assert.equal(preserve.modifiers.length, 1)
-  assert.ok(preserve.dimensions.find(row => row.key === 'block')!.weight > plain.dimensions.find(row => row.key === 'block')!.weight)
+  assert.ok(preserve.dimensions.find(row => row.key === 'pressing')!.weight > plain.dimensions.find(row => row.key === 'pressing')!.weight)
   assert.ok(Math.abs(preserve.dimensions.reduce((sum, row) => sum + row.weight, 0) - 100) < 0.00001)
   const conservative = calculateResearchFit({ ...survival, board_risk_appetite: 'Conservative' }, pragmatic, evidence(1.3, 1.3))
   assert.ok(conservative.dimensions.find(row => row.key === 'survival')!.weight > plain.dimensions.find(row => row.key === 'survival')!.weight)

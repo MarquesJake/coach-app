@@ -124,6 +124,7 @@ export default async function MandateAssessmentIndexPage(
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">{positionLabel(coach)} · fit {coach.fit.score}</p>
                 <p className="mt-1 text-sm font-semibold text-foreground">{coach.record ? <Link className="hover:underline" href={`/coaches/${coach.record.id}`}>{coach.profile.name}</Link> : coach.profile.name}</p>
                 {coach.aheadOfNext && <p className="mt-1 text-2xs leading-relaxed text-muted-foreground">{coach.aheadOfNext}</p>}
+                <p className="mt-1 text-2xs text-muted-foreground">Evidence: {coach.fit.coverage.reliability} · {coach.fit.coverage.evidencedWeight}%</p>
                 <p className="mt-2 text-2xs text-muted-foreground">{coach.eligibility.headline}</p>
                 <p className="mt-1 text-2xs text-muted-foreground">{assessed ? `Full assessment on file${rec?.verdict ? ` · analyst verdict: ${rec.verdict}` : ''}` : 'Not yet taken into the full nine-area assessment'}</p>
               </div>

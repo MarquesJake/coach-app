@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import type { AppointmentDecision } from '@/lib/appointments/feasibility'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { modelFor, EVIDENCE_KIND_LABELS, type RankingBrief } from '@/lib/scoring/research/brief-fit'
+import { modelFor, EVIDENCE_KIND_LABELS, EVIDENCE_NOTE, type RankingBrief } from '@/lib/scoring/research/brief-fit'
 import { DemonstrationBadge } from '@/components/mandates/demonstration-badge'
+import { briefUsage } from '@/lib/mandates/brief-usage'
 import { rankResearchProfiles, positionLabel, type RankedCoach } from '@/lib/scoring/research/ranking'
 import { safeDecisionBrief } from '@/lib/mandates/decision-brief'
 
@@ -12,15 +13,22 @@ function Situation({ coach }: { coach: RankedCoach }) {
     <p className="font-medium text-foreground">{eligibility.headline}</p>
     <p>{eligibility.reason}</p>
     {eligibility.source && <p><a href={eligibility.source.url} target="_blank" rel="noreferrer" className="text-primary underline">{eligibility.source.title}</a> · checked {eligibility.source.checkedAt}</p>}
+    {eligibility.timelineNote && <p className="mt-1 text-amber-800 dark:text-amber-300">{eligibility.timelineNote}</p>}
   </div>
+}
+
+const RELIABILITY = { strong: 'Evidence: strong', moderate: 'Evidence: moderate', weak: 'Evidence: weak' }
+function Reliability({ coach }: { coach: RankedCoach }) {
+  const { coverage } = coach.fit
+  return <p className="mt-1 text-xs text-muted-foreground"><span className={coverage.reliability === 'strong' ? 'font-medium text-emerald-700 dark:text-emerald-400' : coverage.reliability === 'moderate' ? 'font-medium text-amber-700 dark:text-amber-400' : 'font-medium text-red-700 dark:text-red-400'}>{RELIABILITY[coverage.reliability]}</span> · {coverage.evidencedWeight}% of the intended weight is backed by evidence{coverage.unscored.length ? ` · not scored: ${coverage.unscored.join(', ')}` : ''}</p>
 }
 
 function ScoreBreakdown({ coach }: { coach: RankedCoach }) {
   return <div className="mt-3 space-y-3">
     {coach.fit.modifiers.map(note => <p key={note} className="text-xs font-medium text-foreground/80">{note}</p>)}
-    <p className="text-xs text-muted-foreground">Evidence behind {coach.fit.coverage.evidencedWeight}% of the weight.{coach.fit.coverage.unavailable.length ? ` Not yet covered: ${coach.fit.coverage.unavailable.join(', ')} — half credit each, not zero.` : ''}</p>
+    <p className="text-xs text-muted-foreground">Evidence behind {coach.fit.coverage.evidencedWeight}% of the intended weight.{coach.fit.coverage.unscored.length ? ` Not scored — evidence required: ${coach.fit.coverage.unscored.join(', ')}. Those weights are left out of the score, not filled in.` : ''}</p>
     {coach.fit.dimensions.map(row => <div key={row.key} className="text-xs leading-relaxed">
-      <p className="font-semibold">{row.label}: {row.score}/100 × {row.weight.toFixed(1)}% = {row.contribution.toFixed(1)}</p>
+      <p className="font-semibold">{row.label}: {row.score === null ? `not scored (would carry ${row.intendedWeight.toFixed(0)} of the raw weight)` : `${row.score}/100 × ${row.weight.toFixed(1)}% = ${row.contribution.toFixed(1)}`}</p>
       <p className="mt-1 text-muted-foreground">Club requirement: {row.required}. <span className="text-foreground/80">From: {row.requirementSource}</span></p>
       <p className="mt-1 text-muted-foreground">He shows: {row.recorded}.</p>
       <p className="mt-1 text-muted-foreground">Evidence: {EVIDENCE_KIND_LABELS[row.evidenceKind]}. Period and sample: {row.period}.</p>
@@ -63,6 +71,7 @@ export async function BriefMatches({ mandate, appointmentDecisions }: { mandate:
           <div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-muted-foreground">{positionLabel(coach)}</span><span className="text-xs text-muted-foreground">Fit with the brief</span></div>
           <h3 className="mt-3 text-lg font-semibold">{coach.record ? <Link className="hover:underline" href={`/coaches/${coach.record.id}`}>{coach.profile.name}</Link> : coach.profile.name}</h3>
           <p className="mt-2 text-3xl font-semibold tabular-nums text-primary">{coach.fit.score}<span className="text-base font-normal text-muted-foreground"> / 100</span></p>
+          <Reliability coach={coach} />
           {coach.aheadOfNext && <p className="mt-3 rounded-md bg-muted/40 p-2 text-xs leading-5"><span className="font-semibold">Why he is above the next man:</span> {coach.aheadOfNext}</p>}
           <Situation coach={coach} />
           <p className="mt-3 text-sm leading-relaxed">{coach.profile.summary}</p>
@@ -72,11 +81,12 @@ export async function BriefMatches({ mandate, appointmentDecisions }: { mandate:
       </div>
 
       <details className="mt-5 border-t border-border pt-4" open><summary className="cursor-pointer text-sm font-medium">Full ranking · {ranking.shortlist.length} coaches we could pursue</summary>
-        <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-border"><th className="py-2 pr-3">Rank</th><th className="pr-3">Coach</th><th className="pr-3">Fit</th><th className="pr-3">Situation</th><th>Why above the next</th></tr></thead><tbody>
+        <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-border"><th className="py-2 pr-3">Rank</th><th className="pr-3">Coach</th><th className="pr-3">Fit</th><th className="pr-3">Evidence</th><th className="pr-3">Situation</th><th>Why above the next</th></tr></thead><tbody>
           {ranking.shortlist.map(coach => <tr key={coach.profile.apiId} className="border-b border-border align-top">
             <td className="py-2 pr-3 whitespace-nowrap">{positionLabel(coach)}</td>
             <td className="pr-3">{coach.record ? <Link className="text-primary hover:underline" href={`/coaches/${coach.record.id}`}>{coach.profile.name}</Link> : coach.profile.name}</td>
             <td className="pr-3 tabular-nums">{coach.fit.score}</td>
+            <td className="pr-3 text-xs text-muted-foreground whitespace-nowrap">{coach.fit.coverage.reliability} · {coach.fit.coverage.evidencedWeight}%</td>
             <td className="pr-3 text-xs text-muted-foreground">{coach.eligibility.headline}</td>
             <td className="text-xs text-muted-foreground">{coach.aheadOfNext ?? '—'}</td>
           </tr>)}
@@ -93,9 +103,21 @@ export async function BriefMatches({ mandate, appointmentDecisions }: { mandate:
       </div>
     </details>}
 
+    <details className="mt-4 border-t border-border pt-4" id="brief-usage"><summary className="cursor-pointer text-sm font-medium">How this brief is being used</summary>
+      {(() => { const usage = briefUsage(mandate as RankingBrief & Record<string, unknown>); const Block = ({ title, note, rows }: { title: string; note: string; rows: { label: string; value: string; rule: string }[] }) => <div className="mt-3"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</p><p className="mt-1 text-xs text-muted-foreground">{note}</p><ul className="mt-2 space-y-1.5">{rows.map(row => <li key={row.label} className="text-xs leading-5"><span className="font-medium">{row.label}:</span> {row.value} <span className="text-muted-foreground">— {row.rule}</span></li>)}</ul></div>
+        return <div>
+          <p className="mt-3 text-sm text-muted-foreground">Every answer on the form does one of four things. Nothing is dropped silently.</p>
+          <Block title="Moves the ranking" note={`Weighting profile: ${usage.profile}. These answers set the lines and the weights.`} rows={usage.ranking} />
+          <div className="mt-3"><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Waiting for coach evidence</p><p className="mt-1 text-xs text-muted-foreground">These lines exist but score nothing until checked, non-illustrative evidence is recorded for a coach on this mandate. Their weight is left out and the evidence line on each card says so.</p><ul className="mt-2 space-y-1.5">{usage.evidenceRequired.map(row => <li key={row.label} className="text-xs leading-5"><span className="font-medium">{row.label}:</span> {row.value} <span className="text-muted-foreground">— {row.missing}</span></li>)}</ul></div>
+          <Block title="Feasibility, not fit" note="Read against each coach’s known situation; never part of the score. Unknowns stay unknown and become diligence actions." rows={usage.feasibility} />
+          <Block title="Workflow and permissions" note="Control what can happen next and who owns it." rows={usage.workflow} />
+          <Block title="Assessment and reports" note="Free text is never turned into a number; it frames the nine areas, the interview and the Coach ID report." rows={usage.narrative} />
+        </div> })()}
+    </details>
+
     <details className="mt-4 border-t border-border pt-4"><summary className="cursor-pointer text-sm font-medium">How the score is built</summary>
       <p className="mt-3 text-sm text-muted-foreground">{model.label} — chosen by the objective in the saved brief. {model.summary}</p>
-      <p className="mt-2 text-sm text-muted-foreground">{model.evidence} Level scores are ordered by weight of recent verified matches; names are never used to split them. Change the brief and the whole list recalculates on the next load.</p>
+      <p className="mt-2 text-sm text-muted-foreground">{EVIDENCE_NOTE} Level scores are ordered by weight of recent verified matches; names are never used to split them. Change the brief and the whole list recalculates on the next load.</p>
       <p className="mt-2 text-sm text-muted-foreground">Two brief answers change the weights, and say so on every card: <span className="text-foreground">Change to the current model</span> — preserve makes the football-match lines count 1.5×, substantial rebuild makes them 0.75× and the proven-record lines 1.25×; <span className="text-foreground">Board risk appetite</span> — conservative makes the proven-record lines count 1.5×, aggressive 0.75×. {ranking.shortlist[0]?.fit.modifiers.length ? `This brief: ${ranking.shortlist[0].fit.modifiers.join(' ')}` : 'This brief changes nothing — gradual evolution and a moderate board.'}</p>
       <p className="mt-2 text-sm text-muted-foreground">Still to check by hand for every name: {[appointmentBrief.salary?.value && 'salary', appointmentBrief.staff_budget?.value && 'staff costs', appointmentBrief.compensation?.value && 'compensation', 'interest in the job', 'references', 'work permit'].filter(Boolean).join(', ')}.</p>
     </details>

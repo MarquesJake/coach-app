@@ -25,7 +25,7 @@ test('structured answers override broad football fields and priorities change we
   } }, possession)
   const build = result.dimensions.find(row => row.key === 'build')!
   const press = result.dimensions.find(row => row.key === 'pressing')!
-  assert.equal(build.required, 'Direct')
+  assert.equal(build.required, 'Direct — long ball or quick forward play')
   assert.equal(build.score, 25)
   assert.equal(build.weight, press.weight * 3)
 })
@@ -55,9 +55,15 @@ test('a generic adaptable label earns no bonus over a different identity', () =>
   assert.equal(identity(adaptable), identity(possession))
 })
 
-test('missing match data is shown as unavailable, never as zero', () => {
+test('missing match data is shown as not scored, never as zero, and the coverage line drops', () => {
+  const withData = calculateResearchFit(brief, possession, { apiId: 1, latestSeason: { club: 'Club', season: 2025, matches: 38, pointsPerMatch: 1.5 }, style: { club: 'Club', season: 2025, matches: 38, possession: 58, xgFor: 1.6, xgAgainst: 1.1 }, recentMatches: 76 })
   const result = calculateResearchFit(brief, possession, null)
   const frontFoot = result.dimensions.find(row => row.key === 'front-foot')!
-  assert.equal(frontFoot.recorded, 'Not available from the current source')
-  assert.ok(frontFoot.score > 0)
+  assert.equal(frontFoot.recorded, 'Not scored — match data required')
+  assert.equal(frontFoot.score, null)
+  assert.equal(frontFoot.weight, 0)
+  assert.ok(frontFoot.intendedWeight > 0)
+  assert.ok(result.coverage.unscored.includes('Front-foot football in the match data'))
+  assert.ok(result.coverage.evidencedWeight < withData.coverage.evidencedWeight)
+  assert.ok(Math.abs(result.dimensions.reduce((sum, row) => sum + row.weight, 0) - 100) < 0.00001)
 })
